@@ -43,6 +43,7 @@ const modes: Mode[] = [
 const defaultLevels = Object.fromEntries(modes.map((mode) => [mode.key, 0]));
 const levelNames = ['Ignorancia activa', 'Reacción pasiva', 'Conciencia confusa', 'Intención sin hábito', 'Bases establecidas', 'Mantenimiento básico', 'Rumbo definido', 'Crecimiento consistente', 'Optimización y disciplina', 'Maestría e influencia'];
 const userProfile = { name: 'Jofer', initials: 'J', role: 'CEO FUNDADOR' };
+const journeyLevels = Array.from({ length: 10 }, (_, level) => level);
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 type AvatarConfig = { hair: 'short' | 'curly' | 'long'; physique: 'balanced' | 'athletic' | 'muscular'; outfit: 'casual' | 'romantic' | 'executive' };
@@ -81,6 +82,7 @@ function App() {
     }
   });
   const [selectedMode, setSelectedMode] = useState<Mode | null>(null);
+  const [journeyStarted, setJourneyStarted] = useState(false);
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
   const [view, setView] = useState<View>('welcome');
   const [profileImage, setProfileImage] = useState<string | null>(() => {
@@ -159,6 +161,11 @@ function App() {
     });
   }
 
+  const openMode = (mode: Mode) => {
+    setSelectedMode(mode);
+    setJourneyStarted(false);
+  };
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -181,7 +188,7 @@ function App() {
             <div className="overview-orbit overview-orbit--outer" />
             <div className="overview-orbit overview-orbit--inner" />
             {modes.map((mode, index) => (
-              <button className="overview-mode" key={mode.key} type="button" onClick={() => setSelectedMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${mode.name}, nivel ${levels[mode.key]}`}>
+              <button className="overview-mode" key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${mode.name}, nivel ${levels[mode.key]}`}>
                 <span className="overview-mode-icon">{mode.icon}</span><span className="overview-mode-name">{mode.shortName}</span><strong>{levels[mode.key]}</strong>
               </button>
             ))}
@@ -200,6 +207,7 @@ function App() {
       ) : (
       <>
       <section className="intro" aria-labelledby="dashboard-title">
+        <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>← Volver al overview</button>
         <div>
           <p className="kicker">Tu consola de presencia</p>
           <h1 id="dashboard-title">¿En qué modo estás cultivando hoy?</h1>
@@ -222,7 +230,7 @@ function App() {
           const level = levels[mode.key];
           return (
             <article className="mode-card" key={mode.key} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties}>
-              <button className="card-entry" type="button" onClick={() => setSelectedMode(mode)} aria-label={`Entrar al journey de ${mode.name}`}>
+              <button className="card-entry" type="button" onClick={() => openMode(mode)} aria-label={`Entrar al journey de ${mode.name}`}>
                 <span className="card-number">{mode.roman}</span><span className="card-arrow">↗</span>
                 <span className="mode-icon" aria-hidden="true">{mode.icon}</span>
                 <span className="mode-card-title">{mode.name}</span>
@@ -237,7 +245,7 @@ function App() {
         })}
       </section>
 
-      <footer className="dashboard-footer"><span><button className="back-to-overview" type="button" onClick={() => setView('welcome')}>← Volver al overview</button> <span className="footer-tip">Arrastra los niveles para actualizar tu mapa</span></span><span><i /> PROTOTIPO · DATOS GUARDADOS EN ESTE NAVEGADOR</span></footer>
+      <footer className="dashboard-footer"><span className="footer-tip">Arrastra los niveles para actualizar tu mapa</span><span><i /> PROTOTIPO · DATOS GUARDADOS EN ESTE NAVEGADOR</span></footer>
       </>
       )}
 
@@ -257,7 +265,11 @@ function App() {
         <p className="kicker">Journey de cultivo</p><h2 id="journey-title">{selectedMode.name}</h2><p className="journey-description">{selectedMode.description}. Este espacio te acompaña a reconocer tu presencia, observar tu nivel y elegir una práctica concreta para cultivarlo.</p>
         <div className="journey-level"><div><span>NIVEL ACTUAL</span><strong>{levels[selectedMode.key]} <small>/ 9</small></strong></div><span className="journey-level-name">{levelNames[levels[selectedMode.key]]}</span></div>
         <label htmlFor="journey-slider">Ajusta tu nivel de presencia</label><input id="journey-slider" className="journey-slider" type="range" min="0" max="9" value={levels[selectedMode.key]} onChange={(event) => updateLevel(selectedMode.key, Number(event.target.value))} />
-        <button className="journey-cta" type="button" onClick={() => setSelectedMode(null)}>Comenzar este journey <span>→</span></button>
+        {!journeyStarted ? <button className="journey-cta" type="button" onClick={() => setJourneyStarted(true)}>Comenzar este journey <span>→</span></button> : <section className="journey-builder" aria-labelledby="journey-builder-title">
+          <div className="journey-builder-heading"><div><p className="kicker">Tu ruta de cultivo</p><h3 id="journey-builder-title">Actividades por nivel</h3></div><span>0 / 10 definidos</span></div>
+          <p className="journey-builder-intro">Diseña una práctica para cada etapa de tu {selectedMode.name}. Por ahora estas tarjetas son la estructura base de tu journey.</p>
+          <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}`} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong>{level === levels[selectedMode.key] && <em>Actual</em>}</div><h4>Actividad por definir</h4><p>Tu reto personal para cultivar este nivel.</p><button type="button" onClick={() => undefined}>＋ Agregar actividad</button></article>)}</div>
+        </section>}
       </section></div>}
     </main>
   );
