@@ -101,6 +101,13 @@ function App() {
     }
   });
   const [customizingAvatar, setCustomizingAvatar] = useState(false);
+  const [visionImages, setVisionImages] = useState<Record<string, string>>(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem('modoCultiva_visionImages') ?? '{}');
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     try {
@@ -166,6 +173,22 @@ function App() {
     setJourneyStarted(false);
   };
 
+  const handleVisionImage = (modeKey: string, file: File | undefined) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') return;
+      const next = { ...visionImages, [modeKey]: reader.result };
+      setVisionImages(next);
+      try {
+        window.localStorage.setItem('modoCultiva_visionImages', JSON.stringify(next));
+      } catch {
+        // The image remains available for the current session.
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -178,7 +201,7 @@ function App() {
       </header>
 
       {view === 'welcome' ? (
-        <section className="welcome-view" aria-labelledby="welcome-title">
+        <section className="welcome-view" data-layer="1" aria-labelledby="welcome-title">
           <div className="welcome-copy">
             <p className="kicker">Bienvenido a tu mapa de vida</p>
             <h1 id="welcome-title">Cultiva todos tus modos.</h1>
@@ -196,7 +219,7 @@ function App() {
               <button className="overview-dashboard-button" type="button" onClick={() => setView('dashboard')}>
                 <span className="avatar-stage"><Avatar config={avatar} />{profileImage && <img className="avatar-photo-badge" src={profileImage} alt={`Foto de perfil de ${userProfile.name}`} />}</span>
                 <strong>{userProfile.name}</strong><small>{userProfile.role}</small>
-                <span className="dashboard-hint">Entrar a mi dashboard <b>↗</b></span>
+                <span className="dashboard-hint">Entrar <b>↗</b></span>
               </button>
               <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ Personalizar avatar</button>
               <label className="profile-upload" onClick={(event) => event.stopPropagation()}><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /> <span>＋</span> Cargar foto</label>
@@ -206,7 +229,7 @@ function App() {
         </section>
       ) : (
       <>
-      <section className="intro" aria-labelledby="dashboard-title">
+      <section className="intro" data-layer="1" aria-labelledby="dashboard-title">
         <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>← Volver al overview</button>
         <div>
           <p className="kicker">Tu consola de presencia</p>
@@ -259,16 +282,17 @@ function App() {
         <button className="customizer-done" type="button" onClick={() => setCustomizingAvatar(false)}>Listo, este soy yo <span>→</span></button>
       </section></div>}
 
-      {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section className="journey-panel" role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
+      {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section className="journey-panel" data-layer={journeyStarted ? '3' : '2'} role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
         <div className="journey-marker">{selectedMode.roman} / 12</div><span className="journey-icon">{selectedMode.icon}</span>
         <p className="kicker">Journey de cultivo</p><h2 id="journey-title">{selectedMode.name}</h2><p className="journey-description">{selectedMode.description}. Este espacio te acompaña a reconocer tu presencia, observar tu nivel y elegir una práctica concreta para cultivarlo.</p>
         <div className="journey-level"><div><span>NIVEL ACTUAL</span><strong>{levels[selectedMode.key]} <small>/ 9</small></strong></div><span className="journey-level-name">{levelNames[levels[selectedMode.key]]}</span></div>
         <label htmlFor="journey-slider">Ajusta tu nivel de presencia</label><input id="journey-slider" className="journey-slider" type="range" min="0" max="9" value={levels[selectedMode.key]} onChange={(event) => updateLevel(selectedMode.key, Number(event.target.value))} />
-        {!journeyStarted ? <button className="journey-cta" type="button" onClick={() => setJourneyStarted(true)}>Comenzar este journey <span>→</span></button> : <section className="journey-builder" aria-labelledby="journey-builder-title">
+        {!journeyStarted ? <button className="journey-cta" type="button" onClick={() => setJourneyStarted(true)}>Comenzar este journey <span>→</span></button> : <section className="journey-builder" data-layer="3" aria-labelledby="journey-builder-title">
+          <button className="journey-back" type="button" onClick={() => setJourneyStarted(false)}>← Volver al modo</button>
           <div className="journey-builder-heading"><div><p className="kicker">Tu ruta de cultivo</p><h3 id="journey-builder-title">Actividades por nivel</h3></div><span>0 / 10 definidos</span></div>
           <p className="journey-builder-intro">Diseña una práctica para cada etapa de tu {selectedMode.name}. Por ahora estas tarjetas son la estructura base de tu journey.</p>
-          <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}`} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong>{level === levels[selectedMode.key] && <em>Actual</em>}</div><h4>Actividad por definir</h4><p>Tu reto personal para cultivar este nivel.</p><button type="button" onClick={() => undefined}>＋ Agregar actividad</button></article>)}</div>
+          <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong>{level === levels[selectedMode.key] && <em>Actual</em>}{level === 9 && <em>Meta final</em>}</div>{level < 9 ? <><h4>Actividad por definir</h4><p>Tu reto personal para cultivar este nivel.</p><button type="button" onClick={() => undefined}>＋ Agregar actividad</button></> : <><h4>Tu visión final</h4><p>Representa en una imagen el resultado al que quieres llegar.</p><label className="vision-upload">{visionImages[selectedMode.key] ? <img src={visionImages[selectedMode.key]} alt={`Visión final de ${selectedMode.name}`} /> : <span>＋</span>}<input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? 'Cambiar imagen' : 'Cargar imagen'}</label></>}</article>)}</div>
         </section>}
       </section></div>}
     </main>
