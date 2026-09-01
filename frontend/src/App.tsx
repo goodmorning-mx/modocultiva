@@ -42,7 +42,7 @@ const modes: Mode[] = [
 
 const defaultLevels = Object.fromEntries(modes.map((mode) => [mode.key, 0]));
 const levelNames = ['Ignorancia activa', 'Reacción pasiva', 'Conciencia confusa', 'Intención sin hábito', 'Bases establecidas', 'Mantenimiento básico', 'Rumbo definido', 'Crecimiento consistente', 'Optimización y disciplina', 'Maestría e influencia'];
-const userProfile = { name: 'Jofer', initials: 'J', role: 'CEO / Fundador' };
+const userProfile = { name: 'Jofer', initials: 'J', role: 'CEO FUNDADOR' };
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 type AvatarConfig = { hair: 'short' | 'curly' | 'long'; physique: 'balanced' | 'athletic' | 'muscular'; outfit: 'casual' | 'romantic' | 'executive' };
@@ -188,7 +188,7 @@ function App() {
             <div className="overview-core" aria-label={`Overview personal de ${userProfile.name}`}>
               <button className="overview-dashboard-button" type="button" onClick={() => setView('dashboard')}>
                 <span className="avatar-stage"><Avatar config={avatar} />{profileImage && <img className="avatar-photo-badge" src={profileImage} alt={`Foto de perfil de ${userProfile.name}`} />}</span>
-                <span className="profile-greeting">Esta es la vida de</span><strong>{userProfile.name}</strong><small>{userProfile.role}</small>
+                <strong>{userProfile.name}</strong><small>{userProfile.role}</small>
                 <span className="dashboard-hint">Entrar a mi dashboard <b>↗</b></span>
               </button>
               <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ Personalizar avatar</button>
