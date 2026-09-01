@@ -45,6 +45,32 @@ const levelNames = ['Ignorancia activa', 'Reacción pasiva', 'Conciencia confusa
 const userProfile = { name: 'Jofer', initials: 'J', role: 'CEO / Fundador' };
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
+type AvatarConfig = { hair: 'short' | 'curly' | 'long'; physique: 'balanced' | 'athletic' | 'muscular'; outfit: 'casual' | 'romantic' | 'executive' };
+const defaultAvatar: AvatarConfig = { hair: 'short', physique: 'balanced', outfit: 'casual' };
+
+function Avatar({ config }: { config: AvatarConfig }) {
+  const bodyWidth = config.physique === 'muscular' ? 68 : config.physique === 'athletic' ? 58 : 50;
+  const outfitColor = config.outfit === 'romantic' ? '#e889a4' : config.outfit === 'executive' ? '#779edb' : '#65d69c';
+  return (
+    <svg className="avatar-figure" viewBox="0 0 120 150" role="img" aria-label="Avatar personalizable">
+      <ellipse cx="60" cy="143" rx={bodyWidth / 1.45} ry="5" fill="rgba(0,0,0,.28)" />
+      <path d={`M ${60 - bodyWidth / 2} 138 Q ${60 - bodyWidth / 2 - 5} 95 60 83 Q ${60 + bodyWidth / 2 + 5} 95 ${60 + bodyWidth / 2} 138 Z`} fill={outfitColor} />
+      <path d={`M ${60 - bodyWidth / 2} 96 Q ${60 - bodyWidth / 2 - 13} 104 ${60 - bodyWidth / 2 - 12} 123`} fill="none" stroke="#d69b7b" strokeWidth="8" strokeLinecap="round" />
+      <path d={`M ${60 + bodyWidth / 2} 96 Q ${60 + bodyWidth / 2 + 13} 104 ${60 + bodyWidth / 2 + 12} 123`} fill="none" stroke="#d69b7b" strokeWidth="8" strokeLinecap="round" />
+      <path d="M52 83 L52 96 Q60 104 68 96 L68 83" fill="#d69b7b" />
+      <ellipse cx="60" cy="58" rx="25" ry="29" fill="#d69b7b" />
+      <circle cx="51" cy="60" r="2.2" fill="#172b31" /><circle cx="69" cy="60" r="2.2" fill="#172b31" />
+      <path d="M54 72 Q60 76 66 72" fill="none" stroke="#8c4f4a" strokeWidth="2" strokeLinecap="round" />
+      {config.hair === 'short' && <path d="M36 55 Q34 25 60 25 Q87 25 84 57 Q77 42 68 41 Q54 45 36 55Z" fill="#29333a" />}
+      {config.hair === 'curly' && <path d="M35 62 Q24 48 34 34 Q32 18 48 22 Q60 10 70 22 Q88 17 86 37 Q96 48 84 64 Q80 40 60 39 Q42 40 35 62Z" fill="#29333a" />}
+      {config.hair === 'long' && <path d="M35 60 Q29 27 60 24 Q91 27 85 60 L83 100 Q74 91 72 74 Q60 82 48 74 Q45 91 37 100Z" fill="#29333a" />}
+      {config.outfit === 'romantic' && <path d="M60 105 l4 6 7 1-5 5 1 7-7-3-7 3 1-7-5-5 7-1z" fill="#fff2d6" />}
+      {config.outfit === 'executive' && <path d="M60 99 L48 112 L60 132 L72 112 Z" fill="#dbe6ff" opacity=".9" />}
+      {config.physique === 'muscular' && <path d="M38 101 Q46 95 52 106 M82 101 Q74 95 68 106" fill="none" stroke="#b6f0c5" strokeWidth="2" opacity=".65" />}
+    </svg>
+  );
+}
+
 function App() {
   const [levels, setLevels] = useState<Record<string, number>>(() => {
     try {
@@ -64,6 +90,15 @@ function App() {
       return null;
     }
   });
+  const [avatar, setAvatar] = useState<AvatarConfig>(() => {
+    try {
+      const saved = window.localStorage.getItem('modoCultiva_avatar');
+      return saved ? { ...defaultAvatar, ...JSON.parse(saved) } : defaultAvatar;
+    } catch {
+      return defaultAvatar;
+    }
+  });
+  const [customizingAvatar, setCustomizingAvatar] = useState(false);
 
   useEffect(() => {
     try {
@@ -112,6 +147,18 @@ function App() {
     reader.readAsDataURL(file);
   };
 
+  function updateAvatar<Key extends keyof AvatarConfig>(key: Key, value: AvatarConfig[Key]) {
+    setAvatar((current) => {
+      const next = { ...current, [key]: value };
+      try {
+        window.localStorage.setItem('modoCultiva_avatar', JSON.stringify(next));
+      } catch {
+        // Avatar remains available for the current session.
+      }
+      return next;
+    });
+  }
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -140,10 +187,11 @@ function App() {
             ))}
             <div className="overview-core" aria-label={`Overview personal de ${userProfile.name}`}>
               <button className="overview-dashboard-button" type="button" onClick={() => setView('dashboard')}>
-                <span className={`profile-orb${profileImage ? ' profile-orb--image' : ''}`}>{profileImage ? <img src={profileImage} alt={`Foto de perfil de ${userProfile.name}`} /> : userProfile.initials}</span>
+                <span className="avatar-stage"><Avatar config={avatar} />{profileImage && <img className="avatar-photo-badge" src={profileImage} alt={`Foto de perfil de ${userProfile.name}`} />}</span>
                 <span className="profile-greeting">Esta es la vida de</span><strong>{userProfile.name}</strong><small>{userProfile.role}</small>
                 <span className="dashboard-hint">Entrar a mi dashboard <b>↗</b></span>
               </button>
+              <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ Personalizar avatar</button>
               <label className="profile-upload" onClick={(event) => event.stopPropagation()}><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /> <span>＋</span> Cargar foto</label>
             </div>
           </div>
@@ -192,6 +240,16 @@ function App() {
       <footer className="dashboard-footer"><span><button className="back-to-overview" type="button" onClick={() => setView('welcome')}>← Volver al overview</button> <span className="footer-tip">Arrastra los niveles para actualizar tu mapa</span></span><span><i /> PROTOTIPO · DATOS GUARDADOS EN ESTE NAVEGADOR</span></footer>
       </>
       )}
+
+      {customizingAvatar && <div className="avatar-customizer-backdrop" role="presentation" onClick={() => setCustomizingAvatar(false)}><section className="avatar-customizer" role="dialog" aria-modal="true" aria-labelledby="avatar-customizer-title" onClick={(event) => event.stopPropagation()}>
+        <button className="close-journey" type="button" onClick={() => setCustomizingAvatar(false)} aria-label="Cerrar personalizador">×</button>
+        <p className="kicker">Tu identidad en el mapa</p><h2 id="avatar-customizer-title">Diseña tu avatar</h2><p>Prueba distintas versiones de ti. Tu avatar se guarda en este navegador.</p>
+        <div className="customizer-preview"><Avatar config={avatar} /></div>
+        <div className="customizer-group"><span>Cabello</span><div>{(['short', 'curly', 'long'] as const).map((hair) => <button key={hair} className={avatar.hair === hair ? 'option-chip option-chip--active' : 'option-chip'} type="button" onClick={() => updateAvatar('hair', hair)}>{hair === 'short' ? 'Corto' : hair === 'curly' ? 'Rizado' : 'Largo'}</button>)}</div></div>
+        <div className="customizer-group"><span>Físico</span><div>{(['balanced', 'athletic', 'muscular'] as const).map((physique) => <button key={physique} className={avatar.physique === physique ? 'option-chip option-chip--active' : 'option-chip'} type="button" onClick={() => updateAvatar('physique', physique)}>{physique === 'balanced' ? 'Equilibrado' : physique === 'athletic' ? 'Atlético' : 'Musculoso'}</button>)}</div></div>
+        <div className="customizer-group"><span>Atuendo</span><div>{(['casual', 'romantic', 'executive'] as const).map((outfit) => <button key={outfit} className={avatar.outfit === outfit ? 'option-chip option-chip--active' : 'option-chip'} type="button" onClick={() => updateAvatar('outfit', outfit)}>{outfit === 'casual' ? 'Casual' : outfit === 'romantic' ? 'Romántico' : 'Ejecutivo'}</button>)}</div></div>
+        <button className="customizer-done" type="button" onClick={() => setCustomizingAvatar(false)}>Listo, este soy yo <span>→</span></button>
+      </section></div>}
 
       {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section className="journey-panel" role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
