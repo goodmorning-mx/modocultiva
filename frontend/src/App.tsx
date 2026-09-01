@@ -42,7 +42,7 @@ const modes: Mode[] = [
 
 const defaultLevels = Object.fromEntries(modes.map((mode) => [mode.key, 0]));
 const levelNames = ['Ignorancia activa', 'Reacción pasiva', 'Conciencia confusa', 'Intención sin hábito', 'Bases establecidas', 'Mantenimiento básico', 'Rumbo definido', 'Crecimiento consistente', 'Optimización y disciplina', 'Maestría e influencia'];
-const userProfile = { name: 'Abel', initials: 'A' };
+const userProfile = { name: 'Jofer', initials: 'J', role: 'CEO / Fundador' };
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 function App() {
@@ -57,6 +57,13 @@ function App() {
   const [selectedMode, setSelectedMode] = useState<Mode | null>(null);
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
   const [view, setView] = useState<View>('welcome');
+  const [profileImage, setProfileImage] = useState<string | null>(() => {
+    try {
+      return window.localStorage.getItem('modoCultiva_profileImage');
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
     try {
@@ -89,6 +96,22 @@ function App() {
 
   const updateLevel = (key: string, level: number) => setLevels((current) => ({ ...current, [key]: level }));
 
+  const handleProfileImage = (file: File | undefined) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = typeof reader.result === 'string' ? reader.result : null;
+      if (!image) return;
+      setProfileImage(image);
+      try {
+        window.localStorage.setItem('modoCultiva_profileImage', image);
+      } catch {
+        // The profile image remains available for the current session.
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -115,8 +138,14 @@ function App() {
                 <span className="overview-mode-icon">{mode.icon}</span><span className="overview-mode-name">{mode.shortName}</span><strong>{levels[mode.key]}</strong>
               </button>
             ))}
-            <div className="overview-core" aria-label={`Overview personal de ${userProfile.name}`}><div className="profile-orb">{userProfile.initials}</div><span className="profile-greeting">Este mapa es de</span><strong>{userProfile.name}</strong><small>12 modos en cultivo</small></div>
-            <button className="overview-cta" type="button" onClick={() => setView('dashboard')}>Entrar a mi dashboard <span>↗</span></button>
+            <div className="overview-core" aria-label={`Overview personal de ${userProfile.name}`}>
+              <button className="overview-dashboard-button" type="button" onClick={() => setView('dashboard')}>
+                <span className={`profile-orb${profileImage ? ' profile-orb--image' : ''}`}>{profileImage ? <img src={profileImage} alt={`Foto de perfil de ${userProfile.name}`} /> : userProfile.initials}</span>
+                <span className="profile-greeting">Esta es la vida de</span><strong>{userProfile.name}</strong><small>{userProfile.role}</small>
+                <span className="dashboard-hint">Entrar a mi dashboard <b>↗</b></span>
+              </button>
+              <label className="profile-upload" onClick={(event) => event.stopPropagation()}><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /> <span>＋</span> Cargar foto</label>
+            </div>
           </div>
           <div className="welcome-caption"><span><i /> Tu overview personal</span><span>12 modos · 10 niveles · 1 vida en movimiento</span></div>
         </section>
