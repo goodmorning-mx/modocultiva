@@ -9,7 +9,10 @@ class Settings(BaseSettings):
 
     app_name: str = Field(default="GoodMorning MVP Template API", alias="APP_NAME")
     app_env: str = Field(default="local", alias="APP_ENV")
-    cors_origins: str = Field(default="http://localhost:5173", alias="CORS_ORIGINS")
+    cors_origins: str = Field(
+        default="http://localhost:5173,https://dev.modocultiva.goodmorning.mx",
+        alias="CORS_ORIGINS",
+    )
     database_url: str = Field(
         default="postgresql+psycopg://goodmorning:goodmorning_local_password@localhost:5432/goodmorning_mvp",
         alias="DATABASE_URL",
