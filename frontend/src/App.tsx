@@ -42,6 +42,7 @@ const modes: Mode[] = [
 
 const defaultLevels = Object.fromEntries(modes.map((mode) => [mode.key, 0]));
 const levelNames = ['Ignorancia activa', 'Reacción pasiva', 'Conciencia confusa', 'Intención sin hábito', 'Bases establecidas', 'Mantenimiento básico', 'Rumbo definido', 'Crecimiento consistente', 'Optimización y disciplina', 'Maestría e influencia'];
+const userProfile = { name: 'Abel', initials: 'A' };
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 function App() {
@@ -114,7 +115,8 @@ function App() {
                 <span className="overview-mode-icon">{mode.icon}</span><span className="overview-mode-name">{mode.shortName}</span><strong>{levels[mode.key]}</strong>
               </button>
             ))}
-            <div className="overview-core"><img src={logo} alt="" /><span>modo<br /><b>cultiva</b></span><button type="button" onClick={() => setView('dashboard')}>Entrar a mi dashboard <span>↗</span></button></div>
+            <div className="overview-core" aria-label={`Overview personal de ${userProfile.name}`}><div className="profile-orb">{userProfile.initials}</div><span className="profile-greeting">Este mapa es de</span><strong>{userProfile.name}</strong><small>12 modos en cultivo</small></div>
+            <button className="overview-cta" type="button" onClick={() => setView('dashboard')}>Entrar a mi dashboard <span>↗</span></button>
           </div>
           <div className="welcome-caption"><span><i /> Tu overview personal</span><span>12 modos · 10 niveles · 1 vida en movimiento</span></div>
         </section>
