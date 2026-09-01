@@ -23,6 +23,8 @@ type Mode = {
   accent: string;
 };
 
+type View = 'welcome' | 'dashboard';
+
 const modes: Mode[] = [
   { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '✦', color: '#54d6bc', accent: '#153f42' },
   { key: 'intelectual', roman: 'II', name: 'Modo Intelectual', shortName: 'Intelectual', description: 'Desarrollo intelectual y cognitivo', icon: '◈', color: '#63c9ee', accent: '#173a55' },
@@ -53,6 +55,7 @@ function App() {
   });
   const [selectedMode, setSelectedMode] = useState<Mode | null>(null);
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
+  const [view, setView] = useState<View>('welcome');
 
   useEffect(() => {
     try {
@@ -92,10 +95,31 @@ function App() {
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
-        <div className="topbar-meta"><span className="live-dot" /> CHECK-UP EXPRESS <span className="meta-divider" /> 12 MODOS DE VIDA</div>
+        <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA</div>
         <button className="profile-button" type="button" aria-label="Abrir perfil">MC</button>
       </header>
 
+      {view === 'welcome' ? (
+        <section className="welcome-view" aria-labelledby="welcome-title">
+          <div className="welcome-copy">
+            <p className="kicker">Bienvenido a tu mapa de vida</p>
+            <h1 id="welcome-title">Cultiva todos tus modos.</h1>
+            <p className="intro-copy">Una vista completa para recordar las áreas que te hacen ser tú. Observa tu equilibrio, elige dónde poner presencia y entra a tu dashboard cuando quieras profundizar.</p>
+          </div>
+          <div className="overview-stage" aria-label="Overview de tus 12 modos de vida">
+            <div className="overview-orbit overview-orbit--outer" />
+            <div className="overview-orbit overview-orbit--inner" />
+            {modes.map((mode, index) => (
+              <button className="overview-mode" key={mode.key} type="button" onClick={() => setSelectedMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${mode.name}, nivel ${levels[mode.key]}`}>
+                <span className="overview-mode-icon">{mode.icon}</span><span className="overview-mode-name">{mode.shortName}</span><strong>{levels[mode.key]}</strong>
+              </button>
+            ))}
+            <div className="overview-core"><img src={logo} alt="" /><span>modo<br /><b>cultiva</b></span><button type="button" onClick={() => setView('dashboard')}>Entrar a mi dashboard <span>↗</span></button></div>
+          </div>
+          <div className="welcome-caption"><span><i /> Tu overview personal</span><span>12 modos · 10 niveles · 1 vida en movimiento</span></div>
+        </section>
+      ) : (
+      <>
       <section className="intro" aria-labelledby="dashboard-title">
         <div>
           <p className="kicker">Tu consola de presencia</p>
@@ -107,7 +131,7 @@ function App() {
         </div>
       </section>
 
-      <section className="dashboard-tools" aria-label="Resumen del check-up">
+      <section className="dashboard-tools" aria-label="Resumen de tu mapa">
         <div className="tool-title"><span className="pulse-icon">⌁</span><div><strong>MAPA DE MODOS</strong><span>Tu nivel actual por área de vida</span></div></div>
         <div className="tool-stat"><span className="stat-label">Activo ahora</span><strong>—</strong><span className="stat-hint">Elige un modo para comenzar</span></div>
         <div className="tool-stat"><span className="stat-label">Modo más fuerte</span><strong>{modes.reduce((best, mode) => levels[mode.key] > levels[best.key] ? mode : best, modes[0]).shortName}</strong><span className="stat-hint">Nivel {Math.max(...Object.values(levels))}</span></div>
@@ -134,7 +158,9 @@ function App() {
         })}
       </section>
 
-      <footer className="dashboard-footer"><span>Arrastra los niveles para actualizar tu mapa</span><span><i /> PROTOTIPO · DATOS GUARDADOS EN ESTE NAVEGADOR</span></footer>
+      <footer className="dashboard-footer"><span><button className="back-to-overview" type="button" onClick={() => setView('welcome')}>← Volver al overview</button> <span className="footer-tip">Arrastra los niveles para actualizar tu mapa</span></span><span><i /> PROTOTIPO · DATOS GUARDADOS EN ESTE NAVEGADOR</span></footer>
+      </>
+      )}
 
       {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section className="journey-panel" role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
