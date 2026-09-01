@@ -21,6 +21,7 @@ def test_frontend_remote_contract() -> None:
     assert "WORKDIR /app" in dockerfile
     assert "RUN npm ci" in dockerfile
     assert "ARG VITE_API_URL" in dockerfile
+    assert "ARG VITE_API_URL=https://api.dev.modocultiva.goodmorning.mx" in dockerfile
     assert "ENV VITE_API_URL=$VITE_API_URL" in dockerfile
     assert "RUN npm run build" in dockerfile
     assert "FROM nginx:" in dockerfile
