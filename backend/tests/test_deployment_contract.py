@@ -37,6 +37,7 @@ def test_frontend_remote_contract() -> None:
 def test_backend_remote_contract() -> None:
     dockerfile = read("backend/Dockerfile")
     entrypoint = read("backend/entrypoint.sh")
+    config = read("backend/app/config.py")
     assert "FROM python:3.12-slim" in dockerfile
     assert "pip install --no-cache-dir -r requirements.txt" in dockerfile
     assert "COPY alembic.ini ./" in dockerfile
@@ -53,6 +54,7 @@ def test_backend_remote_contract() -> None:
     assert "alembic upgrade head" in entrypoint
     assert "exec uvicorn app.main:app --host 0.0.0.0 --port 8000" in entrypoint
     assert entrypoint.index("alembic upgrade head") < entrypoint.index("exec uvicorn")
+    assert "https://dev.modocultiva.goodmorning.mx" in config
 
 
 def test_compose_local_contract() -> None:
