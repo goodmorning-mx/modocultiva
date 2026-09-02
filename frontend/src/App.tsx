@@ -25,6 +25,7 @@ type Mode = {
 
 type View = 'welcome' | 'dashboard';
 type Preset = Record<string, number>;
+type Skin = 'holista' | 'dj';
 
 const modes: Mode[] = [
   { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '✦', color: '#54d6bc', accent: '#153f42' },
@@ -86,6 +87,13 @@ function App() {
   const [insightNotice, setInsightNotice] = useState<string | null>(null);
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
   const [view, setView] = useState<View>('welcome');
+  const [skin, setSkin] = useState<Skin>(() => {
+    try {
+      return window.localStorage.getItem('modoCultiva_skin') === 'dj' ? 'dj' : 'holista';
+    } catch {
+      return 'holista';
+    }
+  });
   const [profileImage, setProfileImage] = useState<string | null>(() => {
     try {
       return window.localStorage.getItem('modoCultiva_profileImage');
@@ -144,6 +152,15 @@ function App() {
   const definedActivityCount = useMemo(() => selectedMode ? journeyLevels.filter((level) => level < 9 && Boolean(activityDrafts[`${selectedMode.key}-${level}`])).length : 0, [activityDrafts, selectedMode]);
 
   const updateLevel = (key: string, level: number) => setLevels((current) => ({ ...current, [key]: level }));
+
+  const changeSkin = (nextSkin: Skin) => {
+    setSkin(nextSkin);
+    try {
+      window.localStorage.setItem('modoCultiva_skin', nextSkin);
+    } catch {
+      // The selected skin remains available for the current session.
+    }
+  };
 
   const handleProfileImage = (file: File | undefined) => {
     if (!file || !file.type.startsWith('image/')) return;
@@ -284,7 +301,15 @@ function App() {
       </header>
 
       {view === 'welcome' ? (
-        <section className="welcome-view" data-layer="1" aria-labelledby="welcome-title">
+        <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ''}`} data-layer="1" aria-labelledby="welcome-title">
+          <div className="skin-switcher" aria-label="Seleccionar skin del Overview"><span>SKIN ACTIVA</span><button className={skin === 'holista' ? 'skin-option skin-option--active' : 'skin-option'} type="button" onClick={() => changeSkin('holista')}>Holista</button><button className={skin === 'dj' ? 'skin-option skin-option--active' : 'skin-option'} type="button" onClick={() => changeSkin('dj')}>Consola DJ</button></div>
+          {skin === 'dj' && <section className="dj-console" aria-labelledby="dj-console-title">
+            <div className="dj-console-top"><div><p className="kicker">Consola de presencia</p><h1 id="dj-console-title">Cultiva todos tus modos.</h1><p className="intro-copy">MODO CULTIVA ACTIVADO · 12 CANALES DE VIDA ENERGIZADOS</p></div><div className="dj-master-readout"><span>PRESENCIA TOTAL</span><strong>{average}</strong><small>/ 9</small></div></div>
+            <div className="dj-console-screen"><span>SESIÓN PERSONAL · {profileName.toUpperCase()}</span><strong>12 MODOS DE VIDA</strong><i /></div>
+            <div className="dj-channel-deck">{modes.map((mode) => { const level = levels[mode.key]; const litSegments = Math.max(1, Math.ceil(((level + 1) / 10) * 10)); return <article className="dj-channel" key={mode.key} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties}><div className="dj-channel-head"><span>{mode.roman}</span><strong>{mode.icon} {mode.shortName}</strong><small>{level}/9</small></div><div className="dj-led-meter" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <i className={index < litSegments ? 'dj-led dj-led--on' : 'dj-led'} key={index} />)}</div><div className="dj-fader-wrap"><span>9</span><input className="dj-fader" aria-label={`Nivel de ${mode.name}`} type="range" min="0" max="9" value={level} onChange={(event) => updateLevel(mode.key, Number(event.target.value))} /><span>0</span></div><button className="dj-channel-open" type="button" onClick={() => openMode(mode)}>Abrir modo ↗</button></article>; })}</div>
+            <div className="dj-console-footer"><span>FADERS DE PRESENCIA · AJUSTE EN TIEMPO REAL</span><button className="dj-enter" type="button" onClick={() => setView('dashboard')}>Entrar al Dashboard <b>↗</b></button></div>
+          </section>}
+          <div className={skin === 'dj' ? 'holista-overview-content holista-overview-content--hidden' : 'holista-overview-content'}>
           <div className="welcome-copy">
             <p className="kicker">Bienvenido a tu mapa de vida</p>
             <h1 id="welcome-title">Cultiva todos tus modos.</h1>
@@ -309,6 +334,7 @@ function App() {
             </div>
           </div>
           <div className="welcome-caption"><span><i /> Tu overview personal</span><span>12 modos · 10 niveles · 1 vida en movimiento</span></div>
+          </div>
           <section className="preset-panel preset-panel--overview" aria-labelledby="presets-title">
             <div className="preset-copy"><p className="kicker">Configuraciones guardadas</p><h2 id="presets-title">Presets</h2><p>Guarda y recupera combinaciones de niveles para explorar distintos mapas de presencia.</p></div>
             <div className="preset-controls">
@@ -395,7 +421,7 @@ function App() {
           <p className="journey-builder-intro">Diseña una práctica para cada etapa de tu {selectedMode.name}. Por ahora estas tarjetas son la estructura base de tu journey.</p>
           <div className="journey-builder-level-control"><div><span>NIVEL DE PRESENCIA</span><strong>{levels[selectedMode.key]} <small>/ 9</small></strong><em>{levelNames[levels[selectedMode.key]]}</em></div><input id="journey-builder-slider" aria-label={`Ajusta el nivel de presencia de ${selectedMode.name}`} className="journey-slider" type="range" min="0" max="9" value={levels[selectedMode.key]} onChange={(event) => updateLevel(selectedMode.key, Number(event.target.value))} /></div>
           {insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}
-          <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong>{level === levels[selectedMode.key] && <em>Actual</em>}{level === 9 && <em>Meta final</em>}</div><span className="journey-level-card-name">{levelNames[level]}</span>{level < 9 ? <><h4>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : 'Actividad por definir'}</h4><p><strong className="effort-tag">Esfuerzo {effortByLevel[level]}</strong>{activityDrafts[`${selectedMode.key}-${level}`] ? ' · Actividad guardada en este navegador.' : ' · ' + effortDescription[effortByLevel[level]]}</p><div className="journey-card-actions"><button type="button" onClick={() => openActivity(level)}>{activityDrafts[`${selectedMode.key}-${level}`] ? '✦ Rediseñar con IA' : '＋ Agregar actividad'}</button><button className={insightRequests[`${selectedMode.key}-${level}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, level)}>{insightRequests[`${selectedMode.key}-${level}`] ? '✓ Insight pedido' : 'Pedir Insights'}</button></div></> : <><h4>Tu visión final</h4><p>Representa en una imagen el resultado al que quieres llegar.</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? 'Cambiar imagen' : 'Cargar imagen'}</label></>}</article>)}</div>
+          <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong><span className="journey-level-card-name">{levelNames[level]}</span>{level === levels[selectedMode.key] && <em>Actual</em>}{level === 9 && <em>Meta final</em>}</div>{level < 9 ? <><h4>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : 'Actividad por definir'}</h4><p><strong className="effort-tag">Esfuerzo {effortByLevel[level]}</strong>{activityDrafts[`${selectedMode.key}-${level}`] ? ' · Actividad guardada en este navegador.' : ' · ' + effortDescription[effortByLevel[level]]}</p><div className="journey-card-actions"><button type="button" onClick={() => openActivity(level)}>{activityDrafts[`${selectedMode.key}-${level}`] ? '✦ Rediseñar con IA' : '＋ Agregar actividad'}</button><button className={insightRequests[`${selectedMode.key}-${level}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, level)}>{insightRequests[`${selectedMode.key}-${level}`] ? '✓ Insight pedido' : 'Pedir Insights'}</button></div></> : <><h4>Tu visión final</h4><p>Representa en una imagen el resultado al que quieres llegar.</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? 'Cambiar imagen' : 'Cargar imagen'}</label></>}</article>)}</div>
         </section>}
       </section></div>}
     </main>
