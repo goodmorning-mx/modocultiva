@@ -49,32 +49,6 @@ const effortByLevel = ['Bajo', 'Bajo', 'Bajo', 'Medio', 'Medio', 'Medio', 'Alto'
 const effortDescription: Record<string, string> = { Bajo: 'Claridad mental y definición de rumbo', Medio: 'Movimiento y práctica sin inversión', Alto: 'Inversión y asignación estratégica de recursos', 'Visión final': 'Define el resultado que quieres alcanzar' };
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
-type AvatarConfig = { hair: 'short' | 'curly' | 'long'; physique: 'balanced' | 'athletic' | 'muscular'; outfit: 'casual' | 'romantic' | 'executive' };
-const defaultAvatar: AvatarConfig = { hair: 'short', physique: 'balanced', outfit: 'casual' };
-
-function Avatar({ config }: { config: AvatarConfig }) {
-  const bodyWidth = config.physique === 'muscular' ? 68 : config.physique === 'athletic' ? 58 : 50;
-  const outfitColor = config.outfit === 'romantic' ? '#e889a4' : config.outfit === 'executive' ? '#779edb' : '#65d69c';
-  return (
-    <svg className="avatar-figure" viewBox="0 0 120 150" role="img" aria-label="Avatar personalizable">
-      <ellipse cx="60" cy="143" rx={bodyWidth / 1.45} ry="5" fill="rgba(0,0,0,.28)" />
-      <path d={`M ${60 - bodyWidth / 2} 138 Q ${60 - bodyWidth / 2 - 5} 95 60 83 Q ${60 + bodyWidth / 2 + 5} 95 ${60 + bodyWidth / 2} 138 Z`} fill={outfitColor} />
-      <path d={`M ${60 - bodyWidth / 2} 96 Q ${60 - bodyWidth / 2 - 13} 104 ${60 - bodyWidth / 2 - 12} 123`} fill="none" stroke="#d69b7b" strokeWidth="8" strokeLinecap="round" />
-      <path d={`M ${60 + bodyWidth / 2} 96 Q ${60 + bodyWidth / 2 + 13} 104 ${60 + bodyWidth / 2 + 12} 123`} fill="none" stroke="#d69b7b" strokeWidth="8" strokeLinecap="round" />
-      <path d="M52 83 L52 96 Q60 104 68 96 L68 83" fill="#d69b7b" />
-      <ellipse cx="60" cy="58" rx="25" ry="29" fill="#d69b7b" />
-      <circle cx="51" cy="60" r="2.2" fill="#172b31" /><circle cx="69" cy="60" r="2.2" fill="#172b31" />
-      <path d="M54 72 Q60 76 66 72" fill="none" stroke="#8c4f4a" strokeWidth="2" strokeLinecap="round" />
-      {config.hair === 'short' && <path d="M36 55 Q34 25 60 25 Q87 25 84 57 Q77 42 68 41 Q54 45 36 55Z" fill="#29333a" />}
-      {config.hair === 'curly' && <path d="M35 62 Q24 48 34 34 Q32 18 48 22 Q60 10 70 22 Q88 17 86 37 Q96 48 84 64 Q80 40 60 39 Q42 40 35 62Z" fill="#29333a" />}
-      {config.hair === 'long' && <path d="M35 60 Q29 27 60 24 Q91 27 85 60 L83 100 Q74 91 72 74 Q60 82 48 74 Q45 91 37 100Z" fill="#29333a" />}
-      {config.outfit === 'romantic' && <path d="M60 105 l4 6 7 1-5 5 1 7-7-3-7 3 1-7-5-5 7-1z" fill="#fff2d6" />}
-      {config.outfit === 'executive' && <path d="M60 99 L48 112 L60 132 L72 112 Z" fill="#dbe6ff" opacity=".9" />}
-      {config.physique === 'muscular' && <path d="M38 101 Q46 95 52 106 M82 101 Q74 95 68 106" fill="none" stroke="#b6f0c5" strokeWidth="2" opacity=".65" />}
-    </svg>
-  );
-}
-
 function App() {
   const [profileName, setProfileName] = useState(() => {
     try {
@@ -117,14 +91,6 @@ function App() {
       return window.localStorage.getItem('modoCultiva_profileImage');
     } catch {
       return null;
-    }
-  });
-  const [avatar, setAvatar] = useState<AvatarConfig>(() => {
-    try {
-      const saved = window.localStorage.getItem('modoCultiva_avatar');
-      return saved ? { ...defaultAvatar, ...JSON.parse(saved) } : defaultAvatar;
-    } catch {
-      return defaultAvatar;
     }
   });
   const [customizingAvatar, setCustomizingAvatar] = useState(false);
@@ -203,18 +169,6 @@ function App() {
       // The profile name remains available for the current session.
     }
   };
-
-  function updateAvatar<Key extends keyof AvatarConfig>(key: Key, value: AvatarConfig[Key]) {
-    setAvatar((current) => {
-      const next = { ...current, [key]: value };
-      try {
-        window.localStorage.setItem('modoCultiva_avatar', JSON.stringify(next));
-      } catch {
-        // Avatar remains available for the current session.
-      }
-      return next;
-    });
-  }
 
   const openMode = (mode: Mode) => {
     setSelectedMode(mode);
@@ -345,10 +299,12 @@ function App() {
               </button>
             ))}
             <div className="overview-person">
-              <div className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} aria-label={`Foto de perfil de ${profileName}`} />
+              <button className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={`Presiona para entrar al Dashboard de ${profileName}`}>
+                <span className="overview-photo-content"><strong>{profileName}</strong><small>{defaultUserProfile.role}</small><span className="profile-badge">CEO FUNDADOR</span></span>
+                <span className="overview-enter-prompt">Presiona para Entrar <b>↗</b></span>
+              </button>
               <div className="overview-person-actions">
-                <div className="overview-person-identity"><strong>{profileName}</strong><small>{defaultUserProfile.role}</small><span className="profile-badge">CEO FUNDADOR</span></div>
-                <div className="overview-person-buttons"><div className="overview-person-entry"><button className="overview-dashboard-button" type="button" onClick={() => setView('dashboard')}><span className="dashboard-hint">ENTRAR <b>↗</b></span></button><span className="avatar-stage"><Avatar config={avatar} /></span></div><button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ Personalizar avatar</button></div>
+                <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ Personalizar</button>
               </div>
             </div>
           </div>
@@ -412,13 +368,9 @@ function App() {
 
       {customizingAvatar && <div className="avatar-customizer-backdrop" role="presentation" onClick={() => setCustomizingAvatar(false)}><section className="avatar-customizer" role="dialog" aria-modal="true" aria-labelledby="avatar-customizer-title" onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setCustomizingAvatar(false)} aria-label="Cerrar personalizador">×</button>
-        <p className="kicker">Tu identidad en el mapa</p><h2 id="avatar-customizer-title">Diseña tu avatar</h2><p>Personaliza cómo apareces en tu overview. Tus cambios se guardan en este navegador.</p>
+        <p className="kicker">Tu identidad en el mapa</p><h2 id="avatar-customizer-title">Personaliza tu perfil</h2><p>Edita tu nombre y foto de perfil. Tus cambios se guardan en este navegador.</p>
         <label className="customizer-name-field" htmlFor="profile-name">Tu nombre<input id="profile-name" value={profileName} onChange={(event) => handleProfileName(event.target.value)} placeholder="Escribe tu nombre" /></label>
         <label className="customizer-profile-upload"><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /><span>＋</span>{profileImage ? 'Cambiar foto de perfil' : 'Agregar foto de perfil'}</label>
-        <div className="customizer-preview"><Avatar config={avatar} /></div>
-        <div className="customizer-group"><span>Cabello</span><div>{(['short', 'curly', 'long'] as const).map((hair) => <button key={hair} className={avatar.hair === hair ? 'option-chip option-chip--active' : 'option-chip'} type="button" onClick={() => updateAvatar('hair', hair)}>{hair === 'short' ? 'Corto' : hair === 'curly' ? 'Rizado' : 'Largo'}</button>)}</div></div>
-        <div className="customizer-group"><span>Físico</span><div>{(['balanced', 'athletic', 'muscular'] as const).map((physique) => <button key={physique} className={avatar.physique === physique ? 'option-chip option-chip--active' : 'option-chip'} type="button" onClick={() => updateAvatar('physique', physique)}>{physique === 'balanced' ? 'Equilibrado' : physique === 'athletic' ? 'Atlético' : 'Musculoso'}</button>)}</div></div>
-        <div className="customizer-group"><span>Atuendo</span><div>{(['casual', 'romantic', 'executive'] as const).map((outfit) => <button key={outfit} className={avatar.outfit === outfit ? 'option-chip option-chip--active' : 'option-chip'} type="button" onClick={() => updateAvatar('outfit', outfit)}>{outfit === 'casual' ? 'Casual' : outfit === 'romantic' ? 'Romántico' : 'Ejecutivo'}</button>)}</div></div>
         <button className="customizer-done" type="button" onClick={() => setCustomizingAvatar(false)}>Listo, este soy yo <span>→</span></button>
       </section></div>}
 
