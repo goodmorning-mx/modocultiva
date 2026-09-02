@@ -43,7 +43,7 @@ const modes: Mode[] = [
 
 const defaultLevels = Object.fromEntries(modes.map((mode) => [mode.key, 0]));
 const levelNames = ['Ignorancia activa', 'Reacción pasiva', 'Conciencia confusa', 'Intención sin hábito', 'Bases establecidas', 'Mantenimiento básico', 'Rumbo definido', 'Crecimiento consistente', 'Optimización y disciplina', 'Maestría e influencia'];
-const userProfile = { name: 'Jofer', initials: 'J', role: 'CEO FUNDADOR' };
+const defaultUserProfile = { name: 'Jofer', role: 'CEO FUNDADOR' };
 const journeyLevels = Array.from({ length: 10 }, (_, level) => level);
 const effortByLevel = ['Bajo', 'Bajo', 'Bajo', 'Medio', 'Medio', 'Medio', 'Alto', 'Alto', 'Alto', 'Visión final'];
 const effortDescription: Record<string, string> = { Bajo: 'Claridad mental y definición de rumbo', Medio: 'Movimiento y práctica sin inversión', Alto: 'Inversión y asignación estratégica de recursos', 'Visión final': 'Define el resultado que quieres alcanzar' };
@@ -76,6 +76,13 @@ function Avatar({ config }: { config: AvatarConfig }) {
 }
 
 function App() {
+  const [profileName, setProfileName] = useState(() => {
+    try {
+      return window.localStorage.getItem('modoCultiva_profileName') ?? defaultUserProfile.name;
+    } catch {
+      return defaultUserProfile.name;
+    }
+  });
   const [levels, setLevels] = useState<Record<string, number>>(() => {
     try {
       const saved = window.localStorage.getItem('modoCultiva_lastState');
@@ -186,6 +193,15 @@ function App() {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleProfileName = (name: string) => {
+    setProfileName(name);
+    try {
+      window.localStorage.setItem('modoCultiva_profileName', name);
+    } catch {
+      // The profile name remains available for the current session.
+    }
   };
 
   function updateAvatar<Key extends keyof AvatarConfig>(key: Key, value: AvatarConfig[Key]) {
@@ -328,14 +344,13 @@ function App() {
                 <span className="overview-mode-icon">{mode.icon}</span><span className="overview-mode-name">{mode.shortName}</span><strong>{levels[mode.key]}</strong>
               </button>
             ))}
-            <div className="overview-core" aria-label={`Overview personal de ${userProfile.name}`}>
+            <div className="overview-core" aria-label={`Overview personal de ${profileName}`}>
               <button className="overview-dashboard-button" type="button" onClick={() => setView('dashboard')}>
-                <span className="avatar-stage"><Avatar config={avatar} />{profileImage && <img className="avatar-photo-badge" src={profileImage} alt={`Foto de perfil de ${userProfile.name}`} />}</span>
-                <strong>{userProfile.name}</strong><small>{userProfile.role}</small>
+                <span className="avatar-stage"><Avatar config={avatar} />{profileImage && <img className="avatar-photo-badge" src={profileImage} alt={`Foto de perfil de ${profileName}`} />}</span>
+                <strong>{profileName}</strong><small>{defaultUserProfile.role}</small>
                 <span className="dashboard-hint">Entrar <b>↗</b></span>
               </button>
               <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ Personalizar avatar</button>
-              <label className="profile-upload" onClick={(event) => event.stopPropagation()}><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /> <span>＋</span> Cargar foto</label>
             </div>
           </div>
           <div className="welcome-caption"><span><i /> Tu overview personal</span><span>12 modos · 10 niveles · 1 vida en movimiento</span></div>
@@ -397,7 +412,9 @@ function App() {
 
       {customizingAvatar && <div className="avatar-customizer-backdrop" role="presentation" onClick={() => setCustomizingAvatar(false)}><section className="avatar-customizer" role="dialog" aria-modal="true" aria-labelledby="avatar-customizer-title" onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setCustomizingAvatar(false)} aria-label="Cerrar personalizador">×</button>
-        <p className="kicker">Tu identidad en el mapa</p><h2 id="avatar-customizer-title">Diseña tu avatar</h2><p>Prueba distintas versiones de ti. Tu avatar se guarda en este navegador.</p>
+        <p className="kicker">Tu identidad en el mapa</p><h2 id="avatar-customizer-title">Diseña tu avatar</h2><p>Personaliza cómo apareces en tu overview. Tus cambios se guardan en este navegador.</p>
+        <label className="customizer-name-field" htmlFor="profile-name">Tu nombre<input id="profile-name" value={profileName} onChange={(event) => handleProfileName(event.target.value)} placeholder="Escribe tu nombre" /></label>
+        <label className="customizer-profile-upload"><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /><span>＋</span>{profileImage ? 'Cambiar foto de perfil' : 'Agregar foto de perfil'}</label>
         <div className="customizer-preview"><Avatar config={avatar} /></div>
         <div className="customizer-group"><span>Cabello</span><div>{(['short', 'curly', 'long'] as const).map((hair) => <button key={hair} className={avatar.hair === hair ? 'option-chip option-chip--active' : 'option-chip'} type="button" onClick={() => updateAvatar('hair', hair)}>{hair === 'short' ? 'Corto' : hair === 'curly' ? 'Rizado' : 'Largo'}</button>)}</div></div>
         <div className="customizer-group"><span>Físico</span><div>{(['balanced', 'athletic', 'muscular'] as const).map((physique) => <button key={physique} className={avatar.physique === physique ? 'option-chip option-chip--active' : 'option-chip'} type="button" onClick={() => updateAvatar('physique', physique)}>{physique === 'balanced' ? 'Equilibrado' : physique === 'athletic' ? 'Atlético' : 'Musculoso'}</button>)}</div></div>
