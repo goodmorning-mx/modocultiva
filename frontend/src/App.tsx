@@ -206,6 +206,13 @@ function App() {
     setActiveActivity(null);
   };
 
+  const backToDashboard = () => {
+    setSelectedMode(null);
+    setJourneyStarted(false);
+    setActiveActivity(null);
+    setView('dashboard');
+  };
+
   const openActivity = (level: number) => {
     setActiveActivity(level);
     setActivityPrompt('');
@@ -332,6 +339,16 @@ function App() {
             </div>
           </div>
           <div className="welcome-caption"><span><i /> Tu overview personal</span><span>12 modos · 10 niveles · 1 vida en movimiento</span></div>
+          <section className="preset-panel preset-panel--overview" aria-labelledby="presets-title">
+            <div className="preset-copy"><p className="kicker">Configuraciones guardadas</p><h2 id="presets-title">Presets</h2><p>Guarda y recupera combinaciones de niveles para explorar distintos mapas de presencia.</p></div>
+            <div className="preset-controls">
+              <label htmlFor="preset-name">Nuevo preset<input id="preset-name" value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder="Ej. Mi equilibrio" /></label>
+              <button className="preset-action preset-action--primary" type="button" onClick={savePreset}>Guardar</button>
+              <label htmlFor="preset-select">Presets guardados<select id="preset-select" value={selectedPreset} onChange={(event) => setSelectedPreset(event.target.value)}><option value="">— Selecciona un preset —</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
+              <button className="preset-action" type="button" onClick={loadPreset}>Cargar</button><button className="preset-action preset-action--danger" type="button" onClick={deletePreset}>Eliminar</button>
+            </div>
+            {presetNotice && <p className="preset-notice" role="status">{presetNotice}</p>}
+          </section>
         </section>
       ) : (
       <>
@@ -352,17 +369,6 @@ function App() {
         <div className="tool-stat"><span className="stat-label">Activo ahora</span><strong>—</strong><span className="stat-hint">Elige un modo para comenzar</span></div>
         <div className="tool-stat"><span className="stat-label">Modo más fuerte</span><strong>{modes.reduce((best, mode) => levels[mode.key] > levels[best.key] ? mode : best, modes[0]).shortName}</strong><span className="stat-hint">Nivel {Math.max(...Object.values(levels))}</span></div>
         <div className="api-badge" role="status"><span className={`status-dot status-dot--${apiState.status}`} />{apiState.status === 'success' ? 'Sincronización lista' : apiState.status === 'loading' ? 'Conectando…' : 'Modo offline'}</div>
-      </section>
-
-      <section className="preset-panel" aria-labelledby="presets-title">
-        <div className="preset-copy"><p className="kicker">Configuraciones guardadas</p><h2 id="presets-title">Presets</h2><p>Guarda y recupera combinaciones de niveles para explorar distintos mapas de presencia.</p></div>
-        <div className="preset-controls">
-          <label htmlFor="preset-name">Nuevo preset<input id="preset-name" value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder="Ej. Mi equilibrio" /></label>
-          <button className="preset-action preset-action--primary" type="button" onClick={savePreset}>Guardar</button>
-          <label htmlFor="preset-select">Presets guardados<select id="preset-select" value={selectedPreset} onChange={(event) => setSelectedPreset(event.target.value)}><option value="">— Selecciona un preset —</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
-          <button className="preset-action" type="button" onClick={loadPreset}>Cargar</button><button className="preset-action preset-action--danger" type="button" onClick={deletePreset}>Eliminar</button>
-        </div>
-        {presetNotice && <p className="preset-notice" role="status">{presetNotice}</p>}
       </section>
 
       <section className="mode-grid" aria-label="Tus 12 modos de vida">
@@ -401,7 +407,7 @@ function App() {
 
       {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section className="journey-panel" data-layer={activeActivity !== null ? '5' : journeyStarted ? '4' : '3'} role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
-        {!journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={() => setSelectedMode(null)}>← Volver al Dashboard</button>}
+        {!journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← Volver al Dashboard</button>}
         {journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={() => setJourneyStarted(false)}>← Volver al modo</button>}
         {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => setActiveActivity(null)}>← Volver a niveles</button>}
         {activeActivity !== null ? <section className="activity-agent" data-layer="5" aria-labelledby="activity-agent-title">
