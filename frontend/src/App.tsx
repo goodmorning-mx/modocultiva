@@ -160,6 +160,7 @@ function App() {
         setJourneyStarted(false);
       } else if (selectedMode) {
         setSelectedMode(null);
+        setView('dashboard');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
