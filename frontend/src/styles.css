@@ -183,3 +183,12 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .login-view { background-size: cover; background-position: center; }
 
 @media (max-width: 680px) { .login-view { background-size: cover; background-position: center; } }
+
+/* Journey layers remain vertically scrollable without horizontal panning. */
+.journey-backdrop { overflow-x: hidden; overflow-y: auto; }
+.journey-panel { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+.journey-builder, .activity-agent { max-width: 100%; overflow-x: hidden; }
+.agent-chat { overflow-x: hidden; overflow-y: auto; }
+.journey-level-control-description { grid-column: 1 / -1; margin: 2px 0 0 !important; color: #a6c1b5 !important; font-size: .65rem !important; line-height: 1.4; }
+.journey-builder-level-control > div { flex-wrap: wrap; }
+.journey-level-control-description { flex-basis: 100%; }
