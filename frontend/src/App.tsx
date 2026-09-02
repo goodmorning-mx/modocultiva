@@ -24,6 +24,7 @@ type Mode = {
 };
 
 type View = 'welcome' | 'dashboard';
+type Preset = Record<string, number>;
 
 const modes: Mode[] = [
   { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '✦', color: '#54d6bc', accent: '#153f42' },
@@ -127,6 +128,16 @@ function App() {
       return {};
     }
   });
+  const [presets, setPresets] = useState<Record<string, Preset>>(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem('modoCultiva_presets') ?? '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [presetName, setPresetName] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState('');
+  const [presetNotice, setPresetNotice] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -224,6 +235,50 @@ function App() {
     setActiveActivity(null);
   };
 
+  const savePreset = () => {
+    const name = presetName.trim();
+    if (!name) {
+      setPresetNotice('Escribe un nombre para guardar tu configuración.');
+      return;
+    }
+    const next = { ...presets, [name]: { ...levels } };
+    setPresets(next);
+    setSelectedPreset(name);
+    setPresetName('');
+    setPresetNotice(`Preset “${name}” guardado.`);
+    try {
+      window.localStorage.setItem('modoCultiva_presets', JSON.stringify(next));
+    } catch {
+      // The preset remains available for the current session.
+    }
+  };
+
+  const loadPreset = () => {
+    if (!selectedPreset || !presets[selectedPreset]) {
+      setPresetNotice('Selecciona un preset para cargarlo.');
+      return;
+    }
+    setLevels({ ...defaultLevels, ...presets[selectedPreset] });
+    setPresetNotice(`Preset “${selectedPreset}” cargado en tu mapa.`);
+  };
+
+  const deletePreset = () => {
+    if (!selectedPreset || !presets[selectedPreset]) {
+      setPresetNotice('Selecciona un preset para eliminarlo.');
+      return;
+    }
+    const next = { ...presets };
+    delete next[selectedPreset];
+    setPresets(next);
+    setSelectedPreset('');
+    setPresetNotice('Preset eliminado.');
+    try {
+      window.localStorage.setItem('modoCultiva_presets', JSON.stringify(next));
+    } catch {
+      // The preset list remains available for the current session.
+    }
+  };
+
   const handleVisionImage = (modeKey: string, file: File | undefined) => {
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
@@ -299,6 +354,17 @@ function App() {
         <div className="api-badge" role="status"><span className={`status-dot status-dot--${apiState.status}`} />{apiState.status === 'success' ? 'Sincronización lista' : apiState.status === 'loading' ? 'Conectando…' : 'Modo offline'}</div>
       </section>
 
+      <section className="preset-panel" aria-labelledby="presets-title">
+        <div className="preset-copy"><p className="kicker">Configuraciones guardadas</p><h2 id="presets-title">Presets</h2><p>Guarda y recupera combinaciones de niveles para explorar distintos mapas de presencia.</p></div>
+        <div className="preset-controls">
+          <label htmlFor="preset-name">Nuevo preset<input id="preset-name" value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder="Ej. Mi equilibrio" /></label>
+          <button className="preset-action preset-action--primary" type="button" onClick={savePreset}>Guardar</button>
+          <label htmlFor="preset-select">Presets guardados<select id="preset-select" value={selectedPreset} onChange={(event) => setSelectedPreset(event.target.value)}><option value="">— Selecciona un preset —</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
+          <button className="preset-action" type="button" onClick={loadPreset}>Cargar</button><button className="preset-action preset-action--danger" type="button" onClick={deletePreset}>Eliminar</button>
+        </div>
+        {presetNotice && <p className="preset-notice" role="status">{presetNotice}</p>}
+      </section>
+
       <section className="mode-grid" aria-label="Tus 12 modos de vida">
         {modes.map((mode, index) => {
           const level = levels[mode.key];
@@ -352,6 +418,7 @@ function App() {
         </> : <section className="journey-builder" data-layer="3" aria-labelledby="journey-builder-title">
           <div className="journey-builder-heading"><div><p className="kicker">Tu ruta de cultivo · {selectedMode.name}</p><h3 id="journey-builder-title">Actividades por nivel</h3></div><span>{definedActivityCount} / 9 rumbos definidos</span></div>
           <p className="journey-builder-intro">Diseña una práctica para cada etapa de tu {selectedMode.name}. Por ahora estas tarjetas son la estructura base de tu journey.</p>
+          <div className="journey-builder-level-control"><div><span>NIVEL DE PRESENCIA</span><strong>{levels[selectedMode.key]} <small>/ 9</small></strong></div><input id="journey-builder-slider" aria-label={`Ajusta el nivel de presencia de ${selectedMode.name}`} className="journey-slider" type="range" min="0" max="9" value={levels[selectedMode.key]} onChange={(event) => updateLevel(selectedMode.key, Number(event.target.value))} /></div>
           {insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}
           <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong>{level === levels[selectedMode.key] && <em>Actual</em>}{level === 9 && <em>Meta final</em>}</div>{level < 9 ? <><h4>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : 'Actividad por definir'}</h4><p><strong className="effort-tag">Esfuerzo {effortByLevel[level]}</strong>{activityDrafts[`${selectedMode.key}-${level}`] ? ' · Actividad guardada en este navegador.' : ' · ' + effortDescription[effortByLevel[level]]}</p><div className="journey-card-actions"><button type="button" onClick={() => openActivity(level)}>{activityDrafts[`${selectedMode.key}-${level}`] ? '✦ Rediseñar con IA' : '＋ Agregar actividad'}</button><button className={insightRequests[`${selectedMode.key}-${level}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, level)}>{insightRequests[`${selectedMode.key}-${level}`] ? '✓ Insight pedido' : 'Pedir Insights'}</button></div></> : <><h4>Tu visión final</h4><p>Representa en una imagen el resultado al que quieres llegar.</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? 'Cambiar imagen' : 'Cargar imagen'}</label></>}</article>)}</div>
         </section>}
