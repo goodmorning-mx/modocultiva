@@ -151,3 +151,18 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .dj-fader::-moz-range-thumb { margin: 0; }
 
 @media (max-width: 680px) { .level-reference-grid { grid-template-columns: 1fr; }.dj-control-strip { flex-wrap: wrap; }.dj-control-strip > span { width: 100%; }.dj-fader-wrap { height: 215px; }.dj-fader { height: 190px; } }
+
+.dj-profile-entry { position: relative; width: 164px; flex: 0 0 164px; }
+.dj-profile-button { display: flex; align-items: center; justify-content: end; width: 164px; height: 164px; padding: 14px; overflow: hidden; border: 1px solid #55e6dc; border-radius: 12px; color: #dffff1; background: radial-gradient(circle at 50% 30%, #1b5360, #09232d 58%, #06141c 100%); box-shadow: inset 0 1px rgba(255,255,255,.35), inset 0 -18px 25px rgba(0,0,0,.45), 0 0 24px rgba(72, 225, 218, .22); background-position: center; background-size: cover; cursor: pointer; flex-direction: column; text-align: center; transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease; }
+.dj-profile-button:hover { border-color: #b5fff1; box-shadow: inset 0 1px rgba(255,255,255,.45), inset 0 -18px 25px rgba(0,0,0,.45), 0 0 30px rgba(72, 225, 218, .4); transform: translateY(-2px); }
+.dj-profile-button--with-photo { justify-content: end; }
+.dj-profile-fallback { display: grid; place-items: center; width: 62px; height: 62px; margin: auto; border: 1px solid rgba(160, 255, 234, .8); border-radius: 50%; color: #061a20; background: linear-gradient(145deg, #bcfff0, #4dc6c8); box-shadow: 0 0 20px rgba(105, 241, 222, .35); font-size: 2rem; font-weight: 800; }
+.dj-profile-copy { display: grid; gap: 5px; width: 100%; padding: 8px 5px 3px; border-top: 1px solid rgba(156, 255, 235, .34); background: linear-gradient(180deg, transparent, rgba(3, 13, 20, .76)); }
+.dj-profile-copy strong { overflow: hidden; color: #f2fff0; font-size: .95rem; text-overflow: ellipsis; white-space: nowrap; }
+.dj-profile-copy span { color: #82f6d4; font-family: 'DM Mono', monospace; font-size: .47rem; letter-spacing: .06em; text-transform: uppercase; }
+.dj-profile-copy b { margin-left: 3px; font-size: .7rem; }
+.dj-profile-upload { position: absolute; right: 7px; bottom: 7px; display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid #bcfff0; border-radius: 6px; color: #05171d; background: #8ff5cf; box-shadow: 0 2px 8px rgba(0,0,0,.55); cursor: pointer; font-size: .95rem; font-weight: 800; }
+.dj-profile-upload:hover { background: #d6fff2; transform: scale(1.05); }
+.dj-profile-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+@media (max-width: 680px) { .dj-profile-entry { align-self: end; width: 142px; flex-basis: 142px; }.dj-profile-button { width: 142px; height: 142px; }.dj-profile-copy strong { font-size: .85rem; }.dj-profile-copy span { font-size: .42rem; } }
