@@ -344,9 +344,9 @@ function App() {
                 <span className="overview-mode-icon">{mode.icon}</span><span className="overview-mode-name">{mode.shortName}</span><strong>{levels[mode.key]}</strong>
               </button>
             ))}
-            <div className="overview-core" aria-label={`Overview personal de ${profileName}`}>
+            <div className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} aria-label={`Overview personal de ${profileName}`}>
               <button className="overview-dashboard-button" type="button" onClick={() => setView('dashboard')}>
-                <span className="avatar-stage"><Avatar config={avatar} />{profileImage && <img className="avatar-photo-badge" src={profileImage} alt={`Foto de perfil de ${profileName}`} />}</span>
+                <span className="avatar-stage"><Avatar config={avatar} /></span>
                 <strong>{profileName}</strong><small>{defaultUserProfile.role}</small>
                 <span className="dashboard-hint">Entrar <b>↗</b></span>
               </button>
@@ -383,6 +383,7 @@ function App() {
         <div className="tool-title"><span className="pulse-icon">⌁</span><div><strong>MAPA DE MODOS</strong><span>Tu nivel actual por área de vida</span></div></div>
         <div className="tool-stat"><span className="stat-label">Activo ahora</span><strong>—</strong><span className="stat-hint">Elige un modo para comenzar</span></div>
         <div className="tool-stat"><span className="stat-label">Modo más fuerte</span><strong>{modes.reduce((best, mode) => levels[mode.key] > levels[best.key] ? mode : best, modes[0]).shortName}</strong><span className="stat-hint">Nivel {Math.max(...Object.values(levels))}</span></div>
+        <div className="tool-stat"><span className="stat-label">Modo menos cultivado</span><strong>{modes.reduce((least, mode) => levels[mode.key] < levels[least.key] ? mode : least, modes[0]).shortName}</strong><span className="stat-hint">Nivel {Math.min(...Object.values(levels))}</span></div>
         <div className="api-badge" role="status"><span className={`status-dot status-dot--${apiState.status}`} />{apiState.status === 'success' ? 'Sincronización lista' : apiState.status === 'loading' ? 'Conectando…' : 'Modo offline'}</div>
       </section>
 
