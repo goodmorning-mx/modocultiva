@@ -23,7 +23,7 @@ type Mode = {
   accent: string;
 };
 
-type View = 'welcome' | 'dashboard';
+type View = 'login' | 'welcome' | 'dashboard';
 type Preset = Record<string, number>;
 type Skin = 'holista' | 'dj';
 
@@ -87,7 +87,7 @@ function App() {
   });
   const [insightNotice, setInsightNotice] = useState<string | null>(null);
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
-  const [view, setView] = useState<View>('welcome');
+  const [view, setView] = useState<View>('login');
   const [skin, setSkin] = useState<Skin>(() => {
     try {
       return window.localStorage.getItem('modoCultiva_skin') === 'dj' ? 'dj' : 'holista';
@@ -121,6 +121,8 @@ function App() {
   const [presetName, setPresetName] = useState('');
   const [selectedPreset, setSelectedPreset] = useState('');
   const [presetNotice, setPresetNotice] = useState<string | null>(null);
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
   useEffect(() => {
     try {
@@ -303,11 +305,26 @@ function App() {
         <button className="profile-button" type="button" aria-label="Abrir perfil">MC</button>
       </header>
 
-      {view === 'welcome' ? (
+      {view === 'login' ? (
+        <section className="login-view" data-layer="0" aria-labelledby="login-title">
+          <div className="login-card">
+            <div className="login-brand"><img src={logo} alt="Modo Cultiva" /><span>Modo Cultiva</span></div>
+            <p className="kicker">Tu mapa de vida comienza aquí</p>
+            <h1 id="login-title">Entra a tu espacio.</h1>
+            <p className="login-copy">Inicia sesión para continuar cultivando tus 12 modos de vida.</p>
+            <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Holista</button><button className={skin === 'dj' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('dj')}><i>✦</i> Consola DJ</button></div>
+            <form className="login-form" onSubmit={(event) => { event.preventDefault(); setView('welcome'); }}>
+              <label htmlFor="login-username">Usuario<input id="login-username" autoComplete="username" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="Tu usuario" /></label>
+              <label htmlFor="login-password">Contraseña<input id="login-password" type="password" autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="Tu contraseña" /></label>
+              <button className="login-submit" type="submit">Iniciar sesión <span>↗</span></button>
+            </form>
+            <small className="login-prototype-note">Acceso prototipo · tus datos se conectarán próximamente</small>
+          </div>
+        </section>
+      ) : view === 'welcome' ? (
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ''}`} data-layer="1" aria-labelledby="welcome-title">
-          <div className="skin-switcher" aria-label="Seleccionar skin del Overview"><span>SKIN ACTIVA</span><button className={skin === 'holista' ? 'skin-option skin-option--active' : 'skin-option'} type="button" onClick={() => changeSkin('holista')}>Holista</button><button className={skin === 'dj' ? 'skin-option skin-option--active' : 'skin-option'} type="button" onClick={() => changeSkin('dj')}>Consola DJ</button></div>
           {skin === 'dj' && <section className="dj-console" aria-labelledby="dj-console-title">
-            <div className="dj-console-top"><div><p className="kicker">Consola de presencia</p><h1 id="dj-console-title">Cultiva todos tus modos.</h1><p className="intro-copy">MODO CULTIVA ACTIVADO · 12 CANALES DE VIDA ENERGIZADOS</p></div><div className="dj-profile-entry"><button className={profileImage ? 'dj-profile-button dj-profile-button--with-photo' : 'dj-profile-button'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .08), rgba(4, 18, 29, .82)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={`Presiona para entrar al Dashboard de ${profileName}`}><span className="dj-profile-fallback">{profileImage ? '' : profileName.slice(0, 1).toUpperCase()}</span><span className="dj-profile-copy"><strong>{profileName}</strong><span>Presiona para Entrar <b>↗</b></span></span></button><label className="dj-profile-upload" title="Cambiar foto de perfil"><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /><span>＋</span></label></div></div>
+            <div className="dj-console-top"><div><p className="kicker">Consola de presencia</p><h1 id="dj-console-title">Cultiva todos tus modos.</h1><p className="intro-copy">MODO CULTIVA ACTIVADO · 12 CANALES DE VIDA ENERGIZADOS</p></div><div className="dj-profile-entry"><button className={profileImage ? 'dj-profile-button dj-profile-button--with-photo' : 'dj-profile-button'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .08), rgba(4, 18, 29, .82)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={`Presiona para entrar al Dashboard de ${profileName}`}><span className="dj-profile-fallback">{profileImage ? '' : profileName.slice(0, 1).toUpperCase()}</span><span className="dj-profile-copy"><strong>{profileName}</strong><span className="profile-badge">{defaultUserProfile.role}</span><small>Presiona para Entrar <b>↗</b></small></span></button><label className="dj-profile-upload" title="Cambiar foto de perfil"><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /><span>＋</span></label></div></div>
             <div className="dj-console-screen"><span>SESIÓN PERSONAL · {profileName.toUpperCase()}</span><strong>12 MODOS DE VIDA</strong><i /></div>
             <div className="dj-control-strip"><span>SEÑAL / MASTER</span><i className="dj-decor-knob" /><i className="dj-decor-knob" /><button type="button">SYNC</button><button type="button">FX</button><button type="button">MONITOR</button><button type="button">AIR</button></div>
             <div className="dj-readout-panel"><span>CANAL ACTIVO · {focusedDjMode.name.toUpperCase()}</span><strong>NIVEL {levels[focusedDjMode.key]} · {levelNames[levels[focusedDjMode.key]]}</strong><p>{levelDescriptions[levels[focusedDjMode.key]]}</p></div>
