@@ -123,6 +123,7 @@ function App() {
   const [presetNotice, setPresetNotice] = useState<string | null>(null);
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -147,6 +148,23 @@ function App() {
     loadHealth();
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (customizingAvatar) {
+        setCustomizingAvatar(false);
+      } else if (activeActivity !== null) {
+        setActiveActivity(null);
+      } else if (selectedMode && journeyStarted) {
+        setJourneyStarted(false);
+      } else if (selectedMode) {
+        setSelectedMode(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeActivity, customizingAvatar, journeyStarted, selectedMode]);
 
   const average = useMemo(() => {
     const values = Object.values(levels);
@@ -302,7 +320,7 @@ function App() {
           <span>Modo Cultiva</span>
         </a>
         <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA</div>
-        <button className="profile-button" type="button" aria-label="Abrir perfil">MC</button>
+        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu"><button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setSelectedMode(null); setJourneyStarted(false); setActiveActivity(null); setView('login'); }}>Cerrar sesión</button></div>}</div>
       </header>
 
       {view === 'login' ? (

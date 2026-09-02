@@ -176,3 +176,10 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .dj-profile-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
 @media (max-width: 680px) { .dj-profile-entry { align-self: end; width: 142px; flex-basis: 142px; }.dj-profile-button { width: 142px; height: 142px; }.dj-profile-copy strong { font-size: .85rem; }.dj-profile-copy span { font-size: .42rem; } }
+
+.profile-menu { position: relative; }
+.profile-menu-dropdown { position: absolute; z-index: 20; top: calc(100% + 9px); right: 0; min-width: 150px; padding: 6px; border: 1px solid rgba(112, 237, 156, .28); border-radius: 9px; background: linear-gradient(145deg, #163638, #091c24); box-shadow: 0 14px 30px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.1); }
+.profile-menu-dropdown button { width: 100%; padding: 9px 11px; border: 0; border-radius: 6px; color: #c8e9d3; background: transparent; font-size: .68rem; text-align: left; }.profile-menu-dropdown button:hover, .profile-menu-dropdown button:focus-visible { color: #061a16; background: #70ed9c; outline: none; }
+.login-view { background-size: cover; background-position: center; }
+
+@media (max-width: 680px) { .login-view { background-size: cover; background-position: center; } }
