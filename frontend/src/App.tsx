@@ -300,7 +300,7 @@ function App() {
             ))}
             <div className="overview-person">
               <button className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={`Presiona para entrar al Dashboard de ${profileName}`}>
-                <span className="overview-photo-content"><strong>{profileName}</strong><small>{defaultUserProfile.role}</small><span className="profile-badge">CEO FUNDADOR</span></span>
+                <span className="overview-photo-content"><strong>{profileName}</strong><span className="profile-badge">{defaultUserProfile.role}</span></span>
                 <span className="overview-enter-prompt">Presiona para Entrar <b>↗</b></span>
               </button>
               <div className="overview-person-actions">
