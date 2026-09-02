@@ -346,9 +346,8 @@ function App() {
             ))}
             <div className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} aria-label={`Overview personal de ${profileName}`}>
               <button className="overview-dashboard-button" type="button" onClick={() => setView('dashboard')}>
-                <span className="avatar-stage"><Avatar config={avatar} /></span>
                 <strong>{profileName}</strong><small>{defaultUserProfile.role}</small>
-                <span className="dashboard-hint">Entrar <b>↗</b></span>
+                <span className="overview-entry-row"><span className="dashboard-hint">Entrar <b>↗</b></span><span className="avatar-stage"><Avatar config={avatar} /></span></span>
               </button>
               <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ Personalizar avatar</button>
             </div>
@@ -426,7 +425,7 @@ function App() {
       {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section className="journey-panel" data-layer={activeActivity !== null ? '5' : journeyStarted ? '4' : '3'} role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
         {!journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← Volver al Dashboard</button>}
-        {journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={() => setJourneyStarted(false)}>← Volver al modo</button>}
+        {journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={() => setJourneyStarted(false)}>← Volver a la Introducción al Modo</button>}
         {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => setActiveActivity(null)}>← Volver a niveles</button>}
         {activeActivity !== null ? <section className="activity-agent" data-layer="5" aria-labelledby="activity-agent-title">
           <p className="kicker">Diseño agéntico · {selectedMode.name}</p><h2 id="activity-agent-title">Construyamos tu actividad</h2>
