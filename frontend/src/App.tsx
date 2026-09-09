@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import logo from './assets/modo-cultiva-logo.png';
 
 type HealthResponse = {
@@ -164,6 +164,14 @@ function App() {
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const journeyPanelRef = useRef<HTMLElement | null>(null);
+  const journeyReturnScrollTop = useRef(0);
+
+  const restoreJourneyPosition = () => {
+    window.requestAnimationFrame(() => {
+      journeyPanelRef.current?.scrollTo({ top: journeyReturnScrollTop.current, behavior: 'auto' });
+    });
+  };
 
   useEffect(() => {
     try {
@@ -196,6 +204,7 @@ function App() {
         setCustomizingAvatar(false);
       } else if (activeActivity !== null) {
         setActiveActivity(null);
+        restoreJourneyPosition();
       } else if (selectedMode && journeyStarted) {
         setJourneyStarted(false);
       } else if (selectedMode) {
@@ -265,6 +274,7 @@ function App() {
   };
 
   const openActivity = (level: number, entry: ActivityEntry = 'custom') => {
+    journeyReturnScrollTop.current = journeyPanelRef.current?.scrollTop ?? 0;
     setActiveActivity(level);
     setActivityEntry(entry);
     setPoolSelection(0);
@@ -293,6 +303,7 @@ function App() {
       // The activity remains available for the current session.
     }
     setActiveActivity(null);
+    restoreJourneyPosition();
   };
 
   const savePreset = () => {
@@ -484,11 +495,11 @@ function App() {
         <button className="customizer-done" type="button" onClick={() => setCustomizingAvatar(false)}>Listo, este soy yo <span>→</span></button>
       </section></div>}
 
-      {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section className="journey-panel" data-layer={activeActivity !== null ? '5' : journeyStarted ? '4' : '3'} role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
+      {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className="journey-panel" data-layer={activeActivity !== null ? '5' : journeyStarted ? '4' : '3'} role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
         {!journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← Volver al Dashboard</button>}
         {journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={() => setJourneyStarted(false)}>← Volver a la Introducción al Modo</button>}
-        {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => setActiveActivity(null)}>← Volver a niveles</button>}
+        {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← Volver a niveles</button>}
         {activeActivity !== null ? <section className={`activity-agent activity-agent--${activityEntry}`} data-layer="5" aria-labelledby="activity-agent-title">
           <p className="kicker">Layer 5 · {selectedMode.name} · {activityEntryLabel[activityEntry]}</p>
           {activityEntry === 'custom' ? <>
@@ -510,7 +521,7 @@ function App() {
             <div className="effort-panel"><span className="effort-label">PARÁMETRO DE ESFUERZO</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
             <div className="agent-chat" aria-live="polite"><div className="agent-message"><span>IA</span><p>Para pasar del nivel {activeActivity} al siguiente, ¿qué te gustaría cultivar en este modo y qué tiempo real tienes disponible?</p></div>{activityPrompt && <div className="user-message"><span>TÚ</span><p>{activityPrompt}</p></div>}<div className="agent-message agent-message--proposal"><span>IA</span><p>{activityPrompt ? `Propongo una práctica de ${effortByLevel[activeActivity].toLowerCase()}: reserva un momento esta semana para experimentar una acción observable en ${selectedMode.shortName}. Al terminar, registra qué ocurrió y qué ajustarías para repetirla.` : 'Cuéntame tu intención, tu disponibilidad y cualquier límite importante. Con eso prepararé una actividad medible y realista.'}</p></div></div>
             <label className="agent-input-label" htmlFor="activity-prompt">Tu contexto para la IA</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => setActivityPrompt(event.target.value)} placeholder="Ej. Tengo 20 minutos al día y quiero empezar con algo sencillo…" rows={3} />
-            <div className="agent-actions"><button className="agent-ask" type="button" onClick={() => setActivityPrompt((current) => current.trim() || 'Quiero una actividad concreta y realista para comenzar.')}>Consultar al Modo IA <span>→</span></button><button className="agent-insight" type="button" onClick={() => requestInsight(selectedMode.key, activeActivity)}>Pedir Insights</button><button className="agent-save" type="button" onClick={() => saveActivity(selectedMode.key, activeActivity, activityPrompt.trim() || `Práctica de ${effortByLevel[activeActivity].toLowerCase()} por definir`)}>Usar esta actividad</button></div>
+            <div className="agent-actions agent-actions--single"><button className="agent-ask" type="button" onClick={() => setActivityPrompt((current) => current.trim() || 'Quiero una actividad concreta y realista para comenzar.')}>Consultar al Modo IA <span>→</span></button></div>
           </>}
         </section> : !journeyStarted ? <><span className="journey-icon">{selectedMode.icon}</span><p className="kicker">Introducción</p><h2 id="journey-title">{selectedMode.name}</h2><p className="journey-description">{selectedMode.description}. Este espacio te acompaña a reconocer tu presencia, observar tu nivel y elegir una práctica concreta para cultivarlo.</p>
         <div className="journey-level"><div><span>NIVEL ACTUAL</span><strong>{levels[selectedMode.key]} <small>/ 9</small></strong></div><span className="journey-level-name">{levelNames[levels[selectedMode.key]]}</span></div><div className="level-definition"><strong>{levelNames[levels[selectedMode.key]]}</strong><p>{levelDescriptions[levels[selectedMode.key]]}</p></div>
