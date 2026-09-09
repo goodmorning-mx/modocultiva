@@ -195,3 +195,19 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .journey-card-actions button { flex: 1 1 calc(50% - 6px); min-width: 0; }
 .activity-pool-button { border-color: color-mix(in srgb, #73d5d4 50%, transparent) !important; color: #73d5d4 !important; }
 .activity-ai-button { border-color: color-mix(in srgb, #db9cf2 50%, transparent) !important; color: #db9cf2 !important; }
+.activity-agent--custom { padding-bottom: 8px; }
+.activity-agent--custom textarea { min-height: 150px; border-color: color-mix(in srgb, var(--mode-color) 35%, rgba(156, 203, 184, .24)); background: linear-gradient(145deg, rgba(4, 20, 25, .9), rgba(10, 34, 39, .72)); font-size: .82rem; }
+.agent-actions--single { justify-content: flex-end; }
+.agent-actions--single .agent-save { min-width: 190px; }
+.agent-save span { margin-left: 8px; font-size: .85rem; }
+.pool-selector-label { display: grid; gap: 8px; margin: 21px 0 14px; color: #b9d1c7; font-size: .68rem; font-weight: 700; }
+.pool-selector-label select { width: 100%; padding: 11px 12px; border: 1px solid color-mix(in srgb, var(--mode-color) 38%, transparent); border-radius: 8px; outline: none; color: #dff6e8; background: #0a252b; font: .72rem 'Manrope', sans-serif; }
+.pool-selector-label select:focus { border-color: var(--mode-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mode-color) 16%, transparent); }
+.pool-activity-card { position: relative; margin: 17px 0 10px; padding: 20px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--mode-color) 40%, transparent); border-radius: 14px; background: radial-gradient(circle at 90% 0, color-mix(in srgb, var(--mode-color) 17%, transparent), transparent 38%), linear-gradient(145deg, rgba(13, 48, 51, .86), rgba(5, 24, 30, .9)); box-shadow: inset 0 1px rgba(255,255,255,.08), 0 15px 30px rgba(0,0,0,.16); }
+.pool-activity-card::after { position: absolute; right: -25px; bottom: -35px; width: 110px; height: 110px; border: 1px solid color-mix(in srgb, var(--mode-color) 35%, transparent); border-radius: 50%; content: ''; opacity: .55; }
+.pool-activity-index { color: var(--mode-color); font-family: 'DM Mono', monospace; font-size: .52rem; letter-spacing: .12em; }
+.pool-activity-card h3 { max-width: 90%; margin: 13px 0 8px; color: #edfff2; font-size: 1.08rem; line-height: 1.25; }
+.pool-activity-card p { max-width: 92%; margin: 0; color: #a9c7ba; font-size: .73rem; line-height: 1.5; }
+.pool-activity-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.pool-activity-meta span { padding: 5px 8px; border: 1px solid color-mix(in srgb, var(--mode-color) 30%, transparent); border-radius: 999px; color: var(--mode-color); font-family: 'DM Mono', monospace; font-size: .5rem; letter-spacing: .08em; text-transform: uppercase; }
+@media (max-width: 680px) { .pool-activity-card { padding: 16px; }.agent-actions--single .agent-save { width: 100%; } }
