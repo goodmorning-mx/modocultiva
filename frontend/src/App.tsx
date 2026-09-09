@@ -26,6 +26,7 @@ type Mode = {
 type View = 'login' | 'welcome' | 'dashboard';
 type Preset = Record<string, number>;
 type Skin = 'holista' | 'dj';
+type ActivityEntry = 'custom' | 'pool' | 'ai';
 
 const modes: Mode[] = [
   { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '✦', color: '#54d6bc', accent: '#153f42' },
@@ -49,6 +50,7 @@ const defaultUserProfile = { name: 'Jofer', role: 'CEO FUNDADOR' };
 const journeyLevels = Array.from({ length: 10 }, (_, level) => level);
 const effortByLevel = ['Bajo', 'Bajo', 'Bajo', 'Medio', 'Medio', 'Medio', 'Alto', 'Alto', 'Alto', 'Visión final'];
 const effortDescription: Record<string, string> = { Bajo: 'Claridad mental y definición de rumbo', Medio: 'Movimiento y práctica sin inversión', Alto: 'Inversión y asignación estratégica de recursos', 'Visión final': 'Define el resultado que quieres alcanzar' };
+const activityEntryLabel: Record<ActivityEntry, string> = { custom: 'Agregar actividad', pool: 'Pool de actividades', ai: 'Modo IA' };
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 function App() {
@@ -70,6 +72,7 @@ function App() {
   const [selectedMode, setSelectedMode] = useState<Mode | null>(null);
   const [journeyStarted, setJourneyStarted] = useState(false);
   const [activeActivity, setActiveActivity] = useState<number | null>(null);
+  const [activityEntry, setActivityEntry] = useState<ActivityEntry>('custom');
   const [activityPrompt, setActivityPrompt] = useState('');
   const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>(() => {
     try {
@@ -224,8 +227,9 @@ function App() {
     setView('dashboard');
   };
 
-  const openActivity = (level: number) => {
+  const openActivity = (level: number, entry: ActivityEntry = 'custom') => {
     setActiveActivity(level);
+    setActivityEntry(entry);
     setActivityPrompt('');
   };
 
@@ -448,7 +452,7 @@ function App() {
         {journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={() => setJourneyStarted(false)}>← Volver a la Introducción al Modo</button>}
         {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => setActiveActivity(null)}>← Volver a niveles</button>}
         {activeActivity !== null ? <section className="activity-agent" data-layer="5" aria-labelledby="activity-agent-title">
-          <p className="kicker">Diseño agéntico · {selectedMode.name}</p><h2 id="activity-agent-title">Construyamos tu actividad</h2>
+          <p className="kicker">Diseño agéntico · {selectedMode.name} · {activityEntryLabel[activityEntry]}</p><h2 id="activity-agent-title">Construyamos tu actividad</h2>
           <p className="journey-description">Conversaremos para encontrar una práctica concreta para tu {selectedMode.name}, nivel {activeActivity}.</p>
           <div className="effort-panel"><span className="effort-label">PARÁMETRO DE ESFUERZO</span><strong>{effortByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
           <div className="agent-chat" aria-live="polite"><div className="agent-message"><span>IA</span><p>Para pasar del nivel {activeActivity} al siguiente, ¿qué te gustaría cultivar en este modo y qué tiempo real tienes disponible?</p></div>{activityPrompt && <div className="user-message"><span>TÚ</span><p>{activityPrompt}</p></div>}<div className="agent-message agent-message--proposal"><span>IA</span><p>{activityPrompt ? `Propongo una práctica de ${effortByLevel[activeActivity].toLowerCase()}: reserva un momento esta semana para experimentar una acción observable en ${selectedMode.shortName}. Al terminar, registra qué ocurrió y qué ajustarías para repetirla.` : 'Cuéntame tu intención, tu disponibilidad y cualquier límite importante. Con eso prepararé una actividad medible y realista.'}</p></div></div>
@@ -463,7 +467,7 @@ function App() {
           <p className="journey-builder-intro">Diseña una práctica para cada etapa de tu {selectedMode.name}. Por ahora estas tarjetas son la estructura base de tu journey.</p>
           <div className="journey-builder-level-control"><div><span>NIVEL DE PRESENCIA</span><strong>{levels[selectedMode.key]} <small>/ 9</small></strong><em>{levelNames[levels[selectedMode.key]]}</em><p className="journey-level-control-description">{levelDescriptions[levels[selectedMode.key]]}</p></div><input id="journey-builder-slider" aria-label={`Ajusta el nivel de presencia de ${selectedMode.name}`} className="journey-slider" type="range" min="0" max="9" value={levels[selectedMode.key]} onChange={(event) => updateLevel(selectedMode.key, Number(event.target.value))} /></div>
           {insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}
-          <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong><span className="journey-level-card-name">{levelNames[level]}</span>{level === levels[selectedMode.key] && <em>Actual</em>}{level === 9 && <em>Meta final</em>}</div>{level < 9 ? <><h4>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : 'Actividad por definir'}</h4><p><strong className="effort-tag">Esfuerzo {effortByLevel[level]}</strong>{activityDrafts[`${selectedMode.key}-${level}`] ? ' · Actividad guardada en este navegador.' : ' · ' + effortDescription[effortByLevel[level]]}</p><div className="journey-card-actions"><button type="button" onClick={() => openActivity(level)}>{activityDrafts[`${selectedMode.key}-${level}`] ? '✦ Rediseñar con IA' : '＋ Agregar actividad'}</button><button className={insightRequests[`${selectedMode.key}-${level}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, level)}>{insightRequests[`${selectedMode.key}-${level}`] ? '✓ Insight pedido' : 'Pedir Insights'}</button></div></> : <><h4>Tu visión final</h4><p>Representa en una imagen el resultado al que quieres llegar.</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? 'Cambiar imagen' : 'Cargar imagen'}</label></>}</article>)}</div>
+          <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong><span className="journey-level-card-name">{levelNames[level]}</span>{level === levels[selectedMode.key] && <em>Actual</em>}{level === 9 && <em>Meta final</em>}</div>{level < 9 ? <><h4>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : 'Actividad por definir'}</h4><p><strong className="effort-tag">Esfuerzo {effortByLevel[level]}</strong>{activityDrafts[`${selectedMode.key}-${level}`] ? ' · Actividad guardada en este navegador.' : ' · ' + effortDescription[effortByLevel[level]]}</p><div className="journey-card-actions"><button type="button" onClick={() => openActivity(level, 'custom')}>{activityDrafts[`${selectedMode.key}-${level}`] ? '✦ Rediseñar con IA' : '＋ Agregar actividad'}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(level, 'pool')}>▦ Pool de Actividades</button><button className="activity-ai-button" type="button" onClick={() => openActivity(level, 'ai')}>✦ Modo IA</button><button className={insightRequests[`${selectedMode.key}-${level}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, level)}>{insightRequests[`${selectedMode.key}-${level}`] ? '✓ Insight pedido' : 'Pedir Insights'}</button></div></> : <><h4>Tu visión final</h4><p>Representa en una imagen el resultado al que quieres llegar.</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? 'Cambiar imagen' : 'Cargar imagen'}</label></>}</article>)}</div>
         </section>}
       </section></div>}
     </main>
