@@ -192,3 +192,6 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .journey-level-control-description { grid-column: 1 / -1; margin: 2px 0 0 !important; color: #a6c1b5 !important; font-size: .65rem !important; line-height: 1.4; }
 .journey-builder-level-control > div { flex-wrap: wrap; }
 .journey-level-control-description { flex-basis: 100%; }
+.journey-card-actions button { flex: 1 1 calc(50% - 6px); min-width: 0; }
+.activity-pool-button { border-color: color-mix(in srgb, #73d5d4 50%, transparent) !important; color: #73d5d4 !important; }
+.activity-ai-button { border-color: color-mix(in srgb, #db9cf2 50%, transparent) !important; color: #db9cf2 !important; }
