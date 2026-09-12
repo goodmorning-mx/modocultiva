@@ -23,7 +23,7 @@ type Mode = {
   accent: string;
 };
 
-type View = 'login' | 'plans' | 'welcome' | 'dashboard';
+type View = 'login' | 'plans' | 'cult' | 'welcome' | 'dashboard';
 type Preset = Record<string, number>;
 type Skin = 'holista' | 'dj';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
