@@ -28,7 +28,7 @@ type Preset = Record<string, number>;
 type Skin = 'holista' | 'dj';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
 type PoolActivity = { title: string; description: string };
-type AccessRequest = { feature: string; plan: 'Cuenta' | 'Gold' | 'Ultimate'; returnView: View };
+type AccessRequest = { feature: string; plan: 'Cuenta' | 'Basic' | 'Gold' | 'Ultimate'; returnView: View };
 
 const modes: Mode[] = [
   { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '✦', color: '#54d6bc', accent: '#153f42' },
