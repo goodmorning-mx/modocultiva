@@ -28,7 +28,7 @@ type Preset = Record<string, number>;
 type Skin = 'holista' | 'dj';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
 type PoolActivity = { title: string; description: string };
-type AccessRequest = { feature: string; plan: 'Cuenta' | 'Basic' | 'Gold' | 'Ultimate'; returnView: View };
+type AccessRequest = { feature: string; plan: 'Cuenta' | 'Entry' | 'Gold' | 'Ultimate'; returnView: View };
 type PendingActivity = { level: number; entry: ActivityEntry };
 type PlanKey = 'basic' | 'gold' | 'ultimate';
 type PlanDetails = { name: string; price: string; promise: string; features: string[] };
@@ -54,8 +54,8 @@ const levelNames = ['Ignorancia activa', 'Reacción pasiva', 'Conciencia confusa
 const levelDescriptions = ['Ignorancia Activa - El área está totalmente descuidada o negada. Es cuando conscientemente decides dejar esta área en pausa por un tiempo para ahorrar energía.', 'Reacción Pasiva - Enfoque sólo en la crisis. Esfuerzo reactivo, no preventivo. Hasta que sucede algo negativo comienzas a actuar. Ya decidiste comenzar a hacer algo.', 'Conciencia Confusa - Se reconoce el problema, pero la parálisis impide crear un plan. Aún hay algo que te detiene, puede ser una situación personal, económica, creencia limitante o falta de ideas.', 'Intención sin Hábito - Se intenta actuar, pero las acciones son inconsistentes y esporádicas. Aún hay interrupciones en el actuar o existe procrastinación.', 'Bases Establecidas - Se ha implementado un sistema mínimo que se sigue de forma consciente. Eres constante en lo que hayas decidido para este modo. Incluso recibes comentarios positivos sobre tu progreso.', 'Mantenimiento Básico - Estabilidad. El área está controlada, pero no hay crecimiento activo. Zona de confort. No estás en crisis pero has decidido no invertir en energía o nuevas posibilidades.', 'Rumbo Definido - Se han establecido metas claras y se asignan recursos estratégicamente. Se ha pasado la barrera de la zona del confort y se aspira a algo más, ya se hizo algo de investigación sobre nuevas estrategias transformadoras.', 'Crecimiento Consistente - El sistema funciona. Se miden los resultados y se hacen ajustes constantes. Buscas superar tus propios límites. Ya estás en modo pro. Dominas el área y buscas la perfección.', 'Optimización y Disciplina - El sistema es automático. Se utiliza delegación o tecnología para multiplicar resultados. Reconoces que para este punto tal vez necesites la ayuda de alguien mucho más experto por lo que te abres a delegar esta área de tu vida a recibir consejería o coaching.', 'Maestría e Influencia - Enfoque Total. El sistema es un motor de resultados y se usa para enseñar y asesorar a otros. Te has convertido en tu mejor versión, ya tienes expertíz e incluso hasta podrías enseñar, aconsejar o mostrar nuevas formas de vida a tu círculo cercano o a tu comunidad.'];
 const defaultUserProfile = { name: 'Jofer', role: 'CEO FUNDADOR' };
 const planDetails: Record<PlanKey, PlanDetails> = {
-  basic: { name: 'Basic', price: '$119.99 MXN', promise: 'Modo Cultiva ya forma parte de tu rutina.', features: ['Todo lo incluido en Acceso Libre.', 'Skin Holista completa.', 'Journeys ilimitados.', 'Pool completo con 10 recomendaciones por nivel.', 'Vision boards en nivel 9.', 'Presets ilimitados.', 'Modo IA limitado: hasta 20 consultas mensuales.', 'Personalización de nombre y foto de perfil.', 'Historial personal de evolución.', 'Estadísticas básicas por modo.', 'Exportación de progreso.'] },
-  gold: { name: 'Gold', price: '$249.99 MXN', promise: 'Cultiva acompañado por tu red de apoyo.', features: ['Todo lo incluido en Basic.', 'Una skin adicional de tu elección.', 'Insights locales dentro de tu red de apoyo.', 'Solicitudes y respuestas de Insights con mayor frecuencia.', 'Grupos privados o círculos de confianza.', 'Comparación de progreso con tu círculo.', 'Modo IA ampliado: hasta 100 consultas mensuales.', 'Presets compartibles.', 'Recomendaciones comunitarias.', 'Insignia Gold.'] },
+  basic: { name: 'Entry', price: '$119.99 MXN', promise: 'Convierte a Modo Cultiva en parte de tu rutina.', features: ['Todo lo incluido en Acceso Libre.', 'Skin Holista completa.', 'Journeys ilimitados.', 'Pool completo con 10 recomendaciones por nivel.', 'Vision boards en nivel 9.', 'Presets ilimitados.', 'Modo IA limitado: hasta 20 consultas mensuales.', 'Personalización de nombre y foto de perfil.', 'Historial personal de evolución.', 'Estadísticas básicas por modo.', 'Exportación de progreso.', 'Insignia Entry.'] },
+  gold: { name: 'Gold', price: '$249.99 MXN', promise: 'Cultiva acompañado por tu red de apoyo.', features: ['Todo lo incluido en Entry.', 'Una skin adicional de tu elección.', 'Insights locales dentro de tu red de apoyo.', 'Solicitudes y respuestas de Insights con mayor frecuencia.', 'Grupos privados o círculos de confianza.', 'Comparación de progreso con tu círculo.', 'Modo IA ampliado: hasta 100 consultas mensuales.', 'Presets compartibles.', 'Recomendaciones comunitarias.', 'Insignia Gold.'] },
   ultimate: { name: 'Ultimate', price: '$899.99 MXN', promise: 'Lleva tu cultivo a una red global de conocimiento.', features: ['Todo lo incluido en Gold.', 'Skins ilimitadas.', 'Insights ilimitados.', 'Insights globales.', 'Modo IA sin límite razonable o con política de uso justo.', 'Red de Especialistas.', 'Directorio de profesionales por modo.', 'Filtros por especialidad, nivel, idioma y ubicación.', 'Perfiles profesionales verificados.', 'Solicitud de orientación privada.', 'Seguimiento de recomendaciones profesionales.', 'Insignia Ultimate.', 'Acceso anticipado a nuevas skins y features.'] },
 };
 const journeyLevels = Array.from({ length: 10 }, (_, level) => level);
@@ -258,7 +258,7 @@ function App() {
   };
 
   const openPlan = (plan: PlanKey, feature: string) => {
-    setPendingAccess({ feature, plan: plan === 'basic' ? 'Basic' : plan === 'gold' ? 'Gold' : 'Ultimate', returnView: view });
+    setPendingAccess({ feature, plan: plan === 'basic' ? 'Entry' : plan === 'gold' ? 'Gold' : 'Ultimate', returnView: view });
     setSelectedPlan(plan);
     setProfileMenuOpen(false);
     setView('plans');
@@ -444,7 +444,7 @@ function App() {
         <section className="plans-view" data-layer="plans" aria-labelledby="plans-title">
           <div className="plans-header"><p className="kicker">Tu siguiente nivel comienza aquí</p><h1 id="plans-title">Haz de tu crecimiento una forma de vida.</h1><p>Elige el ritmo, la profundidad y la comunidad que quieres llevar contigo en Modo Cultiva.</p></div>
           <div className="plans-grid" aria-label="Modos Premium de Modo Cultiva">{(Object.keys(planDetails) as PlanKey[]).map((plan) => <button className={plan === 'gold' ? 'plan-card plan-card--featured' : 'plan-card'} type="button" key={plan} onClick={() => setSelectedPlan(plan)}><span className="plan-card-name">{planDetails[plan].name}</span><strong>{planDetails[plan].price}</strong><p>{planDetails[plan].promise}</p><span className="plan-card-link">Ver beneficios completos ↗</span></button>)}</div>
-          <button className="plans-signup" type="button" onClick={() => { setPendingAccess(null); setSelectedPlan(null); setView('login'); }}>Sign Up <span>→</span></button>
+          <button className="plans-signup" type="button" onClick={() => { setPendingAccess(null); setSelectedPlan(null); setView('login'); }}>Crea tu cuenta <span>→</span></button>
         </section>
       ) : view === 'cult' ? (
         <section className="cult-view" data-layer="6" aria-labelledby="cult-title">
@@ -583,7 +583,7 @@ function App() {
             <div className="effort-panel"><span className="effort-label">CATÁLOGO NIVEL {activeActivity}</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
             <label className="pool-selector-label" htmlFor="pool-selection">Navegar recomendaciones<select id="pool-selection" value={poolSelection} onChange={(event) => setPoolSelection(Number(event.target.value))}>{getPoolActivities(selectedMode.key, activeActivity).map((activity, index) => <option value={index} key={activity.title}>Recomendación {index + 1}/10 - {activity.title}</option>)}</select></label>
             <article className="pool-activity-card"><span className="pool-activity-index">ACTIVIDAD NIVEL {activeActivity}</span><h3>{getPoolActivities(selectedMode.key, activeActivity)[poolSelection].title}</h3><p>{getPoolActivities(selectedMode.key, activeActivity)[poolSelection].description}</p><div className="pool-activity-meta"><span>{effortLabelByLevel[activeActivity]}</span><span>NIVEL {activeActivity}</span></div></article>
-            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={() => openPlan('basic', 'Pool de Actividades')}>Usar esta actividad · Basic <span>→</span></button></div>
+            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={() => openPlan('basic', 'Pool de Actividades')}>Usar esta actividad · Entry <span>→</span></button></div>
           </> : <>
             <h2 id="activity-agent-title">Construyamos tu actividad</h2>
             <p className="journey-description">Conversaremos para encontrar una práctica concreta para tu {selectedMode.name}, nivel {activeActivity}.</p>
