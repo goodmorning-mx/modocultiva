@@ -23,7 +23,7 @@ type Mode = {
   accent: string;
 };
 
-type View = 'login' | 'welcome' | 'dashboard';
+type View = 'login' | 'plans' | 'welcome' | 'dashboard';
 type Preset = Record<string, number>;
 type Skin = 'holista' | 'dj';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
@@ -252,7 +252,7 @@ function App() {
   const requestAccess = (feature: string, plan: AccessRequest['plan'] = 'Cuenta') => {
     setPendingAccess({ feature, plan, returnView: view });
     setProfileMenuOpen(false);
-    setView('login');
+    setView('plans');
   };
 
   const changeSkin = (nextSkin: Skin) => {
@@ -411,7 +411,7 @@ function App() {
           <span>Modo Cultiva</span>
         </a>
         <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA</div>
-        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setIsAuthenticated(false); window.localStorage.removeItem('modoCultiva_auth'); setSelectedMode(null); setJourneyStarted(false); setActiveActivity(null); setPendingAccess(null); setView('welcome'); }}>Cerrar sesión</button> : <button type="button" role="menuitem" onClick={() => requestAccess('tu cuenta de Modo Cultiva')}>Iniciar sesión</button>}</div>}</div>
+        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setIsAuthenticated(false); window.localStorage.removeItem('modoCultiva_auth'); setSelectedMode(null); setJourneyStarted(false); setActiveActivity(null); setPendingAccess(null); setView('welcome'); }}>Cerrar sesión</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setView('login'); }}>Iniciar sesión</button>}</div>}</div>
       </header>
 
       {view === 'login' ? (
@@ -421,7 +421,6 @@ function App() {
             <p className="kicker">{pendingAccess ? 'Acceso contextual' : 'Tu mapa de vida comienza aquí'}</p>
             <h1 id="login-title">{pendingAccess ? 'Desbloquea esta función.' : 'Entra a tu espacio.'}</h1>
             <p className="login-copy">{pendingAccess ? `${pendingAccess.feature} forma parte del plan ${pendingAccess.plan}. Crea tu cuenta o inicia sesión para continuar.` : 'Inicia sesión para guardar tu progreso y continuar cultivando tus 12 modos de vida.'}</p>
-            {pendingAccess && <section className="plan-preview" aria-label="Planes de Modo Cultiva"><p className="plan-preview-label">Elige cómo quieres cultivar</p><div className="plan-preview-grid"><button className="plan-preview-card" type="button" onClick={() => setSelectedPlan('basic')}><span>Basic</span><strong>$119.99 <small>MXN</small></strong><p>Holista + funciones esenciales</p><b>Ver detalles ↗</b></button><button className="plan-preview-card plan-preview-card--featured" type="button" onClick={() => setSelectedPlan('gold')}><span>Gold</span><strong>$249.99 <small>MXN</small></strong><p>Skins e Insights locales</p><b>Ver detalles ↗</b></button><button className="plan-preview-card" type="button" onClick={() => setSelectedPlan('ultimate')}><span>Ultimate</span><strong>$899.99 <small>MXN</small></strong><p>Insights Globales y Red de Especialistas</p><b>Ver detalles ↗</b></button></div></section>}
             <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Holista</button><button className={skin === 'dj' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('dj')}><i>✦</i> Consola DJ</button></div>
             <form className="login-form" onSubmit={(event) => { event.preventDefault(); const destination = pendingAccess?.returnView ?? 'welcome'; const nextActivity = pendingActivity; setIsAuthenticated(true); window.localStorage.setItem('modoCultiva_auth', 'true'); setPendingAccess(null); setPendingActivity(null); if (nextActivity) { setJourneyStarted(true); setActivityEntry(nextActivity.entry); setActiveActivity(nextActivity.level); setPoolSelection(0); setActivityPrompt(''); } setView(destination); }}>
               <label htmlFor="login-username">Usuario<input id="login-username" autoComplete="username" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="Tu usuario" /></label>
@@ -431,6 +430,12 @@ function App() {
             <small className="login-prototype-note">Acceso prototipo · tus datos se conectarán próximamente</small>
             {pendingAccess && <button className="login-back-link" type="button" onClick={() => { setPendingAccess(null); setPendingActivity(null); setInsightPreview(null); setView('welcome'); }}><span>←</span> Continuar como invitado</button>}
           </div>
+        </section>
+      ) : view === 'plans' ? (
+        <section className="plans-view" data-layer="plans" aria-labelledby="plans-title">
+          <div className="plans-header"><p className="kicker">Tu siguiente nivel comienza aquí</p><h1 id="plans-title">Haz de tu crecimiento una forma de vida.</h1><p>Elige el ritmo, la profundidad y la comunidad que quieres llevar contigo en Modo Cultiva.</p></div>
+          <div className="plans-grid" aria-label="Planes de Modo Cultiva">{(Object.keys(planDetails) as PlanKey[]).map((plan) => <button className={plan === 'gold' ? 'plan-card plan-card--featured' : 'plan-card'} type="button" key={plan} onClick={() => setSelectedPlan(plan)}><span className="plan-card-name">{planDetails[plan].name}</span><strong>{planDetails[plan].price}</strong><p>{planDetails[plan].promise}</p><span className="plan-card-link">Ver beneficios completos ↗</span></button>)}</div>
+          <button className="plans-signup" type="button" onClick={() => { setPendingAccess(null); setSelectedPlan(null); setView('login'); }}>Sign Up <span>→</span></button>
         </section>
       ) : view === 'welcome' ? (
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ''}`} data-layer="1" aria-labelledby="welcome-title">
