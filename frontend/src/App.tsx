@@ -124,6 +124,7 @@ function App() {
   const [activityEntry, setActivityEntry] = useState<ActivityEntry>('custom');
   const [poolSelection, setPoolSelection] = useState(0);
   const [activityPrompt, setActivityPrompt] = useState('');
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
   const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>(() => {
     try {
       return JSON.parse(window.localStorage.getItem('modoCultiva_activityDrafts') ?? '{}');
@@ -321,6 +322,34 @@ function App() {
     setActivityEntry(entry);
     setPoolSelection(0);
     setActivityPrompt('');
+    setAiNotice(null);
+  };
+
+  const usePoolActivity = () => {
+    if (!selectedMode || activeActivity === null) return;
+    if (!isAuthenticated) {
+      openPlan('basic', 'Pool de Actividades');
+      return;
+    }
+    const activity = getPoolActivities(selectedMode.key, activeActivity)[poolSelection];
+    saveActivity(selectedMode.key, activeActivity, activity.title);
+  };
+
+  const consultModeAi = () => {
+    if (!isAuthenticated) {
+      openPlan('gold', 'Modo IA');
+      return;
+    }
+    setAiNotice('Modo IA ha preparado una propuesta personalizada para este nivel.');
+  };
+
+  const saveModeAiActivity = () => {
+    if (!selectedMode || activeActivity === null) return;
+    if (!isAuthenticated) {
+      openPlan('gold', 'Modo IA');
+      return;
+    }
+    saveActivity(selectedMode.key, activeActivity, getAiProposal(selectedMode, activeActivity, activityPrompt));
   };
 
   const requestInsight = (modeKey: string, level: number) => {
@@ -420,7 +449,7 @@ function App() {
           <span>Modo Cultiva</span>
         </a>
         <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA</div>
-        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setIsAuthenticated(false); window.localStorage.removeItem('modoCultiva_auth'); setSelectedMode(null); setJourneyStarted(false); setActiveActivity(null); setPendingAccess(null); setView('welcome'); }}>Cerrar Sesión</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setView('login'); }}>Iniciar Sesión</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>Modos Premium</button><button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setCultTab('home'); setView('cult'); }}>The Cult</button></div>}</div>
+        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setIsAuthenticated(false); window.localStorage.removeItem('modoCultiva_auth'); setSelectedMode(null); setJourneyStarted(false); setActiveActivity(null); setPendingAccess(null); setView('welcome'); }}>Cerrar Sesión</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setView('login'); }}>Iniciar Sesión</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>Modos Premium</button><button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); if (!isAuthenticated) { setPendingAccess({ feature: 'The Cult', plan: 'Ultimate Mode', returnView: view }); setSelectedPlan('ultimate'); setView('plans'); return; } setPendingAccess(null); setSelectedPlan(null); setCultTab('home'); setView('cult'); }}>The Cult</button></div>}</div>
       </header>
 
       {view === 'login' ? (
@@ -583,14 +612,15 @@ function App() {
             <div className="effort-panel"><span className="effort-label">CATÁLOGO NIVEL {activeActivity}</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
             <label className="pool-selector-label" htmlFor="pool-selection">Navegar recomendaciones<select id="pool-selection" value={poolSelection} onChange={(event) => setPoolSelection(Number(event.target.value))}>{getPoolActivities(selectedMode.key, activeActivity).map((activity, index) => <option value={index} key={activity.title}>Recomendación {index + 1}/10 - {activity.title}</option>)}</select></label>
             <article className="pool-activity-card"><span className="pool-activity-index">ACTIVIDAD NIVEL {activeActivity}</span><h3>{getPoolActivities(selectedMode.key, activeActivity)[poolSelection].title}</h3><p>{getPoolActivities(selectedMode.key, activeActivity)[poolSelection].description}</p><div className="pool-activity-meta"><span>{effortLabelByLevel[activeActivity]}</span><span>NIVEL {activeActivity}</span></div></article>
-            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={() => openPlan('basic', 'Pool de Actividades')}>Usar esta actividad · Entry <span>→</span></button></div>
+            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={usePoolActivity}>Usar esta actividad{!isAuthenticated && ' · Entry'} <span>→</span></button></div>
           </> : <>
             <h2 id="activity-agent-title">Construyamos tu actividad</h2>
             <p className="journey-description">Conversaremos para encontrar una práctica concreta para tu {selectedMode.name}, nivel {activeActivity}.</p>
             <div className="effort-panel"><span className="effort-label">PARÁMETRO DE ESFUERZO</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
             <div className="agent-chat" aria-live="polite"><div className="agent-message"><span>IA</span><p>Para pasar del nivel {activeActivity} al siguiente, ¿qué te gustaría cultivar en este modo y qué tiempo real tienes disponible?</p></div>{activityPrompt && <div className="user-message"><span>TÚ</span><p>{activityPrompt}</p></div>}<div className="agent-message agent-message--proposal"><span>IA</span><p>{getAiProposal(selectedMode, activeActivity, activityPrompt)}</p></div></div>
             <label className="agent-input-label" htmlFor="activity-prompt">Tu contexto para la IA</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => setActivityPrompt(event.target.value)} placeholder="Ej. Tengo 20 minutos al día y quiero empezar con algo sencillo…" rows={3} />
-            <div className="agent-actions"><button className="agent-ask" type="button" onClick={() => openPlan('gold', 'Modo IA')}>Consultar al Modo IA <small>Plan Gold</small> <span>→</span></button><button className="agent-save" type="button" onClick={() => openPlan('gold', 'Modo IA')}>Establecer esta actividad <small>Plan Gold</small> <span>→</span></button></div>
+            {aiNotice && <div className="insight-notice" role="status">✦ {aiNotice}</div>}
+            <div className="agent-actions"><button className="agent-ask" type="button" onClick={consultModeAi}>Consultar al Modo IA {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button><button className="agent-save" type="button" onClick={saveModeAiActivity}>Establecer esta actividad {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button></div>
           </>}
         </section> : !journeyStarted ? <><span className="journey-icon">{selectedMode.icon}</span><p className="kicker">Introducción</p><h2 id="journey-title">{selectedMode.name}</h2><p className="journey-description">{selectedMode.description}. Este espacio te acompaña a reconocer tu presencia, observar tu nivel y elegir una práctica concreta para cultivarlo.</p>
         <div className="journey-level"><div><span>NIVEL ACTUAL</span><strong>{levels[selectedMode.key]} <small>/ 9</small></strong></div><span className="journey-level-name">{levelNames[levels[selectedMode.key]]}</span></div><div className="level-definition"><strong>{levelNames[levels[selectedMode.key]]}</strong><p>{levelDescriptions[levels[selectedMode.key]]}</p></div>
