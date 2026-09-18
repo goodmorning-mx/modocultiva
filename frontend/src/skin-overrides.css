@@ -59,3 +59,43 @@
 .app-shell--dj .cult-orbit-mark span { color: #e7e7e7; }
 .app-shell--dj .journey-back, .app-shell--dj .back-to-overview { color: #d06b5d; }
 .app-shell--dj .journey-level-card, .app-shell--dj .feature-preview, .app-shell--dj .plan-detail-modal { background-color: #1b1d1f; border-color: rgba(255, 255, 255, .16); }
+
+/* Palette swap: DJ receives the lunar violet treatment. */
+.app-shell--dj {
+  background: radial-gradient(circle at 76% 5%, rgba(214, 155, 255, .34), transparent 24rem), radial-gradient(circle at 18% 33%, rgba(157, 105, 232, .22), transparent 26rem), radial-gradient(circle at 70% 82%, rgba(84, 48, 164, .25), transparent 30rem), linear-gradient(145deg, #171026, #0e0a1d 54%, #1a1030);
+}
+.app-shell--dj .topbar { border-color: rgba(239, 221, 255, .28); }
+.app-shell--dj .brand, .app-shell--dj .profile-button { color: #fff7ff; }
+.app-shell--dj .profile-button { border-color: #9072b4; background: #24153d; box-shadow: 0 0 18px rgba(221, 180, 255, .14); }
+.app-shell--dj .kicker, .app-shell--dj .cult-access, .app-shell--dj .cult-live-pill { color: #e3b9ff; }
+.app-shell--dj .live-dot, .app-shell--dj .cult-access i, .app-shell--dj .cult-live-pill i { background: #fff; box-shadow: 0 0 12px #fff, 0 0 24px #e3b9ff; }
+.app-shell--dj .welcome-view--dj { background: radial-gradient(circle at 52% 24%, rgba(255, 255, 255, .05), transparent 26rem), radial-gradient(circle at 20% 88%, rgba(180, 111, 255, .16), transparent 25rem); }
+.app-shell--dj .overview-core { border-color: rgba(239, 221, 255, .82); background: radial-gradient(circle at 50% 25%, rgba(255, 255, 255, .18), transparent 20%), radial-gradient(circle at 50% 35%, rgba(224, 170, 255, .34), rgba(28, 15, 54, .88) 66%); box-shadow: inset 0 0 45px rgba(239, 221, 255, .2), 0 0 42px rgba(180, 111, 255, .24); }
+.app-shell--dj .intro, .app-shell--dj .dashboard-tools, .app-shell--dj .mode-card, .app-shell--dj .journey-panel, .app-shell--dj .cult-metric, .app-shell--dj .cult-feature-grid article, .app-shell--dj .cult-status-card, .app-shell--dj .cult-rail-card { border-color: rgba(231, 201, 255, .26); background-color: rgba(29, 16, 52, .72); }
+.app-shell--dj .overview-mode strong, .app-shell--dj .mode-card-level, .app-shell--dj .journey-panel h2, .app-shell--dj .cult-hero h1 { color: #fff8ff; }
+.app-shell--dj button:not(.dj-fader):not(.dj-channel-open):not(.dj-control-strip button):not(.profile-button) { border-color: rgba(227, 185, 255, .44); }
+.app-shell--dj .journey-cta, .app-shell--dj .plans-signup { color: #241034; background: linear-gradient(135deg, #fff, #eed7ff 46%, #bd7df1); box-shadow: 0 0 24px rgba(238, 215, 255, .2); }
+.app-shell--dj .cult-orbit-mark { border-color: rgba(255, 255, 255, .72); background: radial-gradient(circle at 48% 24%, rgba(255, 255, 255, .24), transparent 20%), radial-gradient(circle, rgba(224, 170, 255, .28), rgba(20, 10, 38, .55) 64%); box-shadow: inset 0 0 40px rgba(255, 255, 255, .16), 0 0 40px rgba(198, 132, 255, .24); }
+.app-shell--dj .cult-orbit-mark span { color: #fff; text-shadow: 0 0 16px #e3b9ff; }
+
+/* Palette swap: Nocturna receives the monochrome charcoal and red treatment. */
+.app-shell--nocturna {
+  background: radial-gradient(circle at 78% 8%, rgba(255, 255, 255, .08), transparent 25rem), radial-gradient(circle at 14% 82%, rgba(145, 47, 39, .14), transparent 26rem), linear-gradient(145deg, #1d1f21, #0c0d0e 58%, #17191b);
+}
+.app-shell--nocturna .topbar { border-color: rgba(255, 255, 255, .14); }
+.app-shell--nocturna .brand, .app-shell--nocturna .profile-button { color: #f2f2f2; }
+.app-shell--nocturna .profile-button { border-color: #6d7072; background: #292b2d; box-shadow: 0 0 15px rgba(255, 255, 255, .06); }
+.app-shell--nocturna .kicker, .app-shell--nocturna .cult-access, .app-shell--nocturna .cult-live-pill { color: #d06b5d; }
+.app-shell--nocturna .live-dot, .app-shell--nocturna .cult-access i, .app-shell--nocturna .cult-live-pill i { background: #b95045; box-shadow: 0 0 12px rgba(185, 80, 69, .72); }
+.app-shell--nocturna .intro, .app-shell--nocturna .dashboard-tools, .app-shell--nocturna .mode-card, .app-shell--nocturna .journey-panel, .app-shell--nocturna .cult-metric, .app-shell--nocturna .cult-feature-grid article, .app-shell--nocturna .cult-status-card, .app-shell--nocturna .cult-rail-card { border-color: rgba(255, 255, 255, .14); background-color: rgba(27, 29, 31, .84); }
+.app-shell--nocturna .overview-mode strong, .app-shell--nocturna .mode-card-level, .app-shell--nocturna .journey-panel h2, .app-shell--nocturna .cult-hero h1 { color: #f1f1f1; }
+.app-shell--nocturna button:not(.profile-button) { border-color: rgba(191, 80, 68, .48); }
+.app-shell--nocturna .journey-cta, .app-shell--nocturna .plans-signup { color: #fff; background: linear-gradient(135deg, #6f2d2a, #aa5146); box-shadow: 0 0 22px rgba(154, 59, 49, .2); }
+.app-shell--nocturna .cult-orbit-mark { border-color: rgba(205, 91, 79, .62); background: radial-gradient(circle, rgba(255, 255, 255, .08), rgba(24, 25, 26, .6) 65%); box-shadow: inset 0 0 40px rgba(255, 255, 255, .07), 0 0 32px rgba(153, 59, 49, .16); }
+.app-shell--nocturna .cult-orbit-mark span { color: #e7e7e7; }
+
+/* Skin gallery previews follow the same swapped identities. */
+.cult-skin-visual--dj { color: #e3b9ff; background: radial-gradient(circle at 52% 18%, rgba(255, 255, 255, .3), transparent 20%), radial-gradient(circle at 60% 38%, rgba(224, 170, 255, .72), transparent 44%), linear-gradient(145deg, #5a2c83, #1d1232 72%); box-shadow: inset 0 0 26px rgba(255, 255, 255, .12), 0 0 22px rgba(180, 111, 255, .2); }
+.cult-skin-card:has(.cult-skin-visual--dj).cult-skin-card--active { border-color: #e3b9ff; box-shadow: 0 0 24px rgba(198, 132, 255, .2); }
+.cult-skin-visual--nocturna { color: #e4e4e4; background: radial-gradient(circle at 70% 28%, rgba(255, 255, 255, .16), transparent 22%), linear-gradient(145deg, #4a4d50, #17191b 72%); box-shadow: inset 0 0 25px rgba(255, 255, 255, .1), 0 0 20px rgba(145, 47, 39, .14); }
+.cult-skin-card:has(.cult-skin-visual--nocturna).cult-skin-card--active { border-color: #c46357; box-shadow: 0 0 24px rgba(145, 47, 39, .22); }
