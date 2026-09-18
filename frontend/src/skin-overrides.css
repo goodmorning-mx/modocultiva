@@ -198,7 +198,7 @@
 .app-shell--dj .meta-divider { background: rgba(238, 216, 255, .5); }
 
 /* Nocturna gallery art: neutral night scene with a restrained red owl accent. */
-.cult-skin-visual--nocturna { background: radial-gradient(circle at 50% 22%, rgba(255, 255, 255, .14), transparent 18%), radial-gradient(circle at 65% 82%, rgba(175, 48, 38, .28), transparent 34%), linear-gradient(145deg, #676a6c, #292b2d 65%, #111213); }
+.cult-skin-visual--nocturna { background: radial-gradient(circle at 50% 22%, rgba(255, 255, 255, .14), transparent 18%), radial-gradient(circle at 65% 82%, rgba(175, 48, 38, .28), transparent 34%), linear-gradient(145deg, #676a6c, #292b2d 65%, #111213) !important; }
 .skin-card-glyph--owl { filter: grayscale(.72) sepia(.65) saturate(2.2) hue-rotate(315deg) drop-shadow(0 0 8px rgba(183, 55, 45, .7)); }
 
 /* Lucid: align every layer with the cyan, orange and warm-dream palette of its gallery art. */
