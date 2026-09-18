@@ -26,7 +26,7 @@ type Mode = {
 
 type View = 'login' | 'plans' | 'cult' | 'welcome' | 'dashboard';
 type Preset = Record<string, number>;
-type Skin = 'holista' | 'dj' | 'nocturna' | 'lucid';
+type Skin = 'holista' | 'dj' | 'nocturna' | 'lucid' | 'zen' | 'mission' | 'rpg' | 'botanical' | 'arcade' | 'arcana' | 'urban' | 'ocean' | 'fashion' | 'minimal';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
 type PoolActivity = { title: string; description: string };
 type AccessRequest = { feature: string; plan: 'Cuenta' | 'Entry' | 'Gold' | 'Ultimate Mode'; returnView: View };
@@ -34,6 +34,21 @@ type PendingActivity = { level: number; entry: ActivityEntry };
 type PlanKey = 'basic' | 'gold' | 'ultimate';
 type PlanDetails = { name: string; price: string; promise: string; features: string[] };
 type CultTab = 'home' | 'insights' | 'network' | 'skins';
+
+const skinCatalog: { key: Skin; name: string; icon: string; description: string; signature: string; access: 'base' | 'gold' | 'ultimate' }[] = [
+  { key: 'zen', name: 'Zen Garden', icon: '❋', description: 'Un jardín vivo para cultivar presencia, calma y equilibrio.', signature: 'Respira. Observa. Cultiva.', access: 'gold' },
+  { key: 'mission', name: 'Mission Control', icon: '⌁', description: 'Un centro de control para convertir intención en trayectoria.', signature: 'Tu siguiente órbita comienza aquí.', access: 'gold' },
+  { key: 'rpg', name: 'Character Quest', icon: '♜', description: 'Tu desarrollo como una aventura de personaje y habilidades.', signature: 'Cada nivel desbloquea una versión de ti.', access: 'gold' },
+  { key: 'botanical', name: 'Botanical Lab', icon: '♧', description: 'Experimenta, mide y observa cómo evolucionan tus hábitos.', signature: 'La curiosidad también se cultiva.', access: 'ultimate' },
+  { key: 'arcade', name: 'Retro Arcade', icon: '▦', description: 'Convierte tus retos diarios en una experiencia de juego.', signature: 'Insert coin. Begin your next level.', access: 'gold' },
+  { key: 'arcana', name: 'Arcana', icon: '✧', description: 'Símbolos, arquetipos y cartas para mirar hacia dentro.', signature: 'Revela lo que ya estaba en movimiento.', access: 'ultimate' },
+  { key: 'urban', name: 'Urban Flow', icon: '⌂', description: 'Un mapa urbano para conectar tus modos con tu mundo.', signature: 'Encuentra tu ruta. Ocupa tu ciudad.', access: 'gold' },
+  { key: 'ocean', name: 'Ocean Depths', icon: '≈', description: 'Explora la profundidad de cada área de tu vida.', signature: 'Baja el ruido. Encuentra profundidad.', access: 'ultimate' },
+  { key: 'fashion', name: 'Fashion Studio', icon: '◇', description: 'Diseña tu identidad con intención, textura y presencia.', signature: 'Tu vida también es una forma de expresión.', access: 'gold' },
+  { key: 'minimal', name: 'Minimal Focus', icon: '·', description: 'Menos ruido, más claridad para lo que realmente importa.', signature: 'Una cosa. Un paso. Presencia total.', access: 'gold' },
+];
+const allSkinKeys = new Set<Skin>(['holista', 'dj', 'nocturna', 'lucid', ...skinCatalog.map((item) => item.key)]);
+const skinInfo = (key: Skin) => skinCatalog.find((item) => item.key === key);
 
 const modes: Mode[] = [
   { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '✦', color: '#54d6bc', accent: '#153f42' },
@@ -150,6 +165,14 @@ function App() {
       return false;
     }
   });
+  const [activePlan, setActivePlan] = useState<PlanKey>(() => {
+    try {
+      const saved = window.localStorage.getItem('modoCultiva_plan') as PlanKey | null;
+      return saved === 'basic' || saved === 'gold' || saved === 'ultimate' ? saved : 'ultimate';
+    } catch {
+      return 'ultimate';
+    }
+  });
   const [pendingAccess, setPendingAccess] = useState<AccessRequest | null>(null);
   const [pendingActivity, setPendingActivity] = useState<PendingActivity | null>(null);
   const [insightPreview, setInsightPreview] = useState<{ modeKey: string; level: number } | null>(null);
@@ -158,7 +181,7 @@ function App() {
   const [skin, setSkin] = useState<Skin>(() => {
     try {
       const savedSkin = window.localStorage.getItem('modoCultiva_skin');
-      return savedSkin === 'dj' || savedSkin === 'nocturna' || savedSkin === 'lucid' ? savedSkin : 'holista';
+      return savedSkin && allSkinKeys.has(savedSkin as Skin) ? savedSkin as Skin : 'holista';
     } catch {
       return 'holista';
     }
@@ -249,6 +272,7 @@ function App() {
     return (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1);
   }, [levels]);
   const focusedDjMode = modes.find((mode) => mode.key === djFocusedMode) ?? modes[0];
+  const isInterfaceSkin = Boolean(skinInfo(skin));
 
   const definedActivityCount = useMemo(() => selectedMode ? journeyLevels.filter((level) => level < 9 && Boolean(activityDrafts[`${selectedMode.key}-${level}`])).length : 0, [activityDrafts, selectedMode]);
 
@@ -268,10 +292,12 @@ function App() {
   };
 
   const changeSkin = (nextSkin: Skin) => {
-    if ((nextSkin === 'dj' || nextSkin === 'nocturna' || nextSkin === 'lucid') && !isAuthenticated && view !== 'login') {
-      requestAccess('la skin Consola DJ', 'Gold');
+    if (nextSkin !== 'holista' && !isAuthenticated && view !== 'login') {
+      requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, nextSkin === 'dj' || skinInfo(nextSkin)?.access === 'gold' ? 'Gold' : 'Ultimate Mode');
       return;
     }
+    if (nextSkin !== 'holista' && isAuthenticated && activePlan === 'basic') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Gold'); return; }
+    if (nextSkin !== 'holista' && isAuthenticated && activePlan === 'gold' && nextSkin !== 'dj') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Ultimate Mode'); return; }
     setSkin(nextSkin);
     try {
       window.localStorage.setItem('modoCultiva_skin', nextSkin);
@@ -282,9 +308,11 @@ function App() {
 
   const activateCultSkin = (nextSkin: Skin) => {
     if (!isAuthenticated) {
-      requestAccess(`la skin ${nextSkin === 'lucid' ? 'Lucid' : nextSkin === 'nocturna' ? 'Nocturna' : nextSkin === 'dj' ? 'Consola DJ' : 'Holista'}`, 'Ultimate Mode');
+      requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? (nextSkin === 'dj' ? 'Consola DJ' : nextSkin === 'nocturna' ? 'Nocturna' : nextSkin === 'lucid' ? 'Lucid' : 'Holista')}`, nextSkin === 'dj' || skinInfo(nextSkin)?.access === 'gold' ? 'Gold' : 'Ultimate Mode');
       return;
     }
+    if (activePlan === 'basic' && nextSkin !== 'holista') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Gold'); return; }
+    if (activePlan === 'gold' && nextSkin !== 'holista' && nextSkin !== 'dj') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Ultimate Mode'); return; }
     changeSkin(nextSkin);
   };
 
@@ -469,7 +497,7 @@ function App() {
             <p className="kicker">{pendingAccess ? 'Acceso contextual' : 'Tu mapa de vida comienza aquí'}</p>
             <h1 id="login-title">{pendingAccess ? 'Desbloquea esta función.' : 'Entra a tu espacio.'}</h1>
             <p className="login-copy">{pendingAccess ? `${pendingAccess.feature} forma parte del plan ${pendingAccess.plan}. Crea tu cuenta o inicia sesión para continuar.` : 'Inicia sesión para guardar tu progreso y continuar cultivando tus 12 modos de vida.'}</p>
-            <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Holista</button><button className={skin === 'dj' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('dj')}><i>✦</i> Consola DJ</button></div>
+            <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Modo Holista</button><label className="login-skin-select"><small>Más skins según tu plan</small><select value={skin} onChange={(event) => changeSkin(event.target.value as Skin)} aria-label="Seleccionar skin disponible"><option value="holista">Modo Holista</option><option value="dj">Consola DJ · Gold</option>{skinCatalog.map((item) => <option key={item.key} value={item.key} disabled={activePlan === 'basic' || (activePlan === 'gold' && item.access !== 'gold')}>{item.name} · {item.access === 'gold' ? 'Gold' : 'Ultimate'}</option>)}</select></label></div>
             <form className="login-form" onSubmit={(event) => { event.preventDefault(); const destination = pendingAccess?.returnView ?? 'welcome'; const nextActivity = pendingActivity; setIsAuthenticated(true); window.localStorage.setItem('modoCultiva_auth', 'true'); setPendingAccess(null); setPendingActivity(null); if (nextActivity) { setJourneyStarted(true); setActivityEntry(nextActivity.entry); setActiveActivity(nextActivity.level); setPoolSelection(0); setActivityPrompt(''); } setView(destination); }}>
               <label htmlFor="login-username">Usuario<input id="login-username" autoComplete="username" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="Tu usuario" /></label>
               <label htmlFor="login-password">Contraseña<input id="login-password" type="password" autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="Tu contraseña" /></label>
@@ -482,7 +510,7 @@ function App() {
       ) : view === 'plans' ? (
         <section className="plans-view" data-layer="plans" aria-labelledby="plans-title">
           <div className="plans-header"><p className="kicker">Tu siguiente nivel comienza aquí</p><h1 id="plans-title">Haz de tu crecimiento una forma de vida.</h1><p>Elige el ritmo, la profundidad y la comunidad que quieres llevar contigo en Modo Cultiva.</p></div>
-          <div className="plans-grid" aria-label="Modos Premium de Modo Cultiva">{(Object.keys(planDetails) as PlanKey[]).map((plan) => <button className={plan === 'gold' ? 'plan-card plan-card--featured' : 'plan-card'} type="button" key={plan} onClick={() => setSelectedPlan(plan)}><span className="plan-card-name">{planDetails[plan].name}</span><strong>{planDetails[plan].price}</strong><p>{planDetails[plan].promise}</p><span className="plan-card-link">Ver beneficios completos ↗</span></button>)}</div>
+          <div className="plans-grid" aria-label="Modos Premium de Modo Cultiva">{(Object.keys(planDetails) as PlanKey[]).map((plan) => <button className={plan === 'gold' ? 'plan-card plan-card--featured' : 'plan-card'} type="button" key={plan} onClick={() => { setActivePlan(plan); window.localStorage.setItem('modoCultiva_plan', plan); setSelectedPlan(plan); }}><span className="plan-card-name">{planDetails[plan].name}</span><strong>{planDetails[plan].price}</strong><p>{planDetails[plan].promise}</p><span className="plan-card-link">Ver beneficios completos ↗</span></button>)}</div>
           <button className="plans-signup" type="button" onClick={() => { setPendingAccess(null); setSelectedPlan(null); setView('login'); }}>Crea tu cuenta <span>→</span></button>
         </section>
       ) : view === 'cult' ? (
@@ -494,11 +522,12 @@ function App() {
             {cultTab === 'home' && <><div className="cult-section-heading"><div><p className="kicker">Panel ULTIMATE MODE</p><h2>Todo tu potencial, en un solo nodo.</h2></div><span className="cult-live-pill"><i /> LIVE NETWORK</span></div><div className="cult-metric-grid"><article className="cult-metric cult-metric--wide"><span className="cult-metric-icon">✦</span><div><small>MODO IA · USO JUSTO</small><strong>Sin límites artificiales</strong><p>Contextualiza, consulta y establece actividades con una inteligencia que entiende tus 12 modos.</p></div><b>∞</b></article><article className="cult-metric"><small>INSIGHTS</small><strong>Global</strong><p>Conecta con estrategias de cultivo más allá de tu círculo.</p><span className="cult-metric-line" /></article><article className="cult-metric"><small>PROFESSIONAL</small><strong>Verified</strong><p>Encuentra orientación de especialistas por modo.</p><span className="cult-metric-line cult-metric-line--gold" /></article></div><div className="cult-feature-grid"><article><span>01 · TU RED</span><h3>Cultiva acompañado.</h3><p>Descubre recomendaciones comunitarias y comparte presets con tu red de apoyo.</p><button type="button" onClick={() => setCultTab('insights')}>Explorar Insights <span>→</span></button></article><article><span>02 · TU PRÓXIMO NIVEL</span><h3>Habla con experiencia.</h3><p>Solicita orientación privada y sigue el progreso de las recomendaciones profesionales.</p><button type="button" onClick={() => setCultTab('network')}>Encontrar especialistas <span>→</span></button></article></div></>}
             {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">Red global de conocimiento</p><h2>Insights que cruzan fronteras.</h2></div><span className="cult-live-pill"><i /> 1,284 ACTIVOS</span></div><div className="cult-insight-board"><article className="cult-insight-feature"><span>✦ GLOBAL INSIGHT · MODO VISIONARIO</span><h3>“La visión se vuelve camino cuando alguien más puede ayudarte a verla desde otro ángulo.”</h3><p>Compartido por <strong>Amara K.</strong> · Nivel 8 · São Paulo</p><button type="button">Guardar en mi mapa <span>＋</span></button></article><div className="cult-insight-list"><article><span>Modo Profesional · Nivel 6</span><p>“Define primero el resultado que no estás dispuesto a negociar.”</p><small>Jules M. · Berlín</small></article><article><span>Modo Emocional · Nivel 7</span><p>“La consistencia empieza cuando dejas de pelearte con tu propio ritmo.”</p><small>Nadia R. · Ciudad de México</small></article><article><span>Modo Físico · Nivel 8</span><p>“Mide tu energía como un recurso, no como una deuda.”</p><small>Leo T. · Buenos Aires</small></article></div></div></>}
             {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">Professional Insights</p><h2>Encuentra a tu siguiente guía.</h2></div><span className="cult-live-pill cult-live-pill--gold"><i /> PERFILES VERIFICADOS</span></div><div className="cult-filter-row"><select aria-label="Filtrar por modo"><option>Todos los modos</option><option>Modo Profesional</option><option>Modo Emocional</option><option>Modo Financiero</option></select><select aria-label="Filtrar por idioma"><option>Cualquier idioma</option><option>Español</option><option>English</option><option>Português</option></select><select aria-label="Filtrar por ubicación"><option>Cualquier ubicación</option><option>Latinoamérica</option><option>Europa</option><option>Norteamérica</option></select></div><div className="cult-specialist-list">{[['Sofía Méndez', 'Modo Profesional', 'Estrategia y liderazgo', 'Ciudad de México', '98%'], ['Marcus Lee', 'Modo Financiero', 'Patrimonio y decisiones', 'Austin · Remote', '96%'], ['Elena Costa', 'Modo Emocional', 'Vínculos y regulación', 'Lisboa · Remote', '99%']].map(([name, mode, specialty, location, match]) => <article key={name}><div className="cult-specialist-avatar">{name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{name} <span>✓</span></strong><small>{mode} · {specialty}</small><p>Disponible para orientación privada · {location}</p></div><div className="cult-match"><span>{match}</span><small>match</small></div><button type="button">Ver perfil ↗</button></article>)}</div></>}
-            {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h2>Cambia la piel de tu cultivo.</h2></div><span className="cult-live-pill"><i /> 04 DISPONIBLES</span></div><div className="cult-skin-grid"><article className={`cult-skin-card${skin === 'holista' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button" onClick={() => activateCultSkin('holista')}>{skin === 'holista' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'dj' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--dj"><span className="skin-card-glyph skin-card-glyph--faders" aria-hidden="true"><i /><i /><i /></span></div><div><strong>Consola DJ</strong><p>La mezcla perfecta para ecualizar la canción de tu vida.</p><button type="button" onClick={() => activateCultSkin('dj')}>{skin === 'dj' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'nocturna' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--nocturna"><span className="skin-card-glyph skin-card-glyph--owl" aria-hidden="true">🦉</span></div><div><strong>Nocturna</strong><p>Un refugio de sombras para cultivar como un búho nocturno.</p><button type="button" onClick={() => activateCultSkin('nocturna')}>{skin === 'nocturna' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card cult-skin-card--lucid${skin === 'lucid' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--lucid"><span className="skin-card-glyph skin-card-glyph--dream" aria-hidden="true">◌</span></div><div><strong>Lucid</strong><p>Un sueño lúcido de color, contraste y percepción expandida.</p><button type="button" onClick={() => activateCultSkin('lucid')}>{skin === 'lucid' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article></div></>}
+            {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h2>Cambia la piel de tu cultivo.</h2></div><span className="cult-live-pill"><i /> {skinCatalog.length + 4} DISPONIBLES</span></div><div className="cult-skin-grid"><article className={`cult-skin-card${skin === 'holista' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button" onClick={() => activateCultSkin('holista')}>{skin === 'holista' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'dj' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--dj"><span className="skin-card-glyph skin-card-glyph--faders" aria-hidden="true"><i /><i /><i /></span></div><div><strong>Consola DJ</strong><p>La mezcla perfecta para ecualizar la canción de tu vida.</p><button type="button" onClick={() => activateCultSkin('dj')}>{skin === 'dj' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'nocturna' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--nocturna"><span className="skin-card-glyph skin-card-glyph--owl" aria-hidden="true">🦉</span></div><div><strong>Nocturna</strong><p>Un refugio de sombras para cultivar como un búho nocturno.</p><button type="button" onClick={() => activateCultSkin('nocturna')}>{skin === 'nocturna' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card cult-skin-card--lucid${skin === 'lucid' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--lucid"><span className="skin-card-glyph skin-card-glyph--dream" aria-hidden="true">◌</span></div><div><strong>Lucid</strong><p>Un sueño lúcido de color, contraste y percepción expandida.</p><button type="button" onClick={() => activateCultSkin('lucid')}>{skin === 'lucid' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>{skinCatalog.map((item) => <article className={`cult-skin-card cult-skin-card--${item.key}${skin === item.key ? ' cult-skin-card--active' : ''}`} key={item.key}><div className={`cult-skin-visual cult-skin-visual--${item.key}`}><span>{item.icon}</span></div><div><strong>{item.name}</strong><p>{item.description}</p><button type="button" onClick={() => activateCultSkin(item.key)}>{skin === item.key ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>)}</div></>}
           </main><aside className="cult-rail"><div className="cult-status-card"><span className="cult-status-label">TU ESTATUS</span><div className="cult-badge">U</div><h3>ULTIMATE MODE</h3><p>Acceso completo a The Cult</p><div className="cult-status-rule" /><span className="cult-status-label">TU RED</span><strong>24 conexiones</strong><small>+6 esta semana</small></div><div className="cult-rail-card"><span className="cult-status-label">PRÓXIMO EN TU RUTA</span><strong>Modo Visionario</strong><p>3 recomendaciones esperan tu revisión.</p><button type="button" onClick={() => setCultTab('insights')}>Ver recomendaciones →</button></div><div className="cult-quote">“No cultivas una sola versión de ti.<br /><strong>Cultivas todas.</strong>”</div></aside></div>
         </section>
       ) : view === 'welcome' ? (
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ''}`} data-layer="1" aria-labelledby="welcome-title">
+          {isInterfaceSkin && <section className={`skin-interface skin-interface--${skin}`} aria-label={`${skinInfo(skin)?.name} overview`}><div className="skin-interface-orbit"><span>{skinInfo(skin)?.icon}</span><small>12 MODOS<br />ENFOCADOS</small></div><div><p className="kicker">{skinInfo(skin)?.name} · MAPA DE VIDA</p><h1>{skinInfo(skin)?.signature}</h1><p>{skinInfo(skin)?.description}</p><div className="skin-interface-grid">{modes.slice(0, 4).map((mode) => <article key={mode.key}><span>{mode.icon}</span><strong>{mode.shortName}</strong><small>NIVEL {levels[mode.key]}</small></article>)}</div><button className="skin-interface-entry" type="button" onClick={() => setView('dashboard')}>Entrar a mi mapa <span>↗</span></button></div></section>}
           {skin === 'dj' && <section className="dj-console" aria-labelledby="dj-console-title">
             <div className="dj-console-top"><div><p className="kicker">Consola de presencia</p><h1 id="dj-console-title">Cultiva todos tus modos.</h1><p className="intro-copy">MODO CULTIVA ACTIVADO · 12 CANALES DE VIDA ENERGIZADOS</p></div><div className="dj-profile-entry"><button className={profileImage ? 'dj-profile-button dj-profile-button--with-photo' : 'dj-profile-button'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .08), rgba(4, 18, 29, .82)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={`Presiona para entrar al Dashboard de ${profileName}`}><span className="dj-profile-fallback">{profileImage ? '' : profileName.slice(0, 1).toUpperCase()}</span><span className="dj-profile-copy"><strong>{profileName}</strong><span className="profile-badge">{defaultUserProfile.role}</span><small>Presiona para Entrar <b>↗</b></small></span></button><label className="dj-profile-upload" title="Cambiar foto de perfil"><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /><span>＋</span></label></div></div>
             <div className="dj-console-screen"><span>SESIÓN PERSONAL · {profileName.toUpperCase()}</span><strong>12 MODOS DE VIDA</strong><i /></div>
@@ -507,7 +536,7 @@ function App() {
             <div className="dj-channel-deck">{modes.map((mode) => { const level = levels[mode.key]; const litSegments = Math.max(1, Math.ceil(((level + 1) / 10) * 10)); return <article className="dj-channel" key={mode.key} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties}><div className="dj-channel-head"><span>{mode.roman}</span><strong>{mode.icon} {mode.shortName}</strong><small>{level}/9</small></div><div className="dj-knob-bank" aria-hidden="true"><i className="dj-knob" /><i className="dj-knob" /><i className="dj-knob" /></div><div className="dj-led-meter" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <i className={index < litSegments ? 'dj-led dj-led--on' : 'dj-led'} key={index} />)}</div><div className="dj-fader-wrap"><span>9</span><input className="dj-fader" aria-label={`Nivel de ${mode.name}`} type="range" min="0" max="9" value={level} onFocus={() => setDjFocusedMode(mode.key)} onChange={(event) => { setDjFocusedMode(mode.key); updateLevel(mode.key, Number(event.target.value)); }} /><span>0</span></div><span className="dj-cable" aria-hidden="true" /><button className="dj-channel-open" type="button" onClick={() => openMode(mode)}>Abrir modo ↗</button></article>; })}</div>
             <div className="dj-console-footer"><span>FADERS DE PRESENCIA · AJUSTE EN TIEMPO REAL</span><span>FOTO DE PERFIL · ENTRADA AL DASHBOARD</span></div>
           </section>}
-          <div className={skin === 'dj' ? 'holista-overview-content holista-overview-content--hidden' : 'holista-overview-content'}>
+          <div className={skin === 'dj' || isInterfaceSkin ? 'holista-overview-content holista-overview-content--hidden' : 'holista-overview-content'}>
           <div className="welcome-copy">
             <p className="kicker">Bienvenido a tu mapa de vida</p>
             <h1 id="welcome-title">Cultiva todos tus modos.</h1>
