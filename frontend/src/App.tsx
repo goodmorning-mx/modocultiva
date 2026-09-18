@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import logo from './assets/modo-cultiva-logo.png';
+import './skin-overrides.css';
 
 type HealthResponse = {
   service: string;
@@ -25,7 +26,7 @@ type Mode = {
 
 type View = 'login' | 'plans' | 'cult' | 'welcome' | 'dashboard';
 type Preset = Record<string, number>;
-type Skin = 'holista' | 'dj';
+type Skin = 'holista' | 'dj' | 'nocturna' | 'lucid';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
 type PoolActivity = { title: string; description: string };
 type AccessRequest = { feature: string; plan: 'Cuenta' | 'Entry' | 'Gold' | 'Ultimate Mode'; returnView: View };
@@ -156,7 +157,8 @@ function App() {
   const [cultTab, setCultTab] = useState<CultTab>('home');
   const [skin, setSkin] = useState<Skin>(() => {
     try {
-      return window.localStorage.getItem('modoCultiva_skin') === 'dj' ? 'dj' : 'holista';
+      const savedSkin = window.localStorage.getItem('modoCultiva_skin');
+      return savedSkin === 'dj' || savedSkin === 'nocturna' || savedSkin === 'lucid' ? savedSkin : 'holista';
     } catch {
       return 'holista';
     }
@@ -266,7 +268,7 @@ function App() {
   };
 
   const changeSkin = (nextSkin: Skin) => {
-    if (nextSkin === 'dj' && !isAuthenticated && view !== 'login') {
+    if ((nextSkin === 'dj' || nextSkin === 'nocturna' || nextSkin === 'lucid') && !isAuthenticated && view !== 'login') {
       requestAccess('la skin Consola DJ', 'Gold');
       return;
     }
@@ -276,6 +278,14 @@ function App() {
     } catch {
       // The selected skin remains available for the current session.
     }
+  };
+
+  const activateCultSkin = (nextSkin: Skin) => {
+    if (!isAuthenticated) {
+      requestAccess(`la skin ${nextSkin === 'lucid' ? 'Lucid' : nextSkin === 'nocturna' ? 'Nocturna' : nextSkin === 'dj' ? 'Consola DJ' : 'Holista'}`, 'Ultimate Mode');
+      return;
+    }
+    changeSkin(nextSkin);
   };
 
   const handleProfileImage = (file: File | undefined) => {
@@ -442,7 +452,7 @@ function App() {
   };
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell app-shell--${skin}`}>
       <header className="topbar">
         <a className="brand" href="/" aria-label="Modo Cultiva, inicio">
           <img src={logo} alt="Modo Cultiva" />
@@ -484,7 +494,7 @@ function App() {
             {cultTab === 'home' && <><div className="cult-section-heading"><div><p className="kicker">Panel ULTIMATE MODE</p><h2>Todo tu potencial, en un solo nodo.</h2></div><span className="cult-live-pill"><i /> LIVE NETWORK</span></div><div className="cult-metric-grid"><article className="cult-metric cult-metric--wide"><span className="cult-metric-icon">✦</span><div><small>MODO IA · USO JUSTO</small><strong>Sin límites artificiales</strong><p>Contextualiza, consulta y establece actividades con una inteligencia que entiende tus 12 modos.</p></div><b>∞</b></article><article className="cult-metric"><small>INSIGHTS</small><strong>Global</strong><p>Conecta con estrategias de cultivo más allá de tu círculo.</p><span className="cult-metric-line" /></article><article className="cult-metric"><small>PROFESSIONAL</small><strong>Verified</strong><p>Encuentra orientación de especialistas por modo.</p><span className="cult-metric-line cult-metric-line--gold" /></article></div><div className="cult-feature-grid"><article><span>01 · TU RED</span><h3>Cultiva acompañado.</h3><p>Descubre recomendaciones comunitarias y comparte presets con tu red de apoyo.</p><button type="button" onClick={() => setCultTab('insights')}>Explorar Insights <span>→</span></button></article><article><span>02 · TU PRÓXIMO NIVEL</span><h3>Habla con experiencia.</h3><p>Solicita orientación privada y sigue el progreso de las recomendaciones profesionales.</p><button type="button" onClick={() => setCultTab('network')}>Encontrar especialistas <span>→</span></button></article></div></>}
             {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">Red global de conocimiento</p><h2>Insights que cruzan fronteras.</h2></div><span className="cult-live-pill"><i /> 1,284 ACTIVOS</span></div><div className="cult-insight-board"><article className="cult-insight-feature"><span>✦ GLOBAL INSIGHT · MODO VISIONARIO</span><h3>“La visión se vuelve camino cuando alguien más puede ayudarte a verla desde otro ángulo.”</h3><p>Compartido por <strong>Amara K.</strong> · Nivel 8 · São Paulo</p><button type="button">Guardar en mi mapa <span>＋</span></button></article><div className="cult-insight-list"><article><span>Modo Profesional · Nivel 6</span><p>“Define primero el resultado que no estás dispuesto a negociar.”</p><small>Jules M. · Berlín</small></article><article><span>Modo Emocional · Nivel 7</span><p>“La consistencia empieza cuando dejas de pelearte con tu propio ritmo.”</p><small>Nadia R. · Ciudad de México</small></article><article><span>Modo Físico · Nivel 8</span><p>“Mide tu energía como un recurso, no como una deuda.”</p><small>Leo T. · Buenos Aires</small></article></div></div></>}
             {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">Professional Insights</p><h2>Encuentra a tu siguiente guía.</h2></div><span className="cult-live-pill cult-live-pill--gold"><i /> PERFILES VERIFICADOS</span></div><div className="cult-filter-row"><select aria-label="Filtrar por modo"><option>Todos los modos</option><option>Modo Profesional</option><option>Modo Emocional</option><option>Modo Financiero</option></select><select aria-label="Filtrar por idioma"><option>Cualquier idioma</option><option>Español</option><option>English</option><option>Português</option></select><select aria-label="Filtrar por ubicación"><option>Cualquier ubicación</option><option>Latinoamérica</option><option>Europa</option><option>Norteamérica</option></select></div><div className="cult-specialist-list">{[['Sofía Méndez', 'Modo Profesional', 'Estrategia y liderazgo', 'Ciudad de México', '98%'], ['Marcus Lee', 'Modo Financiero', 'Patrimonio y decisiones', 'Austin · Remote', '96%'], ['Elena Costa', 'Modo Emocional', 'Vínculos y regulación', 'Lisboa · Remote', '99%']].map(([name, mode, specialty, location, match]) => <article key={name}><div className="cult-specialist-avatar">{name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{name} <span>✓</span></strong><small>{mode} · {specialty}</small><p>Disponible para orientación privada · {location}</p></div><div className="cult-match"><span>{match}</span><small>match</small></div><button type="button">Ver perfil ↗</button></article>)}</div></>}
-            {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h2>Cambia la piel de tu cultivo.</h2></div><span className="cult-live-pill"><i /> 04 DISPONIBLES</span></div><div className="cult-skin-grid"><article className="cult-skin-card cult-skin-card--active"><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button">Activa ahora ✓</button></div></article><article className="cult-skin-card"><div className="cult-skin-visual cult-skin-visual--dj"><span>✦</span></div><div><strong>Consola DJ</strong><p>12 canales. Una vida en mezcla.</p><button type="button">Vista previa ↗</button></div></article><article className="cult-skin-card"><div className="cult-skin-visual cult-skin-visual--nocturna"><span>☾</span></div><div><strong>Nocturna</strong><p>Profundidad para cultivar en silencio.</p><button type="button">Próximamente</button></div></article><article className="cult-skin-card cult-skin-card--add"><div className="cult-skin-visual"><span>＋</span></div><div><strong>Tu próxima skin</strong><p>Acceso anticipado a nuevas experiencias.</p><button type="button">Explorar roadmap ↗</button></div></article></div></>}
+            {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h2>Cambia la piel de tu cultivo.</h2></div><span className="cult-live-pill"><i /> 04 DISPONIBLES</span></div><div className="cult-skin-grid"><article className={`cult-skin-card${skin === 'holista' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button" onClick={() => activateCultSkin('holista')}>{skin === 'holista' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'dj' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--dj"><span>✦</span></div><div><strong>Consola DJ</strong><p>12 canales. Una vida en mezcla.</p><button type="button" onClick={() => activateCultSkin('dj')}>{skin === 'dj' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'nocturna' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--nocturna"><span>☾</span></div><div><strong>Nocturna</strong><p>Una luna violeta para cultivar en silencio.</p><button type="button" onClick={() => activateCultSkin('nocturna')}>{skin === 'nocturna' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card cult-skin-card--lucid${skin === 'lucid' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--lucid"><span>✺</span></div><div><strong>Lucid</strong><p>Un sueño lúcido de color, contraste y percepción expandida.</p><button type="button" onClick={() => activateCultSkin('lucid')}>{skin === 'lucid' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article></div></>}
           </main><aside className="cult-rail"><div className="cult-status-card"><span className="cult-status-label">TU ESTATUS</span><div className="cult-badge">U</div><h3>ULTIMATE MODE</h3><p>Acceso completo a The Cult</p><div className="cult-status-rule" /><span className="cult-status-label">TU RED</span><strong>24 conexiones</strong><small>+6 esta semana</small></div><div className="cult-rail-card"><span className="cult-status-label">PRÓXIMO EN TU RUTA</span><strong>Modo Visionario</strong><p>3 recomendaciones esperan tu revisión.</p><button type="button" onClick={() => setCultTab('insights')}>Ver recomendaciones →</button></div><div className="cult-quote">“No cultivas una sola versión de ti.<br /><strong>Cultivas todas.</strong>”</div></aside></div>
         </section>
       ) : view === 'welcome' ? (
