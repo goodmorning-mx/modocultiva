@@ -1,39 +1,39 @@
 .cult-skin-visual--lucid {
   color: #fff5a8;
-  background: radial-gradient(circle at 28% 24%, rgba(255, 94, 194, .9), transparent 25%), radial-gradient(circle at 75% 72%, rgba(88, 241, 255, .75), transparent 35%), linear-gradient(135deg, #5d1acb, #ff3c9a 48%, #0fe0d0);
-  box-shadow: inset 0 0 28px rgba(255, 255, 255, .22), 0 0 24px rgba(255, 70, 205, .18);
+  background: radial-gradient(circle at 18% 20%, rgba(255, 137, 57, .9), transparent 24%), radial-gradient(circle at 78% 22%, rgba(89, 224, 255, .88), transparent 28%), radial-gradient(circle at 62% 82%, rgba(184, 72, 255, .8), transparent 34%), linear-gradient(135deg, #4f1db6, #d840c8 45%, #11bed7);
+  box-shadow: inset 0 0 28px rgba(255, 255, 255, .26), 0 0 24px rgba(62, 220, 255, .22);
 }
 .cult-skin-card--lucid { border-color: rgba(255, 92, 202, .28); }
 .cult-skin-card--lucid.cult-skin-card--active { border-color: #ff6fd5; box-shadow: 0 0 26px rgba(255, 72, 199, .2); }
 
 .app-shell--nocturna {
-  background: radial-gradient(circle at 70% 8%, rgba(147, 76, 207, .3), transparent 28rem), radial-gradient(circle at 18% 70%, rgba(74, 42, 137, .24), transparent 25rem), #0b0918;
+  background: radial-gradient(circle at 76% 5%, rgba(214, 155, 255, .34), transparent 24rem), radial-gradient(circle at 18% 33%, rgba(157, 105, 232, .22), transparent 26rem), radial-gradient(circle at 70% 82%, rgba(84, 48, 164, .25), transparent 30rem), linear-gradient(145deg, #171026, #0e0a1d 54%, #1a1030);
 }
-.app-shell--nocturna .topbar { border-color: rgba(219, 156, 242, .2); }
-.app-shell--nocturna .brand, .app-shell--nocturna .profile-button { color: #f0ddff; }
-.app-shell--nocturna .profile-button { border-color: #674b87; background: #1d1232; }
-.app-shell--nocturna .kicker, .app-shell--nocturna .cult-access, .app-shell--nocturna .cult-live-pill { color: #db9cf2; }
-.app-shell--nocturna .live-dot, .app-shell--nocturna .cult-access i, .app-shell--nocturna .cult-live-pill i { background: #db9cf2; box-shadow: 0 0 12px #db9cf2; }
-.app-shell--nocturna .overview-core { border-color: rgba(219, 156, 242, .72); background: radial-gradient(circle at 50% 35%, rgba(219, 156, 242, .24), rgba(22, 12, 43, .88) 64%); box-shadow: inset 0 0 45px rgba(219, 156, 242, .18), 0 0 42px rgba(144, 71, 205, .2); }
-.app-shell--nocturna .overview-mode, .app-shell--nocturna .mode-card, .app-shell--nocturna .dashboard-tools, .app-shell--nocturna .journey-panel, .app-shell--nocturna .cult-metric, .app-shell--nocturna .cult-feature-grid article, .app-shell--nocturna .cult-status-card, .app-shell--nocturna .cult-rail-card { border-color: rgba(219, 156, 242, .2); background-color: rgba(24, 13, 45, .72); }
-.app-shell--nocturna .overview-mode strong, .app-shell--nocturna .mode-card-level, .app-shell--nocturna .journey-panel h2, .app-shell--nocturna .cult-hero h1 { color: #f3e8ff; }
-.app-shell--nocturna button:not(.profile-button) { border-color: rgba(219, 156, 242, .35); }
-.app-shell--nocturna .journey-cta, .app-shell--nocturna .plans-signup { color: #1c0d2e; background: linear-gradient(135deg, #edc8ff, #c678ef); }
-.app-shell--nocturna .cult-orbit-mark { border-color: rgba(219, 156, 242, .6); background: radial-gradient(circle, rgba(219, 156, 242, .2), rgba(16, 8, 31, .55) 64%); box-shadow: inset 0 0 40px rgba(219, 156, 242, .2), 0 0 40px rgba(144, 71, 205, .18); }
-.app-shell--nocturna .cult-orbit-mark span { color: #db9cf2; }
+.app-shell--nocturna .topbar { border-color: rgba(239, 221, 255, .28); }
+.app-shell--nocturna .brand, .app-shell--nocturna .profile-button { color: #fff7ff; }
+.app-shell--nocturna .profile-button { border-color: #9072b4; background: #24153d; box-shadow: 0 0 18px rgba(221, 180, 255, .14); }
+.app-shell--nocturna .kicker, .app-shell--nocturna .cult-access, .app-shell--nocturna .cult-live-pill { color: #e3b9ff; }
+.app-shell--nocturna .live-dot, .app-shell--nocturna .cult-access i, .app-shell--nocturna .cult-live-pill i { background: #fff; box-shadow: 0 0 12px #fff, 0 0 24px #e3b9ff; }
+.app-shell--nocturna .overview-core { border-color: rgba(239, 221, 255, .82); background: radial-gradient(circle at 50% 25%, rgba(255, 255, 255, .18), transparent 20%), radial-gradient(circle at 50% 35%, rgba(224, 170, 255, .34), rgba(28, 15, 54, .88) 66%); box-shadow: inset 0 0 45px rgba(239, 221, 255, .2), 0 0 42px rgba(180, 111, 255, .24); }
+.app-shell--nocturna .overview-mode, .app-shell--nocturna .mode-card, .app-shell--nocturna .dashboard-tools, .app-shell--nocturna .journey-panel, .app-shell--nocturna .cult-metric, .app-shell--nocturna .cult-feature-grid article, .app-shell--nocturna .cult-status-card, .app-shell--nocturna .cult-rail-card { border-color: rgba(231, 201, 255, .26); background-color: rgba(29, 16, 52, .72); }
+.app-shell--nocturna .overview-mode strong, .app-shell--nocturna .mode-card-level, .app-shell--nocturna .journey-panel h2, .app-shell--nocturna .cult-hero h1 { color: #fff8ff; }
+.app-shell--nocturna button:not(.profile-button) { border-color: rgba(227, 185, 255, .44); }
+.app-shell--nocturna .journey-cta, .app-shell--nocturna .plans-signup { color: #241034; background: linear-gradient(135deg, #fff, #eed7ff 46%, #bd7df1); box-shadow: 0 0 24px rgba(238, 215, 255, .2); }
+.app-shell--nocturna .cult-orbit-mark { border-color: rgba(255, 255, 255, .72); background: radial-gradient(circle at 48% 24%, rgba(255, 255, 255, .24), transparent 20%), radial-gradient(circle, rgba(224, 170, 255, .28), rgba(20, 10, 38, .55) 64%); box-shadow: inset 0 0 40px rgba(255, 255, 255, .16), 0 0 40px rgba(198, 132, 255, .24); }
+.app-shell--nocturna .cult-orbit-mark span { color: #fff; text-shadow: 0 0 16px #e3b9ff; }
 
 .app-shell--lucid {
-  background: radial-gradient(circle at 20% 6%, rgba(255, 82, 192, .34), transparent 24rem), radial-gradient(circle at 84% 24%, rgba(28, 231, 225, .27), transparent 28rem), linear-gradient(135deg, #130a32, #071c36 52%, #142b2b);
+  background: radial-gradient(circle at 12% 8%, rgba(255, 130, 44, .38), transparent 22rem), radial-gradient(circle at 84% 12%, rgba(86, 229, 255, .38), transparent 24rem), radial-gradient(circle at 58% 70%, rgba(205, 66, 255, .3), transparent 28rem), linear-gradient(135deg, #19093d, #092a49 50%, #102d36);
 }
-.app-shell--lucid .topbar { border-color: rgba(255, 105, 211, .3); }
+.app-shell--lucid .topbar { border-color: rgba(105, 236, 255, .38); }
 .app-shell--lucid .brand, .app-shell--lucid .profile-button { color: #fff5d1; }
 .app-shell--lucid .profile-button { border-color: #ff68cd; background: #26104b; box-shadow: 0 0 16px rgba(255, 83, 202, .22); }
-.app-shell--lucid .kicker, .app-shell--lucid .cult-access, .app-shell--lucid .cult-live-pill { color: #69f4ee; }
+.app-shell--lucid .kicker, .app-shell--lucid .cult-access, .app-shell--lucid .cult-live-pill { color: #74eeff; }
 .app-shell--lucid .live-dot, .app-shell--lucid .cult-access i, .app-shell--lucid .cult-live-pill i { background: #69f4ee; box-shadow: 0 0 12px #69f4ee; }
-.app-shell--lucid .overview-core { border-color: #ff68cd; background: radial-gradient(circle at 35% 30%, rgba(255, 105, 211, .5), rgba(36, 12, 83, .92) 62%); box-shadow: inset 0 0 40px rgba(255, 105, 211, .22), 0 0 42px rgba(33, 230, 222, .18); }
-.app-shell--lucid .overview-mode, .app-shell--lucid .mode-card, .app-shell--lucid .dashboard-tools, .app-shell--lucid .journey-panel, .app-shell--lucid .cult-metric, .app-shell--lucid .cult-feature-grid article, .app-shell--lucid .cult-status-card, .app-shell--lucid .cult-rail-card { border-color: rgba(105, 244, 238, .3); background-color: rgba(20, 12, 61, .78); }
+.app-shell--lucid .overview-core { border-color: #72eaff; background: radial-gradient(circle at 28% 23%, rgba(255, 133, 45, .42), transparent 20%), radial-gradient(circle at 70% 18%, rgba(110, 237, 255, .5), transparent 25%), radial-gradient(circle at 50% 46%, rgba(255, 105, 211, .4), rgba(36, 12, 83, .92) 62%); box-shadow: inset 0 0 40px rgba(110, 237, 255, .22), 0 0 42px rgba(255, 105, 211, .22); }
+.app-shell--lucid .overview-mode, .app-shell--lucid .mode-card, .app-shell--lucid .dashboard-tools, .app-shell--lucid .journey-panel, .app-shell--lucid .cult-metric, .app-shell--lucid .cult-feature-grid article, .app-shell--lucid .cult-status-card, .app-shell--lucid .cult-rail-card { border-color: rgba(105, 236, 255, .36); background-color: rgba(20, 12, 61, .78); }
 .app-shell--lucid .overview-mode strong, .app-shell--lucid .mode-card-level, .app-shell--lucid .journey-panel h2, .app-shell--lucid .cult-hero h1 { color: #fff3d0; }
 .app-shell--lucid button:not(.profile-button) { border-color: rgba(255, 105, 211, .42); }
-.app-shell--lucid .journey-cta, .app-shell--lucid .plans-signup { color: #18052c; background: linear-gradient(135deg, #fff187, #ff69cf 50%, #66f4eb); }
-.app-shell--lucid .cult-orbit-mark { border-color: rgba(255, 105, 211, .72); background: radial-gradient(circle, rgba(255, 105, 211, .32), rgba(12, 14, 52, .58) 64%); box-shadow: inset 0 0 40px rgba(105, 244, 238, .2), 0 0 40px rgba(255, 105, 211, .2); }
+.app-shell--lucid .journey-cta, .app-shell--lucid .plans-signup { color: #18052c; background: linear-gradient(135deg, #ff9b4c, #fff187 34%, #ff69cf 65%, #66f4eb); }
+.app-shell--lucid .cult-orbit-mark { border-color: rgba(110, 237, 255, .82); background: radial-gradient(circle at 28% 24%, rgba(255, 133, 45, .4), transparent 22%), radial-gradient(circle at 70% 30%, rgba(110, 237, 255, .4), transparent 32%), radial-gradient(circle, rgba(255, 105, 211, .3), rgba(12, 14, 52, .58) 64%); box-shadow: inset 0 0 40px rgba(110, 237, 255, .2), 0 0 40px rgba(255, 105, 211, .22); }
 .app-shell--lucid .cult-orbit-mark span { color: #fff187; }
