@@ -192,3 +192,35 @@
 .cult-skin-visual--lucid::before { width: 78px; height: 35px; border: 2px solid rgba(255, 255, 255, .66); transform: rotate(-18deg); box-shadow: 0 0 14px rgba(255, 157, 82, .7); }
 .cult-skin-visual--lucid::after { width: 26px; height: 26px; border: 1px solid rgba(255, 255, 255, .8); transform: translate(25px, -15px); box-shadow: 0 0 12px rgba(112, 239, 255, .9); }
 .skin-card-glyph--dream { position: relative; z-index: 1; color: #fff6a8; font-size: 3.2rem; text-shadow: 0 0 12px #ff9850, 0 0 20px #78efff; }
+
+/* DJ header: keep the metadata airy like the other skins, without the gray strip. */
+.app-shell--dj .topbar-meta { background-color: transparent; }
+.app-shell--dj .meta-divider { background: rgba(238, 216, 255, .5); }
+
+/* Nocturna gallery art: neutral night scene with a restrained red owl accent. */
+.cult-skin-visual--nocturna { background: radial-gradient(circle at 50% 22%, rgba(255, 255, 255, .14), transparent 18%), radial-gradient(circle at 65% 82%, rgba(175, 48, 38, .28), transparent 34%), linear-gradient(145deg, #676a6c, #292b2d 65%, #111213); }
+.skin-card-glyph--owl { filter: grayscale(.72) sepia(.65) saturate(2.2) hue-rotate(315deg) drop-shadow(0 0 8px rgba(183, 55, 45, .7)); }
+
+/* Lucid: align every layer with the cyan, orange and warm-dream palette of its gallery art. */
+.app-shell--lucid {
+  background: radial-gradient(circle at 10% 8%, rgba(255, 142, 56, .34), transparent 22rem), radial-gradient(circle at 88% 14%, rgba(95, 234, 255, .38), transparent 25rem), radial-gradient(circle at 70% 78%, rgba(116, 213, 255, .22), transparent 27rem), linear-gradient(145deg, #102f58, #0b5265 48%, #173d57 100%);
+}
+.app-shell--lucid .topbar { border-color: rgba(112, 239, 255, .38); }
+.app-shell--lucid .topbar-meta, .app-shell--lucid .kicker, .app-shell--lucid .cult-access, .app-shell--lucid .cult-live-pill { color: #8ceeff; }
+.app-shell--lucid .brand, .app-shell--lucid .profile-button { color: #efffff; }
+.app-shell--lucid .profile-button { border-color: #6ce6ef; background: #123f58; box-shadow: 0 0 18px rgba(99, 235, 255, .2); }
+.app-shell--lucid .live-dot, .app-shell--lucid .cult-access i, .app-shell--lucid .cult-live-pill i { background: #ff9953; box-shadow: 0 0 12px #ff9953, 0 0 22px rgba(112, 239, 255, .5); }
+.app-shell--lucid .overview-core { border-color: #78edff; background: radial-gradient(circle at 23% 22%, rgba(255, 150, 67, .44), transparent 21%), radial-gradient(circle at 77% 18%, rgba(112, 239, 255, .52), transparent 28%), radial-gradient(circle at 52% 75%, rgba(80, 200, 235, .28), rgba(9, 47, 73, .94) 66%); box-shadow: inset 0 0 45px rgba(112, 239, 255, .2), 0 0 42px rgba(255, 145, 66, .16); }
+.app-shell--lucid .overview-mode, .app-shell--lucid .mode-card, .app-shell--lucid .dashboard-tools, .app-shell--lucid .journey-panel, .app-shell--lucid .plans-view, .app-shell--lucid .cult-metric, .app-shell--lucid .cult-feature-grid article, .app-shell--lucid .cult-status-card, .app-shell--lucid .cult-rail-card { border-color: rgba(112, 239, 255, .34); background-color: rgba(9, 51, 70, .78); }
+.app-shell--lucid .overview-mode strong, .app-shell--lucid .mode-card-level, .app-shell--lucid .journey-panel h2, .app-shell--lucid .cult-hero h1, .app-shell--lucid .plans-header h1 { color: #f1ffff; }
+.app-shell--lucid button:not(.profile-button) { border-color: rgba(255, 145, 76, .48); }
+.app-shell--lucid .journey-cta, .app-shell--lucid .plans-signup { color: #083149; background: linear-gradient(135deg, #ff9a54, #ffd37a 42%, #77efff); box-shadow: 0 0 24px rgba(255, 151, 78, .2); }
+.app-shell--lucid .cult-orbit-mark { border-color: rgba(119, 237, 255, .86); background: radial-gradient(circle at 24% 23%, rgba(255, 151, 73, .45), transparent 23%), radial-gradient(circle at 72% 30%, rgba(110, 237, 255, .48), transparent 33%), radial-gradient(circle, rgba(76, 190, 224, .26), rgba(8, 43, 66, .64) 65%); box-shadow: inset 0 0 40px rgba(112, 239, 255, .2), 0 0 40px rgba(255, 145, 66, .18); }
+.app-shell--lucid .cult-orbit-mark span { color: #ffe08b; text-shadow: 0 0 13px rgba(255, 145, 66, .9); }
+
+/* The four gallery cards use the same lift-and-glow interaction as The Cult tabs. */
+.cult-skin-card { transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease; }
+.cult-skin-card:hover, .cult-skin-card:focus-within { transform: translateY(-5px); border-color: rgba(112, 237, 156, .62); box-shadow: 0 18px 35px rgba(0, 0, 0, .24), 0 0 24px rgba(112, 237, 156, .14); }
+.cult-skin-card:has(.cult-skin-visual--dj):hover, .cult-skin-card:has(.cult-skin-visual--dj):focus-within { border-color: #e3b9ff; box-shadow: 0 18px 35px rgba(0, 0, 0, .24), 0 0 26px rgba(198, 132, 255, .26); }
+.cult-skin-card:has(.cult-skin-visual--nocturna):hover, .cult-skin-card:has(.cult-skin-visual--nocturna):focus-within { border-color: #c46357; box-shadow: 0 18px 35px rgba(0, 0, 0, .24), 0 0 26px rgba(145, 47, 39, .24); }
+.cult-skin-card:has(.cult-skin-visual--lucid):hover, .cult-skin-card:has(.cult-skin-visual--lucid):focus-within { border-color: #7ceeff; box-shadow: 0 18px 35px rgba(0, 0, 0, .24), 0 0 26px rgba(91, 224, 255, .28); }
