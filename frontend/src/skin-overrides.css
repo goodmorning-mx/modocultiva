@@ -99,3 +99,96 @@
 .cult-skin-card:has(.cult-skin-visual--dj).cult-skin-card--active { border-color: #e3b9ff; box-shadow: 0 0 24px rgba(198, 132, 255, .2); }
 .cult-skin-visual--nocturna { color: #e4e4e4; background: radial-gradient(circle at 70% 28%, rgba(255, 255, 255, .16), transparent 22%), linear-gradient(145deg, #4a4d50, #17191b 72%); box-shadow: inset 0 0 25px rgba(255, 255, 255, .1), 0 0 20px rgba(145, 47, 39, .14); }
 .cult-skin-card:has(.cult-skin-visual--nocturna).cult-skin-card--active { border-color: #c46357; box-shadow: 0 0 24px rgba(145, 47, 39, .22); }
+
+/* Gallery artwork: each preview has a distinct visual motif, not just a color wash. */
+.cult-skin-visual--dj {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 52% 15%, rgba(255, 255, 255, .42), transparent 17%), radial-gradient(circle at 50% 68%, rgba(206, 135, 255, .42), transparent 42%), linear-gradient(145deg, #7541a1, #271642 72%);
+}
+.cult-skin-visual--dj::before {
+  position: absolute;
+  right: 16%;
+  bottom: 14%;
+  left: 16%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .8), transparent);
+  box-shadow: 0 -23px 0 rgba(255, 255, 255, .26), 0 -46px 0 rgba(255, 255, 255, .18);
+  content: '';
+  opacity: .75;
+}
+.cult-skin-visual--dj::after {
+  position: absolute;
+  top: 15%;
+  right: 16%;
+  width: 68%;
+  height: 70%;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 8px;
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, .08), 0 0 16px rgba(218, 174, 255, .2);
+  content: '';
+}
+.skin-card-glyph--faders {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 64px;
+  height: 74px;
+  align-items: end;
+  justify-content: space-around;
+  padding: 0 8px;
+  border-bottom: 2px solid rgba(255, 255, 255, .7);
+}
+.skin-card-glyph--faders i {
+  position: relative;
+  display: block;
+  width: 3px;
+  height: 62px;
+  border-radius: 3px;
+  background: linear-gradient(#fff, #c78bff 45%, #7e42a8);
+  box-shadow: 0 0 8px rgba(255, 255, 255, .75);
+}
+.skin-card-glyph--faders i::after {
+  position: absolute;
+  left: -5px;
+  width: 13px;
+  height: 8px;
+  border: 1px solid #fff;
+  border-radius: 3px;
+  background: #b975eb;
+  box-shadow: 0 0 9px rgba(255, 255, 255, .65);
+  content: '';
+}
+.skin-card-glyph--faders i:nth-child(1)::after { top: 17px; }
+.skin-card-glyph--faders i:nth-child(2)::after { top: 34px; }
+.skin-card-glyph--faders i:nth-child(3)::after { top: 9px; }
+
+.cult-skin-visual--nocturna {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 22%, rgba(255, 255, 255, .15), transparent 18%), radial-gradient(circle at 65% 82%, rgba(175, 48, 38, .25), transparent 34%), linear-gradient(145deg, #585b5d, #202224 67%, #111213);
+}
+.cult-skin-visual--nocturna::before,
+.cult-skin-visual--nocturna::after {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 50%;
+  content: '';
+}
+.cult-skin-visual--nocturna::before { top: 16%; left: 20%; box-shadow: 0 0 0 7px rgba(183, 55, 45, .09), 0 0 18px rgba(183, 55, 45, .18); }
+.cult-skin-visual--nocturna::after { right: 20%; bottom: 16%; box-shadow: 0 0 0 7px rgba(255, 255, 255, .05); }
+.skin-card-glyph--owl { position: relative; z-index: 1; color: #f1f1f1; font-size: 2.85rem; filter: grayscale(1) drop-shadow(0 0 8px rgba(255, 255, 255, .4)); }
+
+.cult-skin-visual--lucid {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 18%, rgba(255, 142, 56, .95), transparent 24%), radial-gradient(circle at 78% 20%, rgba(113, 238, 255, .95), transparent 30%), radial-gradient(circle at 58% 82%, rgba(155, 91, 255, .85), transparent 38%), linear-gradient(135deg, #5141ce, #52dff0 48%, #f47a50);
+  box-shadow: inset 0 0 28px rgba(255, 255, 255, .32), 0 0 24px rgba(74, 220, 255, .28);
+}
+.cult-skin-visual--lucid::before,
+.cult-skin-visual--lucid::after { position: absolute; border-radius: 50%; content: ''; }
+.cult-skin-visual--lucid::before { width: 78px; height: 35px; border: 2px solid rgba(255, 255, 255, .66); transform: rotate(-18deg); box-shadow: 0 0 14px rgba(255, 157, 82, .7); }
+.cult-skin-visual--lucid::after { width: 26px; height: 26px; border: 1px solid rgba(255, 255, 255, .8); transform: translate(25px, -15px); box-shadow: 0 0 12px rgba(112, 239, 255, .9); }
+.skin-card-glyph--dream { position: relative; z-index: 1; color: #fff6a8; font-size: 3.2rem; text-shadow: 0 0 12px #ff9850, 0 0 20px #78efff; }
