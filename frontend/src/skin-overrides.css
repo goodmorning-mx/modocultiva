@@ -37,3 +37,25 @@
 .app-shell--lucid .journey-cta, .app-shell--lucid .plans-signup { color: #18052c; background: linear-gradient(135deg, #ff9b4c, #fff187 34%, #ff69cf 65%, #66f4eb); }
 .app-shell--lucid .cult-orbit-mark { border-color: rgba(110, 237, 255, .82); background: radial-gradient(circle at 28% 24%, rgba(255, 133, 45, .4), transparent 22%), radial-gradient(circle at 70% 30%, rgba(110, 237, 255, .4), transparent 32%), radial-gradient(circle, rgba(255, 105, 211, .3), rgba(12, 14, 52, .58) 64%); box-shadow: inset 0 0 40px rgba(110, 237, 255, .2), 0 0 40px rgba(255, 105, 211, .22); }
 .app-shell--lucid .cult-orbit-mark span { color: #fff187; }
+
+/* Consola DJ: neutral outer surfaces with restrained red hardware accents.
+   The console deck and faders intentionally keep their original treatment. */
+.app-shell--dj {
+  background: radial-gradient(circle at 78% 8%, rgba(255, 255, 255, .08), transparent 25rem), radial-gradient(circle at 14% 82%, rgba(145, 47, 39, .14), transparent 26rem), linear-gradient(145deg, #1d1f21, #0c0d0e 58%, #17191b);
+}
+.app-shell--dj .topbar { border-color: rgba(255, 255, 255, .14); }
+.app-shell--dj .brand, .app-shell--dj .profile-button { color: #f2f2f2; }
+.app-shell--dj .profile-button { border-color: #6d7072; background: #292b2d; box-shadow: 0 0 15px rgba(255, 255, 255, .06); }
+.app-shell--dj .live-dot { background: #b95045; box-shadow: 0 0 12px rgba(185, 80, 69, .72); }
+.app-shell--dj .topbar-meta, .app-shell--dj .meta-divider { color: #8f9294; background-color: #4b4e50; }
+.app-shell--dj .welcome-view--dj { background: radial-gradient(circle at 52% 24%, rgba(255, 255, 255, .05), transparent 26rem), radial-gradient(circle at 20% 88%, rgba(169, 55, 43, .12), transparent 25rem); }
+.app-shell--dj .intro, .app-shell--dj .dashboard-tools, .app-shell--dj .mode-card, .app-shell--dj .journey-panel, .app-shell--dj .plans-view, .app-shell--dj .cult-view { border-color: rgba(255, 255, 255, .14); }
+.app-shell--dj .intro, .app-shell--dj .dashboard-tools, .app-shell--dj .mode-card, .app-shell--dj .journey-panel, .app-shell--dj .cult-metric, .app-shell--dj .cult-feature-grid article, .app-shell--dj .cult-status-card, .app-shell--dj .cult-rail-card { background-color: rgba(27, 29, 31, .84); }
+.app-shell--dj .kicker, .app-shell--dj .cult-access, .app-shell--dj .cult-live-pill { color: #d06b5d; }
+.app-shell--dj .mode-card-level, .app-shell--dj .mode-card-title, .app-shell--dj .journey-panel h2, .app-shell--dj .cult-hero h1 { color: #f1f1f1; }
+.app-shell--dj button:not(.dj-fader):not(.dj-channel-open):not(.dj-control-strip button):not(.profile-button) { border-color: rgba(191, 80, 68, .48); }
+.app-shell--dj .journey-cta, .app-shell--dj .plans-signup { color: #fff; background: linear-gradient(135deg, #6f2d2a, #aa5146); box-shadow: 0 0 22px rgba(154, 59, 49, .2); }
+.app-shell--dj .cult-orbit-mark { border-color: rgba(205, 91, 79, .62); background: radial-gradient(circle, rgba(255, 255, 255, .08), rgba(24, 25, 26, .6) 65%); box-shadow: inset 0 0 40px rgba(255, 255, 255, .07), 0 0 32px rgba(153, 59, 49, .16); }
+.app-shell--dj .cult-orbit-mark span { color: #e7e7e7; }
+.app-shell--dj .journey-back, .app-shell--dj .back-to-overview { color: #d06b5d; }
+.app-shell--dj .journey-level-card, .app-shell--dj .feature-preview, .app-shell--dj .plan-detail-modal { background-color: #1b1d1f; border-color: rgba(255, 255, 255, .16); }
