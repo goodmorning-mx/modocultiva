@@ -236,3 +236,10 @@
 .app-shell--lucid .cult-skin-card--lucid { border-color: rgba(124, 238, 255, .45); }
 .app-shell--lucid .cult-skin-card--lucid.cult-skin-card--active:not(:hover) { border-color: #7ceeff; box-shadow: 0 0 24px rgba(91, 224, 255, .2); }
 .app-shell--lucid .cult-skin-card--lucid.cult-skin-card--active:not(:hover) .cult-skin-visual { box-shadow: inset 0 0 28px rgba(255, 255, 255, .32), 0 0 24px rgba(74, 220, 255, .28); }
+.app-shell--lucid .cult-nav-button,
+.app-shell--lucid .cult-nav-button:hover,
+.app-shell--lucid .cult-nav-button:focus-visible,
+.app-shell--lucid .cult-nav-button--active { border-color: rgba(124, 238, 255, .68) !important; }
+.app-shell--lucid .cult-nav-button:hover,
+.app-shell--lucid .cult-nav-button:focus-visible,
+.app-shell--lucid .cult-nav-button--active { color: #edffff; background: rgba(76, 215, 240, .14); box-shadow: 0 0 20px rgba(88, 225, 255, .22); }
