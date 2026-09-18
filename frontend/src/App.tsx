@@ -607,7 +607,7 @@ function App() {
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
         {!journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← Volver al Dashboard</button>}
         {journeyStarted && activeActivity === null && <button className="journey-back" type="button" onClick={() => setJourneyStarted(false)}>← Volver a la Introducción al Modo</button>}
-        {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← Volver a niveles</button>}
+        {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← Volver a Journey del Modo</button>}
         {activeActivity !== null ? <section className={`activity-agent activity-agent--${activityEntry}`} data-layer="5" aria-labelledby="activity-agent-title">
           <p className="kicker">Layer 5 · {selectedMode.name} · {activityEntryLabel[activityEntry]}</p>
           {activityEntry === 'custom' ? <>
