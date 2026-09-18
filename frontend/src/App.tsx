@@ -24,7 +24,7 @@ type Mode = {
   accent: string;
 };
 
-type View = 'login' | 'plans' | 'cult' | 'welcome' | 'dashboard';
+type View = 'login' | 'plans' | 'cult' | 'lab' | 'welcome' | 'dashboard';
 type Preset = Record<string, number>;
 type Skin = 'holista' | 'dj' | 'nocturna' | 'lucid' | 'zen' | 'mission' | 'rpg' | 'botanical' | 'arcade' | 'arcana' | 'urban' | 'ocean' | 'fashion' | 'minimal';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
@@ -64,6 +64,20 @@ const modes: Mode[] = [
   { key: 'ludico', roman: 'XI', name: 'Modo Lúdico', shortName: 'Lúdico', description: 'Disfrute, ocio, descanso y recarga', icon: '✹', color: '#f3b86e', accent: '#543b22' },
   { key: 'visionario', roman: 'XII', name: 'Modo Visionario', shortName: 'Visionario', description: 'Metas, planificación y legado', icon: '△', color: '#72e79b', accent: '#214b39' },
 ];
+const labCards: Record<string, { question: string; answer: string }> = {
+  fisico: { question: '¿Qué señales te da hoy tu cuerpo?', answer: 'El Modo Físico cultiva salud, descanso, alimentación, movimiento y la relación cotidiana con tu cuerpo.' },
+  intelectual: { question: '¿Qué idea nueva quieres comprender?', answer: 'El Modo Intelectual desarrolla tu curiosidad, pensamiento crítico, aprendizaje y capacidad de ampliar tus perspectivas.' },
+  emocional: { question: '¿Qué emoción necesita ser escuchada?', answer: 'El Modo Emocional observa tus sentimientos y crea espacio para regularlos, expresarlos y aprender de ellos.' },
+  arquetipico: { question: '¿Qué parte de tu carácter estás cultivando?', answer: 'El Modo Arquetípico explora tu esencia, tus valores, tu coherencia y la persona que eliges ser en el mundo.' },
+  espiritual: { question: '¿Qué le da sentido a tu camino?', answer: 'El Modo Espiritual conecta propósito, fe, contemplación y las prácticas que te ayudan a vivir con significado.' },
+  romantico: { question: '¿Cómo estás cultivando el amor?', answer: 'El Modo Romántico atiende la relación de pareja, la intimidad, el cuidado mutuo y la forma en que compartes tu vida.' },
+  familiar: { question: '¿Qué vínculo familiar quieres nutrir?', answer: 'El Modo Familiar mira tus raíces y tus vínculos cercanos para cultivar presencia, límites sanos y conexión.' },
+  social: { question: '¿Quiénes forman parte de tu red de apoyo?', answer: 'El Modo Social cultiva amistades, comunidad, colaboración y relaciones que te permiten acompañar y ser acompañado.' },
+  financiero: { question: '¿Qué historia estás construyendo con tus recursos?', answer: 'El Modo Financiero desarrolla conciencia sobre dinero, ahorro, inversión y las decisiones que sostienen tu libertad.' },
+  profesional: { question: '¿Qué estás creando con tu trabajo?', answer: 'El Modo Profesional conecta vocación, carrera, desempeño y la contribución que quieres realizar a través de tu trabajo.' },
+  ludico: { question: '¿Cuándo fue la última vez que jugaste?', answer: 'El Modo Lúdico protege el disfrute, el descanso, el ocio y la energía que recuperas cuando haces espacio para jugar.' },
+  visionario: { question: '¿Qué futuro quieres comenzar a hacer visible?', answer: 'El Modo Visionario convierte deseos en dirección: metas, planificación, decisiones de largo plazo y legado.' },
+};
 
 const defaultLevels = Object.fromEntries(modes.map((mode) => [mode.key, 0]));
 const levelNames = ['Ignorancia activa', 'Reacción pasiva', 'Conciencia confusa', 'Intención sin hábito', 'Bases establecidas', 'Mantenimiento básico', 'Rumbo definido', 'Crecimiento consistente', 'Optimización y disciplina', 'Maestría e influencia'];
@@ -178,6 +192,7 @@ function App() {
   const [insightPreview, setInsightPreview] = useState<{ modeKey: string; level: number } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
   const [cultTab, setCultTab] = useState<CultTab>('home');
+  const [labFlippedCard, setLabFlippedCard] = useState<string | null>(null);
   const [skin, setSkin] = useState<Skin>(() => {
     try {
       const savedSkin = window.localStorage.getItem('modoCultiva_skin');
@@ -487,7 +502,7 @@ function App() {
           <span>Modo Cultiva</span>
         </a>
         <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA</div>
-        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setIsAuthenticated(false); window.localStorage.removeItem('modoCultiva_auth'); setSelectedMode(null); setJourneyStarted(false); setActiveActivity(null); setPendingAccess(null); setView('welcome'); }}>Cerrar Sesión</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setView('login'); }}>Iniciar Sesión</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>Modos Premium</button><button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); if (!isAuthenticated) { setPendingAccess({ feature: 'The Cult', plan: 'Ultimate Mode', returnView: view }); setSelectedPlan('ultimate'); setView('plans'); return; } setPendingAccess(null); setSelectedPlan(null); setCultTab('home'); setView('cult'); }}>The Cult</button></div>}</div>
+        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setIsAuthenticated(false); window.localStorage.removeItem('modoCultiva_auth'); setSelectedMode(null); setJourneyStarted(false); setActiveActivity(null); setPendingAccess(null); setView('welcome'); }}>Cerrar Sesión</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setView('login'); }}>Iniciar Sesión</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>Modos Premium</button><button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setLabFlippedCard(null); setView('lab'); }}>Modo Lab</button><button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); if (!isAuthenticated) { setPendingAccess({ feature: 'The Cult', plan: 'Ultimate Mode', returnView: view }); setSelectedPlan('ultimate'); setView('plans'); return; } setPendingAccess(null); setSelectedPlan(null); setCultTab('home'); setView('cult'); }}>The Cult</button></div>}</div>
       </header>
 
       {view === 'login' ? (
@@ -512,6 +527,13 @@ function App() {
           <div className="plans-header"><p className="kicker">Tu siguiente nivel comienza aquí</p><h1 id="plans-title">Haz de tu crecimiento una forma de vida.</h1><p>Elige el ritmo, la profundidad y la comunidad que quieres llevar contigo en Modo Cultiva.</p></div>
           <div className="plans-grid" aria-label="Modos Premium de Modo Cultiva">{(Object.keys(planDetails) as PlanKey[]).map((plan) => <button className={plan === 'gold' ? 'plan-card plan-card--featured' : 'plan-card'} type="button" key={plan} onClick={() => { setActivePlan(plan); window.localStorage.setItem('modoCultiva_plan', plan); setSelectedPlan(plan); }}><span className="plan-card-name">{planDetails[plan].name}</span><strong>{planDetails[plan].price}</strong><p>{planDetails[plan].promise}</p><span className="plan-card-link">Ver beneficios completos ↗</span></button>)}</div>
           <button className="plans-signup" type="button" onClick={() => { setPendingAccess(null); setSelectedPlan(null); setView('login'); }}>Crea tu cuenta <span>→</span></button>
+        </section>
+      ) : view === 'lab' ? (
+        <section className="modo-lab-view" data-layer="modo-lab" aria-labelledby="modo-lab-title">
+          <div className="modo-lab-topline"><button className="modo-lab-back" type="button" onClick={() => setView('welcome')}>← Volver al mapa</button><span className="modo-lab-free"><i /> ACCESO LIBRE</span><span className="modo-lab-mark">MODO LAB · 12 FICHAS</span></div>
+          <header className="modo-lab-hero"><div><p className="kicker">Modo Lab · Aprende jugando</p><h1 id="modo-lab-title">Una pregunta puede abrir un modo.</h1><p>Explora los 12 modos de vida con tarjetas interactivas. Piensa primero, voltea después y descubre qué cultiva cada dimensión de tu vida.</p></div><div className="modo-lab-orbit"><span>✦</span><small>12<br />MODOS</small></div></header>
+          <div className="modo-lab-guide"><span>01</span><p>Lee la pregunta, responde desde tu experiencia y voltea la tarjeta para conocer el modo.</p><span>ACCESO LIBRE · SIN CUENTA</span></div>
+          <div className="modo-lab-grid">{modes.map((mode) => { const flipped = labFlippedCard === mode.key; const card = labCards[mode.key]; return <article className={`modo-lab-card${flipped ? ' modo-lab-card--flipped' : ''}`} key={mode.key} style={{ '--lab-color': mode.color, '--lab-accent': mode.accent } as CSSProperties}><div className="modo-lab-card-inner"><div className="modo-lab-face modo-lab-front"><div className="modo-lab-card-top"><span>{mode.roman}</span><small>FICHA {mode.roman}</small></div><div className="modo-lab-icon">{mode.icon}</div><p className="modo-lab-label">PREGUNTA</p><h2>{card.question}</h2><p className="modo-lab-mode">{mode.name}</p><button type="button" onClick={() => setLabFlippedCard(flipped ? null : mode.key)}>Voltear tarjeta <span>↗</span></button></div><div className="modo-lab-face modo-lab-back"><div className="modo-lab-card-top"><span>↺</span><small>DESCUBRIMIENTO</small></div><p className="modo-lab-label">INFORMACIÓN DEL MODO</p><h2>{mode.name}</h2><p className="modo-lab-answer">{card.answer}</p><div className="modo-lab-description"><span>{mode.icon}</span>{mode.description}</div><button type="button" onClick={() => setLabFlippedCard(null)}>Volver a la pregunta <span>↺</span></button></div></div></article>; })}</div>
         </section>
       ) : view === 'cult' ? (
         <section className="cult-view" data-layer="6" aria-labelledby="cult-title">
