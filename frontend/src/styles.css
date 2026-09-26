@@ -201,6 +201,14 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 
 @media (max-width: 680px) { .login-view { background-size: cover; background-position: center; } }
 
+/* Login and premium plans float over the Modo Cultiva atmosphere instead of sitting on a blue panel. */
+.login-view, .plans-view { position: relative; isolation: isolate; background: linear-gradient(90deg, rgba(4, 15, 20, .42), rgba(4, 15, 20, .58)), url('./assets/modo-cultiva-logo.png') center / cover no-repeat; }
+.login-view::before, .plans-view::before { position: absolute; z-index: -1; inset: 0; background: radial-gradient(circle at 50% 44%, rgba(112, 237, 156, .1), transparent 34rem); content: ''; pointer-events: none; }
+.login-card { border-color: rgba(112, 237, 156, .5); background: linear-gradient(145deg, rgba(20, 78, 63, .62), rgba(5, 23, 29, .58)); box-shadow: 0 28px 80px rgba(0,0,0,.46), inset 0 1px rgba(255,255,255,.2), 0 0 55px rgba(50, 196, 157, .16); backdrop-filter: blur(8px); }
+.plans-header { padding: 22px 28px; border: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
+.plan-card { border-color: rgba(112, 237, 156, .3); background: linear-gradient(155deg, rgba(18, 70, 58, .68), rgba(5, 23, 29, .62)); box-shadow: 0 18px 50px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.1); backdrop-filter: blur(7px); }
+.plan-card--featured { border-color: rgba(112, 237, 156, .62); background: linear-gradient(155deg, rgba(24, 92, 68, .76), rgba(5, 29, 31, .66)); }
+
 /* Journey layers remain vertically scrollable without horizontal panning. */
 .journey-backdrop { overflow-x: hidden; overflow-y: auto; }
 .journey-panel { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
