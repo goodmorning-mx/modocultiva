@@ -301,7 +301,7 @@ function App() {
         setCultTab('insights');
       } else if (selectedMode) {
         setSelectedMode(null);
-        setView('dashboard');
+        setView('welcome');
       } else if (view === 'dashboard') {
         setView('welcome');
       } else if (view === 'plans') {
