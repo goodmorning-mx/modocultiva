@@ -167,6 +167,7 @@ function App() {
     }
   });
   const [selectedMode, setSelectedMode] = useState<Mode | null>(null);
+  const [journeyReturnView, setJourneyReturnView] = useState<'welcome' | 'dashboard'>('welcome');
   const [cultOpen, setCultOpen] = useState(false);
   const [activeActivity, setActiveActivity] = useState<number | null>(null);
   const [activityEntry, setActivityEntry] = useState<ActivityEntry>('custom');
@@ -301,7 +302,7 @@ function App() {
         setCultTab('insights');
       } else if (selectedMode) {
         setSelectedMode(null);
-        setView('welcome');
+        setView(journeyReturnView);
       } else if (view === 'dashboard') {
         setView('welcome');
       } else if (selectedPlan) {
@@ -316,7 +317,7 @@ function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeActivity, cultInsightPreview, customizingAvatar, selectedMode, selectedPlan, view]);
+  }, [activeActivity, cultInsightPreview, customizingAvatar, journeyReturnView, selectedMode, selectedPlan, view]);
 
   const average = useMemo(() => {
     const values = Object.values(levels);
@@ -417,6 +418,7 @@ function App() {
   };
 
   const openMode = (mode: Mode) => {
+    setJourneyReturnView(view === 'dashboard' ? 'dashboard' : 'welcome');
     setSelectedMode(mode);
     setCultOpen(false);
     setActiveActivity(null);
@@ -426,7 +428,7 @@ function App() {
     setSelectedMode(null);
     setCultOpen(false);
     setActiveActivity(null);
-    setView('welcome');
+    setView(journeyReturnView);
   };
 
   const openActivity = (level: number, entry: ActivityEntry = 'custom') => {
@@ -703,35 +705,33 @@ function App() {
       <section className="intro" data-layer="2" aria-labelledby="dashboard-title">
         <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>← Volver al overview</button>
         <div>
-          <p className="kicker">Home Layer · Dashboard</p>
+          <p className="kicker">Dashboard</p>
           <h1 id="dashboard-title">Tu centro de cultivo.</h1>
           <p className="intro-copy">Una lectura ejecutiva de tu progreso, tus focos de atención y los siguientes movimientos de tu mapa de vida.</p>
-        </div>
-        <div className="score-orbit score-orbit--large" aria-label={`Promedio general ${average} de 9`}>
-          <span>promedio</span><strong>{average}</strong><small>/ 9</small>
         </div>
       </section>
 
       <section className="crm-dashboard" aria-label="Resumen y estadísticas de tu cultivo">
         <article className="crm-card crm-card--score">
           <div className="crm-card-heading"><div><span className="crm-eyebrow">RESUMEN EJECUTIVO</span><h2>Tu progreso en una mirada</h2></div><span className="crm-live-status"><i className={`status-dot status-dot--${apiState.status}`} />{apiState.status === 'success' ? 'LISTO' : apiState.status === 'loading' ? 'CONECTANDO' : 'OFFLINE'}</span></div>
-          <div className="crm-score-line"><strong>{average}</strong><span>/ 9<br />promedio general</span></div>
+          <div className="crm-score-layout"><div className="score-orbit score-orbit--large" aria-label={`Promedio general ${average} de 9`}><span>promedio</span><strong>{average}</strong><small>/ 9</small></div><div className="crm-score-context"><span className="crm-eyebrow">NIVEL GENERAL</span><strong>{Math.round((dashboardSummary.score / 9) * 100)}%</strong><p>de presencia cultivada en tus 12 modos.</p></div></div>
           <div className="crm-progress"><div><span>Progreso global</span><strong>{Math.round((dashboardSummary.score / 9) * 100)}%</strong></div><i><b style={{ width: `${(dashboardSummary.score / 9) * 100}%` }} /></i></div>
-          <p className="crm-note">Tu mapa muestra el nivel de presencia que estás cultivando hoy. Elige un foco desde el Home Layer para entrar a su journey.</p>
+          <p className="crm-note">Tu mapa muestra el nivel de presencia que estás cultivando hoy. Elige un foco para entrar a su Journey.</p>
         </article>
         <div className="crm-metric-grid">
           <article className="crm-card crm-metric-card"><span className="crm-eyebrow">MODO MÁS FUERTE</span><strong>{dashboardSummary.strongest.shortName}</strong><span>Nivel {levels[dashboardSummary.strongest.key]} · tu mayor impulso</span></article>
+          <article className="crm-card crm-metric-card"><span className="crm-eyebrow">MODO MENOS CULTIVADO</span><strong>{dashboardSummary.leastCultivated[0].shortName}</strong><span>Nivel {levels[dashboardSummary.leastCultivated[0].key]} · tu siguiente oportunidad</span></article>
           <article className="crm-card crm-metric-card"><span className="crm-eyebrow">ACTIVIDADES DEFINIDAS</span><strong>{dashboardSummary.definedActivities}<small> / 108</small></strong><span>Rumbos guardados en tus journeys</span></article>
           <article className="crm-card crm-metric-card"><span className="crm-eyebrow">PRESETS ACTIVOS</span><strong>{dashboardSummary.presetCount}</strong><span>Configuraciones guardadas para volver a ti</span></article>
         </div>
         <article className="crm-card crm-distribution-card"><div className="crm-card-heading"><div><span className="crm-eyebrow">DISTRIBUCIÓN DE PRESENCIA</span><h2>¿Dónde está tu energía?</h2></div><span className="crm-card-caption">12 MODOS</span></div><div className="crm-distribution"><div><span className="crm-distribution-bar"><i style={{ width: `${(dashboardSummary.low / 12) * 100}%` }} /></span><strong>{dashboardSummary.low}</strong><small>Inicio · 0–2</small></div><div><span className="crm-distribution-bar crm-distribution-bar--medium"><i style={{ width: `${(dashboardSummary.medium / 12) * 100}%` }} /></span><strong>{dashboardSummary.medium}</strong><small>En práctica · 3–5</small></div><div><span className="crm-distribution-bar crm-distribution-bar--high"><i style={{ width: `${(dashboardSummary.high / 12) * 100}%` }} /></span><strong>{dashboardSummary.high}</strong><small>Expansión · 6–9</small></div></div></article>
         <div className="crm-bottom-grid">
           <article className="crm-card crm-focus-card"><div className="crm-card-heading"><div><span className="crm-eyebrow">PRÓXIMOS FOCOS</span><h2>Áreas para cultivar</h2></div><span className="crm-card-caption">NIVELES MÁS BAJOS</span></div><div className="crm-focus-list">{dashboardSummary.leastCultivated.map((mode) => <button type="button" key={mode.key} onClick={() => openMode(mode)} style={{ '--mode-color': mode.color } as CSSProperties}><span className="crm-focus-icon">{mode.icon}</span><span><strong>{mode.shortName}</strong><small>{mode.description}</small></span><b>NIVEL {levels[mode.key]} ↗</b></button>)}</div></article>
-          <article className="crm-card crm-next-card"><span className="crm-eyebrow">SIGUIENTE MOVIMIENTO</span><h2>Continúa tu cultivo</h2><p>Abre el Home Layer, elige un modo y define el próximo rumbo que quieres convertir en práctica.</p><button type="button" onClick={() => setView('welcome')}>Volver al Home Layer <span>↗</span></button></article>
+          <article className="crm-card crm-next-card"><span className="crm-eyebrow">SIGUIENTE MOVIMIENTO</span><h2>Continúa tu cultivo</h2><p>Regresa al mapa de modos, elige un foco y define el próximo rumbo que quieres convertir en práctica.</p><button type="button" onClick={() => setView('welcome')}>Volver al mapa de modos <span>↗</span></button></article>
         </div>
       </section>
 
-      <footer className="dashboard-footer"><span className="footer-tip">Los 12 modos viven en tu Home Layer</span><span><i /> PROTOTIPO · DATOS GUARDADOS EN ESTE NAVEGADOR</span></footer>
+      <footer className="dashboard-footer"><span className="footer-tip">Los 12 modos viven en tu mapa de modos</span><span><i /> PROTOTIPO · DATOS GUARDADOS EN ESTE NAVEGADOR</span></footer>
       </>
       )}
 
@@ -751,10 +751,10 @@ function App() {
 
       {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className="journey-panel" data-layer={activeActivity !== null ? '5' : '3'} role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
-        {activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← Volver al Overview</button>}
+        {activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← Volver al {journeyReturnView === 'dashboard' ? 'Dashboard' : 'Overview'}</button>}
         {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← Volver a Journey del Modo</button>}
         {activeActivity !== null ? <section className={`activity-agent activity-agent--${activityEntry}`} data-layer="5" aria-labelledby="activity-agent-title">
-          <p className="kicker">Layer 5 · {selectedMode.name} · {activityEntryLabel[activityEntry]}</p>
+          <p className="kicker">Diseño de actividad · {selectedMode.name} · {activityEntryLabel[activityEntry]}</p>
           {activityEntry === 'custom' ? <>
             <h2 id="activity-agent-title">Escribe tu actividad</h2>
             <p className="journey-description">Pon en tus propias palabras la práctica que quieres establecer para pasar del nivel {activeActivity} al siguiente.</p>
