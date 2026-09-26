@@ -586,6 +586,18 @@ function App() {
   </section>;
   };
 
+  const dashboardSummary = useMemo(() => {
+    const values = Object.values(levels);
+    const strongest = modes.reduce((best, mode) => levels[mode.key] > levels[best.key] ? mode : best, modes[0]);
+    const leastCultivated = [...modes].sort((left, right) => levels[left.key] - levels[right.key]).slice(0, 3);
+    const low = values.filter((level) => level <= 2).length;
+    const medium = values.filter((level) => level >= 3 && level <= 5).length;
+    const high = values.filter((level) => level >= 6).length;
+    const definedActivities = Object.keys(activityDrafts).length;
+    const score = values.reduce((sum, value) => sum + value, 0) / values.length;
+    return { strongest, leastCultivated, low, medium, high, definedActivities, score, presetCount: Object.keys(presets).length };
+  }, [activityDrafts, levels, presets]);
+
   return (
     <main className={`app-shell app-shell--${skin}`}>
       <header className="topbar">
@@ -691,44 +703,35 @@ function App() {
       <section className="intro" data-layer="2" aria-labelledby="dashboard-title">
         <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>← Volver al overview</button>
         <div>
-          <p className="kicker">Tu consola de presencia</p>
-          <h1 id="dashboard-title">¿En qué modo estás cultivando hoy?</h1>
-          <p className="intro-copy">Visualiza el estado de tus 12 modos. Entra a cada journey para reconocer dónde estás y elegir qué quieres cultivar.</p>
+          <p className="kicker">Home Layer · Dashboard</p>
+          <h1 id="dashboard-title">Tu centro de cultivo.</h1>
+          <p className="intro-copy">Una lectura ejecutiva de tu progreso, tus focos de atención y los siguientes movimientos de tu mapa de vida.</p>
         </div>
-        <div className="score-orbit" aria-label={`Promedio general ${average} de 9`}>
+        <div className="score-orbit score-orbit--large" aria-label={`Promedio general ${average} de 9`}>
           <span>promedio</span><strong>{average}</strong><small>/ 9</small>
         </div>
       </section>
 
-      <section className="dashboard-tools" aria-label="Resumen de tu mapa">
-        <div className="tool-title"><span className="pulse-icon">⌁</span><div><strong>MAPA DE MODOS</strong><span>Tu nivel actual por área de vida</span></div></div>
-        <div className="tool-stat"><span className="stat-label">Activo ahora</span><strong>—</strong><span className="stat-hint">Elige un modo para comenzar</span></div>
-        <div className="tool-stat"><span className="stat-label">Modo más fuerte</span><strong>{modes.reduce((best, mode) => levels[mode.key] > levels[best.key] ? mode : best, modes[0]).shortName}</strong><span className="stat-hint">Nivel {Math.max(...Object.values(levels))}</span></div>
-        <div className="tool-stat"><span className="stat-label">Modo menos cultivado</span><strong>{modes.reduce((least, mode) => levels[mode.key] < levels[least.key] ? mode : least, modes[0]).shortName}</strong><span className="stat-hint">Nivel {Math.min(...Object.values(levels))}</span></div>
-        <div className="api-badge" role="status"><span className={`status-dot status-dot--${apiState.status}`} />{apiState.status === 'success' ? 'Sincronización lista' : apiState.status === 'loading' ? 'Conectando…' : 'Modo offline'}</div>
+      <section className="crm-dashboard" aria-label="Resumen y estadísticas de tu cultivo">
+        <article className="crm-card crm-card--score">
+          <div className="crm-card-heading"><div><span className="crm-eyebrow">RESUMEN EJECUTIVO</span><h2>Tu progreso en una mirada</h2></div><span className="crm-live-status"><i className={`status-dot status-dot--${apiState.status}`} />{apiState.status === 'success' ? 'LISTO' : apiState.status === 'loading' ? 'CONECTANDO' : 'OFFLINE'}</span></div>
+          <div className="crm-score-line"><strong>{average}</strong><span>/ 9<br />promedio general</span></div>
+          <div className="crm-progress"><div><span>Progreso global</span><strong>{Math.round((dashboardSummary.score / 9) * 100)}%</strong></div><i><b style={{ width: `${(dashboardSummary.score / 9) * 100}%` }} /></i></div>
+          <p className="crm-note">Tu mapa muestra el nivel de presencia que estás cultivando hoy. Elige un foco desde el Home Layer para entrar a su journey.</p>
+        </article>
+        <div className="crm-metric-grid">
+          <article className="crm-card crm-metric-card"><span className="crm-eyebrow">MODO MÁS FUERTE</span><strong>{dashboardSummary.strongest.shortName}</strong><span>Nivel {levels[dashboardSummary.strongest.key]} · tu mayor impulso</span></article>
+          <article className="crm-card crm-metric-card"><span className="crm-eyebrow">ACTIVIDADES DEFINIDAS</span><strong>{dashboardSummary.definedActivities}<small> / 108</small></strong><span>Rumbos guardados en tus journeys</span></article>
+          <article className="crm-card crm-metric-card"><span className="crm-eyebrow">PRESETS ACTIVOS</span><strong>{dashboardSummary.presetCount}</strong><span>Configuraciones guardadas para volver a ti</span></article>
+        </div>
+        <article className="crm-card crm-distribution-card"><div className="crm-card-heading"><div><span className="crm-eyebrow">DISTRIBUCIÓN DE PRESENCIA</span><h2>¿Dónde está tu energía?</h2></div><span className="crm-card-caption">12 MODOS</span></div><div className="crm-distribution"><div><span className="crm-distribution-bar"><i style={{ width: `${(dashboardSummary.low / 12) * 100}%` }} /></span><strong>{dashboardSummary.low}</strong><small>Inicio · 0–2</small></div><div><span className="crm-distribution-bar crm-distribution-bar--medium"><i style={{ width: `${(dashboardSummary.medium / 12) * 100}%` }} /></span><strong>{dashboardSummary.medium}</strong><small>En práctica · 3–5</small></div><div><span className="crm-distribution-bar crm-distribution-bar--high"><i style={{ width: `${(dashboardSummary.high / 12) * 100}%` }} /></span><strong>{dashboardSummary.high}</strong><small>Expansión · 6–9</small></div></div></article>
+        <div className="crm-bottom-grid">
+          <article className="crm-card crm-focus-card"><div className="crm-card-heading"><div><span className="crm-eyebrow">PRÓXIMOS FOCOS</span><h2>Áreas para cultivar</h2></div><span className="crm-card-caption">NIVELES MÁS BAJOS</span></div><div className="crm-focus-list">{dashboardSummary.leastCultivated.map((mode) => <button type="button" key={mode.key} onClick={() => openMode(mode)} style={{ '--mode-color': mode.color } as CSSProperties}><span className="crm-focus-icon">{mode.icon}</span><span><strong>{mode.shortName}</strong><small>{mode.description}</small></span><b>NIVEL {levels[mode.key]} ↗</b></button>)}</div></article>
+          <article className="crm-card crm-next-card"><span className="crm-eyebrow">SIGUIENTE MOVIMIENTO</span><h2>Continúa tu cultivo</h2><p>Abre el Home Layer, elige un modo y define el próximo rumbo que quieres convertir en práctica.</p><button type="button" onClick={() => setView('welcome')}>Volver al Home Layer <span>↗</span></button></article>
+        </div>
       </section>
 
-      <section className="mode-grid" aria-label="Tus 12 modos de vida">
-        {modes.map((mode, index) => {
-          const level = levels[mode.key];
-          return (
-            <article className="mode-card" key={mode.key} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties}>
-              <button className="card-entry" type="button" onClick={() => openMode(mode)} aria-label={`Entrar al journey de ${mode.name}`}>
-                <span className="card-number">{mode.roman}</span><span className="card-arrow">↗</span>
-                <span className="mode-icon" aria-hidden="true">{mode.icon}</span>
-                <span className="mode-card-title">{mode.name}</span>
-                <span className="mode-card-description">{mode.description}</span>
-                <span className="level-row"><span>NIVEL ACTUAL</span><strong>{level}<small>/9</small></strong></span>
-                <span className="level-track"><span style={{ width: `${(level / 9) * 100}%` }} /></span>
-              </button>
-              <label className="visually-hidden" htmlFor={`level-${mode.key}`}>Nivel de {mode.name}</label>
-              <input id={`level-${mode.key}`} className="level-slider" type="range" min="0" max="9" value={level} onChange={(event) => updateLevel(mode.key, Number(event.target.value))} />
-            </article>
-          );
-        })}
-      </section>
-
-      <footer className="dashboard-footer"><span className="footer-tip">Arrastra los niveles para actualizar tu mapa</span><span><i /> PROTOTIPO · DATOS GUARDADOS EN ESTE NAVEGADOR</span></footer>
+      <footer className="dashboard-footer"><span className="footer-tip">Los 12 modos viven en tu Home Layer</span><span><i /> PROTOTIPO · DATOS GUARDADOS EN ESTE NAVEGADOR</span></footer>
       </>
       )}
 
