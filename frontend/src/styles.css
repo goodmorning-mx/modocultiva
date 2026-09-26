@@ -295,7 +295,10 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .cult-insight-spotlight-copy p { margin: 0; color: #a5c2b5; font-size: .68rem; line-height: 1.4; }
 .cult-insight-spotlight-copy p strong { color: #d9f2df; }
 .cult-insight-spotlight-copy button { align-self: start; margin-top: 16px; padding: 9px 11px; border: 1px solid var(--insight-color); border-radius: 7px; color: #06201b; background: var(--insight-color); font-size: .6rem; font-weight: 800; }
-.cult-insight-dots { position: absolute; right: 16px; bottom: 13px; display: flex; gap: 5px; }
+.cult-insight-controls { position: absolute; right: 12px; bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.cult-insight-controls > button { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 1px solid color-mix(in srgb, var(--insight-color) 45%, transparent); border-radius: 50%; color: var(--insight-color); background: rgba(3, 18, 24, .68); font-size: .75rem; cursor: pointer; }
+.cult-insight-controls > button:hover { background: color-mix(in srgb, var(--insight-color) 13%, transparent); }
+.cult-insight-dots { position: static; display: flex; gap: 5px; }
 .cult-insight-dots button { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: rgba(203, 230, 215, .35); cursor: pointer; }
 .cult-insight-dots button.is-active { width: 18px; border-radius: 99px; background: var(--insight-color); box-shadow: 0 0 8px color-mix(in srgb, var(--insight-color) 65%, transparent); }
 .cult-empty-state { padding: 22px; border: 1px dashed rgba(156, 203, 184, .25); border-radius: 11px; color: #9bbcaf; font-size: .72rem; text-align: center; }
