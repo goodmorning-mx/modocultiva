@@ -304,7 +304,7 @@ function App() {
       } else if (view === 'plans') {
         setSelectedPlan(null);
         setPendingAccess(null);
-        setView('login');
+        setView('welcome');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
