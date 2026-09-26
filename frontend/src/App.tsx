@@ -304,6 +304,10 @@ function App() {
         setView('welcome');
       } else if (view === 'dashboard') {
         setView('welcome');
+      } else if (selectedPlan) {
+        setSelectedPlan(null);
+        setPendingAccess(null);
+        setView('plans');
       } else if (view === 'plans') {
         setSelectedPlan(null);
         setPendingAccess(null);
@@ -312,7 +316,7 @@ function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeActivity, cultInsightPreview, customizingAvatar, selectedMode, view]);
+  }, [activeActivity, cultInsightPreview, customizingAvatar, selectedMode, selectedPlan, view]);
 
   const average = useMemo(() => {
     const values = Object.values(levels);
