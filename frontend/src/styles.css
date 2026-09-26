@@ -209,6 +209,13 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .plan-card { border-color: rgba(112, 237, 156, .3); background: linear-gradient(155deg, rgba(18, 70, 58, .68), rgba(5, 23, 29, .62)); box-shadow: 0 18px 50px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.1); backdrop-filter: blur(7px); }
 .plan-card--featured { border-color: rgba(112, 237, 156, .62); background: linear-gradient(155deg, rgba(24, 92, 68, .76), rgba(5, 29, 31, .66)); }
 
+/* Access screens share the atmospheric Home background; no panel should sit behind them. */
+.login-view, .plans-view { background: radial-gradient(circle at 70% 5%, rgba(35, 91, 83, .38), transparent 30rem), radial-gradient(circle at 18% 82%, rgba(16, 54, 61, .32), transparent 28rem), #08151c; }
+.login-view::before, .plans-view::before { display: none; }
+.login-card { border-color: rgba(112, 237, 156, .34); background: rgba(5, 23, 29, .28); box-shadow: 0 28px 80px rgba(0,0,0,.28); backdrop-filter: blur(4px); }
+.plans-view .plan-card { background: rgba(5, 23, 29, .34); box-shadow: 0 18px 50px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.08); backdrop-filter: blur(4px); }
+.plans-view .plan-card--featured { background: rgba(10, 39, 35, .42); }
+
 /* Journey layers remain vertically scrollable without horizontal panning. */
 .journey-backdrop { overflow-x: hidden; overflow-y: auto; }
 .journey-panel { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
