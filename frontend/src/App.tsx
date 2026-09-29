@@ -8,6 +8,11 @@ type HealthResponse = {
   environment: string;
 };
 
+type ModeAIResponse = {
+  proposal: string;
+  model: string;
+};
+
 type ApiState =
   | { status: 'loading' }
   | { status: 'success'; data: HealthResponse }
@@ -159,9 +164,6 @@ const specialists: Specialist[] = [
   { name: 'Marcus Lee', modeKey: 'financiero', specialty: 'Patrimonio y decisiones', location: 'Austin · Remote', continent: 'América del Norte', language: 'English', match: '96%', trajectory: 'Economista y asesor de patrimonio; ha diseñado sistemas financieros para fundadores y familias.', message: 'El dinero se vuelve estratégico cuando deja de ser una fuente de ruido y empieza a servir a tu visión.', presetName: 'Patrimonio en expansión', modeLevels: makeSpecialistPreset('financiero', 6) },
   { name: 'Elena Costa', modeKey: 'emocional', specialty: 'Vínculos y regulación', location: 'Lisboa · Remote', continent: 'Europa', language: 'Português', match: '99%', trajectory: 'Psicoterapeuta y facilitadora de vínculos; trabaja con regulación, límites y conversaciones difíciles.', message: 'La presencia emocional se cultiva en lo pequeño: una pausa, una pregunta y la voluntad de escuchar.', presetName: 'Vínculos conscientes', modeLevels: makeSpecialistPreset('emocional', 2) },
 ];
-const getAiProposal = (mode: Mode, level: number, prompt: string) => prompt
-  ? `Propongo una práctica de ${effortByLevel[level].toLowerCase()}: reserva un momento esta semana para experimentar una acción observable en ${mode.shortName}. Al terminar, registra qué ocurrió y qué ajustarías para repetirla.`
-  : 'Cuéntame tu intención, tu disponibilidad y cualquier límite importante. Con eso prepararé una actividad medible y realista.';
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 function App() {
@@ -189,6 +191,8 @@ function App() {
   const [activityPrompt, setActivityPrompt] = useState('');
   const [aiNotice, setAiNotice] = useState<string | null>(null);
   const [aiHasConsulted, setAiHasConsulted] = useState(false);
+  const [aiProposal, setAiProposal] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
   const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>(() => {
     try {
       return JSON.parse(window.localStorage.getItem('modoCultiva_activityDrafts') ?? '{}');
@@ -458,6 +462,8 @@ function App() {
     setActivityPrompt('');
     setAiNotice(null);
     setAiHasConsulted(false);
+    setAiProposal('');
+    setAiLoading(false);
   };
 
   const usePoolActivity = () => {
@@ -470,7 +476,7 @@ function App() {
     saveActivity(selectedMode.key, activeActivity, activity.title);
   };
 
-  const consultModeAi = () => {
+  const consultModeAi = async () => {
     if (!isAuthenticated) {
       openPlan('gold', 'Modo IA');
       return;
@@ -480,8 +486,35 @@ function App() {
       setAiHasConsulted(false);
       return;
     }
-    setAiHasConsulted(true);
-    setAiNotice('Modo IA ha preparado una propuesta personalizada para este nivel.');
+    if (!selectedMode || activeActivity === null) return;
+    setAiLoading(true);
+    setAiNotice(null);
+    try {
+      const response = await fetch(`${apiUrl}/ai/mode`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode_name: selectedMode.name,
+          level: activeActivity,
+          level_name: levelNames[activeActivity],
+          level_description: levelDescriptions[activeActivity],
+          effort: effortLabelByLevel[activeActivity],
+          context: activityPrompt.trim(),
+          user_name: profileName,
+        }),
+      });
+      const data = await response.json() as ModeAIResponse | { detail?: string };
+      if (!response.ok || !('proposal' in data)) throw new Error('detail' in data && data.detail ? data.detail : 'Modo IA no pudo responder.');
+      setAiProposal(data.proposal);
+      setAiHasConsulted(true);
+      setAiNotice('Modo IA ha preparado una propuesta personalizada para este nivel.');
+    } catch (error) {
+      setAiHasConsulted(false);
+      setAiProposal('');
+      setAiNotice(error instanceof Error ? error.message : 'No fue posible consultar al Modo IA.');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const saveModeAiActivity = () => {
@@ -494,7 +527,7 @@ function App() {
       setAiNotice('Consulta primero al Modo IA para generar una propuesta antes de usarla.');
       return;
     }
-    saveActivity(selectedMode.key, activeActivity, getAiProposal(selectedMode, activeActivity, activityPrompt));
+    saveActivity(selectedMode.key, activeActivity, aiProposal);
   };
 
   const saveGlobalInsightActivity = () => {
@@ -792,10 +825,10 @@ function App() {
             <h2 id="activity-agent-title">Construyamos tu actividad</h2>
             <p className="journey-description">Conversaremos para encontrar una práctica concreta para tu {selectedMode.name}, nivel {activeActivity}.</p>
             <div className="effort-panel"><span className="effort-label">PARÁMETRO DE ESFUERZO</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
-            <div className="agent-chat" aria-live="polite"><div className="agent-message"><span>IA</span><p>Para pasar del nivel {activeActivity} al siguiente, ¿qué te gustaría cultivar en este modo y qué tiempo real tienes disponible?</p></div>{activityPrompt && <div className="user-message"><span>TÚ</span><p>{activityPrompt}</p></div>}{aiHasConsulted ? <div className="agent-message agent-message--proposal"><span>IA</span><p>{getAiProposal(selectedMode, activeActivity, activityPrompt)}</p></div> : <div className="agent-message agent-message--waiting"><span>IA</span><p>Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.</p></div>}</div>
+            <div className="agent-chat" aria-live="polite"><div className="agent-message"><span>IA</span><p>Para pasar del nivel {activeActivity} al siguiente, ¿qué te gustaría cultivar en este modo y qué tiempo real tienes disponible?</p></div>{activityPrompt && <div className="user-message"><span>TÚ</span><p>{activityPrompt}</p></div>}{aiHasConsulted ? <div className="agent-message agent-message--proposal"><span>IA</span><p>{aiProposal}</p></div> : <div className="agent-message agent-message--waiting"><span>IA</span><p>Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.</p></div>}</div>
             <label className="agent-input-label" htmlFor="activity-prompt">Tu contexto para la IA</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => { setActivityPrompt(event.target.value); setAiHasConsulted(false); setAiNotice(null); }} placeholder="Ej. Tengo 20 minutos al día y quiero empezar con algo sencillo…" rows={3} />
             {aiNotice && <div className="insight-notice" role="status">✦ {aiNotice}</div>}
-            <div className="agent-actions"><button className="agent-ask" type="button" onClick={consultModeAi}>Consultar al Modo IA {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button><button className="agent-save" type="button" onClick={saveModeAiActivity}>Usar esta actividad {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button></div>
+            <div className="agent-actions"><button className="agent-ask" type="button" disabled={aiLoading} onClick={() => { void consultModeAi(); }}>{aiLoading ? 'Consultando…' : 'Consultar al Modo IA'} {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button><button className="agent-save" type="button" disabled={aiLoading} onClick={saveModeAiActivity}>Usar esta actividad {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button></div>
           </>}
         </section> : <>
           <div className="journey-intro-compact"><span className="journey-icon">{selectedMode.icon}</span><div><p className="kicker">Introducción del modo · Journey integrado</p><h2 id="journey-title">{selectedMode.name}</h2><p className="journey-description">{selectedMode.description}. Reconoce tu presencia y diseña aquí tu ruta de cultivo.</p></div></div>
