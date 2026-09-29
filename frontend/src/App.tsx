@@ -153,10 +153,14 @@ const makeSpecialistPreset = (modeKey: string, seed: number) => ({
   ...makePreset(seed),
   [modeKey]: 9,
 });
+const makeInsightPreset = (modeKey: string, level: number, seed: number) => ({
+  ...makePreset(seed),
+  [modeKey]: level,
+});
 const globalInsightActivities = modes.flatMap((mode) => journeyLevels.filter((level) => level < 9).map((level, index) => {
   const authorIndex = (modes.indexOf(mode) * 9 + level) % insightAuthors.length;
   const author = insightAuthors[authorIndex];
-  return { modeKey: mode.key, level, activity: getPoolActivities(mode.key, level)[0].title, author: author[0], location: author[1], continent: author[2], language: author[3], bio: insightAuthorBios[author[0]], presetName: `${author[0]} · Ruta de presencia`, preset: makePreset(authorIndex + level) };
+  return { modeKey: mode.key, level, activity: getPoolActivities(mode.key, level)[0].title, author: author[0], location: author[1], continent: author[2], language: author[3], bio: insightAuthorBios[author[0]], presetName: `${author[0]} · Ruta de presencia`, preset: makeInsightPreset(mode.key, level, authorIndex + level) };
 }));
 type Specialist = { name: string; modeKey: string; specialty: string; location: string; continent: string; language: string; match: string; trajectory: string; message: string; presetName: string; modeLevels: Record<string, number> };
 const specialists: Specialist[] = [
