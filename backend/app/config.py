@@ -17,6 +17,9 @@ class Settings(BaseSettings):
         default="postgresql+psycopg://goodmorning:goodmorning_local_password@localhost:5432/goodmorning_mvp",
         alias="DATABASE_URL",
     )
+    openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+    openai_model: str = Field(default="gpt-5", alias="OPENAI_MODEL")
+    openai_timeout_seconds: float = Field(default=45.0, alias="OPENAI_TIMEOUT_SECONDS")
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

@@ -30,6 +30,8 @@ This repository is deployed by GoodMorning Factory as three independent Coolify 
   - `APP_ENV=dev`.
   - `CORS_ORIGINS=https://dev.<product>.goodmorning.mx`.
   - `DATABASE_URL` as a secret runtime variable.
+  - `OPENAI_API_KEY` as a secret runtime variable for Modo IA. Keep it only on the Backend Application; never add it to frontend build variables.
+  - Optional `OPENAI_MODEL` (defaults to `gpt-5`) and `OPENAI_TIMEOUT_SECONDS` (defaults to `45`).
 
 The backend uses SQLAlchemy with psycopg 3. Therefore `DATABASE_URL` must use the `postgresql+psycopg://` scheme when the backend starts.
 
@@ -70,7 +72,7 @@ Do not add Traefik labels, `docker_compose_domains`, Coolify domains, server pat
 Do not copy every variable from `.env.example` into both Coolify applications. Use only the variables required by each resource:
 
 - Frontend build-time: `VITE_API_URL`.
-- Backend runtime: `APP_NAME`, `APP_ENV`, `CORS_ORIGINS`, `DATABASE_URL`.
+- Backend runtime: `APP_NAME`, `APP_ENV`, `CORS_ORIGINS`, `DATABASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_TIMEOUT_SECONDS`.
 - Local Compose only: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, plus local placeholder defaults.
 
 No real secrets, credentials, tokens, production identifiers, Coolify UUIDs, or generated hostnames belong in Git.
