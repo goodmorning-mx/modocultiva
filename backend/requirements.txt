@@ -6,3 +6,7 @@ psycopg[binary]==3.2.9
 alembic==1.16.4
 pytest==8.4.1
 httpx==0.28.1
+openai>=1.50,<2
+gm-auth @ https://github.com/goodmorning-mx/gm-auth/archive/ecc820afd9f4729a669a690bb24f950826f217c9.tar.gz
+gm-agent @ https://github.com/goodmorning-mx/gm-agent/archive/c8dcf1abcae82617b0d37defcf2295524593a839.tar.gz
+gm-billing @ https://github.com/goodmorning-mx/gm-billing/archive/72a978f5f7089fb04fe820f3f3591f75faaaac04.tar.gz

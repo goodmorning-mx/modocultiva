@@ -10,6 +10,7 @@ A minimal, production-oriented full-stack template for new products created by t
 - Docker Compose for local integrated development only.
 - Coolify deployment as three independent remote resources.
 - GitHub Actions for quality checks.
+- GoodMorning core modules: `gm-auth` for multi-user identity, `gm-agent` for Modo IA, `gm-billing` for usage metering, and `gm-pwa` for the mobile install experience.
 
 ## Repository structure
 ```text
@@ -52,6 +53,8 @@ Remote Coolify deployments must be configured as three independent resources, no
 The backend uses SQLAlchemy with psycopg 3, so runtime `DATABASE_URL` must use `postgresql+psycopg://`. If Coolify provides an internal URL beginning with `postgresql://`, `goodmorning-factory` converts only that initial scheme and preserves the user, password, hostname, port, database, query string, and URL-encoded characters exactly. The template must not contain Coolify UUIDs, internal hostnames, credentials, or a Factory integration function. `DATABASE_URL` is a backend runtime secret and must never be incorporated into the frontend or frontend build.
 
 Public URLs must never include `:80` or `:8000`; Coolify routing should terminate HTTPS and route to the internal container ports.
+
+The backend runs the `gm-auth` migration tables and stores each authenticated user's Cultiva map in PostgreSQL. Modo IA requests pass through `gm-agent`; token usage is recorded by `gm-billing` in the product database. Configure `JWT_SECRET`, organization values, and billing rate-card variables at runtime in Coolify. `OPENAI_API_KEY` remains a managed runtime secret and is never committed. The frontend ships a manifest and service worker through `gm-pwa`; authentication, state, agent, and AI requests are deliberately network-only.
 
 ## Environment configuration
 All variables are documented in `.env.example`. Keep real secrets out of Git. The local placeholders are intentionally safe for development only.
