@@ -15,9 +15,10 @@ from gm_mcp import RequestContext, ToolRegistry
 
 from app.billing import PostgresBillingStore, UserStateStore
 from app.config import get_settings
-from app.database import engine
+from app.database import create_database_engine
 
 settings = get_settings()
+engine = create_database_engine()
 auth_service = AuthService(engine, AuthSettings(jwt_secret=settings.jwt_secret, issuer=settings.auth_issuer))
 identity_required = identity_dependency(auth_service)
 user_state_store = UserStateStore(engine)
