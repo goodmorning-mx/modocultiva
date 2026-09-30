@@ -11,7 +11,9 @@ type HealthResponse = {
 type ModeAIResponse = {
   proposal: string;
   model: string;
+  conversation_id?: string;
 };
+type AuthTokens = { access_token: string; refresh_token: string; expires_in: number; identity: { user_id: string; organization_id: string; name?: string | null; email?: string | null; roles: string[]; permissions: string[] } };
 
 type ApiState =
   | { status: 'loading' }
@@ -171,6 +173,17 @@ const specialists: Specialist[] = [
   { name: 'Elena Costa', modeKey: 'emocional', specialty: 'Vínculos y regulación', location: 'Lisboa · Remote', continent: 'Europa', language: 'Português', match: '99%', trajectory: 'Psicoterapeuta y facilitadora de vínculos; trabaja con regulación, límites y conversaciones difíciles.', message: 'La presencia emocional se cultiva en lo pequeño: una pausa, una pregunta y la voluntad de escuchar.', presetName: 'Vínculos conscientes', modeLevels: makeSpecialistPreset('emocional', 2) },
 ];
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const authClient = {
+  async login(email: string, password: string): Promise<AuthTokens> {
+    const response = await fetch(`${apiUrl}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail ?? 'No fue posible iniciar sesión.');
+    return payload as AuthTokens;
+  },
+  async logout(refresh_token: string): Promise<void> {
+    await fetch(`${apiUrl}/auth/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token }) });
+  },
+};
 
 function App() {
   const [profileName, setProfileName] = useState(() => {
@@ -216,13 +229,18 @@ function App() {
   const [insightNotice, setInsightNotice] = useState<string | null>(null);
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
   const [view, setView] = useState<View>('welcome');
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+  const [authTokens, setAuthTokens] = useState<AuthTokens | null>(() => {
     try {
-      return window.localStorage.getItem('modoCultiva_auth') === 'true';
+      const saved = window.sessionStorage.getItem('gm-auth-tokens');
+      return saved ? JSON.parse(saved) as AuthTokens : null;
     } catch {
-      return false;
+      return null;
     }
   });
+  const isAuthenticated = Boolean(authTokens?.access_token);
+  const [stateHydrated, setStateHydrated] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
   const [activePlan, setActivePlan] = useState<PlanKey>(() => {
     try {
       const saved = window.localStorage.getItem('modoCultiva_plan') as PlanKey | null;
@@ -279,6 +297,7 @@ function App() {
   const [presetNotice, setPresetNotice] = useState<string | null>(null);
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [loginName, setLoginName] = useState('');
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const journeyPanelRef = useRef<HTMLElement | null>(null);
   const journeyReturnScrollTop = useRef(0);
@@ -289,6 +308,58 @@ function App() {
     });
   };
 
+  const completeLogin = (tokens: AuthTokens, destination: View, nextActivity: PendingActivity | null) => {
+    window.sessionStorage.setItem('gm-auth-tokens', JSON.stringify(tokens));
+    setAuthTokens(tokens);
+    setAuthError(null);
+    setPendingAccess(null);
+    setPendingActivity(null);
+    if (nextActivity) {
+      setActivityEntry(nextActivity.entry);
+      setActiveActivity(nextActivity.level);
+      setPoolSelection(0);
+      setActivityPrompt('');
+    }
+    setView(destination);
+  };
+
+  const logout = async () => {
+    try {
+      if (authTokens?.refresh_token) await authClient.logout(authTokens.refresh_token);
+    } catch {
+      // The local session is still cleared if the server is temporarily unavailable.
+    }
+    window.sessionStorage.removeItem('gm-auth-tokens');
+    setAuthTokens(null);
+    setStateHydrated(false);
+    setSelectedMode(null);
+    setCultOpen(false);
+    setActiveActivity(null);
+    setPendingAccess(null);
+    setView('welcome');
+  };
+
+  const submitAuthentication = async () => {
+    setAuthError(null);
+    try {
+      const tokens = registering
+        ? await (async () => {
+            const response = await fetch(`${apiUrl}/auth/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: loginUsername.trim(), name: loginName.trim(), password: loginPassword }),
+            });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.detail ?? 'No fue posible crear la cuenta.');
+            return payload as AuthTokens;
+          })()
+        : await authClient.login(loginUsername.trim(), loginPassword);
+      completeLogin(tokens, pendingAccess?.returnView ?? 'welcome', pendingActivity);
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'No fue posible autenticar la cuenta.');
+    }
+  };
+
   useEffect(() => {
     try {
       window.localStorage.setItem('modoCultiva_lastState', JSON.stringify(levels));
@@ -296,6 +367,52 @@ function App() {
       // Local persistence is optional for the prototype.
     }
   }, [levels]);
+
+  useEffect(() => {
+    if (!authTokens?.access_token) {
+      setStateHydrated(false);
+      return;
+    }
+    const accessToken = authTokens.access_token;
+    const controller = new AbortController();
+    async function hydrateUserState() {
+      try {
+        const response = await fetch(`${apiUrl}/state`, {
+          signal: controller.signal,
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!response.ok) throw new Error('No fue posible cargar tu mapa personal.');
+        const payload = await response.json() as { state?: Record<string, unknown> };
+        const state = payload.state ?? {};
+        if (typeof state.profileName === 'string') setProfileName(state.profileName);
+        if (typeof state.profileImage === 'string' || state.profileImage === null) setProfileImage(state.profileImage as string | null);
+        if (state.levels && typeof state.levels === 'object') setLevels({ ...defaultLevels, ...(state.levels as Record<string, number>) });
+        if (state.activityDrafts && typeof state.activityDrafts === 'object') setActivityDrafts(state.activityDrafts as Record<string, string>);
+        if (state.insightRequests && typeof state.insightRequests === 'object') setInsightRequests(state.insightRequests as Record<string, boolean>);
+        if (state.presets && typeof state.presets === 'object') setPresets(state.presets as Record<string, Preset>);
+        if (state.visionImages && typeof state.visionImages === 'object') setVisionImages(state.visionImages as Record<string, string>);
+        if (typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin)) setSkin(state.skin as Skin);
+        if (state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate') setActivePlan(state.activePlan);
+        setStateHydrated(true);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) setAuthError(error instanceof Error ? error.message : 'No fue posible cargar tu mapa.');
+      }
+    }
+    void hydrateUserState();
+    return () => controller.abort();
+  }, [authTokens?.access_token]);
+
+  useEffect(() => {
+    if (!authTokens?.access_token || !stateHydrated) return;
+    const timer = window.setTimeout(() => {
+      void fetch(`${apiUrl}/state`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authTokens.access_token}` },
+        body: JSON.stringify({ state: { profileName, profileImage, levels, activityDrafts, insightRequests, presets, visionImages, skin, activePlan } }),
+      });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [activePlan, activityDrafts, authTokens?.access_token, insightRequests, levels, presets, profileImage, profileName, skin, stateHydrated, visionImages]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -498,7 +615,7 @@ function App() {
     try {
       const response = await fetch(`${apiUrl}/ai/mode`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authTokens?.access_token ?? ''}` },
         body: JSON.stringify({
           mode_name: selectedMode.name,
           level: activeActivity,
@@ -666,7 +783,7 @@ function App() {
           <span>Modo Cultiva</span>
         </a>
         <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA</div>
-        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setIsAuthenticated(false); window.localStorage.removeItem('modoCultiva_auth'); setSelectedMode(null); setCultOpen(false); setActiveActivity(null); setPendingAccess(null); setView('welcome'); }}>Cerrar Sesión</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setView('login'); }}>Iniciar Sesión</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>Modos Premium</button></div>}</div>
+        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>Cerrar Sesión</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>Iniciar Sesión</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>Modos Premium</button></div>}</div>
       </header>
 
       {view === 'login' ? (
@@ -677,12 +794,14 @@ function App() {
             <h1 id="login-title">{pendingAccess ? 'Desbloquea esta función.' : 'Entra a tu espacio.'}</h1>
             <p className="login-copy">{pendingAccess ? `${pendingAccess.feature} forma parte del plan ${pendingAccess.plan}. Crea tu cuenta o inicia sesión para continuar.` : 'Inicia sesión para guardar tu progreso y continuar cultivando tus 12 modos de vida.'}</p>
             <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Modo Holista</button><label className={`login-skin-select${skin !== 'holista' ? ' login-skin-select--active' : ''}`}><small>Más skins según tu plan</small><select value={skin === 'holista' ? '' : skin} onChange={(event) => { if (event.target.value) changeSkin(event.target.value as Skin); }} aria-label="Seleccionar skin disponible"><option value="" disabled>Selecciona otra skin…</option><option value="dj">Consola DJ · Gold</option>{skinCatalog.map((item) => <option key={item.key} value={item.key} disabled={activePlan === 'basic' || (activePlan === 'gold' && item.access !== 'gold')}>{item.name} · {item.access === 'gold' ? 'Gold' : 'Ultimate'}</option>)}</select></label></div>
-            <form className="login-form" onSubmit={(event) => { event.preventDefault(); const destination = pendingAccess?.returnView ?? 'welcome'; const nextActivity = pendingActivity; setIsAuthenticated(true); window.localStorage.setItem('modoCultiva_auth', 'true'); setPendingAccess(null); setPendingActivity(null); if (nextActivity) { setActivityEntry(nextActivity.entry); setActiveActivity(nextActivity.level); setPoolSelection(0); setActivityPrompt(''); } setView(destination); }}>
-              <label htmlFor="login-username">Usuario<input id="login-username" autoComplete="username" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="Tu usuario" /></label>
-              <label htmlFor="login-password">Contraseña<input id="login-password" type="password" autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="Tu contraseña" /></label>
-              <button className="login-submit" type="submit">Iniciar sesión <span>↗</span></button>
+            <form className="login-form" onSubmit={(event) => { event.preventDefault(); void submitAuthentication(); }}>
+              {registering && <label htmlFor="login-name">Nombre<input id="login-name" autoComplete="name" value={loginName} onChange={(event) => setLoginName(event.target.value)} placeholder="Tu nombre" required /></label>}
+              <label htmlFor="login-username">Correo electrónico<input id="login-username" type="email" autoComplete="email" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="tu@correo.com" required /></label>
+              <label htmlFor="login-password">Contraseña<input id="login-password" type="password" autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="Tu contraseña" required minLength={8} /></label>
+              {authError && <p className="form-error" role="alert">{authError}</p>}
+              <button className="login-submit" type="submit">{registering ? 'Crear cuenta' : 'Iniciar sesión'} <span>↗</span></button>
             </form>
-            <small className="login-prototype-note">Acceso prototipo · tus datos se conectarán próximamente</small>
+            <button className="login-back-link" type="button" onClick={() => { setRegistering((current) => !current); setAuthError(null); }}>{registering ? 'Ya tengo una cuenta · Iniciar sesión' : 'Crear una cuenta nueva'}</button>
             {pendingAccess && <button className="login-back-link" type="button" onClick={() => { setPendingAccess(null); setPendingActivity(null); setInsightPreview(null); setView('welcome'); }}><span>←</span> Continuar como invitado</button>}
           </div>
         </section>

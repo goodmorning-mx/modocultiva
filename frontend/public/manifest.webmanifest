@@ -1,0 +1,11 @@
+{
+  "name": "Modo Cultiva",
+  "short_name": "Cultiva",
+  "description": "Tu mapa de vida y tus journeys de desarrollo humano.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07151a",
+  "theme_color": "#07151a",
+  "lang": "es-MX"
+}
