@@ -1,4 +1,5 @@
 from functools import lru_cache
+import os
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -98,9 +99,15 @@ def _ensure_default_organization() -> None:
 
 @lru_cache(maxsize=1)
 def _agent_service() -> AgentService:
-    if not settings.openai_api_key:
+    # GoodMorning Factory normally injects OPENAI_API_KEY. These aliases keep
+    # the embedded module compatible with managed runtime bindings without
+    # ever placing a credential in source control.
+    api_key = next((os.getenv(name) for name in (
+        "OPENAI_API_KEY", "GOODMORNING_OPENAI_API_KEY", "GM_OPENAI_API_KEY"
+    ) if os.getenv(name)), None)
+    if not api_key:
         raise HTTPException(status_code=503, detail="Modo IA no está configurado todavía.")
-    provider = OpenAIProvider(AsyncOpenAI(api_key=settings.openai_api_key, timeout=settings.openai_timeout_seconds))
+    provider = OpenAIProvider(AsyncOpenAI(api_key=api_key, timeout=settings.openai_timeout_seconds))
     return AgentService(provider, ToolRegistry(), billing_service)
 
 
@@ -121,6 +128,12 @@ async def _respond(identity: AuthIdentity, conversation_id: str | None, prompt: 
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"service": settings.app_name, "status": "ok", "environment": settings.app_env}
+
+
+@app.get("/agent/status")
+def agent_status() -> dict[str, str | bool]:
+    configured = any(os.getenv(name) for name in ("OPENAI_API_KEY", "GOODMORNING_OPENAI_API_KEY", "GM_OPENAI_API_KEY"))
+    return {"module": "gm-agent", "mode": "embedded", "configured": configured, "model": settings.openai_model}
 
 
 @app.post("/auth/register")

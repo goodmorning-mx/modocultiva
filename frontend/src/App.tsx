@@ -173,6 +173,31 @@ const specialists: Specialist[] = [
   { name: 'Elena Costa', modeKey: 'emocional', specialty: 'Vínculos y regulación', location: 'Lisboa · Remote', continent: 'Europa', language: 'Português', match: '99%', trajectory: 'Psicoterapeuta y facilitadora de vínculos; trabaja con regulación, límites y conversaciones difíciles.', message: 'La presencia emocional se cultiva en lo pequeño: una pausa, una pregunta y la voluntad de escuchar.', presetName: 'Vínculos conscientes', modeLevels: makeSpecialistPreset('emocional', 2) },
 ];
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+type Language = 'es' | 'en' | 'zh' | 'hi' | 'ar' | 'bn' | 'pt' | 'ru' | 'de' | 'fr';
+const languageNames: Record<Language, string> = {
+  es: 'Español', en: 'English', zh: '中文', hi: 'हिन्दी', ar: 'العربية',
+  bn: 'বাংলা', pt: 'Português', ru: 'Русский', de: 'Deutsch', fr: 'Français',
+};
+const translations: Record<Language, Record<string, string>> = {
+  es: { enter: 'ENTRAR', login: 'Iniciar sesión', createAccount: 'Crear una cuenta', logout: 'Cerrar sesión', premium: 'Modos Premium', welcome: 'Bienvenido a tu mapa de vida', dashboard: 'Dashboard', customize: 'Personalizar', pressToEnter: 'Presiona para entrar', chooseLanguage: 'Idioma', journey: 'Journey del Modo', back: 'Volver', activity: 'Actividad', askAI: 'Consultar al Modo IA', useActivity: 'Usar esta actividad', context: 'Tu contexto para la IA', plans: 'Elige tu siguiente nivel', freeAccess: 'Continuar como invitado', password: 'Contraseña', email: 'Correo electrónico', name: 'Nombre' },
+  en: { enter: 'ENTER', login: 'Sign in', createAccount: 'Create an account', logout: 'Log out', premium: 'Premium Modes', welcome: 'Welcome to your life map', dashboard: 'Dashboard', customize: 'Customize', pressToEnter: 'Press to enter', chooseLanguage: 'Language', journey: 'Mode Journey', back: 'Back', activity: 'Activity', askAI: 'Ask Mode AI', useActivity: 'Use this activity', context: 'Your context for AI', plans: 'Choose your next level', freeAccess: 'Continue as guest', password: 'Password', email: 'Email', name: 'Name' },
+  zh: { enter: '进入', login: '登录', createAccount: '创建账户', logout: '退出登录', premium: '高级模式', welcome: '欢迎来到你的人生地图', dashboard: '仪表盘', customize: '自定义', pressToEnter: '按此进入', chooseLanguage: '语言', journey: '模式旅程', back: '返回', activity: '活动', askAI: '咨询模式 AI', useActivity: '使用此活动', context: '你的 AI 背景', plans: '选择你的下一阶段', freeAccess: '以访客身份继续', password: '密码', email: '电子邮箱', name: '姓名' },
+  hi: { enter: 'प्रवेश', login: 'साइन इन', createAccount: 'खाता बनाएं', logout: 'साइन आउट', premium: 'प्रीमियम मोड', welcome: 'आपके जीवन मानचित्र में आपका स्वागत है', dashboard: 'डैशबोर्ड', customize: 'अनुकूलित करें', pressToEnter: 'प्रवेश के लिए दबाएं', chooseLanguage: 'भाषा', journey: 'मोड यात्रा', back: 'वापस', activity: 'गतिविधि', askAI: 'मोड AI से पूछें', useActivity: 'इस गतिविधि का उपयोग करें', context: 'AI के लिए आपका संदर्भ', plans: 'अपना अगला स्तर चुनें', freeAccess: 'अतिथि के रूप में जारी रखें', password: 'पासवर्ड', email: 'ईमेल', name: 'नाम' },
+  ar: { enter: 'دخول', login: 'تسجيل الدخول', createAccount: 'إنشاء حساب', logout: 'تسجيل الخروج', premium: 'الأوضاع المميزة', welcome: 'مرحباً بك في خريطة حياتك', dashboard: 'لوحة التحكم', customize: 'تخصيص', pressToEnter: 'اضغط للدخول', chooseLanguage: 'اللغة', journey: 'رحلة الوضع', back: 'رجوع', activity: 'النشاط', askAI: 'استشر وضع الذكاء الاصطناعي', useActivity: 'استخدم هذا النشاط', context: 'سياقك للذكاء الاصطناعي', plans: 'اختر مستواك التالي', freeAccess: 'المتابعة كزائر', password: 'كلمة المرور', email: 'البريد الإلكتروني', name: 'الاسم' },
+  bn: { enter: 'প্রবেশ', login: 'সাইন ইন', createAccount: 'অ্যাকাউন্ট তৈরি করুন', logout: 'সাইন আউট', premium: 'প্রিমিয়াম মোড', welcome: 'আপনার জীবন মানচিত্রে স্বাগতম', dashboard: 'ড্যাশবোর্ড', customize: 'কাস্টমাইজ', pressToEnter: 'প্রবেশ করতে চাপুন', chooseLanguage: 'ভাষা', journey: 'মোড জার্নি', back: 'ফিরে যান', activity: 'কার্যকলাপ', askAI: 'মোড AI-কে জিজ্ঞাসা করুন', useActivity: 'এই কার্যকলাপ ব্যবহার করুন', context: 'AI-এর জন্য আপনার প্রসঙ্গ', plans: 'আপনার পরবর্তী স্তর বেছে নিন', freeAccess: 'অতিথি হিসেবে চালিয়ে যান', password: 'পাসওয়ার্ড', email: 'ইমেইল', name: 'নাম' },
+  pt: { enter: 'ENTRAR', login: 'Entrar', createAccount: 'Criar conta', logout: 'Sair', premium: 'Modos Premium', welcome: 'Bem-vindo ao seu mapa de vida', dashboard: 'Painel', customize: 'Personalizar', pressToEnter: 'Pressione para entrar', chooseLanguage: 'Idioma', journey: 'Jornada do Modo', back: 'Voltar', activity: 'Atividade', askAI: 'Consultar o Modo IA', useActivity: 'Usar esta atividade', context: 'Seu contexto para a IA', plans: 'Escolha seu próximo nível', freeAccess: 'Continuar como visitante', password: 'Senha', email: 'E-mail', name: 'Nome' },
+  ru: { enter: 'ВОЙТИ', login: 'Войти', createAccount: 'Создать аккаунт', logout: 'Выйти', premium: 'Премиум-режимы', welcome: 'Добро пожаловать на вашу карту жизни', dashboard: 'Панель', customize: 'Настроить', pressToEnter: 'Нажмите для входа', chooseLanguage: 'Язык', journey: 'Путь режима', back: 'Назад', activity: 'Активность', askAI: 'Спросить у Mode AI', useActivity: 'Использовать активность', context: 'Ваш контекст для ИИ', plans: 'Выберите следующий уровень', freeAccess: 'Продолжить как гость', password: 'Пароль', email: 'Электронная почта', name: 'Имя' },
+  de: { enter: 'EINTRETEN', login: 'Anmelden', createAccount: 'Konto erstellen', logout: 'Abmelden', premium: 'Premium-Modi', welcome: 'Willkommen auf deiner Lebenskarte', dashboard: 'Dashboard', customize: 'Anpassen', pressToEnter: 'Zum Eintreten drücken', chooseLanguage: 'Sprache', journey: 'Modus-Journey', back: 'Zurück', activity: 'Aktivität', askAI: 'Mode AI fragen', useActivity: 'Diese Aktivität nutzen', context: 'Dein Kontext für die KI', plans: 'Wähle deine nächste Stufe', freeAccess: 'Als Gast fortfahren', password: 'Passwort', email: 'E-Mail', name: 'Name' },
+  fr: { enter: 'ENTRER', login: 'Se connecter', createAccount: 'Créer un compte', logout: 'Se déconnecter', premium: 'Modes Premium', welcome: 'Bienvenue sur votre carte de vie', dashboard: 'Tableau de bord', customize: 'Personnaliser', pressToEnter: 'Appuyez pour entrer', chooseLanguage: 'Langue', journey: 'Parcours du mode', back: 'Retour', activity: 'Activité', askAI: 'Consulter le Mode IA', useActivity: 'Utiliser cette activité', context: 'Votre contexte pour l’IA', plans: 'Choisissez votre prochain niveau', freeAccess: 'Continuer comme invité', password: 'Mot de passe', email: 'E-mail', name: 'Nom' },
+};
+const detectLanguage = (): Language => {
+  if (typeof window === 'undefined') return 'es';
+  const saved = window.localStorage.getItem('modoCultiva_language') as Language | null;
+  if (saved && saved in translations) return saved;
+  const locale = `${navigator.language} ${Intl.DateTimeFormat().resolvedOptions().timeZone}`.toLowerCase();
+  const prefix: Array<[string, Language]> = [['zh', 'zh'], ['hi', 'hi'], ['ar', 'ar'], ['bn', 'bn'], ['pt', 'pt'], ['ru', 'ru'], ['de', 'de'], ['fr', 'fr'], ['en', 'en'], ['es', 'es']];
+  return prefix.find(([value]) => locale.includes(value))?.[1] ?? 'es';
+};
 const authClient = {
   async login(email: string, password: string): Promise<AuthTokens> {
     const response = await fetch(`${apiUrl}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
@@ -180,12 +205,12 @@ const authClient = {
     if (!response.ok) throw new Error(payload.detail ?? 'No fue posible iniciar sesión.');
     return payload as AuthTokens;
   },
-  async logout(refresh_token: string): Promise<void> {
-    await fetch(`${apiUrl}/auth/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token }) });
-  },
+  async logout(refresh_token: string): Promise<void> { await fetch(`${apiUrl}/auth/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token }) }); },
 };
 
 function App() {
+  const [language, setLanguage] = useState<Language>(detectLanguage);
+  const tr = (key: string) => translations[language][key] ?? translations.es[key] ?? key;
   const [profileName, setProfileName] = useState(() => {
     try {
       return window.localStorage.getItem('modoCultiva_profileName') ?? defaultUserProfile.name;
@@ -301,6 +326,12 @@ function App() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const journeyPanelRef = useRef<HTMLElement | null>(null);
   const journeyReturnScrollTop = useRef(0);
+
+  useEffect(() => {
+    window.localStorage.setItem('modoCultiva_language', language);
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : language;
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+  }, [language]);
 
   const restoreJourneyPosition = () => {
     window.requestAnimationFrame(() => {
@@ -782,8 +813,8 @@ function App() {
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
-        <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA</div>
-        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>Cerrar Sesión</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>Iniciar Sesión</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>Modos Premium</button></div>}</div>
+        <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => setLanguage(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{(Object.keys(languageNames) as Language[]).map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select></label></div>
+        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button></div>}</div>
       </header>
 
       {view === 'login' ? (
@@ -791,15 +822,15 @@ function App() {
           <div className="login-card">
             <div className="login-brand"><img src={logo} alt="Modo Cultiva" /><span>Modo Cultiva</span></div>
             <p className="kicker">{pendingAccess ? 'Acceso contextual' : 'Tu mapa de vida comienza aquí'}</p>
-            <h1 id="login-title">{pendingAccess ? 'Desbloquea esta función.' : 'Entra a tu espacio.'}</h1>
+            <h1 id="login-title">{pendingAccess ? 'Desbloquea esta función.' : tr('welcome')}</h1>
             <p className="login-copy">{pendingAccess ? `${pendingAccess.feature} forma parte del plan ${pendingAccess.plan}. Crea tu cuenta o inicia sesión para continuar.` : 'Inicia sesión para guardar tu progreso y continuar cultivando tus 12 modos de vida.'}</p>
             <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Modo Holista</button><label className={`login-skin-select${skin !== 'holista' ? ' login-skin-select--active' : ''}`}><small>Más skins según tu plan</small><select value={skin === 'holista' ? '' : skin} onChange={(event) => { if (event.target.value) changeSkin(event.target.value as Skin); }} aria-label="Seleccionar skin disponible"><option value="" disabled>Selecciona otra skin…</option><option value="dj">Consola DJ · Gold</option>{skinCatalog.map((item) => <option key={item.key} value={item.key} disabled={activePlan === 'basic' || (activePlan === 'gold' && item.access !== 'gold')}>{item.name} · {item.access === 'gold' ? 'Gold' : 'Ultimate'}</option>)}</select></label></div>
             <form className="login-form" onSubmit={(event) => { event.preventDefault(); void submitAuthentication(); }}>
-              {registering && <label htmlFor="login-name">Nombre<input id="login-name" autoComplete="name" value={loginName} onChange={(event) => setLoginName(event.target.value)} placeholder="Tu nombre" required /></label>}
-              <label htmlFor="login-username">Correo electrónico<input id="login-username" type="email" autoComplete="email" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="tu@correo.com" required /></label>
-              <label htmlFor="login-password">Contraseña<input id="login-password" type="password" autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="Tu contraseña" required minLength={8} /></label>
+              {registering && <label htmlFor="login-name">{tr('name')}<input id="login-name" autoComplete="name" value={loginName} onChange={(event) => setLoginName(event.target.value)} placeholder={tr('name')} required /></label>}
+              <label htmlFor="login-username">{tr('email')}<input id="login-username" type="email" autoComplete="email" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="tu@correo.com" required /></label>
+              <label htmlFor="login-password">{tr('password')}<input id="login-password" type="password" autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder={tr('password')} required minLength={8} /></label>
               {authError && <p className="form-error" role="alert">{authError}</p>}
-              <button className="login-submit" type="submit">{registering ? 'Crear cuenta' : 'Iniciar sesión'} <span>↗</span></button>
+              <button className="login-submit" type="submit">{registering ? tr('createAccount') : tr('login')} <span>↗</span></button>
             </form>
             <button className="login-back-link" type="button" onClick={() => { setRegistering((current) => !current); setAuthError(null); }}>{registering ? 'Ya tengo una cuenta · Iniciar sesión' : 'Crear una cuenta nueva'}</button>
             {pendingAccess && <button className="login-back-link" type="button" onClick={() => { setPendingAccess(null); setPendingActivity(null); setInsightPreview(null); setView('welcome'); }}><span>←</span> Continuar como invitado</button>}
@@ -843,7 +874,7 @@ function App() {
           </section>}
           <div className={skin === 'dj' || isInterfaceSkin ? 'holista-overview-content holista-overview-content--hidden' : 'holista-overview-content'}>
           <div className="welcome-copy">
-            <p className="kicker">Bienvenido a tu mapa de vida</p>
+            <p className="kicker">{tr('welcome')}</p>
             <h1 id="welcome-title">Cultiva todos tus modos.</h1>
             <p className="intro-copy">Una vista completa para recordar las áreas que te hacen ser tú. Observa tu equilibrio, elige dónde poner presencia y entra a tu dashboard cuando quieras profundizar.</p>
           </div>
@@ -858,10 +889,10 @@ function App() {
             <div className="overview-person">
               <button className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={`Presiona para entrar al Dashboard de ${profileName}`}>
                 <span className="overview-photo-content"><strong>{profileName}</strong><span className="profile-badge">{defaultUserProfile.role}</span></span>
-                <span className="overview-enter-prompt">Presiona para Entrar <b>↗</b></span>
+                <span className="overview-enter-prompt">{tr('pressToEnter')} <b>↗</b></span>
               </button>
               <div className="overview-person-actions">
-                <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ Personalizar</button>
+                <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ {tr('customize')}</button>
               </div>
             </div>
           </div>
@@ -880,9 +911,9 @@ function App() {
       ) : (
       <>
       <section className="intro" data-layer="2" aria-labelledby="dashboard-title">
-        <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>← Volver al overview</button>
+        <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>← {tr('back')} {tr('welcome')}</button>
         <div>
-          <p className="kicker">Dashboard</p>
+          <p className="kicker">{tr('dashboard')}</p>
           <h1 id="dashboard-title">Tu centro de cultivo.</h1>
           <p className="intro-copy">Una lectura ejecutiva de tu progreso, tus focos de atención y los siguientes movimientos de tu mapa de vida.</p>
         </div>
@@ -930,7 +961,7 @@ function App() {
       {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className="journey-panel" data-layer={activeActivity !== null ? '5' : '3'} role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
         {activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← Volver al {journeyReturnView === 'dashboard' ? 'Dashboard' : 'Overview'}</button>}
-        {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← Volver a Journey del Modo</button>}
+        {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← {tr('back')} {tr('journey')}</button>}
         {activeActivity !== null ? <section className={`activity-agent activity-agent--${activityEntry}`} data-layer="5" aria-labelledby="activity-agent-title">
           <p className="kicker">Diseño de actividad · {selectedMode.name} · {activityEntryLabel[activityEntry]}</p>
           {activityEntry === 'custom' ? <>
@@ -938,22 +969,22 @@ function App() {
             <p className="journey-description">Pon en tus propias palabras la práctica que quieres establecer para pasar del nivel {activeActivity} al siguiente.</p>
             <div className="effort-panel"><span className="effort-label">PARÁMETRO DE ESFUERZO</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
             <label className="agent-input-label" htmlFor="activity-prompt">Tu actividad</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => setActivityPrompt(event.target.value)} placeholder="Ej. Caminaré 20 minutos después del trabajo, tres veces esta semana…" rows={6} />
-            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={() => saveActivity(selectedMode.key, activeActivity, activityPrompt.trim() || 'Actividad por definir')}>Usar esta actividad <span>→</span></button></div>
+            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={() => saveActivity(selectedMode.key, activeActivity, activityPrompt.trim() || 'Actividad por definir')}>{tr('useActivity')} <span>→</span></button></div>
           </> : activityEntry === 'pool' ? <>
             <h2 id="activity-agent-title">Pool de Actividades</h2>
             <p className="journey-description">Explora recomendaciones del nivel {activeActivity} para tu {selectedMode.name}. Cada sugerencia respeta el esfuerzo de esta etapa.</p>
             <div className="effort-panel"><span className="effort-label">CATÁLOGO NIVEL {activeActivity}</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
             <label className="pool-selector-label" htmlFor="pool-selection">Navegar recomendaciones<select id="pool-selection" value={poolSelection} onChange={(event) => setPoolSelection(Number(event.target.value))}>{getPoolActivities(selectedMode.key, activeActivity).map((activity, index) => <option value={index} key={activity.title}>Recomendación {index + 1}/10 - {activity.title}</option>)}</select></label>
             <article className="pool-activity-card"><span className="pool-activity-index">ACTIVIDAD NIVEL {activeActivity}</span><h3>{getPoolActivities(selectedMode.key, activeActivity)[poolSelection].title}</h3><p>{getPoolActivities(selectedMode.key, activeActivity)[poolSelection].description}</p><div className="pool-activity-meta"><span>{effortLabelByLevel[activeActivity]}</span><span>NIVEL {activeActivity}</span></div></article>
-            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={usePoolActivity}>Usar esta actividad{!isAuthenticated && ' · Entry'} <span>→</span></button></div>
+            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={usePoolActivity}>{tr('useActivity')}{!isAuthenticated && ' · Entry'} <span>→</span></button></div>
           </> : <>
             <h2 id="activity-agent-title">Construyamos tu actividad</h2>
             <p className="journey-description">Conversaremos para encontrar una práctica concreta para tu {selectedMode.name}, nivel {activeActivity}.</p>
             <div className="effort-panel"><span className="effort-label">PARÁMETRO DE ESFUERZO</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
             <div className="agent-chat" aria-live="polite"><div className="agent-message"><span>IA</span><p>Para pasar del nivel {activeActivity} al siguiente, ¿qué te gustaría cultivar en este modo y qué tiempo real tienes disponible?</p></div>{activityPrompt && <div className="user-message"><span>TÚ</span><p>{activityPrompt}</p></div>}{aiHasConsulted ? <div className="agent-message agent-message--proposal"><span>IA</span><p>{aiProposal}</p></div> : <div className="agent-message agent-message--waiting"><span>IA</span><p>Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.</p></div>}</div>
-            <label className="agent-input-label" htmlFor="activity-prompt">Tu contexto para la IA</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => { setActivityPrompt(event.target.value); setAiHasConsulted(false); setAiNotice(null); }} placeholder="Ej. Tengo 20 minutos al día y quiero empezar con algo sencillo…" rows={3} />
+            <label className="agent-input-label" htmlFor="activity-prompt">{tr('context')}</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => { setActivityPrompt(event.target.value); setAiHasConsulted(false); setAiNotice(null); }} placeholder="Ej. Tengo 20 minutos al día y quiero empezar con algo sencillo…" rows={3} />
             {aiNotice && <div className="insight-notice" role="status">✦ {aiNotice}</div>}
-            <div className="agent-actions"><button className="agent-ask" type="button" disabled={aiLoading} onClick={() => { void consultModeAi(); }}>{aiLoading ? 'Consultando…' : 'Consultar al Modo IA'} {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button><button className="agent-save" type="button" disabled={aiLoading} onClick={saveModeAiActivity}>Usar esta actividad {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button></div>
+            <div className="agent-actions"><button className="agent-ask" type="button" disabled={aiLoading} onClick={() => { void consultModeAi(); }}>{aiLoading ? 'Consultando…' : tr('askAI')} {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button><button className="agent-save" type="button" disabled={aiLoading} onClick={saveModeAiActivity}>{tr('useActivity')} {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button></div>
           </>}
         </section> : <>
           <div className="journey-intro-compact"><span className="journey-icon">{selectedMode.icon}</span><div><p className="kicker">Introducción del modo · Journey integrado</p><h2 id="journey-title">{selectedMode.name}</h2><p className="journey-description">{selectedMode.description}. Reconoce tu presencia y diseña aquí tu ruta de cultivo.</p></div></div>
