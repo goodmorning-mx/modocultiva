@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { createAuthClient, type AuthTokens } from '@goodmorning/gm-auth';
-import { PwaInstallPrompt, PwaStatus } from '@goodmorning/gm-pwa';
 import logo from './assets/modo-cultiva-logo.png';
 import './skin-overrides.css';
 
@@ -15,6 +13,7 @@ type ModeAIResponse = {
   model: string;
   conversation_id?: string;
 };
+type AuthTokens = { access_token: string; refresh_token: string; expires_in: number; identity: { user_id: string; organization_id: string; name?: string | null; email?: string | null; roles: string[]; permissions: string[] } };
 
 type ApiState =
   | { status: 'loading' }
@@ -174,7 +173,17 @@ const specialists: Specialist[] = [
   { name: 'Elena Costa', modeKey: 'emocional', specialty: 'Vínculos y regulación', location: 'Lisboa · Remote', continent: 'Europa', language: 'Português', match: '99%', trajectory: 'Psicoterapeuta y facilitadora de vínculos; trabaja con regulación, límites y conversaciones difíciles.', message: 'La presencia emocional se cultiva en lo pequeño: una pausa, una pregunta y la voluntad de escuchar.', presetName: 'Vínculos conscientes', modeLevels: makeSpecialistPreset('emocional', 2) },
 ];
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-const authClient = createAuthClient(apiUrl);
+const authClient = {
+  async login(email: string, password: string): Promise<AuthTokens> {
+    const response = await fetch(`${apiUrl}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail ?? 'No fue posible iniciar sesión.');
+    return payload as AuthTokens;
+  },
+  async logout(refresh_token: string): Promise<void> {
+    await fetch(`${apiUrl}/auth/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token }) });
+  },
+};
 
 function App() {
   const [profileName, setProfileName] = useState(() => {
@@ -773,7 +782,7 @@ function App() {
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
-        <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA <PwaStatus /><PwaInstallPrompt appName="Modo Cultiva" /></div>
+        <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA</div>
         <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>Cerrar Sesión</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>Iniciar Sesión</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>Modos Premium</button></div>}</div>
       </header>
 
