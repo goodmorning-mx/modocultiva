@@ -153,9 +153,11 @@ const makeSpecialistPreset = (modeKey: string, seed: number) => ({
   ...makePreset(seed),
   [modeKey]: 9,
 });
-const makeInsightPreset = (modeKey: string, level: number, seed: number) => ({
+// An insight is a practice that helped someone reach the destination level.
+// The author must therefore be at least one level ahead of the activity's start.
+const makeInsightPreset = (modeKey: string, activityLevel: number, seed: number) => ({
   ...makePreset(seed),
-  [modeKey]: level,
+  [modeKey]: Math.min(9, activityLevel + 1),
 });
 const globalInsightActivities = modes.flatMap((mode) => journeyLevels.filter((level) => level < 9).map((level, index) => {
   const authorIndex = (modes.indexOf(mode) * 9 + level) % insightAuthors.length;
