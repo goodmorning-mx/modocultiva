@@ -264,4 +264,46 @@
 .app-shell--minimal { --skin-line: rgba(218, 232, 228, .3); --skin-accent: #e8fff6; --skin-ink: #f3faf7; --skin-button-ink: #17231f; --skin-surface: linear-gradient(145deg, #2a3b3b, #101d20); background: #0e1a1d; }
 .app-shell--zen .overview-mode, .app-shell--mission .overview-mode, .app-shell--rpg .overview-mode, .app-shell--botanical .overview-mode, .app-shell--arcade .overview-mode, .app-shell--arcana .overview-mode, .app-shell--urban .overview-mode, .app-shell--ocean .overview-mode, .app-shell--fashion .overview-mode, .app-shell--minimal .overview-mode, .app-shell--zen .mode-card, .app-shell--mission .mode-card, .app-shell--rpg .mode-card, .app-shell--botanical .mode-card, .app-shell--arcade .mode-card, .app-shell--arcana .mode-card, .app-shell--urban .mode-card, .app-shell--ocean .mode-card, .app-shell--fashion .mode-card, .app-shell--minimal .mode-card { border-color: var(--skin-line); background: color-mix(in srgb, var(--skin-accent) 7%, #07151c); }
 @media (max-width: 700px) { .skin-interface { grid-template-columns: 1fr; padding: 28px 20px; }.skin-interface-orbit { width: 110px; height: 110px; }.skin-interface-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* Zen Garden: a calm, tactile path of stones that climbs from Physical to Visionary. */
+.app-shell--zen {
+  --skin-line: rgba(219, 193, 145, .42);
+  --skin-accent: #d8b574;
+  --skin-ink: #f7ecd4;
+  --skin-button-ink: #2a1c12;
+  --skin-surface: linear-gradient(145deg, #5b3c27, #241c17);
+  color: #f7ecd4;
+  background: radial-gradient(circle at 18% 12%, rgba(125, 159, 104, .22), transparent 24rem), radial-gradient(circle at 88% 68%, rgba(213, 177, 111, .16), transparent 30rem), linear-gradient(145deg, #19251c, #0f1713 58%, #211812);
+}
+.app-shell--zen .topbar { border-color: rgba(220, 196, 151, .25); }
+.app-shell--zen .brand, .app-shell--zen .profile-button { color: #f6ead3; }
+.app-shell--zen .profile-button { border-color: #b9955d; background: #2a211a; box-shadow: 0 0 20px rgba(217, 181, 116, .18); }
+.app-shell--zen .topbar-meta, .app-shell--zen .kicker, .app-shell--zen .cult-access, .app-shell--zen .cult-live-pill { color: #d9ba7f; }
+.app-shell--zen .live-dot, .app-shell--zen .cult-access i, .app-shell--zen .cult-live-pill i { background: #a8c27a; box-shadow: 0 0 12px rgba(168, 194, 122, .7); }
+.app-shell--zen .intro, .app-shell--zen .crm-card, .app-shell--zen .journey-panel, .app-shell--zen .plans-view, .app-shell--zen .cult-view, .app-shell--zen .feature-preview { border-color: rgba(219, 193, 145, .3); background: linear-gradient(145deg, rgba(67, 53, 38, .94), rgba(27, 30, 23, .94)); }
+.app-shell--zen button:not(.profile-button) { border-color: rgba(217, 181, 116, .55); }
+.app-shell--zen .journey-cta, .app-shell--zen .plans-signup { color: #24170e; background: linear-gradient(135deg, #d5b36d, #efd39a); box-shadow: 0 0 24px rgba(213, 179, 109, .2); }
+
+.zen-garden-overview { position: relative; isolation: isolate; min-height: calc(100vh - 94px); overflow: hidden; padding: clamp(34px, 6vw, 78px) clamp(18px, 6vw, 90px) 90px; border: 1px solid rgba(219, 193, 145, .32); border-radius: 28px; background: radial-gradient(ellipse at 50% 32%, rgba(214, 185, 126, .17), transparent 34%), linear-gradient(160deg, rgba(42, 66, 42, .94), rgba(20, 32, 24, .98) 55%, rgba(53, 37, 25, .98)); box-shadow: inset 0 1px rgba(255, 244, 207, .13), 0 30px 90px rgba(0, 0, 0, .28); }
+.zen-garden-header { position: relative; z-index: 4; max-width: 520px; margin: 0 auto; text-align: center; }
+.zen-garden-header h1 { margin: 8px 0 12px; color: #f9edcf; font-size: clamp(2.2rem, 5vw, 4.8rem); letter-spacing: -.07em; line-height: .92; }
+.zen-garden-header p:not(.kicker) { margin: 0 auto; max-width: 420px; color: rgba(247, 236, 212, .7); font-size: 1rem; line-height: 1.55; }
+.zen-garden-entry { margin-top: 22px; padding: 13px 20px; border: 1px solid #d8b574; border-radius: 999px; color: #281b10; background: linear-gradient(135deg, #efd49a, #b99358); font-weight: 800; box-shadow: 0 8px 25px rgba(0, 0, 0, .2); }
+.zen-garden-entry span { margin-left: 12px; }
+.zen-garden-path { position: relative; z-index: 3; display: grid; grid-template-columns: repeat(4, minmax(122px, 1fr)); gap: clamp(22px, 3vw, 44px) clamp(18px, 6vw, 100px); max-width: 900px; margin: 56px auto 0; padding: 30px 18px 16px; }
+.zen-stone { position: relative; display: grid; min-height: 98px; place-items: center; align-content: center; gap: 5px; padding: 16px 12px; border: 2px solid rgba(233, 211, 169, .58); border-radius: 54% 46% 49% 51% / 48% 52% 46% 54%; color: #f9efd8; background: radial-gradient(ellipse at 38% 25%, rgba(255, 242, 202, .22), transparent 36%), linear-gradient(145deg, #76614a, #2e2922 72%); box-shadow: inset -9px -8px 0 rgba(22, 20, 16, .2), inset 8px 6px 0 rgba(255, 240, 198, .08), 0 12px 20px rgba(0, 0, 0, .34); transform: rotate(var(--stone-rotate, 0deg)); transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.zen-stone:hover, .zen-stone:focus-visible { z-index: 5; border-color: #efd49a; box-shadow: inset -9px -8px 0 rgba(22, 20, 16, .18), 0 0 0 5px rgba(216, 181, 116, .14), 0 16px 32px rgba(0, 0, 0, .4); transform: rotate(0deg) translateY(-5px) scale(1.04); }
+.zen-stone-icon { color: var(--stone-color); font-size: 1.5rem; text-shadow: 0 0 12px color-mix(in srgb, var(--stone-color) 55%, transparent); }
+.zen-stone strong { font-size: .82rem; letter-spacing: .03em; }
+.zen-stone small { color: #d8bd8c; font: .58rem 'DM Mono', monospace; letter-spacing: .12em; }
+.zen-stone:nth-child(4n + 1) { --stone-rotate: -4deg; }.zen-stone:nth-child(4n + 2) { --stone-rotate: 3deg; }.zen-stone:nth-child(4n + 3) { --stone-rotate: -2deg; }.zen-stone:nth-child(4n) { --stone-rotate: 4deg; }
+/* serpentine reading order: bottom row starts with Physical, top row ends with Visionary */
+.zen-stone--1 { grid-column: 1; grid-row: 4; }.zen-stone--2 { grid-column: 2; grid-row: 4; }.zen-stone--3 { grid-column: 3; grid-row: 4; }.zen-stone--4 { grid-column: 4; grid-row: 4; }
+.zen-stone--5 { grid-column: 4; grid-row: 3; }.zen-stone--6 { grid-column: 3; grid-row: 3; }.zen-stone--7 { grid-column: 2; grid-row: 3; }.zen-stone--8 { grid-column: 1; grid-row: 3; }
+.zen-stone--9 { grid-column: 1; grid-row: 2; }.zen-stone--10 { grid-column: 2; grid-row: 2; }.zen-stone--11 { grid-column: 3; grid-row: 2; }.zen-stone--12 { grid-column: 4; grid-row: 1; }
+.zen-garden-water { position: absolute; z-index: 0; right: 6%; bottom: 8%; width: 28%; height: 24%; border: 10px solid rgba(82, 106, 78, .45); border-radius: 50%; background: radial-gradient(ellipse, rgba(94, 139, 132, .55), rgba(26, 58, 53, .8) 70%); box-shadow: inset 0 0 25px rgba(220, 225, 179, .18); transform: rotate(-8deg); }
+.zen-garden-sun { position: absolute; z-index: 0; top: 16%; left: 11%; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, rgba(236, 204, 137, .27), rgba(236, 204, 137, 0) 70%); }
+.zen-garden-bonsai { position: absolute; z-index: 1; font-size: clamp(4rem, 8vw, 8rem); filter: saturate(.7) sepia(.25); opacity: .7; }.zen-garden-bonsai--left { left: 2%; bottom: 10%; }.zen-garden-bonsai--right { right: 2%; top: 18%; transform: scaleX(-1); }
+.zen-garden-rake { position: absolute; z-index: 1; width: 38%; height: 18%; border-top: 2px solid rgba(226, 200, 151, .24); border-radius: 50%; transform: rotate(-8deg); }.zen-garden-rake::after { content: ''; position: absolute; inset: 14px 0 0; border-top: 2px solid rgba(226, 200, 151, .16); border-radius: 50%; }.zen-garden-rake--one { left: 4%; bottom: 18%; }.zen-garden-rake--two { right: 5%; top: 46%; transform: rotate(16deg); }.zen-garden-caption { position: absolute; z-index: 4; right: 28px; bottom: 22px; color: rgba(239, 213, 164, .6); font: .58rem 'DM Mono', monospace; letter-spacing: .14em; }
+@media (max-width: 760px) { .zen-garden-path { grid-template-columns: repeat(3, 1fr); gap: 18px 12px; }.zen-stone--1, .zen-stone--2, .zen-stone--3 { grid-row: 5; }.zen-stone--4, .zen-stone--5, .zen-stone--6 { grid-row: 4; }.zen-stone--7, .zen-stone--8, .zen-stone--9 { grid-row: 3; }.zen-stone--10, .zen-stone--11, .zen-stone--12 { grid-row: 2; }.zen-stone--1, .zen-stone--4, .zen-stone--7, .zen-stone--10 { grid-column: 1; }.zen-stone--2, .zen-stone--5, .zen-stone--8, .zen-stone--11 { grid-column: 2; }.zen-stone--3, .zen-stone--6, .zen-stone--9, .zen-stone--12 { grid-column: 3; }.zen-garden-water { width: 42%; height: 16%; }.zen-garden-bonsai { opacity: .45; } }
 .login-skin-select { display: grid; gap: 5px; padding: 8px 10px; border: 1px solid rgba(112, 237, 156, .22); border-radius: 9px; background: rgba(8, 29, 35, .72); transition: border-color .2s ease, background .2s ease, box-shadow .2s ease; }.login-skin-select small { color: #83a69b; font-family: 'DM Mono', monospace; font-size: .47rem; letter-spacing: .05em; text-transform: uppercase; }.login-skin-select select { width: 100%; border: 0; outline: 0; color: #edfff0; background: transparent; font-size: .68rem; font-weight: 700; cursor: pointer; }.login-skin-select option { color: #174333; background: #effff3; font-weight: 700; }.login-skin-select--active { border-color: #70ed9c; background: rgba(67, 171, 125, .16); box-shadow: 0 0 18px rgba(112, 237, 156, .13); }.login-skin-select--active small { color: #70ed9c; }

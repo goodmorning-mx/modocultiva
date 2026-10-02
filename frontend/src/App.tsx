@@ -310,6 +310,7 @@ function App() {
       return 'holista';
     }
   });
+  const loginSkinChoice = useRef<Skin | null>(null);
   const [djFocusedMode, setDjFocusedMode] = useState(modes[0].key);
   const [profileImage, setProfileImage] = useState<string | null>(() => {
     try {
@@ -426,6 +427,7 @@ function App() {
     setCultOpen(false);
     setActiveActivity(null);
     setPendingAccess(null);
+    loginSkinChoice.current = null;
     setView('welcome');
   };
 
@@ -481,7 +483,11 @@ function App() {
         if (state.insightRequests && typeof state.insightRequests === 'object') setInsightRequests(state.insightRequests as Record<string, boolean>);
         if (state.presets && typeof state.presets === 'object') setPresets(state.presets as Record<string, Preset>);
         if (state.visionImages && typeof state.visionImages === 'object') setVisionImages(state.visionImages as Record<string, string>);
-        if (typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin)) setSkin(state.skin as Skin);
+        const remoteSkin = typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin) ? state.skin as Skin : null;
+        if (loginSkinChoice.current) {
+          setSkin(loginSkinChoice.current);
+          window.localStorage.setItem('modoCultiva_skin', loginSkinChoice.current);
+        } else if (remoteSkin) setSkin(remoteSkin);
         if (state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate') setActivePlan(state.activePlan);
         setStateHydrated(true);
       } catch (error) {
@@ -610,6 +616,7 @@ function App() {
     }
     if (nextSkin !== 'holista' && isAuthenticated && activePlan === 'basic') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Gold'); return; }
     if (nextSkin !== 'holista' && isAuthenticated && activePlan === 'gold' && nextSkin !== 'dj') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Ultimate Mode'); return; }
+    if (view === 'login') loginSkinChoice.current = nextSkin;
     setSkin(nextSkin);
     try {
       window.localStorage.setItem('modoCultiva_skin', nextSkin);
@@ -922,7 +929,8 @@ function App() {
         </section>
       ) : view === 'welcome' ? (
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ''}`} data-layer="home" aria-labelledby="welcome-title">
-          {isInterfaceSkin && <section className={`skin-interface skin-interface--${skin}`} aria-label={`${skinInfo(skin)?.name} overview`}><div className="skin-interface-orbit"><span>{skinInfo(skin)?.icon}</span><small>12 MODOS<br />ENFOCADOS</small></div><div><p className="kicker">{skinInfo(skin)?.name} · MAPA DE VIDA</p><h1>{skinInfo(skin)?.signature}</h1><p>{skinInfo(skin)?.description}</p><div className="skin-interface-grid">{modes.slice(0, 4).map((mode) => <article key={mode.key}><span>{mode.icon}</span><strong>{mode.shortName}</strong><small>NIVEL {levels[mode.key]}</small></article>)}</div><button className="skin-interface-entry" type="button" onClick={() => setView('dashboard')}>Entrar a mi mapa <span>↗</span></button></div></section>}
+          {isInterfaceSkin && skin !== 'zen' && <section className={`skin-interface skin-interface--${skin}`} aria-label={`${skinInfo(skin)?.name} overview`}><div className="skin-interface-orbit"><span>{skinInfo(skin)?.icon}</span><small>12 MODOS<br />ENFOCADOS</small></div><div><p className="kicker">{skinInfo(skin)?.name} · MAPA DE VIDA</p><h1>{skinInfo(skin)?.signature}</h1><p>{skinInfo(skin)?.description}</p><div className="skin-interface-grid">{modes.slice(0, 4).map((mode) => <article key={mode.key}><span>{mode.icon}</span><strong>{mode.shortName}</strong><small>NIVEL {levels[mode.key]}</small></article>)}</div><button className="skin-interface-entry" type="button" onClick={() => setView('dashboard')}>Entrar a mi mapa <span>↗</span></button></div></section>}
+          {skin === 'zen' && <section className="zen-garden-overview" aria-labelledby="zen-garden-title"><div className="zen-garden-sun" aria-hidden="true" /><div className="zen-garden-water" aria-hidden="true" /><div className="zen-garden-bonsai zen-garden-bonsai--left" aria-hidden="true">🌳</div><div className="zen-garden-bonsai zen-garden-bonsai--right" aria-hidden="true">🌲</div><div className="zen-garden-header"><p className="kicker">Zen Garden · MAPA DE VIDA</p><h1 id="zen-garden-title">Respira. Observa. Cultiva.</h1><p>Un jardín para recorrer tus 12 modos con calma, atención y un paso a la vez.</p><button className="zen-garden-entry" type="button" onClick={() => setView('dashboard')}>Entrar a mi mapa <span>↗</span></button></div><div className="zen-garden-path" aria-label="Tus 12 modos de vida">{modes.map((mode, index) => <button className={`zen-stone zen-stone--${index + 1}`} key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--stone-color': mode.color } as CSSProperties} aria-label={`${mode.name}, nivel ${levels[mode.key]}`}><span className="zen-stone-icon">{mode.icon}</span><strong>{mode.shortName}</strong><small>NIVEL {levels[mode.key]}</small></button>)}</div><div className="zen-garden-rake zen-garden-rake--one" aria-hidden="true" /><div className="zen-garden-rake zen-garden-rake--two" aria-hidden="true" /><span className="zen-garden-caption">12 MODOS · UN JARDÍN EN MOVIMIENTO</span></section>}
           {skin === 'dj' && <section className="dj-console" aria-labelledby="dj-console-title">
             <div className="dj-console-top"><div><p className="kicker">Consola de presencia</p><h1 id="dj-console-title">Cultiva todos tus modos.</h1><p className="intro-copy">MODO CULTIVA ACTIVADO · 12 CANALES DE VIDA ENERGIZADOS</p></div><div className="dj-profile-entry"><button className={profileImage ? 'dj-profile-button dj-profile-button--with-photo' : 'dj-profile-button'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .08), rgba(4, 18, 29, .82)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={`Presiona para entrar al Dashboard de ${profileName}`}><span className="dj-profile-fallback">{profileImage ? '' : profileName.slice(0, 1).toUpperCase()}</span><span className="dj-profile-copy"><strong>{profileName}</strong><span className="profile-badge">{defaultUserProfile.role}</span><small>Presiona para Entrar <b>↗</b></small></span></button><label className="dj-profile-upload" title="Cambiar foto de perfil"><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /><span>＋</span></label></div></div>
             <div className="dj-console-screen"><span>SESIÓN PERSONAL · {profileName.toUpperCase()}</span><strong>12 MODOS DE VIDA</strong><i /></div>
