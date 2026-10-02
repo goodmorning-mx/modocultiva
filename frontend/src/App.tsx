@@ -204,6 +204,25 @@ const localizedModeNames: Record<Language, Record<string, string>> = {
   fr: { fisico: 'Mode physique', intelectual: 'Mode intellectuel', emocional: 'Mode émotionnel', arquetipico: 'Mode archétypal', espiritual: 'Mode spirituel', romantico: 'Mode romantique', familiar: 'Mode familial', social: 'Mode social', financiero: 'Mode financier', profesional: 'Mode professionnel', ludico: 'Mode ludique', visionario: 'Mode visionnaire' },
   da: { fisico: 'Fysisk mode', intelectual: 'Intellektuel mode', emocional: 'Følelsesmæssig mode', arquetipico: 'Arketypisk mode', espiritual: 'Spirituel mode', romantico: 'Romantisk mode', familiar: 'Familiemode', social: 'Social mode', financiero: 'Finansiel mode', profesional: 'Professionel mode', ludico: 'Legende mode', visionario: 'Visionær mode' },
 };
+const localizedLevelNames: Record<Language, string[]> = {
+  es: levelNames,
+  en: ['Active ignorance', 'Passive reaction', 'Confused awareness', 'Intention without habit', 'Established foundations', 'Basic maintenance', 'Defined direction', 'Consistent growth', 'Optimization and discipline', 'Mastery and influence'],
+  zh: ['主动无知', '被动反应', '模糊意识', '没有习惯的意图', '基础建立', '基本维护', '方向明确', '持续成长', '优化与自律', '精通与影响力'],
+  hi: ['सक्रिय अज्ञान', 'निष्क्रिय प्रतिक्रिया', 'भ्रमित जागरूकता', 'आदत के बिना इरादा', 'स्थापित आधार', 'बुनियादी रखरखाव', 'निर्धारित दिशा', 'निरंतर विकास', 'अनुकूलन और अनुशासन', 'महारत और प्रभाव'],
+  ar: ['جهل نشط', 'رد فعل سلبي', 'وعي مرتبك', 'نية بلا عادة', 'أسس راسخة', 'صيانة أساسية', 'اتجاه محدد', 'نمو مستمر', 'تحسين وانضباط', 'إتقان وتأثير'],
+  it: ['Ignoranza attiva', 'Reazione passiva', 'Consapevolezza confusa', 'Intenzione senza abitudine', 'Basi consolidate', 'Mantenimento di base', 'Direzione definita', 'Crescita costante', 'Ottimizzazione e disciplina', 'Padronanza e influenza'],
+  pt: ['Ignorância ativa', 'Reação passiva', 'Consciência confusa', 'Intenção sem hábito', 'Bases estabelecidas', 'Manutenção básica', 'Rumo definido', 'Crescimento consistente', 'Otimização e disciplina', 'Maestria e influência'],
+  ru: ['Активное неведение', 'Пассивная реакция', 'Смутное осознание', 'Намерение без привычки', 'Заложенные основы', 'Базовое поддержание', 'Определённое направление', 'Стабильный рост', 'Оптимизация и дисциплина', 'Мастерство и влияние'],
+  de: ['Aktive Unwissenheit', 'Passive Reaktion', 'Verwirrtes Bewusstsein', 'Absicht ohne Gewohnheit', 'Etablierte Grundlagen', 'Grundlegende Pflege', 'Klare Richtung', 'Beständiges Wachstum', 'Optimierung und Disziplin', 'Meisterschaft und Einfluss'],
+  fr: ['Ignorance active', 'Réaction passive', 'Conscience confuse', 'Intention sans habitude', 'Bases établies', 'Maintenance de base', 'Direction définie', 'Croissance constante', 'Optimisation et discipline', 'Maîtrise et influence'],
+  da: ['Aktiv uvidenhed', 'Passiv reaktion', 'Forvirret bevidsthed', 'Intention uden vane', 'Etablerede grundlag', 'Grundlæggende vedligeholdelse', 'Defineret retning', 'Konsekvent vækst', 'Optimering og disciplin', 'Mesterskab og indflydelse'],
+};
+const localizedModeDescriptions: Partial<Record<Language, Record<string, string>>> = {
+  es: Object.fromEntries(modes.map((mode) => [mode.key, mode.description])),
+  en: { fisico: 'Body health and wellbeing', intelectual: 'Intellectual and cognitive development', emocional: 'Emotional balance and regulation', arquetipico: 'Character, coherence and personal essence', espiritual: 'Purpose, meaning and connection', romantico: 'Partnership and love', familiar: 'Family roots and close bonds', social: 'Friendships, support network and community', financiero: 'Money management, saving and investing', profesional: 'Career, vocation and work performance', ludico: 'Enjoyment, rest and renewed energy', visionario: 'Goals, long-term planning and legacy' },
+  it: { fisico: 'Salute e benessere del corpo', intelectual: 'Sviluppo intellettuale e cognitivo', emocional: 'Gestione ed equilibrio delle emozioni', arquetipico: 'Carattere, coerenza ed essenza personale', espiritual: 'Scopo, significato e connessione', romantico: 'Relazione di coppia e amore', familiar: 'Legami familiari e radici', social: 'Amicizie, rete di sostegno e comunità', financiero: 'Gestione del denaro, risparmio e investimenti', profesional: 'Carriera, vocazione e rendimento professionale', ludico: 'Piacere, tempo libero, riposo ed energia', visionario: 'Obiettivi, pianificazione e lascito' },
+  da: { fisico: 'Sundhed og kropsligt velvære', intelectual: 'Intellektuel og kognitiv udvikling', emocional: 'Håndtering og balance af følelser', arquetipico: 'Karakter, sammenhæng og personlig essens', espiritual: 'Formål, mening og forbindelse', romantico: 'Parforhold og kærlighed', familiar: 'Familiebånd og rødder', social: 'Venskaber, netværk og fællesskab', financiero: 'Penge, opsparing og investering', profesional: 'Karriere, kald og arbejdspræstation', ludico: 'Glæde, fritid, hvile og ny energi', visionario: 'Mål, langsigtet planlægning og arv' },
+};
 const detectLanguage = (): Language => {
   if (typeof window === 'undefined') return 'es';
   const saved = window.localStorage.getItem('modoCultiva_language') as Language | null;
@@ -381,17 +400,32 @@ function App() {
     };
     const replacements = new Map<string, string>();
     Object.entries(phraseBook).forEach(([source, values]) => replacements.set(source, values[language] ?? source));
-    modes.forEach((mode) => replacements.set(mode.name, localizedModeNames[language][mode.key] ?? mode.name));
+    modes.forEach((mode) => {
+      replacements.set(mode.name, localizedModeNames[language][mode.key] ?? mode.name);
+      replacements.set(mode.shortName, (localizedModeNames[language][mode.key] ?? mode.name).replace(/^(Modo |Mode |模式|모드 )/i, ''));
+      replacements.set(mode.description, localizedModeDescriptions[language]?.[mode.key] ?? mode.description);
+    });
+    levelNames.forEach((name, index) => replacements.set(name, localizedLevelNames[language][index] ?? name));
+    replacements.set('NIVEL', language === 'es' ? 'NIVEL' : tr('levels').toUpperCase());
+    replacements.set('NIVELES', language === 'es' ? 'NIVELES' : tr('levels').toUpperCase());
+    replacements.set('MODO IA', language === 'es' ? 'MODO IA' : 'MODE AI');
+    replacements.set('Agregar actividad', tr('activity'));
+    replacements.set('Pool de actividades', tr('activity') === 'Actividad' ? 'Pool de Actividades' : `${tr('activity')} Pool`);
+    replacements.set('Voltear tarjeta', language === 'es' ? 'Voltear tarjeta' : 'Flip card');
+    replacements.set('Volver a la pregunta', language === 'es' ? 'Volver a la pregunta' : 'Back to the question');
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     const nodes: Text[] = [];
     while (walker.nextNode()) nodes.push(walker.currentNode as Text);
     nodes.forEach((node) => {
       const parent = node.parentElement;
-      if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'SELECT', 'OPTION'].includes(parent.tagName)) return;
-      const next = replacements.get(node.nodeValue?.trim() ?? '');
-      if (next) node.nodeValue = node.nodeValue?.replace(node.nodeValue.trim(), next) ?? next;
+      if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(parent.tagName)) return;
+      let next = node.nodeValue ?? '';
+      replacements.forEach((value, source) => {
+        if (source && next.includes(source)) next = next.split(source).join(value);
+      });
+      if (next !== node.nodeValue) node.nodeValue = next;
     });
-  }, [language]);
+  }, [language, tr]);
 
   const restoreJourneyPosition = () => {
     window.requestAnimationFrame(() => {
@@ -873,7 +907,7 @@ function App() {
   }, [activityDrafts, levels, presets]);
 
   return (
-    <main className={`app-shell app-shell--${skin}`}>
+    <main key={language} className={`app-shell app-shell--${skin}`}>
       <header className="topbar">
         <a className="brand" href="/" aria-label="Modo Cultiva, inicio">
           <img src={logo} alt="Modo Cultiva" />
@@ -890,7 +924,7 @@ function App() {
             <p className="kicker">{pendingAccess ? 'Acceso contextual' : 'Tu mapa de vida comienza aquí'}</p>
             <h1 id="login-title">{pendingAccess ? 'Desbloquea esta función.' : tr('welcome')}</h1>
             <p className="login-copy">{pendingAccess ? `${pendingAccess.feature} forma parte del plan ${pendingAccess.plan}. Crea tu cuenta o inicia sesión para continuar.` : 'Inicia sesión para guardar tu progreso y continuar cultivando tus 12 modos de vida.'}</p>
-            <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Modo Holista</button><label className={`login-skin-select${skin !== 'holista' ? ' login-skin-select--active' : ''}`}><small>Más skins según tu plan</small><select value={skin === 'holista' ? '' : skin} onChange={(event) => { if (event.target.value) changeSkin(event.target.value as Skin); }} aria-label="Seleccionar skin disponible"><option value="" disabled>Selecciona otra skin…</option><option value="dj">Consola DJ · Gold</option>{skinCatalog.map((item) => <option key={item.key} value={item.key} disabled={activePlan === 'basic' || (activePlan === 'gold' && item.access !== 'gold')}>{item.name} · {item.access === 'gold' ? 'Gold' : 'Ultimate'}</option>)}</select></label></div>
+            <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Modo Holista</button><label className={`login-skin-select${skin !== 'holista' ? ' login-skin-select--active' : ''}`}><small>Más skins según tu plan</small><select value={skin === 'holista' ? '' : skin} onChange={(event) => { if (event.target.value) changeSkin(event.target.value as Skin); }} aria-label="Seleccionar skin disponible"><option value="" disabled>Selecciona otra skin…</option><option value="dj">Consola DJ · Gold</option>{skinCatalog.map((item) => <option key={item.key} value={item.key}>{item.name} · {item.access === 'gold' ? 'Gold' : 'Ultimate'}</option>)}</select></label></div>
             <form className="login-form" onSubmit={(event) => { event.preventDefault(); void submitAuthentication(); }}>
               {registering && <label htmlFor="login-name">{tr('name')}<input id="login-name" autoComplete="name" value={loginName} onChange={(event) => setLoginName(event.target.value)} placeholder={tr('name')} required /></label>}
               <label htmlFor="login-username">{tr('email')}<input id="login-username" type="email" autoComplete="email" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="tu@correo.com" required /></label>
