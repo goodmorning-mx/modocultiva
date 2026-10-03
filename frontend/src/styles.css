@@ -247,7 +247,7 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .pool-activity-meta span { padding: 5px 8px; border: 1px solid color-mix(in srgb, var(--mode-color) 30%, transparent); border-radius: 999px; color: var(--mode-color); font-family: 'DM Mono', monospace; font-size: .5rem; letter-spacing: .08em; text-transform: uppercase; }
 @media (max-width: 680px) { .pool-activity-card { padding: 16px; }.agent-actions--single .agent-save { width: 100%; } }
 
-/* Layer 3 is now the complete mode workspace: compact introduction, journey, activity design and The Cult. */
+/* Layer 3 is now the complete mode workspace: compact introduction, journey, activity design and Modo Global. */
 .journey-intro-compact { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding-right: 36px; }
 .journey-intro-compact .journey-icon { flex: 0 0 52px; width: 52px; height: 52px; margin: 0; border-radius: 15px; font-size: 1.7rem; }
 .journey-intro-compact h2 { margin: 2px 0 5px; font-size: clamp(1.7rem, 4vw, 2.7rem); }
@@ -265,6 +265,11 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .cult-embedded-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 13px; }
 .cult-embedded-heading h3 { margin: 0; color: #f0fff3; font-size: clamp(1.35rem, 3vw, 2rem); letter-spacing: -.06em; }
 .cult-embedded-heading .kicker { margin-bottom: 7px; }
+.cult-embedded-subtitle { max-width: 650px; margin: 7px 0 0; color: #9fc6b8; line-height: 1.45; font-size: .78rem; }
+.cult-embedded-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0 14px; color: #70e0a0; font-family: 'DM Mono', monospace; font-size: .48rem; letter-spacing: .16em; text-align: center; }
+.cult-embedded-divider span { height: 1px; flex: 1; background: linear-gradient(90deg, transparent, rgba(112,224,160,.65)); }
+.cult-embedded-divider span:last-child { background: linear-gradient(90deg, rgba(112,224,160,.65), transparent); }
+.cult-embedded-divider i { font-style: normal; white-space: nowrap; }
 .cult-nav--embedded { margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
 .cult-nav--embedded::-webkit-scrollbar { display: none; }
 .cult-nav--embedded .cult-nav-button { padding: 9px 8px; font-size: .58rem; white-space: nowrap; }
