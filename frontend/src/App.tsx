@@ -741,7 +741,7 @@ function App() {
   const openMode = (mode: Mode) => {
     setJourneyReturnView(view === 'dashboard' ? 'dashboard' : 'welcome');
     setSelectedMode(mode);
-    setCultOpen(false);
+    setCultOpen(true);
     setActiveActivity(null);
   };
 
@@ -1142,8 +1142,7 @@ function App() {
           {insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}
           <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong><span className="journey-level-card-name">{levelNames[level]}</span>{level === levels[selectedMode.key] && <em>Actual</em>}{level === 9 && <em>Meta final</em>}</div>{level < 9 ? <><h4>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : 'Actividad por definir'}</h4><p><strong className="effort-tag">{effortLabelByLevel[level]}</strong>{activityDrafts[`${selectedMode.key}-${level}`] ? ' · Actividad guardada en este navegador.' : ' · ' + effortDescription[effortByLevel[level]]}</p><div className="journey-card-actions"><button type="button" onClick={() => openActivity(level, 'custom')}>{activityDrafts[`${selectedMode.key}-${level}`] ? '✦ Modificar Actividad' : '＋ Agregar Actividad'}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(level, 'pool')}>▦ Pool de Actividades</button><button className="activity-ai-button" type="button" onClick={() => openActivity(level, 'ai')}>✦ Modo IA</button><button className={insightRequests[`${selectedMode.key}-${level}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, level)}>{insightRequests[`${selectedMode.key}-${level}`] ? '✓ Insight pedido' : 'Pedir Insights'}</button></div></> : <><h4>Tu visión final</h4><p>Representa en una imagen el resultado al que quieres llegar.</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? 'Cambiar imagen' : 'Cargar imagen'}</label></>}</article>)}</div>
           </section>
-          <button className="cult-section-toggle" type="button" onClick={() => setCultOpen((open) => !open)}>{cultOpen ? 'Ocultar The Cult' : 'Explorar The Cult'} <span>{cultOpen ? '↑' : '↓'}</span></button>
-          {cultOpen && renderCultSection()}
+          {renderCultSection()}
         </>}
       </section></div>}
     </main>
