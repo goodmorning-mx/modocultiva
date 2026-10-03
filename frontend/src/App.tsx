@@ -95,6 +95,8 @@ const planDetails: Record<PlanKey, PlanDetails> = {
   gold: { name: 'Gold', price: '$249.99 MXN /mes', promise: 'Cultiva acompañado por tu red de apoyo.', features: ['Todo lo incluido en Entry.', 'Una skin adicional de tu elección.', 'Insights locales dentro de tu red de apoyo.', 'Solicitudes y respuestas de Insights con mayor frecuencia.', 'Grupos privados o círculos de confianza.', 'Comparación de progreso con tu círculo.', 'Modo IA ampliado: hasta 100 consultas mensuales.', 'Presets compartibles.', 'Recomendaciones comunitarias.', 'Insignia Gold.'] },
   ultimate: { name: 'ULTIMATE MODE', price: '$899.99 MXN /mes', promise: 'Lleva tu cultivo a una red global de conocimiento.', features: ['Todo lo incluido en Gold.', 'Skins y Filtros ilimitados.', 'Insights ilimitados.', 'Insights globales.', 'Modo IA sin límite razonable o con política de uso justo.', 'Red de Especialistas.', 'Directorio de profesionales por modo.', 'Filtros por especialidad, nivel, idioma y ubicación.', 'Perfiles profesionales verificados.', 'Solicitud de orientación privada.', 'Seguimiento de recomendaciones profesionales.', 'Insignia ULTIMATE MODE.', 'Acceso anticipado a nuevas skins y features.'] },
 };
+// Release switch: keep plan data and UI implementation intact while access is temporarily free.
+const RELEASE_FREE_ACCESS = true;
 const journeyLevels = Array.from({ length: 10 }, (_, level) => level);
 const effortByLevel = ['Bajo', 'Bajo', 'Bajo', 'Medio', 'Medio', 'Medio', 'Alto', 'Alto', 'Alto', 'Visión final'];
 const effortLabelByLevel = ['EXIGENCIA BAJA (Tiempo)', 'EXIGENCIA BAJA (Tiempo)', 'EXIGENCIA BAJA (Tiempo)', 'EXIGENCIA MEDIA (Tiempo + Energía)', 'EXIGENCIA MEDIA (Tiempo + Energía)', 'EXIGENCIA MEDIA (Tiempo + Energía)', 'EXIGENCIA ALTA (Tiempo + Energía + Dinero)', 'EXIGENCIA ALTA (Tiempo + Energía + Dinero)', 'EXIGENCIA ALTA (Tiempo + Energía + Dinero)', 'VISIÓN FINAL'];
@@ -686,12 +688,12 @@ function App() {
   };
 
   const changeSkin = (nextSkin: Skin) => {
-    if (nextSkin !== 'holista' && !isAuthenticated && view !== 'login') {
+    if (!RELEASE_FREE_ACCESS && nextSkin !== 'holista' && !isAuthenticated && view !== 'login') {
       requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, nextSkin === 'dj' || skinInfo(nextSkin)?.access === 'gold' ? 'Gold' : 'Ultimate Mode');
       return;
     }
-    if (nextSkin !== 'holista' && isAuthenticated && activePlan === 'basic') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Gold'); return; }
-    if (nextSkin !== 'holista' && isAuthenticated && activePlan === 'gold' && nextSkin !== 'dj') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Ultimate Mode'); return; }
+    if (!RELEASE_FREE_ACCESS && nextSkin !== 'holista' && isAuthenticated && activePlan === 'basic') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Gold'); return; }
+    if (!RELEASE_FREE_ACCESS && nextSkin !== 'holista' && isAuthenticated && activePlan === 'gold' && nextSkin !== 'dj') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Ultimate Mode'); return; }
     if (view === 'login') loginSkinChoice.current = nextSkin;
     setSkin(nextSkin);
     try {
@@ -702,12 +704,12 @@ function App() {
   };
 
   const activateCultSkin = (nextSkin: Skin) => {
-    if (!isAuthenticated) {
+    if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
       requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? (nextSkin === 'dj' ? 'Consola DJ' : nextSkin === 'nocturna' ? 'Night Owl' : nextSkin === 'lucid' ? 'Lucid' : 'Holista')}`, nextSkin === 'dj' || skinInfo(nextSkin)?.access === 'gold' ? 'Gold' : 'Ultimate Mode');
       return;
     }
-    if (activePlan === 'basic' && nextSkin !== 'holista') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Gold'); return; }
-    if (activePlan === 'gold' && nextSkin !== 'holista' && nextSkin !== 'dj') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Ultimate Mode'); return; }
+    if (!RELEASE_FREE_ACCESS && activePlan === 'basic' && nextSkin !== 'holista') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Gold'); return; }
+    if (!RELEASE_FREE_ACCESS && activePlan === 'gold' && nextSkin !== 'holista' && nextSkin !== 'dj') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Ultimate Mode'); return; }
     changeSkin(nextSkin);
   };
 
@@ -764,7 +766,7 @@ function App() {
 
   const usePoolActivity = () => {
     if (!selectedMode || activeActivity === null) return;
-    if (!isAuthenticated) {
+    if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
       openPlan('basic', 'Pool de Actividades');
       return;
     }
@@ -773,7 +775,7 @@ function App() {
   };
 
   const consultModeAi = async () => {
-    if (!isAuthenticated) {
+    if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
       openPlan('gold', 'Modo IA');
       return;
     }
@@ -786,9 +788,9 @@ function App() {
     setAiLoading(true);
     setAiNotice(null);
     try {
-      const response = await fetch(`${apiUrl}/ai/mode`, {
+      const response = await fetch(`${apiUrl}${isAuthenticated ? '/ai/mode' : '/ai/mode/public'}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authTokens?.access_token ?? ''}` },
+        headers: { 'Content-Type': 'application/json', ...(authTokens?.access_token ? { Authorization: `Bearer ${authTokens.access_token}` } : {}) },
         body: JSON.stringify({
           mode_name: selectedMode.name,
           level: activeActivity,
@@ -815,7 +817,7 @@ function App() {
 
   const saveModeAiActivity = () => {
     if (!selectedMode || activeActivity === null) return;
-    if (!isAuthenticated) {
+    if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
       openPlan('gold', 'Modo IA');
       return;
     }
@@ -834,7 +836,7 @@ function App() {
   };
 
   const requestInsight = (modeKey: string, level: number) => {
-    if (!isAuthenticated) {
+    if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
       setInsightPreview({ modeKey, level });
       return;
     }
@@ -926,7 +928,7 @@ function App() {
     const promotedInsight = personalizedInsights[insightSlide] ?? personalizedInsights[0];
     const promotedMode = (promotedInsight ? modes.find((mode) => mode.key === promotedInsight.modeKey) : undefined) ?? modes[0]!;
     return <section className="cult-embedded" aria-labelledby="cult-embedded-title">
-    <div className="cult-embedded-heading"><div><p className="kicker">The Cult · ULTIMATE MODE</p><h3 id="cult-embedded-title">Tu cultivo, conectado al mundo.</h3></div><span className="cult-live-pill"><i /> ULTIMATE ACCESS</span></div>
+    <div className="cult-embedded-heading"><div><p className="kicker">The Cult · RELEASE ABIERTO</p><h3 id="cult-embedded-title">Tu cultivo, conectado al mundo.</h3></div><span className="cult-live-pill"><i /> ACCESO LIBRE</span></div>
     <nav className="cult-nav cult-nav--embedded" aria-label="Secciones de The Cult">{([['insights', 'Insights Globales'], ['network', 'Red de Especialistas'], ['skins', 'Galería de Skins & Filtros']] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => setCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
     <div className="cult-embedded-content">
       {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">Actividades compartidas por la comunidad</p><h4>Insights Globales</h4></div><span className="cult-live-pill"><i /> 12 RECOMENDACIONES</span></div><p className="cult-section-copy">Recomendaciones seleccionadas para ayudarte a avanzar desde los niveles actuales de tu mapa. Cada visita muestra una combinación diferente.</p>{insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art"><span>{promotedMode.icon}</span><small>INSIGHT GLOBAL · {insightSlide + 1}/12</small></div><div className="cult-insight-spotlight-copy"><div className="cult-insight-activity-top"><span>{promotedMode.name} · NIVEL {promotedInsight.level} → {promotedInsight.level + 1}</span><small>{effortLabelByLevel[promotedInsight.level]}</small></div><h3>{promotedInsight.activity}</h3><p>Compartida por <strong>{promotedInsight.author}</strong> · {promotedInsight.location}</p><button type="button" onClick={() => setCultInsightPreview(promotedInsight)}>Analizar y guardar en mi mapa <span>↗</span></button></div>{personalizedInsights.length > 1 && <div className="cult-insight-controls" aria-label="Controles de Insights"><button type="button" onClick={() => setInsightSlide((current) => (current - 1 + personalizedInsights.length) % personalizedInsights.length)} aria-label="Insight anterior">←</button><div className="cult-insight-dots" aria-label="Navegar insights">{personalizedInsights.map((insight, index) => <button className={index === insightSlide ? 'is-active' : ''} key={`${insight.modeKey}-${insight.level}`} type="button" onClick={() => setInsightSlide(index)} aria-label={`Ver recomendación ${index + 1}`} />)}</div><button type="button" onClick={() => setInsightSlide((current) => (current + 1) % personalizedInsights.length)} aria-label="Siguiente insight">→</button></div>}</article>}</>}
@@ -956,7 +958,7 @@ function App() {
           <span>Modo Cultiva</span>
         </a>
         <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => setLanguage(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{(Object.keys(languageNames) as Language[]).map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select></label></div>
-        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}<button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button></div>}</div>
+        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div>
       </header>
 
       {view === 'login' ? (
@@ -1119,15 +1121,16 @@ function App() {
             <div className="effort-panel"><span className="effort-label">CATÁLOGO NIVEL {activeActivity}</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
             <label className="pool-selector-label" htmlFor="pool-selection">Navegar recomendaciones<select id="pool-selection" value={poolSelection} onChange={(event) => setPoolSelection(Number(event.target.value))}>{getPoolActivities(selectedMode.key, activeActivity).map((activity, index) => <option value={index} key={activity.title}>Recomendación {index + 1}/10 - {activity.title}</option>)}</select></label>
             <article className="pool-activity-card"><span className="pool-activity-index">ACTIVIDAD NIVEL {activeActivity}</span><h3>{getPoolActivities(selectedMode.key, activeActivity)[poolSelection].title}</h3><p>{getPoolActivities(selectedMode.key, activeActivity)[poolSelection].description}</p><div className="pool-activity-meta"><span>{effortLabelByLevel[activeActivity]}</span><span>NIVEL {activeActivity}</span></div></article>
-            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={usePoolActivity}>{tr('useActivity')}{!isAuthenticated && ' · Entry'} <span>→</span></button></div>
+            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={usePoolActivity}>{tr('useActivity')} <span>→</span></button></div>
           </> : <>
             <h2 id="activity-agent-title">Construyamos tu actividad</h2>
             <p className="journey-description">Conversaremos para encontrar una práctica concreta para tu {selectedMode.name}, nivel {activeActivity}.</p>
             <div className="effort-panel"><span className="effort-label">PARÁMETRO DE ESFUERZO</span><strong>{effortLabelByLevel[activeActivity]}</strong><p>{effortDescription[effortByLevel[activeActivity]]}</p></div>
-            <div className="agent-chat" aria-live="polite"><div className="agent-message"><span>IA</span><p>Para pasar del nivel {activeActivity} al siguiente, ¿qué te gustaría cultivar en este modo y qué tiempo real tienes disponible?</p></div>{activityPrompt && <div className="user-message"><span>TÚ</span><p>{activityPrompt}</p></div>}{aiHasConsulted ? <div className="agent-message agent-message--proposal"><span>IA</span><p>{aiProposal}</p></div> : <div className="agent-message agent-message--waiting"><span>IA</span><p>Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.</p></div>}</div>
+            <div className="agent-runtime-strip" aria-label="Estado del agente"><span className="agent-runtime-dot" /> <strong>Modo IA listo</strong><small>{aiHasConsulted ? 'Propuesta preparada para revisar' : 'Agente contextual · espera tu contexto'}</small></div>
+            <div className="agent-chat" aria-live="polite"><div className="agent-message"><span>IA</span><p>Para pasar del nivel {activeActivity} al siguiente, ¿qué te gustaría cultivar en este modo y qué tiempo real tienes disponible?</p></div>{aiHasConsulted ? <div className="agent-message agent-message--proposal"><span>IA</span><p>{aiProposal}</p></div> : <div className="agent-message agent-message--waiting"><span>IA</span><p>Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.</p></div>}</div>
             <label className="agent-input-label" htmlFor="activity-prompt">{tr('context')}</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => { setActivityPrompt(event.target.value); setAiHasConsulted(false); setAiNotice(null); }} placeholder="Ej. Tengo 20 minutos al día y quiero empezar con algo sencillo…" rows={3} />
             {aiNotice && <div className="insight-notice" role="status">✦ {aiNotice}</div>}
-            <div className="agent-actions"><button className="agent-ask" type="button" disabled={aiLoading} onClick={() => { void consultModeAi(); }}>{aiLoading ? 'Consultando…' : tr('askAI')} {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button><button className="agent-save" type="button" disabled={aiLoading} onClick={saveModeAiActivity}>{tr('useActivity')} {!isAuthenticated && <small>Plan Gold</small>} <span>→</span></button></div>
+            <div className="agent-actions"><button className="agent-ask" type="button" disabled={aiLoading} onClick={() => { void consultModeAi(); }}>{aiLoading ? 'Consultando…' : tr('askAI')} <span>→</span></button><button className="agent-save" type="button" disabled={aiLoading} onClick={saveModeAiActivity}>{tr('useActivity')} <span>→</span></button></div>
           </>}
         </section> : <>
           <div className="journey-intro-compact"><span className="journey-icon">{selectedMode.icon}</span><div><p className="kicker">Introducción del modo · Journey integrado</p><h2 id="journey-title">{selectedMode.name}</h2><p className="journey-description">{selectedMode.description}. Reconoce tu presencia y diseña aquí tu ruta de cultivo.</p></div></div>
@@ -1139,7 +1142,7 @@ function App() {
           {insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}
           <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>NIVEL</span><strong>{level}</strong><span className="journey-level-card-name">{levelNames[level]}</span>{level === levels[selectedMode.key] && <em>Actual</em>}{level === 9 && <em>Meta final</em>}</div>{level < 9 ? <><h4>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : 'Actividad por definir'}</h4><p><strong className="effort-tag">{effortLabelByLevel[level]}</strong>{activityDrafts[`${selectedMode.key}-${level}`] ? ' · Actividad guardada en este navegador.' : ' · ' + effortDescription[effortByLevel[level]]}</p><div className="journey-card-actions"><button type="button" onClick={() => openActivity(level, 'custom')}>{activityDrafts[`${selectedMode.key}-${level}`] ? '✦ Modificar Actividad' : '＋ Agregar Actividad'}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(level, 'pool')}>▦ Pool de Actividades</button><button className="activity-ai-button" type="button" onClick={() => openActivity(level, 'ai')}>✦ Modo IA</button><button className={insightRequests[`${selectedMode.key}-${level}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, level)}>{insightRequests[`${selectedMode.key}-${level}`] ? '✓ Insight pedido' : 'Pedir Insights'}</button></div></> : <><h4>Tu visión final</h4><p>Representa en una imagen el resultado al que quieres llegar.</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? 'Cambiar imagen' : 'Cargar imagen'}</label></>}</article>)}</div>
           </section>
-          <button className="cult-section-toggle" type="button" onClick={() => { if (!isAuthenticated) { requestAccess('The Cult', 'Ultimate Mode'); return; } setCultOpen((open) => !open); }}>{cultOpen ? 'Ocultar The Cult' : 'Explorar The Cult'} <span>{cultOpen ? '↑' : '↓'}</span></button>
+          <button className="cult-section-toggle" type="button" onClick={() => setCultOpen((open) => !open)}>{cultOpen ? 'Ocultar The Cult' : 'Explorar The Cult'} <span>{cultOpen ? '↑' : '↓'}</span></button>
           {cultOpen && renderCultSection()}
         </>}
       </section></div>}
