@@ -1,5 +1,6 @@
 from functools import lru_cache
 import os
+from types import SimpleNamespace
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -112,6 +113,12 @@ def _agent_service() -> AgentService:
 
 
 conversations: dict[tuple[str, str, str], Conversation] = {}
+guest_identity = SimpleNamespace(
+    user_id="modo-cultiva-guest",
+    organization_id=settings.default_organization_id,
+    permissions=frozenset(),
+    name="Persona invitada",
+)
 
 
 async def _respond(identity: AuthIdentity, conversation_id: str | None, prompt: str, model: str | None) -> tuple[str, str]:
@@ -169,6 +176,13 @@ async def agent_chat(payload: AgentChatInput, identity: AuthIdentity = Depends(i
     return {"conversationId": conversation_id, "content": content}
 
 
+@app.post("/agent/chat/public")
+async def public_agent_chat(payload: AgentChatInput) -> dict[str, str]:
+    """Release-mode guest access; billing still receives the agent usage event."""
+    content, conversation_id = await _respond(guest_identity, payload.conversation_id, payload.prompt, payload.model)
+    return {"conversationId": conversation_id, "content": content}
+
+
 @app.post("/ai/mode", response_model=ModeAIResponse)
 async def consult_mode_ai(request: ModeAIRequest, identity: AuthIdentity = Depends(identity_required)) -> ModeAIResponse:
     prompt = (
@@ -182,6 +196,29 @@ async def consult_mode_ai(request: ModeAIRequest, identity: AuthIdentity = Depen
         f"Persona: {request.user_name or identity.name or 'Persona usuaria'}\nContexto o pregunta: {request.context}"
     )
     content, conversation_id = await _respond(identity, f"mode-{request.mode_name}-{request.level}", prompt, settings.openai_model)
+    if not content.strip():
+        raise HTTPException(status_code=502, detail="Modo IA devolvió una respuesta vacía.")
+    return ModeAIResponse(proposal=content.strip(), model=settings.openai_model, conversation_id=conversation_id)
+
+
+@app.post("/ai/mode/public", response_model=ModeAIResponse)
+async def public_consult_mode_ai(request: ModeAIRequest) -> ModeAIResponse:
+    """Temporary public release endpoint; secrets remain server-side and usage is metered."""
+    return await _public_mode_ai(request)
+
+
+async def _public_mode_ai(request: ModeAIRequest) -> ModeAIResponse:
+    prompt = (
+        "Eres Modo IA, el acompañante de desarrollo humano de Modo Cultiva. Responde en español, con calidez "
+        "y sin prometer resultados. Propón una sola actividad concreta, observable y realista para avanzar un nivel "
+        "en el modo indicado. Incluye duración o frecuencia, señal de finalización y una forma breve de registrar el "
+        "aprendizaje. No diagnostiques ni sustituyas apoyo profesional. Niveles 0–2 sólo requieren tiempo; 3–5 "
+        "requieren tiempo y energía; 6–8 requieren tiempo, energía e inversión.\n\n"
+        f"Modo: {request.mode_name}\nNivel actual: {request.level} · {request.level_name}\n"
+        f"Descripción: {request.level_description}\nEsfuerzo: {request.effort}\n"
+        f"Persona: {request.user_name or guest_identity.name}\nContexto o pregunta: {request.context}"
+    )
+    content, conversation_id = await _respond(guest_identity, f"mode-public-{request.mode_name}-{request.level}", prompt, settings.openai_model)
     if not content.strip():
         raise HTTPException(status_code=502, detail="Modo IA devolvió una respuesta vacía.")
     return ModeAIResponse(proposal=content.strip(), model=settings.openai_model, conversation_id=conversation_id)
