@@ -901,9 +901,9 @@ function App() {
         body: JSON.stringify({
           mode_name: modeName(selectedMode),
           level: activeActivity,
-          level_name: levelNames[activeActivity],
+          level_name: localizedLevelNames[language][activeActivity],
           level_description: levelDescription(activeActivity),
-          effort: effortLabelByLevel[activeActivity],
+          effort: effortLabel(activeActivity),
           context: activityPrompt.trim(),
           user_name: profileName,
         }),

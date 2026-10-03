@@ -100,11 +100,15 @@ def _ensure_default_organization() -> None:
 
 @lru_cache(maxsize=1)
 def _agent_service() -> AgentService:
-    # GoodMorning Factory normally injects OPENAI_API_KEY. These aliases keep
-    # the embedded module compatible with managed runtime bindings without
-    # ever placing a credential in source control.
-    api_key = next((os.getenv(name) for name in (
-        "OPENAI_API_KEY", "GOODMORNING_OPENAI_API_KEY", "GM_OPENAI_API_KEY"
+    # GoodMorning Factory injects OPENAI_API_KEY into the backend at runtime.
+    # Read the validated settings value first, then accept the documented
+    # managed-binding aliases. No credential is ever stored in source control.
+    api_key = settings.openai_api_key or next((os.getenv(name) for name in (
+        "OPENAI_API_KEY",
+        "GOODMORNING_OPENAI_API_KEY",
+        "GM_OPENAI_API_KEY",
+        "GM_AGENT_OPENAI_API_KEY",
+        "GOODMORNING_MANAGED_OPENAI_API_KEY",
     ) if os.getenv(name)), None)
     if not api_key:
         raise HTTPException(status_code=503, detail="Modo IA no está configurado todavía.")
@@ -139,7 +143,13 @@ def health() -> dict[str, str]:
 
 @app.get("/agent/status")
 def agent_status() -> dict[str, str | bool]:
-    configured = any(os.getenv(name) for name in ("OPENAI_API_KEY", "GOODMORNING_OPENAI_API_KEY", "GM_OPENAI_API_KEY"))
+    configured = bool(settings.openai_api_key or any(os.getenv(name) for name in (
+        "OPENAI_API_KEY",
+        "GOODMORNING_OPENAI_API_KEY",
+        "GM_OPENAI_API_KEY",
+        "GM_AGENT_OPENAI_API_KEY",
+        "GOODMORNING_MANAGED_OPENAI_API_KEY",
+    )))
     return {"module": "gm-agent", "mode": "embedded", "configured": configured, "model": settings.openai_model}
 
 
