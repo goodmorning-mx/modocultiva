@@ -321,13 +321,24 @@ const localizedLevelDescriptions: Record<Language, string[]> = {
   fr: ['Ignorance active — le domaine est négligé ou mis en pause pour préserver votre énergie.', 'Réaction passive — vous agissez dans la crise, mais l’intention est née.', 'Conscience confuse — le problème est reconnu, mais l’incertitude bloque le plan.', 'Intention sans habitude — vous essayez d’agir, mais la pratique reste irrégulière.', 'Bases établies — un système minimum est suivi avec conscience et constance.', 'Maintenance de base — le domaine est stable sans croissance active.', 'Direction définie — des objectifs clairs et des ressources stratégiques dépassent le confort.', 'Croissance constante — le système fonctionne, mesure et ajuste les résultats.', 'Optimisation et discipline — systèmes, délégation et technologie amplifient les résultats.', 'Maîtrise et influence — vos résultats deviennent une source de transmission pour les autres.'],
   da: ['Aktiv uvidenhed — området forsømmes eller sættes på pause for at spare energi.', 'Passiv reaktion — du handler først i krisen, men intentionen er begyndt.', 'Forvirret bevidsthed — problemet ses, men usikkerhed blokerer planen.', 'Intention uden vane — du prøver at handle, men praksis er ustabil.', 'Etablerede grundlag — et minimumssystem følges bevidst og konsekvent.', 'Grundlæggende vedligehold — området er stabilt uden aktiv vækst.', 'Defineret retning — klare mål og strategiske ressourcer fører videre.', 'Konstant vækst — systemet fungerer, måler og forbedrer resultater.', 'Optimering og disciplin — systemer, delegering og teknologi forstærker resultater.', 'Mesterskab og indflydelse — dine resultater kan vejlede og lære andre noget.'],
 };
+const supportedLanguages = Object.keys(languageNames) as Language[];
+const languageFromLocale = (locale: string | undefined): Language | null => {
+  const prefix = locale?.trim().toLowerCase().split(/[-_]/)[0];
+  return prefix && supportedLanguages.includes(prefix as Language) ? prefix as Language : null;
+};
+const detectBrowserLanguage = (): Language => {
+  if (typeof navigator === 'undefined') return 'es';
+  const browserLocales = [...(navigator.languages ?? []), navigator.language];
+  return browserLocales.map(languageFromLocale).find((value): value is Language => value !== null) ?? 'es';
+};
 const detectLanguage = (): Language => {
   if (typeof window === 'undefined') return 'es';
   const saved = window.localStorage.getItem('modoCultiva_language') as Language | null;
-  if (saved && saved in translations) return saved;
-  const locale = `${navigator.language} ${Intl.DateTimeFormat().resolvedOptions().timeZone}`.toLowerCase();
-  const prefix: Array<[string, Language]> = [['zh', 'zh'], ['hi', 'hi'], ['ar', 'ar'], ['it', 'it'], ['pt', 'pt'], ['ru', 'ru'], ['de', 'de'], ['fr', 'fr'], ['da', 'da'], ['en', 'en'], ['es', 'es']];
-  return prefix.find(([value]) => locale.includes(value))?.[1] ?? 'es';
+  const savedSource = window.localStorage.getItem('modoCultiva_language_source');
+  // Only an explicit choice in the selector should override the browser locale.
+  // Older releases did not store the source, so their value is treated as stale.
+  if (savedSource === 'manual' && saved && supportedLanguages.includes(saved)) return saved;
+  return detectBrowserLanguage();
 };
 const authClient = {
   async login(email: string, password: string): Promise<AuthTokens> {
@@ -341,6 +352,10 @@ const authClient = {
 
 function App() {
   const [language, setLanguage] = useState<Language>(detectLanguage);
+  const handleLanguageChange = (nextLanguage: Language) => {
+    window.localStorage.setItem('modoCultiva_language_source', 'manual');
+    setLanguage(nextLanguage);
+  };
   const tr = (key: string) => extraTranslations[key]?.[language] ?? translations[language][key] ?? translations.es[key] ?? key;
   const modeName = (mode: Mode) => localizedModeNames[language][mode.key] ?? mode.name;
   const modeShortName = (mode: Mode) => modeName(mode).replace(/^(Modo |Mode |模式|모드 )/i, '');
@@ -484,6 +499,9 @@ function App() {
 
   useEffect(() => {
     window.localStorage.setItem('modoCultiva_language', language);
+    if (window.localStorage.getItem('modoCultiva_language_source') !== 'manual') {
+      window.localStorage.setItem('modoCultiva_language_source', 'auto');
+    }
     document.documentElement.lang = language === 'zh' ? 'zh-CN' : language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
   }, [language]);
@@ -1064,7 +1082,7 @@ function App() {
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
-        <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => setLanguage(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{(Object.keys(languageNames) as Language[]).map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select></label></div>
+        <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> 12 MODOS DE VIDA <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select></label></div>
         <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div>
       </header>
 
