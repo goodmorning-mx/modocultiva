@@ -135,6 +135,9 @@ h1 { max-width: 760px; margin-bottom: 18px; color: #f3f7f2; font-size: clamp(2.4
 .journey-level-card .journey-activity-title { display: -webkit-box; min-height: 118px; max-height: 2.5em; align-content: center; align-items: center; justify-content: center; margin: 14px auto 10px; width: min(100%, 560px); max-width: 78%; overflow: hidden; color: #f0fff3; font-size: clamp(1.18rem, 2.55vw, 1.85rem); line-height: 1.18; text-align: center; letter-spacing: -.04em; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .journey-level-card .journey-activity-title--placeholder { font-size: clamp(1rem, 2.1vw, 1.45rem); color: #d9eee1; }
 .journey-level-card .journey-activity-title + p { width: min(100%, 680px); margin-right: auto; margin-left: auto; text-align: center; }
+.journey-activity-meta { display: grid; justify-items: center; gap: 7px; width: min(100%, 680px); margin: 0 auto; text-align: center; }
+.journey-activity-meta .effort-tag { font-size: .62rem; }
+.journey-activity-meta span { color: #8aa79d; font-size: .78rem; line-height: 1.4; }
 .journey-level-grid--carousel .journey-level-card--current { box-shadow: 0 0 0 2px color-mix(in srgb, var(--mode-color) 30%, transparent), 0 20px 40px rgba(0, 0, 0, .2), 0 0 34px color-mix(in srgb, var(--mode-color) 13%, transparent); }
 .journey-carousel-arrow { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 1px solid color-mix(in srgb, var(--mode-color) 45%, transparent); border-radius: 50%; color: var(--mode-color); background: color-mix(in srgb, var(--mode-color) 8%, transparent); font-size: 1.1rem; cursor: pointer; transition: transform .2s ease, background .2s ease, opacity .2s ease; }
 .journey-carousel-arrow:hover:not(:disabled) { transform: scale(1.08); background: color-mix(in srgb, var(--mode-color) 17%, transparent); }.journey-carousel-arrow:disabled { opacity: .25; cursor: not-allowed; }
