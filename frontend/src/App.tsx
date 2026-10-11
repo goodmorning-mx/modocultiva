@@ -295,6 +295,12 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   insightRequested: { es: 'Insight pedido', en: 'Insight requested', zh: '已请求洞察', hi: 'इनसाइट का अनुरोध किया गया', ar: 'تم طلب الرؤية', it: 'Insight richiesto', pt: 'Insight solicitado', ru: 'Инсайт запрошен', de: 'Insight angefordert', fr: 'Insight demandé', da: 'Insight anmodet' },
   requestInsights: { es: 'Pedir Insights', en: 'Request Insights', zh: '请求洞察', hi: 'इनसाइट मांगें', ar: 'اطلب رؤى', it: 'Richiedi insight', pt: 'Pedir Insights', ru: 'Запросить инсайт', de: 'Insights anfordern', fr: 'Demander des insights', da: 'Bed om insights' },
   current: { es: 'Actual', en: 'Current', zh: '当前', hi: 'वर्तमान', ar: 'الحالي', it: 'Attuale', pt: 'Atual', ru: 'Текущий', de: 'Aktuell', fr: 'Actuel', da: 'Aktuel' },
+  presetNameRequired: { es: 'Escribe un nombre para guardar tu configuración.', en: 'Enter a name to save your configuration.', zh: '输入名称以保存配置。', hi: 'अपना कॉन्फ़िगरेशन सहेजने के लिए नाम दर्ज करें।', ar: 'أدخل اسماً لحفظ إعداداتك.', it: 'Inserisci un nome per salvare la configurazione.', pt: 'Digite um nome para salvar sua configuração.', ru: 'Введите название, чтобы сохранить конфигурацию.', de: 'Gib einen Namen ein, um deine Konfiguration zu speichern.', fr: 'Saisissez un nom pour enregistrer votre configuration.', da: 'Indtast et navn for at gemme din konfiguration.' },
+  presetSelectLoad: { es: 'Selecciona un preset para cargarlo.', en: 'Select a preset to load it.', zh: '选择一个预设以加载。', hi: 'लोड करने के लिए एक प्रीसेट चुनें।', ar: 'اختر إعداداً مسبقاً لتحميله.', it: 'Seleziona un preset da caricare.', pt: 'Selecione um preset para carregá-lo.', ru: 'Выберите пресет для загрузки.', de: 'Wähle ein Preset zum Laden aus.', fr: 'Sélectionnez un preset à charger.', da: 'Vælg et preset, der skal indlæses.' },
+  presetSelectDelete: { es: 'Selecciona un preset para eliminarlo.', en: 'Select a preset to delete it.', zh: '选择一个预设以删除。', hi: 'हटाने के लिए एक प्रीसेट चुनें।', ar: 'اختر إعداداً مسبقاً لحذفه.', it: 'Seleziona un preset da eliminare.', pt: 'Selecione um preset para excluí-lo.', ru: 'Выберите пресет для удаления.', de: 'Wähle ein Preset zum Löschen aus.', fr: 'Sélectionnez un preset à supprimer.', da: 'Vælg et preset, der skal slettes.' },
+  presetSaved: { es: 'Preset “{name}” guardado.', en: 'Preset “{name}” saved.', zh: '预设“{name}”已保存。', hi: 'प्रीसेट “{name}” सहेजा गया।', ar: 'تم حفظ الإعداد المسبق “{name}”.', it: 'Preset “{name}” salvato.', pt: 'Preset “{name}” salvo.', ru: 'Пресет «{name}» сохранён.', de: 'Preset „{name}“ gespeichert.', fr: 'Preset « {name} » enregistré.', da: 'Preset “{name}” gemt.' },
+  presetLoaded: { es: 'Preset “{name}” cargado en tu mapa.', en: 'Preset “{name}” loaded onto your map.', zh: '预设“{name}”已加载到你的地图。', hi: 'प्रीसेट “{name}” आपके मानचित्र पर लोड किया गया।', ar: 'تم تحميل الإعداد المسبق “{name}” على خريطتك.', it: 'Preset “{name}” caricato sulla tua mappa.', pt: 'Preset “{name}” carregado no seu mapa.', ru: 'Пресет «{name}» загружен на карту.', de: 'Preset „{name}“ auf deine Karte geladen.', fr: 'Preset « {name} » chargé sur votre carte.', da: 'Preset “{name}” indlæst på dit kort.' },
+  presetDeleted: { es: 'Preset eliminado.', en: 'Preset deleted.', zh: '预设已删除。', hi: 'प्रीसेट हटा दिया गया।', ar: 'تم حذف الإعداد المسبق.', it: 'Preset eliminato.', pt: 'Preset excluído.', ru: 'Пресет удалён.', de: 'Preset gelöscht.', fr: 'Preset supprimé.', da: 'Preset slettet.' },
   finalVision: { es: 'Tu visión final', en: 'Your final vision', zh: '你的最终愿景', hi: 'आपकी अंतिम दृष्टि', ar: 'رؤيتك النهائية', it: 'La tua visione finale', pt: 'Sua visão final', ru: 'Ваше итоговое видение', de: 'Deine finale Vision', fr: 'Votre vision finale', da: 'Din endelige vision' },
   finalVisionCopy: { es: 'Representa en una imagen el resultado al que quieres llegar.', en: 'Represent the result you want to reach in an image.', zh: '用图片呈现你想达到的结果。', hi: 'जिस परिणाम तक पहुँचना है उसे चित्र में दिखाएं।', ar: 'مثّل النتيجة التي تريد الوصول إليها في صورة.', it: 'Rappresenta in un’immagine il risultato che vuoi raggiungere.', pt: 'Represente em uma imagem o resultado que deseja alcançar.', ru: 'Представьте на изображении результат, которого хотите достичь.', de: 'Zeige in einem Bild das Ergebnis, das du erreichen möchtest.', fr: 'Représentez en image le résultat à atteindre.', da: 'Vis det resultat, du vil nå, i et billede.' },
   changeImage: { es: 'Cambiar imagen', en: 'Change image', zh: '更换图片', hi: 'चित्र बदलें', ar: 'تغيير الصورة', it: 'Cambia immagine', pt: 'Alterar imagem', ru: 'Изменить изображение', de: 'Bild ändern', fr: 'Changer l’image', da: 'Skift billede' },
@@ -401,6 +407,7 @@ function App() {
     setLanguage(nextLanguage);
   };
   const tr = (key: string) => extraTranslations[key]?.[language] ?? translations[language][key] ?? translations.es[key] ?? key;
+  const trf = (key: string, values: Record<string, string>) => Object.entries(values).reduce((copy, [token, value]) => copy.replace(`{${token}}`, value), tr(key));
   const modeName = (mode: Mode) => localizedModeNames[language][mode.key] ?? mode.name;
   const modeShortName = (mode: Mode) => modeName(mode).replace(/^(Modo |Mode |模式|모드 )/i, '').replace(/\s+Mode$/i, '');
   const modeDescription = (mode: Mode) => localizedModeDescriptions[language]?.[mode.key] ?? `${modeName(mode)} · ${tr('cultivationArea')}`;
@@ -1079,14 +1086,14 @@ function App() {
   const savePreset = () => {
     const name = presetName.trim();
     if (!name) {
-      setPresetNotice('Escribe un nombre para guardar tu configuración.');
+      setPresetNotice(tr('presetNameRequired'));
       return;
     }
     const next = { ...presets, [name]: { ...levels } };
     setPresets(next);
     setSelectedPreset(name);
     setPresetName('');
-    setPresetNotice(`Preset “${name}” guardado.`);
+    setPresetNotice(trf('presetSaved', { name }));
     try {
       window.localStorage.setItem('modoCultiva_presets', JSON.stringify(next));
     } catch {
@@ -1096,23 +1103,23 @@ function App() {
 
   const loadPreset = () => {
     if (!selectedPreset || !presets[selectedPreset]) {
-      setPresetNotice('Selecciona un preset para cargarlo.');
+      setPresetNotice(tr('presetSelectLoad'));
       return;
     }
     setLevels({ ...defaultLevels, ...presets[selectedPreset] });
-    setPresetNotice(`Preset “${selectedPreset}” cargado en tu mapa.`);
+    setPresetNotice(trf('presetLoaded', { name: selectedPreset }));
   };
 
   const deletePreset = () => {
     if (!selectedPreset || !presets[selectedPreset]) {
-      setPresetNotice('Selecciona un preset para eliminarlo.');
+      setPresetNotice(tr('presetSelectDelete'));
       return;
     }
     const next = { ...presets };
     delete next[selectedPreset];
     setPresets(next);
     setSelectedPreset('');
-    setPresetNotice('Preset eliminado.');
+    setPresetNotice(tr('presetDeleted'));
     try {
       window.localStorage.setItem('modoCultiva_presets', JSON.stringify(next));
     } catch {
@@ -1226,9 +1233,9 @@ function App() {
           {skin === 'dj' && <section className="dj-console" aria-labelledby="dj-console-title">
             <div className="dj-console-top"><div><p className="kicker">{tr('djEyebrow')}</p><h1 id="dj-console-title">{tr('djTitle')}</h1><p className="intro-copy">{tr('djActivated')}</p></div><div className="dj-profile-entry"><button className={profileImage ? 'dj-profile-button dj-profile-button--with-photo' : 'dj-profile-button'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .08), rgba(4, 18, 29, .82)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={`Presiona para entrar al Dashboard de ${profileName}`}><span className="dj-profile-fallback">{profileImage ? '' : profileName.slice(0, 1).toUpperCase()}</span><span className="dj-profile-copy"><strong>{profileName}</strong><span className="profile-badge">{defaultUserProfile.role}</span><small>{tr('pressToEnter')} <b>↗</b></small></span></button><label className="dj-profile-upload" title="Cambiar foto de perfil"><input type="file" accept="image/*" onChange={(event) => handleProfileImage(event.target.files?.[0])} /><span>＋</span></label></div></div>
             <div className="dj-console-screen"><span>{tr('djPersonalSession')} · {profileName.toUpperCase()}</span><strong>{tr('lifeModes')}</strong><i /></div>
-            <div className="dj-control-strip"><span>{tr('djSignalMaster')}</span><i className="dj-decor-knob" /><i className="dj-decor-knob" /><button type="button">{tr('djSync')}</button><button type="button">{tr('djFx')}</button><button type="button">{tr('djMonitor')}</button><button type="button">{tr('djAir')}</button></div>
+            <div className="dj-control-strip"><span>{tr('djSignalMaster')}</span><i className="dj-decor-knob" /><i className="dj-decor-knob" /></div>
             <div className="dj-readout-panel"><span>{tr('djActiveChannel')} · {modeName(focusedDjMode).toUpperCase()}</span><strong>{tr('level')} {levels[focusedDjMode.key]} · {localizedLevelNames[language][levels[focusedDjMode.key]]}</strong><p>{levelDescription(levels[focusedDjMode.key])}</p></div>
-            <div className="dj-channel-deck">{modes.map((mode) => { const level = levels[mode.key]; const litSegments = Math.max(1, Math.ceil(((level + 1) / 10) * 10)); return <article className="dj-channel" key={mode.key} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties}><div className="dj-channel-head"><span>{mode.roman}</span><strong>{mode.icon} {modeShortName(mode)}</strong><small>{level}</small></div><div className="dj-knob-bank" aria-hidden="true"><i className="dj-knob" /><i className="dj-knob" /><i className="dj-knob" /></div><div className="dj-led-meter" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <i className={index < litSegments ? 'dj-led dj-led--on' : 'dj-led'} key={index} />)}</div><div className="dj-fader-wrap"><span>9</span><input className="dj-fader" aria-label={`${tr('levels')} ${modeName(mode)}`} type="range" min="0" max="9" value={level} onFocus={() => setDjFocusedMode(mode.key)} onChange={(event) => { setDjFocusedMode(mode.key); updateLevel(mode.key, Number(event.target.value)); }} /><span>0</span></div><span className="dj-cable" aria-hidden="true" /><button className="dj-channel-open" type="button" onClick={() => openMode(mode)}>{tr('djOpenMode')} ↗</button></article>; })}</div>
+            <div className="dj-channel-deck">{modes.map((mode) => { const level = levels[mode.key]; const litSegments = Math.max(1, Math.ceil(((level + 1) / 10) * 10)); return <article className="dj-channel" key={mode.key} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties}><div className="dj-channel-head"><span>{mode.roman}</span><strong>{mode.icon} {modeShortName(mode)}</strong><span className="dj-level-display" aria-label={`${tr('level')} ${level}`}><b>{String(level).padStart(2, '0')}</b><small>{tr('level')}</small></span></div><p className="dj-channel-description">{modeDescription(mode)}</p><div className="dj-knob-bank" aria-hidden="true"><i className="dj-knob" /><i className="dj-knob" /><i className="dj-knob" /></div><div className="dj-led-meter" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <i className={index < litSegments ? 'dj-led dj-led--on' : 'dj-led'} key={index} />)}</div><div className="dj-fader-wrap"><span>9</span><input className="dj-fader" aria-label={`${tr('levels')} ${modeName(mode)}`} type="range" min="0" max="9" value={level} onFocus={() => setDjFocusedMode(mode.key)} onChange={(event) => { setDjFocusedMode(mode.key); updateLevel(mode.key, Number(event.target.value)); }} /><span>0</span></div><span className="dj-cable" aria-hidden="true" /><button className="dj-channel-open" type="button" onClick={() => openMode(mode)}>{tr('djOpenMode')} ↗</button></article>; })}</div>
             <div className="dj-console-footer"><span>{tr('djFooterFaders')}</span><span>{tr('djFooterProfile')}</span></div>
           </section>}
           <div className={skin === 'dj' || isInterfaceSkin ? 'holista-overview-content holista-overview-content--hidden' : 'holista-overview-content'}>
@@ -1359,12 +1366,12 @@ function App() {
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.max(0, current - 1))} disabled={journeySlide === 0} aria-label="Nivel anterior">←</button>
             <div className="journey-carousel-viewport">
               <div className="journey-level-grid journey-level-grid--carousel">
-                {journeyLevels.filter((level) => level === journeySlide).map((level) => <article className={`journey-level-card journey-level-card--active${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>{tr('level')}</span><strong>{level}</strong><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span>{level === levels[selectedMode.key] && <em>{tr('current')}</em>}{level === 9 && <em>{tr('finalVision')}</em>}</div>{level < 9 ? <><h4 className={`journey-activity-title${activityDrafts[`${selectedMode.key}-${level}`] ? '' : ' journey-activity-title--placeholder'}`}>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : tr('activityUndefined')}</h4><div className="journey-activity-meta"><strong className="effort-tag">{effortLabel(level)}</strong><span>{activityDrafts[`${selectedMode.key}-${level}`] ? tr('activitySaved') : activityDescription(level)}</span></div></> : <><h4 className="journey-activity-title">{tr('finalVision')}</h4><p>{tr('finalVisionCopy')}</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? tr('changeImage') : tr('uploadImage')}</label></>}</article>)}
+                {journeyLevels.filter((level) => level === journeySlide).map((level) => <article className={`journey-level-card journey-level-card--active${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>{tr('level')}</span><strong>{level}</strong><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span>{level === 9 && <em>{tr('finalVision')}</em>}</div>{level < 9 ? <><h4 className={`journey-activity-title${activityDrafts[`${selectedMode.key}-${level}`] ? '' : ' journey-activity-title--placeholder'}`}>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : tr('activityUndefined')}</h4><div className="journey-activity-meta"><strong className="effort-tag">{effortLabel(level)}</strong><span>{activityDrafts[`${selectedMode.key}-${level}`] ? tr('activitySaved') : activityDescription(level)}</span></div></> : <><h4 className="journey-activity-title">{tr('finalVision')}</h4><p>{tr('finalVisionCopy')}</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? tr('changeImage') : tr('uploadImage')}</label></>}</article>)}
               </div>
             </div>
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.min(9, current + 1))} disabled={journeySlide === 9} aria-label="Siguiente nivel">→</button>
           </div>
-          <div className="journey-carousel-footer"><div className="journey-carousel-dots" aria-label="Seleccionar nivel">{journeyLevels.map((level) => <button className={level === journeySlide ? 'is-active' : ''} type="button" key={level} onClick={() => setJourneySlide(level)} aria-label={`${tr('levels')} ${level}`}>{level}</button>)}</div><small>{journeySlide === levels[selectedMode.key] ? tr('current') : 'Vista previa · no cambia tu nivel'}</small></div>
+          <div className="journey-carousel-footer"><div className="journey-carousel-dots" aria-label="Seleccionar nivel">{journeyLevels.map((level) => <button className={level === journeySlide ? 'is-active' : ''} type="button" key={level} onClick={() => setJourneySlide(level)} aria-label={`${tr('levels')} ${level}`}>{level}</button>)}</div></div>
           {journeySlide < 9 ? <div className="journey-fixed-actions" aria-label="Acciones para el nivel visible"><button type="button" onClick={() => openActivity(journeySlide, 'custom')}>{activityDrafts[`${selectedMode.key}-${journeySlide}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(journeySlide, 'pool')}>▦ {tr('activityPool')}</button><button className="activity-ai-button" type="button" onClick={() => openActivity(journeySlide, 'ai')}>✦ {tr('modeAI')}</button><button className={insightRequests[`${selectedMode.key}-${journeySlide}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, journeySlide)}>{insightRequests[`${selectedMode.key}-${journeySlide}`] ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button></div> : <div className="journey-vision-note">{tr('finalVision')} · {tr('finalVisionCopy')}</div>}
           </section>
           {renderCultSection()}
