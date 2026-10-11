@@ -1327,7 +1327,7 @@ function App() {
       {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className="journey-panel" data-layer={activeActivity !== null ? '5' : '3'} role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label="Cerrar journey">×</button>
         {activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← Volver al {journeyReturnView === 'dashboard' ? 'Dashboard' : 'Overview'}</button>}
-        {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← {tr('back')} {tr('journey')}</button>}
+        {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← {tr('back')}</button>}
         {activeActivity !== null ? <section className={`activity-agent activity-agent--${activityEntry}`} data-layer="5" aria-labelledby="activity-agent-title">
           <p className="kicker">{tr('activityDesign')} · {modeName(selectedMode)} · {activityEntry === 'custom' ? tr('addActivity') : activityEntry === 'pool' ? tr('activityPool') : tr('modeAI')}</p>
           {activityEntry === 'custom' ? <>
