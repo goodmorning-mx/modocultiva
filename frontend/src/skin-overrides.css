@@ -94,6 +94,16 @@
 .app-shell--nocturna .cult-orbit-mark { border-color: rgba(205, 91, 79, .62); background: radial-gradient(circle, rgba(255, 255, 255, .08), rgba(24, 25, 26, .6) 65%); box-shadow: inset 0 0 40px rgba(255, 255, 255, .07), 0 0 32px rgba(153, 59, 49, .16); }
 .app-shell--nocturna .cult-orbit-mark span { color: #e7e7e7; }
 
+/* Night Owl must cover the viewport as well as the centered application shell. */
+html:has(.app-shell--nocturna),
+body:has(.app-shell--nocturna),
+body:has(.app-shell--nocturna) #root {
+  background: #0d0f11;
+}
+body:has(.app-shell--nocturna) {
+  background: radial-gradient(circle at 76% 5%, rgba(255, 255, 255, .06), transparent 24rem), radial-gradient(circle at 14% 82%, rgba(145, 47, 39, .1), transparent 26rem), linear-gradient(145deg, #17191b, #0c0d0e 58%, #111213);
+}
+
 /* Skin gallery previews follow the same swapped identities. */
 .cult-skin-visual--dj { color: #e3b9ff; background: radial-gradient(circle at 52% 18%, rgba(255, 255, 255, .3), transparent 20%), radial-gradient(circle at 60% 38%, rgba(224, 170, 255, .72), transparent 44%), linear-gradient(145deg, #5a2c83, #1d1232 72%); box-shadow: inset 0 0 26px rgba(255, 255, 255, .12), 0 0 22px rgba(180, 111, 255, .2); }
 .cult-skin-card:has(.cult-skin-visual--dj).cult-skin-card--active { border-color: #e3b9ff; box-shadow: 0 0 24px rgba(198, 132, 255, .2); }
