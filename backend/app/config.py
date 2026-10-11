@@ -1,5 +1,7 @@
 from functools import lru_cache
 from decimal import Decimal
+from collections.abc import Mapping
+import os
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -39,6 +41,37 @@ class Settings(BaseSettings):
     @property
     def allowed_origins(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+
+# GoodMorning Factory may expose a managed binding under one of these runtime
+# names depending on the deployment adapter. Keep the accepted names in one
+# place so the health check and the agent use exactly the same resolution path.
+MANAGED_OPENAI_KEY_ENV_NAMES = (
+    "OPENAI_API_KEY",
+    "GOODMORNING_OPENAI_API_KEY",
+    "GM_OPENAI_API_KEY",
+    "GM_AGENT_OPENAI_API_KEY",
+    "GOODMORNING_MANAGED_OPENAI_API_KEY",
+)
+
+
+def get_runtime_openai_api_key(
+    configured: Settings | None = None,
+    environ: Mapping[str, str] | None = None,
+) -> str | None:
+    """Resolve the OpenAI key supplied by the runtime, without persisting it."""
+
+    settings = configured or get_settings()
+    settings_key = (settings.openai_api_key or "").strip()
+    if settings_key:
+        return settings_key
+
+    values = environ if environ is not None else os.environ
+    for name in MANAGED_OPENAI_KEY_ENV_NAMES:
+        value = (values.get(name) or "").strip()
+        if value:
+            return value
+    return None
 
 
 @lru_cache

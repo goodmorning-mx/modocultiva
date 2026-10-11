@@ -1,5 +1,4 @@
 from functools import lru_cache
-import os
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -16,7 +15,7 @@ from gm_billing import BillingService, PricingRule
 from gm_mcp import RequestContext, ToolRegistry
 
 from app.billing import PostgresBillingStore, UserStateStore
-from app.config import get_settings
+from app.config import get_runtime_openai_api_key, get_settings
 from app.database import create_database_engine
 
 settings = get_settings()
@@ -100,16 +99,9 @@ def _ensure_default_organization() -> None:
 
 @lru_cache(maxsize=1)
 def _agent_service() -> AgentService:
-    # GoodMorning Factory injects OPENAI_API_KEY into the backend at runtime.
-    # Read the validated settings value first, then accept the documented
-    # managed-binding aliases. No credential is ever stored in source control.
-    api_key = settings.openai_api_key or next((os.getenv(name) for name in (
-        "OPENAI_API_KEY",
-        "GOODMORNING_OPENAI_API_KEY",
-        "GM_OPENAI_API_KEY",
-        "GM_AGENT_OPENAI_API_KEY",
-        "GOODMORNING_MANAGED_OPENAI_API_KEY",
-    ) if os.getenv(name)), None)
+    # GoodMorning Factory injects the managed binding into the backend at
+    # runtime. No credential is stored in source control or returned by this API.
+    api_key = get_runtime_openai_api_key(settings)
     if not api_key:
         raise HTTPException(status_code=503, detail="Modo IA no está configurado todavía.")
     provider = OpenAIProvider(AsyncOpenAI(api_key=api_key, timeout=settings.openai_timeout_seconds))
@@ -143,14 +135,14 @@ def health() -> dict[str, str]:
 
 @app.get("/agent/status")
 def agent_status() -> dict[str, str | bool]:
-    configured = bool(settings.openai_api_key or any(os.getenv(name) for name in (
-        "OPENAI_API_KEY",
-        "GOODMORNING_OPENAI_API_KEY",
-        "GM_OPENAI_API_KEY",
-        "GM_AGENT_OPENAI_API_KEY",
-        "GOODMORNING_MANAGED_OPENAI_API_KEY",
-    )))
-    return {"module": "gm-agent", "mode": "embedded", "configured": configured, "model": settings.openai_model}
+    configured = bool(get_runtime_openai_api_key(settings))
+    return {
+        "module": "gm-agent",
+        "mode": "embedded",
+        "configured": configured,
+        "model": settings.openai_model,
+        "runtime_secret": "available" if configured else "missing",
+    }
 
 
 @app.post("/auth/register")
