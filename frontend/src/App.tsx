@@ -536,6 +536,15 @@ function App() {
       return 'none';
     }
   });
+  useEffect(() => {
+    if (skin !== 'holista' || paletteFilter === 'none') return;
+    setPaletteFilter('none');
+    try {
+      window.localStorage.removeItem('modoCultiva_palette_filter');
+    } catch {
+      // Holista remains on its original palette for the current session.
+    }
+  }, [paletteFilter, skin]);
   const loginSkinChoice = useRef<Skin | null>(null);
   const [djFocusedMode, setDjFocusedMode] = useState(modes[0].key);
   const [profileImage, setProfileImage] = useState<string | null>(() => {
@@ -946,6 +955,10 @@ function App() {
   };
 
   const activatePaletteFilter = (nextFilter: Exclude<PaletteFilter, 'none'>) => {
+    if (skin === 'holista') {
+      setPaletteFilter('none');
+      return;
+    }
     setPaletteFilter(nextFilter);
     try {
       window.localStorage.setItem('modoCultiva_palette_filter', nextFilter);
@@ -1195,7 +1208,7 @@ function App() {
   }, [activityDrafts, levels, presets]);
 
   return (
-    <main key={language} className={`app-shell app-shell--${skin}${paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
+    <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
       <header className="topbar">
         <a className="brand" href="/" aria-label="Modo Cultiva, inicio">
           <img src={logo} alt="Modo Cultiva" />
