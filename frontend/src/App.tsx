@@ -40,7 +40,19 @@ type AccessRequest = { feature: string; plan: 'Cuenta' | 'Entry' | 'Gold' | 'Ult
 type PendingActivity = { level: number; entry: ActivityEntry };
 type PlanKey = 'basic' | 'gold' | 'ultimate';
 type PlanDetails = { name: string; price: string; promise: string; features: string[] };
-type CultTab = 'home' | 'insights' | 'network' | 'skins';
+type CultTab = 'home' | 'insights' | 'network' | 'skins' | 'badges';
+type CultBadge = { key: string; icon: string; title: string; description: string };
+
+const cultBadgeCatalog: CultBadge[] = [
+  { key: 'first-step', icon: '✦', title: 'Primer paso', description: 'Definiste tu primera actividad.' },
+  { key: 'three-moves', icon: '↗', title: 'Tres movimientos', description: 'Guardaste actividades en tres journeys.' },
+  { key: 'level-up', icon: '↑', title: 'Nivel arriba', description: 'Llevaste un modo al siguiente nivel.' },
+  { key: 'full-spectrum', icon: '◌', title: 'Espectro completo', description: 'Cultivaste los 12 modos con una actividad.' },
+  { key: 'global-eye', icon: '◎', title: 'Mirada global', description: 'Guardaste una práctica compartida por la comunidad.' },
+  { key: 'visionary', icon: '△', title: 'Visión final', description: 'Subiste una imagen para representar tu nivel 9.' },
+  { key: 'preset-maker', icon: '⌘', title: 'Cartógrafo', description: 'Creaste un preset para explorar otro mapa.' },
+  { key: 'skin-shift', icon: '◇', title: 'Cambio de piel', description: 'Activaste una nueva identidad visual.' },
+];
 
 const skinCatalog: { key: Skin; name: string; icon: string; description: string; signature: string; access: 'base' | 'gold' | 'ultimate' }[] = [
   { key: 'zen', name: 'Zen Garden', icon: '❋', description: 'Un jardín vivo para cultivar presencia, calma y equilibrio.', signature: 'Respira. Observa. Cultiva.', access: 'gold' },
@@ -174,6 +186,14 @@ const insightAuthorBios: Record<string, string> = {
   'Nadia Chen': 'Exploro cómo aprender, conectar y crear puede abrir nuevas posibilidades para una vida más amplia.',
   'Camila Torres': 'Cultivo comunidad y movimiento para que cada persona encuentre una ruta propia de expansión.',
 };
+const insightAuthorBadges: Record<string, string[]> = {
+  'Sofía Méndez': ['level-up', 'three-moves'],
+  'Marcus Lee': ['preset-maker', 'global-eye'],
+  'Elena Costa': ['first-step', 'full-spectrum'],
+  'Diego Ríos': ['three-moves', 'visionary'],
+  'Nadia Chen': ['level-up', 'skin-shift'],
+  'Camila Torres': ['first-step', 'global-eye'],
+};
 const makePreset = (seed: number) => Object.fromEntries(modes.map((mode, index) => [mode.key, Math.min(9, Math.max(1, ((index * 2 + seed) % 9) + 1))]));
 const makeSpecialistPreset = (modeKey: string, seed: number) => ({
   ...makePreset(seed),
@@ -188,7 +208,7 @@ const makeInsightPreset = (modeKey: string, activityLevel: number, seed: number)
 const globalInsightActivities = modes.flatMap((mode) => journeyLevels.filter((level) => level < 9).map((level, index) => {
   const authorIndex = (modes.indexOf(mode) * 9 + level) % insightAuthors.length;
   const author = insightAuthors[authorIndex];
-  return { modeKey: mode.key, level, activity: getPoolActivities(mode.key, level)[0].title, author: author[0], location: author[1], continent: author[2], language: author[3], bio: insightAuthorBios[author[0]], presetName: `${author[0]} · Ruta de presencia`, preset: makeInsightPreset(mode.key, level, authorIndex + level) };
+  return { modeKey: mode.key, level, activity: getPoolActivities(mode.key, level)[0].title, author: author[0], location: author[1], continent: author[2], language: author[3], bio: insightAuthorBios[author[0]], badges: insightAuthorBadges[author[0]] ?? [], presetName: `${author[0]} · Ruta de presencia`, preset: makeInsightPreset(mode.key, level, authorIndex + level) };
 }));
 type Specialist = { name: string; modeKey: string; specialty: string; location: string; continent: string; language: string; match: string; trajectory: string; message: string; presetName: string; modeLevels: Record<string, number> };
 const specialistLanguages = ['Español', 'English', '中文', 'हिन्दी', 'العربية', 'Italiano', 'Português', 'Русский', 'Deutsch', 'Français', 'Dansk'];
@@ -396,6 +416,7 @@ function App() {
     }
   });
   const [selectedMode, setSelectedMode] = useState<Mode | null>(null);
+  const [journeySlide, setJourneySlide] = useState(0);
   const [journeyReturnView, setJourneyReturnView] = useState<'welcome' | 'dashboard'>('welcome');
   const [cultOpen, setCultOpen] = useState(false);
   const [activeActivity, setActiveActivity] = useState<number | null>(null);
@@ -455,6 +476,14 @@ function App() {
   const [specialistLanguageFilter, setSpecialistLanguageFilter] = useState('all');
   const [specialistContinentFilter, setSpecialistContinentFilter] = useState('all');
   const [labFlippedCard, setLabFlippedCard] = useState<string | null>(null);
+  const [featuredBadges, setFeaturedBadges] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem('modoCultiva_featuredBadges') ?? '[]');
+      return Array.isArray(saved) ? saved.slice(0, 3) : [];
+    } catch {
+      return [];
+    }
+  });
   const [skin, setSkin] = useState<Skin>(() => {
     try {
       const savedSkin = window.localStorage.getItem('modoCultiva_skin');
@@ -780,6 +809,22 @@ function App() {
     }).filter((insight): insight is (typeof globalInsightActivities)[number] => Boolean(insight));
     return candidates;
   }, [levels]);
+  const earnedBadges = useMemo(() => {
+    const definedCount = Object.keys(activityDrafts).length;
+    const activeModes = modes.filter((mode) => (levels[mode.key] ?? 0) > 0).length;
+    const highestLevel = Math.max(...modes.map((mode) => levels[mode.key] ?? 0));
+    return cultBadgeCatalog.filter((badge) => {
+      if (badge.key === 'first-step') return definedCount >= 1;
+      if (badge.key === 'three-moves') return definedCount >= 3;
+      if (badge.key === 'level-up') return highestLevel >= 1;
+      if (badge.key === 'full-spectrum') return activeModes === modes.length;
+      if (badge.key === 'global-eye') return definedCount >= 1 && Object.keys(insightRequests).length >= 1;
+      if (badge.key === 'visionary') return Object.keys(visionImages).length >= 1;
+      if (badge.key === 'preset-maker') return Object.keys(presets).length >= 1;
+      if (badge.key === 'skin-shift') return skin !== 'holista';
+      return false;
+    });
+  }, [activityDrafts, insightRequests, levels, presets, skin, visionImages]);
   const filteredSpecialists = useMemo(() => specialists.filter((specialist) => (
     (specialistModeFilter === 'all' || specialist.modeKey === specialistModeFilter)
     && (specialistLanguageFilter === 'all' || specialist.language === specialistLanguageFilter)
@@ -797,7 +842,24 @@ function App() {
     return () => window.clearInterval(timer);
   }, [cultOpen, cultTab, personalizedInsights.length]);
 
-  const updateLevel = (key: string, level: number) => setLevels((current) => ({ ...current, [key]: level }));
+  const updateLevel = (key: string, level: number) => {
+    setLevels((current) => ({ ...current, [key]: level }));
+    if (selectedMode?.key === key) setJourneySlide(level);
+  };
+
+  const toggleFeaturedBadge = (badgeKey: string) => {
+    setFeaturedBadges((current) => {
+      const next = current.includes(badgeKey)
+        ? current.filter((key) => key !== badgeKey)
+        : current.length < 3 ? [...current, badgeKey] : current;
+      try {
+        window.localStorage.setItem('modoCultiva_featuredBadges', JSON.stringify(next));
+      } catch {
+        // The selection remains available for the current session.
+      }
+      return next;
+    });
+  };
 
   const requestAccess = (feature: string, plan: AccessRequest['plan'] = 'Cuenta') => {
     setPendingAccess({ feature, plan, returnView: view });
@@ -866,6 +928,7 @@ function App() {
   const openMode = (mode: Mode) => {
     setJourneyReturnView(view === 'dashboard' ? 'dashboard' : 'welcome');
     setSelectedMode(mode);
+    setJourneySlide(levels[mode.key] ?? 0);
     setCultOpen(true);
     setActiveActivity(null);
   };
@@ -1052,13 +1115,15 @@ function App() {
   const renderCultSection = () => {
     const promotedInsight = personalizedInsights[insightSlide] ?? personalizedInsights[0];
     const promotedMode = (promotedInsight ? modes.find((mode) => mode.key === promotedInsight.modeKey) : undefined) ?? modes[0]!;
+    const journeyXp = Object.keys(activityDrafts).length * 100 + Object.values(levels).reduce((sum, level) => sum + level * 25, 0);
     return <section className="cult-embedded" aria-labelledby="cult-embedded-title">
     <div className="cult-embedded-heading"><div><p className="kicker">{tr('globalEyebrow')}</p><h3 id="cult-embedded-title">{tr('globalTitle')}</h3><p className="cult-embedded-subtitle">{tr('globalSubtitle')}</p></div><span className="cult-live-pill"><i /> {tr('globalAccess')}</span></div><div className="cult-embedded-divider" aria-hidden="true"><span /><i>{tr('globalEyebrowLine')}</i><span /></div>
-    <nav className="cult-nav cult-nav--embedded" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['skins', tr('skinsGallery')]] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => setCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
+    <nav className="cult-nav cult-nav--embedded" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['skins', tr('skinsGallery')], ['badges', 'Insignias']] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => setCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
     <div className="cult-embedded-content">
       {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">Actividades compartidas por la comunidad</p><h4>Insights Globales</h4></div><span className="cult-live-pill"><i /> 12 RECOMENDACIONES</span></div><p className="cult-section-copy">Recomendaciones seleccionadas para ayudarte a avanzar desde los niveles actuales de tu mapa. Cada visita muestra una combinación diferente.</p>{insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art"><span>{promotedMode.icon}</span><small>INSIGHT GLOBAL · {insightSlide + 1}/12</small></div><div className="cult-insight-spotlight-copy"><div className="cult-insight-activity-top"><span>{promotedMode.name} · NIVEL {promotedInsight.level} → {promotedInsight.level + 1}</span><small>{effortLabelByLevel[promotedInsight.level]}</small></div><h3>{promotedInsight.activity}</h3><p>Compartida por <strong>{promotedInsight.author}</strong> · {promotedInsight.location}</p><button type="button" onClick={() => setCultInsightPreview(promotedInsight)}>Analizar y guardar en mi mapa <span>↗</span></button></div>{personalizedInsights.length > 1 && <div className="cult-insight-controls" aria-label="Controles de Insights"><button type="button" onClick={() => setInsightSlide((current) => (current - 1 + personalizedInsights.length) % personalizedInsights.length)} aria-label="Insight anterior">←</button><div className="cult-insight-dots" aria-label="Navegar insights">{personalizedInsights.map((insight, index) => <button className={index === insightSlide ? 'is-active' : ''} key={`${insight.modeKey}-${insight.level}`} type="button" onClick={() => setInsightSlide(index)} aria-label={`Ver recomendación ${index + 1}`} />)}</div><button type="button" onClick={() => setInsightSlide((current) => (current + 1) % personalizedInsights.length)} aria-label="Siguiente insight">→</button></div>}</article>}</>}
       {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">Red de Especialistas</p><h4>Encuentra a tu siguiente guía.</h4></div><span className="cult-live-pill cult-live-pill--gold"><i /> PERFILES VERIFICADOS</span></div><div className="cult-filter-row"><select aria-label="Filtrar por modo" value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">Todos los modos</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{mode.name}</option>)}</select><select aria-label="Filtrar por idioma" value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">Cualquier idioma</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label="Filtrar por ubicación" value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">Cualquier continente</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continent}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name} <span>✓</span></strong><small>{mode.name} · {specialist.specialty}</small><p>Disponible para orientación privada · {specialist.location}</p></div><div className="cult-match"><span>{specialist.match}</span><small>{specialist.language} · {specialist.continent}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>Ver perfil ↗</button></article>; }) : <div className="cult-empty-state">No hay especialistas con estos filtros. Prueba otra combinación.</div>}</div></>}
       {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h4>Cambia la piel de tu cultivo.</h4></div><span className="cult-live-pill"><i /> EXPERIENCIAS</span></div><section className="cult-skin-category" aria-labelledby="cult-filters-title"><div className="cult-skin-category-heading"><div><p className="kicker">Paletas de atmósfera</p><h5 id="cult-filters-title">Filtros</h5></div><span>2 EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--filters"><article className={`cult-skin-card${skin === 'nocturna' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--nocturna"><span className="skin-card-glyph skin-card-glyph--owl" aria-hidden="true">🦉</span></div><div><strong>Night Owl</strong><p>Un refugio de sombras para cultivar como un búho nocturno.</p><button type="button" onClick={() => activateCultSkin('nocturna')}>{skin === 'nocturna' ? 'Activa ahora ✓' : 'Activar filtro ↗'}</button></div></article><article className={`cult-skin-card cult-skin-card--lucid${skin === 'lucid' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--lucid"><span className="skin-card-glyph skin-card-glyph--dream" aria-hidden="true">◌</span></div><div><strong>Lucid</strong><p>Un sueño lúcido de color, contraste y percepción expandida.</p><button type="button" onClick={() => activateCultSkin('lucid')}>{skin === 'lucid' ? 'Activa ahora ✓' : 'Activar filtro ↗'}</button></div></article></div></section><section className="cult-skin-category" aria-labelledby="cult-skins-title"><div className="cult-skin-category-heading"><div><p className="kicker">Interfaces completas</p><h5 id="cult-skins-title">Skins</h5></div><span>{skinCatalog.length + 2} EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--skins"><article className={`cult-skin-card${skin === 'holista' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button" onClick={() => activateCultSkin('holista')}>{skin === 'holista' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'dj' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--dj"><span className="skin-card-glyph skin-card-glyph--faders" aria-hidden="true"><i /><i /><i /></span></div><div><strong>Consola DJ</strong><p>La mezcla perfecta para ecualizar la canción de tu vida.</p><button type="button" onClick={() => activateCultSkin('dj')}>{skin === 'dj' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>{skinCatalog.map((item) => <article className={`cult-skin-card cult-skin-card--${item.key}${skin === item.key ? ' cult-skin-card--active' : ''}`} key={item.key}><div className={`cult-skin-visual cult-skin-visual--${item.key}`}><span>{item.icon}</span></div><div><strong>{item.name}</strong><p>{item.description}</p><button type="button" onClick={() => activateCultSkin(item.key)}>{skin === item.key ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>)}</div></section></>}
+      {cultTab === 'badges' && <><div className="cult-section-heading"><div><p className="kicker">Progreso que se vuelve identidad</p><h4>Insignias</h4></div><span className="cult-live-pill"><i /> {featuredBadges.length}/3 DESTACADAS</span></div><p className="cult-section-copy">Reconoce los momentos importantes de tu Journey y elige hasta tres logros para mostrar en tu perfil y compartir con tu red.</p><div className="badge-progress-grid"><article><span>XP DE CULTIVA</span><strong>{journeyXp.toLocaleString('es-MX')}</strong><small>25 XP por cada nivel y 100 XP por actividad</small></article><article><span>LOGROS DESBLOQUEADOS</span><strong>{earnedBadges.length}<small> / {cultBadgeCatalog.length}</small></strong><small>Completa acciones en tus journeys para abrir nuevas insignias</small></article></div><div className="badge-featured-strip"><div><span className="cult-status-label">EN TU PERFIL</span><strong>{featuredBadges.length ? 'Tus logros destacados' : 'Elige tus primeros logros'}</strong></div><div className="badge-mini-row">{featuredBadges.length ? featuredBadges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key)!; return <span className="badge-mini" key={key} title={badge.title}>{badge.icon}</span>; }) : <span className="badge-empty">Aún no has destacado insignias</span>}</div></div><div className="cult-badge-grid">{cultBadgeCatalog.map((badge) => { const earned = earnedBadges.some((item) => item.key === badge.key); const featured = featuredBadges.includes(badge.key); return <article className={`cult-badge-card${earned ? ' cult-badge-card--earned' : ' cult-badge-card--locked'}${featured ? ' cult-badge-card--featured' : ''}`} key={badge.key}><div className="cult-badge-medal">{earned ? badge.icon : '·'}</div><div><strong>{badge.title}</strong><p>{badge.description}</p></div><button type="button" disabled={!earned} onClick={() => toggleFeaturedBadge(badge.key)}>{earned ? featured ? 'Destacada ✓' : featuredBadges.length >= 3 ? 'Quita una para elegir' : 'Destacar en perfil' : 'Aún no desbloqueada'}</button></article>; })}</div></>}
     </div>
   </section>;
   };
@@ -1216,7 +1281,7 @@ function App() {
 
       {insightPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setInsightPreview(null)}><section className="feature-preview" role="dialog" aria-modal="true" aria-labelledby="insight-preview-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setInsightPreview(null)} aria-label="Cerrar vista previa">×</button><p className="kicker">Vista previa · Layer de Insights</p><h2 id="insight-preview-title">Pedir Insights</h2><p className="journey-description">Comparte una duda con personas que ya recorrieron este nivel y recibe una estrategia desde la experiencia de la comunidad.</p><div className="insight-preview-card"><span>INSIGHT DE NIVEL {insightPreview.level}</span><strong>{modes.find((mode) => mode.key === insightPreview.modeKey)?.name}</strong><p>“¿Qué práctica te ayudó a avanzar de este nivel al siguiente?”</p><small>La solicitud se habilita al crear una cuenta Gold.</small></div><button className="feature-preview-cta" type="button" onClick={() => { setInsightPreview(null); openPlan('gold', 'Insights locales'); }}>Ver acceso Gold <span>→</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setInsightPreview(null)}>Seguir explorando como invitado</button></section></div>}
 
-      {cultInsightPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setCultInsightPreview(null)}><section className="feature-preview cult-insight-modal" role="dialog" aria-modal="true" aria-labelledby="cult-insight-modal-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setCultInsightPreview(null)} aria-label="Cerrar insight">×</button><p className="kicker">Insight Global · Actividad compartida</p><h2 id="cult-insight-modal-title">{cultInsightPreview.activity}</h2><div className="insight-modal-meta"><span>{modes.find((mode) => mode.key === cultInsightPreview.modeKey)?.name}</span><span>Nivel {cultInsightPreview.level} → {cultInsightPreview.level + 1}</span><span>{effortLabelByLevel[cultInsightPreview.level]}</span></div><div className="insight-preset-card"><span>PRESET DE {cultInsightPreview.author.toUpperCase()}</span><strong>{cultInsightPreview.presetName}</strong><p>Configuración del mapa de la persona que compartió esta actividad.</p><blockquote className="insight-author-bio">“{cultInsightPreview.bio}”</blockquote><div className="insight-preset-levels">{modes.map((mode) => <span key={mode.key}>{mode.shortName} <b>{cultInsightPreview.preset[mode.key]}</b></span>)}</div></div><button className="feature-preview-cta" type="button" onClick={saveGlobalInsightActivity}>Guardar en mi mapa <span>＋</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setCultInsightPreview(null)}>Seguir explorando Insights</button></section></div>}
+      {cultInsightPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setCultInsightPreview(null)}><section className="feature-preview cult-insight-modal" role="dialog" aria-modal="true" aria-labelledby="cult-insight-modal-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setCultInsightPreview(null)} aria-label="Cerrar insight">×</button><p className="kicker">Insight Global · Actividad compartida</p><h2 id="cult-insight-modal-title">{cultInsightPreview.activity}</h2><div className="insight-modal-meta"><span>{modes.find((mode) => mode.key === cultInsightPreview.modeKey)?.name}</span><span>Nivel {cultInsightPreview.level} → {cultInsightPreview.level + 1}</span><span>{effortLabelByLevel[cultInsightPreview.level]}</span></div><div className="insight-preset-card"><span>PRESET DE {cultInsightPreview.author.toUpperCase()}</span><strong>{cultInsightPreview.presetName}</strong><p>Configuración del mapa de la persona que compartió esta actividad.</p><blockquote className="insight-author-bio">“{cultInsightPreview.bio}”</blockquote><div className="insight-profile-badges"><span>INSIGNIAS DESTACADAS</span><div>{cultInsightPreview.badges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key); return badge ? <b key={key} title={badge.title}>{badge.icon} {badge.title}</b> : null; })}</div></div><div className="insight-preset-levels">{modes.map((mode) => <span key={mode.key}>{mode.shortName} <b>{cultInsightPreview.preset[mode.key]}</b></span>)}</div></div><button className="feature-preview-cta" type="button" onClick={saveGlobalInsightActivity}>Guardar en mi mapa <span>＋</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setCultInsightPreview(null)}>Seguir explorando Insights</button></section></div>}
 
       {specialistPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setSpecialistPreview(null)}><section className="feature-preview specialist-profile-modal" role="dialog" aria-modal="true" aria-labelledby="specialist-profile-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setSpecialistPreview(null)} aria-label="Cerrar perfil">×</button><p className="kicker">Perfil verificado · Red de Especialistas</p><div className="specialist-profile-heading"><div className="cult-specialist-avatar">{specialistPreview.name.slice(0, 1)}</div><div><h2 id="specialist-profile-title">{specialistPreview.name}</h2><p>{specialistPreview.specialty} · {specialistPreview.location}</p></div><span>{specialistPreview.match} match</span></div><div className="specialist-profile-meta"><span>{specialistPreview.language}</span><span>{specialistPreview.continent}</span><span>{modes.find((mode) => mode.key === specialistPreview.modeKey)?.name}</span></div><div className="specialist-profile-copy"><span className="crm-eyebrow">TRAYECTORIA</span><p>{specialistPreview.trajectory}</p><blockquote>“{specialistPreview.message}”</blockquote></div><div className="specialist-preset"><div><span className="crm-eyebrow">PRESET DE MODO CULTIVA</span><h3>{specialistPreview.presetName}</h3></div><span className="crm-card-caption">12 MODOS · NIVELES 0–9</span></div><div className="specialist-level-grid">{modes.map((mode) => <div key={mode.key} style={{ '--mode-color': mode.color } as CSSProperties}><span>{mode.icon}</span><strong>{mode.shortName}</strong><b>{specialistPreview.modeLevels[mode.key]}</b></div>)}</div><button className="feature-preview-cta" type="button" onClick={() => setSpecialistPreview(null)}>Cerrar perfil <span>×</span></button></section></div>}
 
@@ -1265,7 +1330,17 @@ function App() {
           <div className="journey-builder-heading"><div><p className="kicker">{tr('activityDesign')} · {modeName(selectedMode)}</p><h3 id="journey-builder-title">{tr('cultivationPath')}</h3></div><span>{definedActivityCount} / 9</span></div>
           <p className="journey-builder-intro">{tr('journeyBuilderIntro')} {modeName(selectedMode)}.</p>
           {insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}
-          <div className="journey-level-grid">{journeyLevels.map((level) => <article className={`journey-level-card${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>{tr('levels').toUpperCase()}</span><strong>{level}</strong><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span>{level === levels[selectedMode.key] && <em>{tr('current')}</em>}{level === 9 && <em>{tr('finalVision')}</em>}</div>{level < 9 ? <><h4>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : tr('activityUndefined')}</h4><p><strong className="effort-tag">{effortLabel(level)}</strong>{activityDrafts[`${selectedMode.key}-${level}`] ? ` · ${tr('activitySaved')}` : ` · ${levelDescription(level)}`}</p><div className="journey-card-actions"><button type="button" onClick={() => openActivity(level, 'custom')}>{activityDrafts[`${selectedMode.key}-${level}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(level, 'pool')}>▦ {tr('activityPool')}</button><button className="activity-ai-button" type="button" onClick={() => openActivity(level, 'ai')}>✦ {tr('modeAI')}</button><button className={insightRequests[`${selectedMode.key}-${level}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, level)}>{insightRequests[`${selectedMode.key}-${level}`] ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button></div></> : <><h4>{tr('finalVision')}</h4><p>{tr('finalVisionCopy')}</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? tr('changeImage') : tr('uploadImage')}</label></>}</article>)}</div>
+          <div className="journey-carousel" aria-label={`${tr('levels')} de ${modeName(selectedMode)}`}>
+            <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.max(0, current - 1))} disabled={journeySlide === 0} aria-label="Nivel anterior">←</button>
+            <div className="journey-carousel-viewport">
+              <div className="journey-level-grid journey-level-grid--carousel">
+                {journeyLevels.filter((level) => level === journeySlide).map((level) => <article className={`journey-level-card journey-level-card--active${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><span>{tr('levels').toUpperCase()}</span><strong>{level}</strong><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span>{level === levels[selectedMode.key] && <em>{tr('current')}</em>}{level === 9 && <em>{tr('finalVision')}</em>}</div>{level < 9 ? <><h4>{activityDrafts[`${selectedMode.key}-${level}`] ? activityDrafts[`${selectedMode.key}-${level}`] : tr('activityUndefined')}</h4><p><strong className="effort-tag">{effortLabel(level)}</strong>{activityDrafts[`${selectedMode.key}-${level}`] ? ` · ${tr('activitySaved')}` : ` · ${levelDescription(level)}`}</p></> : <><h4>{tr('finalVision')}</h4><p>{tr('finalVisionCopy')}</p><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? tr('changeImage') : tr('uploadImage')}</label></>}</article>)}
+              </div>
+            </div>
+            <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.min(9, current + 1))} disabled={journeySlide === 9} aria-label="Siguiente nivel">→</button>
+          </div>
+          <div className="journey-carousel-footer"><span>{tr('levels').toUpperCase()} {journeySlide + 1} / 10</span><div className="journey-carousel-dots" aria-label="Seleccionar nivel">{journeyLevels.map((level) => <button className={level === journeySlide ? 'is-active' : ''} type="button" key={level} onClick={() => setJourneySlide(level)} aria-label={`${tr('levels')} ${level}`}>{level}</button>)}</div><small>{journeySlide === levels[selectedMode.key] ? tr('current') : 'Vista previa · no cambia tu nivel'}</small></div>
+          {journeySlide < 9 ? <div className="journey-fixed-actions" aria-label="Acciones para el nivel visible"><button type="button" onClick={() => openActivity(journeySlide, 'custom')}>{activityDrafts[`${selectedMode.key}-${journeySlide}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(journeySlide, 'pool')}>▦ {tr('activityPool')}</button><button className="activity-ai-button" type="button" onClick={() => openActivity(journeySlide, 'ai')}>✦ {tr('modeAI')}</button><button className={insightRequests[`${selectedMode.key}-${journeySlide}`] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" onClick={() => requestInsight(selectedMode.key, journeySlide)}>{insightRequests[`${selectedMode.key}-${journeySlide}`] ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button></div> : <div className="journey-vision-note">{tr('finalVision')} · {tr('finalVisionCopy')}</div>}
           </section>
           {renderCultSection()}
         </>}
