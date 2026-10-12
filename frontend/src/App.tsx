@@ -596,6 +596,11 @@ function App() {
   const journeyReturnScrollTop = useRef(0);
 
   useEffect(() => {
+    window.history.scrollRestoration = 'manual';
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [view]);
 
