@@ -1030,6 +1030,9 @@ function App() {
     setAiHasConsulted(false);
     setAiProposal('');
     setAiLoading(false);
+    window.requestAnimationFrame(() => {
+      journeyPanelRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    });
   };
 
   const usePoolActivity = () => {
