@@ -4,7 +4,7 @@ import './styles.css';
 import App from './App';
 
 if ('serviceWorker' in navigator) {
-  void navigator.serviceWorker.register('/sw.js');
+  void navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then((registration) => registration.update());
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
