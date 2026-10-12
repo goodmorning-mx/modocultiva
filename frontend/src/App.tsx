@@ -596,6 +596,10 @@ function App() {
   const journeyReturnScrollTop = useRef(0);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [view]);
+
+  useEffect(() => {
     window.localStorage.setItem('modoCultiva_language', language);
     if (window.localStorage.getItem('modoCultiva_language_source') !== 'manual') {
       window.localStorage.setItem('modoCultiva_language_source', 'auto');
