@@ -426,7 +426,8 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
   .journey-intro-compact .journey-description { font-size: .7rem; }
   .journey-level-grid--carousel .journey-level-card { min-width: 0; }
   .cult-embedded { min-width: 0; }
-  .cult-nav { max-width: 100%; overscroll-behavior-x: contain; scrollbar-width: thin; }
+  .cult-nav { max-width: 100%; overscroll-behavior-x: contain; scrollbar-width: none; }
+  .cult-nav::-webkit-scrollbar { display: none; height: 0; }
   .cult-embedded-divider { min-width: 0; gap: 6px; font-size: .42rem; letter-spacing: .09em; }
   .cult-embedded-divider i { max-width: 22ch; white-space: normal; line-height: 1.25; }
   .cult-insight-spotlight { grid-template-columns: 1fr; min-height: 0; }
