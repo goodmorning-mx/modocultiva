@@ -5,7 +5,16 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#07151a",
   "theme_color": "#07151a",
-  "lang": "es-MX"
+  "lang": "es-MX",
+  "icons": [
+    {
+      "src": "/modo-cultiva-logo-neon.png",
+      "sizes": "1280x1280",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
