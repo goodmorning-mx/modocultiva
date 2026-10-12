@@ -434,6 +434,7 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
   .cult-insight-spotlight-art { min-height: 145px; }
   .cult-insight-spotlight-copy { padding-right: 0; }
   .cult-insight-spotlight-copy h3 { font-size: 1.18rem; }
+  .cult-insight-controls { position: static; grid-column: 1; justify-content: center; margin-top: 2px; }
 }
 
 @media (max-width: 380px) {
@@ -463,6 +464,7 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .cult-insight-modal { border-color: rgba(117, 225, 255, .58); background: radial-gradient(circle at 12% 0, rgba(117, 225, 255, .2), transparent 34%), radial-gradient(circle at 90% 100%, rgba(177, 117, 255, .18), transparent 42%), linear-gradient(145deg, #101d3a, #080f20 72%); box-shadow: 0 30px 100px rgba(0, 0, 0, .62), 0 0 35px rgba(117, 225, 255, .1); }.cult-insight-modal .kicker { color: #75e1ff; }.cult-insight-modal h2 { color: #f3fbff; text-shadow: 0 0 22px rgba(117, 225, 255, .18); }.cult-insight-modal .insight-modal-meta span { border-color: rgba(117, 225, 255, .42); color: #75e1ff; background: rgba(117, 225, 255, .06); }.cult-insight-modal .insight-preset-card { border-color: rgba(177, 117, 255, .42); background: linear-gradient(145deg, rgba(34, 27, 75, .82), rgba(8, 20, 38, .86)); }.cult-insight-modal .insight-preset-card > span { color: #d7adff; }.cult-insight-modal .insight-preset-levels span { border-color: rgba(117, 225, 255, .2); background: rgba(117, 225, 255, .05); }.cult-insight-modal .feature-preview-cta { border-color: #75e1ff; color: #061622; background: linear-gradient(90deg, #75e1ff, #b9f5ff); box-shadow: 0 0 20px rgba(117, 225, 255, .18); }
 .language-picker select { max-width: 110px; }
 @media (max-width: 680px) { .topbar-meta { display: flex; font-size: 0; }.topbar-meta > :not(.language-picker) { display: none; }.language-picker select { font-size: .7rem; } }
+@media (max-width: 680px) { .feature-preview-backdrop { place-items: center; padding: 12px; }.feature-preview { max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain; padding: 36px 18px 20px; } }
  .agent-runtime-strip { display: flex; align-items: center; gap: 8px; margin: 15px 0 4px; padding: 8px 10px; border: 1px solid rgba(112, 237, 156, .2); border-radius: 8px; background: rgba(4, 25, 29, .58); color: #a9c9b8; font-size: .62rem; }
  .agent-runtime-strip strong { color: #70ed9c; font-family: 'DM Mono', monospace; font-size: .55rem; letter-spacing: .05em; text-transform: uppercase; }
  .agent-runtime-strip small { margin-left: auto; color: #789d91; font-size: .6rem; }
