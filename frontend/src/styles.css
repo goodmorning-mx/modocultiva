@@ -372,7 +372,11 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .cult-insight-spotlight-copy h3 { margin: 11px 0 8px; color: #effff3; font-size: clamp(1rem, 2.3vw, 1.5rem); line-height: 1.2; }
 .cult-insight-spotlight-copy p { margin: 0; color: #a5c2b5; font-size: .68rem; line-height: 1.4; }
 .cult-insight-spotlight-copy p strong { color: #d9f2df; }
-.cult-insight-spotlight-copy button { align-self: start; margin-top: 16px; padding: 9px 11px; border: 1px solid var(--insight-color); border-radius: 7px; color: #06201b; background: var(--insight-color); font-size: .6rem; font-weight: 800; }
+.cult-insight-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: auto; }
+.cult-insight-spotlight-copy .cult-insight-actions { margin-top: 16px; }
+.cult-insight-spotlight-copy .cult-insight-actions button { margin-top: 0; }
+.cult-insight-regenerate-button { color: var(--insight-color) !important; background: color-mix(in srgb, var(--insight-color) 8%, transparent) !important; }
+.cult-insight-activity .cult-insight-regenerate-button { min-width: 34px; padding-right: 8px; padding-left: 8px; }
 .cult-insight-controls { position: absolute; right: 12px; bottom: 10px; display: flex; align-items: center; gap: 8px; }
 .cult-insight-controls > button { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 1px solid color-mix(in srgb, var(--insight-color) 45%, transparent); border-radius: 50%; color: var(--insight-color); background: rgba(3, 18, 24, .68); font-size: .75rem; cursor: pointer; }
 .cult-insight-controls > button:hover { background: color-mix(in srgb, var(--insight-color) 13%, transparent); }
