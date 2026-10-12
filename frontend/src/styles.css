@@ -425,6 +425,7 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
   .journey-intro-compact h2 { font-size: clamp(1.45rem, 8vw, 2.2rem); }
   .journey-intro-compact .journey-description { font-size: .7rem; }
   .journey-level-grid--carousel .journey-level-card { min-width: 0; }
+  .journey-level-grid--carousel .journey-level-card--vision { min-height: 320px; }
   .cult-embedded { min-width: 0; }
   .cult-nav { max-width: 100%; overscroll-behavior-x: contain; scrollbar-width: none; }
   .cult-nav::-webkit-scrollbar { display: none; height: 0; }
