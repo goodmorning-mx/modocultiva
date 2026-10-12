@@ -538,18 +538,16 @@ function App() {
   const [skin, setSkin] = useState<Skin>(() => {
     try {
       const savedSkin = window.localStorage.getItem('modoCultiva_skin');
-      if (savedSkin === 'nocturna' || savedSkin === 'lucid') return 'holista';
-      return savedSkin && allSkinKeys.has(savedSkin as Skin) ? savedSkin as Skin : 'holista';
+      if (savedSkin !== 'holista') window.localStorage.setItem('modoCultiva_skin', 'holista');
+      return 'holista';
     } catch {
       return 'holista';
     }
   });
   const [paletteFilter, setPaletteFilter] = useState<PaletteFilter>(() => {
     try {
-      const savedFilter = window.localStorage.getItem('modoCultiva_palette_filter');
-      if (savedFilter === 'nocturna' || savedFilter === 'lucid') return savedFilter;
-      const legacySkin = window.localStorage.getItem('modoCultiva_skin');
-      return legacySkin === 'nocturna' || legacySkin === 'lucid' ? legacySkin : 'none';
+      window.localStorage.removeItem('modoCultiva_palette_filter');
+      return 'none';
     } catch {
       return 'none';
     }
@@ -787,12 +785,11 @@ function App() {
         if (state.presets && typeof state.presets === 'object') setPresets(state.presets as Record<string, Preset>);
         if (state.visionImages && typeof state.visionImages === 'object') setVisionImages(state.visionImages as Record<string, string>);
         const remoteSkin = typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin) ? state.skin as Skin : null;
-        const remoteFilter = state.paletteFilter === 'nocturna' || state.paletteFilter === 'lucid' ? state.paletteFilter : remoteSkin === 'nocturna' || remoteSkin === 'lucid' ? remoteSkin : null;
         if (loginSkinChoice.current) {
-          setSkin(loginSkinChoice.current);
-          window.localStorage.setItem('modoCultiva_skin', loginSkinChoice.current);
-        } else if (remoteSkin) setSkin(remoteSkin === 'nocturna' || remoteSkin === 'lucid' ? 'holista' : remoteSkin);
-        if (remoteFilter) setPaletteFilter(remoteFilter);
+          setSkin('holista');
+          window.localStorage.setItem('modoCultiva_skin', 'holista');
+        } else if (remoteSkin) setSkin('holista');
+        setPaletteFilter('none');
         if (state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate') setActivePlan(state.activePlan);
         setStateHydrated(true);
       } catch (error) {
@@ -947,6 +944,7 @@ function App() {
   };
 
   const changeSkin = (nextSkin: Skin) => {
+    if (nextSkin !== 'holista') return;
     if (!RELEASE_FREE_ACCESS && nextSkin !== 'holista' && !isAuthenticated && view !== 'login') {
       requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, nextSkin === 'dj' || skinInfo(nextSkin)?.access === 'gold' ? 'Gold' : 'Ultimate Mode');
       return;
@@ -963,26 +961,13 @@ function App() {
   };
 
   const activateCultSkin = (nextSkin: Skin) => {
-    if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
-      requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? (nextSkin === 'dj' ? 'Consola DJ' : nextSkin === 'nocturna' ? 'Night Owl' : nextSkin === 'lucid' ? 'Lucid' : 'Holista')}`, nextSkin === 'dj' || skinInfo(nextSkin)?.access === 'gold' ? 'Gold' : 'Ultimate Mode');
-      return;
-    }
-    if (!RELEASE_FREE_ACCESS && activePlan === 'basic' && nextSkin !== 'holista') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Gold'); return; }
-    if (!RELEASE_FREE_ACCESS && activePlan === 'gold' && nextSkin !== 'holista' && nextSkin !== 'dj') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Ultimate Mode'); return; }
-    changeSkin(nextSkin);
+    if (nextSkin !== 'holista') return;
+    changeSkin('holista');
   };
 
   const activatePaletteFilter = (nextFilter: Exclude<PaletteFilter, 'none'>) => {
-    if (skin === 'holista') {
-      setPaletteFilter('none');
-      return;
-    }
-    setPaletteFilter(nextFilter);
-    try {
-      window.localStorage.setItem('modoCultiva_palette_filter', nextFilter);
-    } catch {
-      // The palette remains active for the current session.
-    }
+    void nextFilter;
+    setPaletteFilter('none');
   };
 
   const handleProfileImage = (file: File | undefined) => {
@@ -1203,7 +1188,7 @@ function App() {
     const journeyXp = Object.keys(activityDrafts).length * 100 + Object.values(levels).reduce((sum, level) => sum + level * 25, 0);
     return <section className="cult-embedded" aria-labelledby="cult-embedded-title">
     <div className="cult-embedded-heading"><div><p className="kicker">{tr('globalEyebrow')}</p><h3 id="cult-embedded-title">{tr('globalTitle')}</h3><p className="cult-embedded-subtitle">{tr('globalSubtitle')}</p></div></div><div className="cult-embedded-divider" aria-hidden="true"><span /><i>{tr('globalEyebrowLine')}</i><span /></div>
-    <nav className="cult-nav cult-nav--embedded" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['badges', 'Insignias'], ['skins', tr('skinsGallery')]] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => setCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
+    <nav className="cult-nav cult-nav--embedded" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['badges', 'Insignias'], ] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => setCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
     <div className="cult-embedded-content">
       {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">{tr('globalActivitiesEyebrow')}</p><h4>{tr('globalInsights')}</h4></div></div><p className="cult-section-copy">{tr('globalRecommendationsCopy')}</p>{insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('close')}>×</button></div>}{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art"><span>{promotedMode.icon}</span><small>{tr('globalSection').toUpperCase()} · {insightSlide + 1}/12</small></div><div className="cult-insight-spotlight-copy"><div className="cult-insight-activity-top"><span>{modeName(promotedMode)} · {tr('level')} {promotedInsight.level} → {promotedInsight.level + 1}</span><small>{effortLabel(promotedInsight.level)}</small></div><h3>{promotedInsight.activity}</h3><p>{tr('globalSharedBy')} <strong>{promotedInsight.author}</strong> · {promotedInsight.location}</p><button type="button" onClick={() => setCultInsightPreview(promotedInsight)}>{tr('globalAnalyzeSave')} <span>↗</span></button></div>{personalizedInsights.length > 1 && <div className="cult-insight-controls" aria-label={tr('globalInsights')}><button type="button" onClick={() => setInsightSlide((current) => (current - 1 + personalizedInsights.length) % personalizedInsights.length)} aria-label={tr('previous')}>←</button><div className="cult-insight-dots" aria-label={tr('globalInsights')}>{personalizedInsights.map((insight, index) => <button className={index === insightSlide ? 'is-active' : ''} key={`${insight.modeKey}-${insight.level}`} type="button" onClick={() => setInsightSlide(index)} aria-label={`${tr('globalInsights')} ${index + 1}`} />)}</div><button type="button" onClick={() => setInsightSlide((current) => (current + 1) % personalizedInsights.length)} aria-label={tr('next')}>→</button></div>}</article>}</>}
       {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">Red de Especialistas</p><h4>Encuentra a tu siguiente guía.</h4></div><span className="cult-live-pill cult-live-pill--gold"><i /> PERFILES VERIFICADOS</span></div><div className="cult-filter-row"><select aria-label="Filtrar por modo" value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">Todos los modos</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{mode.name}</option>)}</select><select aria-label="Filtrar por idioma" value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">Cualquier idioma</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label="Filtrar por ubicación" value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">Cualquier continente</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continent}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name} <span>✓</span></strong><small>{mode.name} · {specialist.specialty}</small><p>Disponible para orientación privada · {specialist.location}</p></div><div className="cult-match"><span>{specialist.match}</span><small>{specialist.language} · {specialist.continent}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>Ver perfil ↗</button></article>; }) : <div className="cult-empty-state">No hay especialistas con estos filtros. Prueba otra combinación.</div>}</div></>}
@@ -1243,7 +1228,7 @@ function App() {
             <p className="kicker">{pendingAccess ? 'Acceso contextual' : 'Tu mapa de vida comienza aquí'}</p>
             <h1 id="login-title">{pendingAccess ? 'Desbloquea esta función.' : tr('welcome')}</h1>
             <p className="login-copy">{pendingAccess ? `${pendingAccess.feature} forma parte del plan ${pendingAccess.plan}. Crea tu cuenta o inicia sesión para continuar.` : 'Inicia sesión para guardar tu progreso y continuar cultivando tus 12 modos de vida.'}</p>
-            <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Modo Holista</button><button className={skin === 'dj' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('dj')}><i>◒</i> Consola DJ</button></div>
+            <div className="login-skin-picker" aria-label="Elige tu skin de inicio"><span>ELIGE TU SKIN</span><button className={skin === 'holista' ? 'login-skin login-skin--active' : 'login-skin'} type="button" onClick={() => changeSkin('holista')}><i>◌</i> Modo Holista</button></div>
             <form className="login-form" onSubmit={(event) => { event.preventDefault(); void submitAuthentication(); }}>
               {registering && <label htmlFor="login-name">{tr('name')}<input id="login-name" autoComplete="name" value={loginName} onChange={(event) => setLoginName(event.target.value)} placeholder={tr('name')} required /></label>}
               <label htmlFor="login-username">{tr('email')}<input id="login-username" type="email" autoComplete="email" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="tu@correo.com" required /></label>
@@ -1263,16 +1248,16 @@ function App() {
         </section>
       ) : view === 'lab' ? (
         <section className="modo-lab-view" data-layer="modo-lab" aria-labelledby="modo-lab-title">
-          <div className="modo-lab-topline"><button className="modo-lab-back" type="button" onClick={() => setView('welcome')}>← Volver al mapa</button><span className="modo-lab-free"><i /> ACCESO LIBRE</span><span className="modo-lab-mark">MODO TRIVIA · 12 FICHAS</span></div>
+          <div className="modo-lab-topline"><button className="modo-lab-back" type="button" onClick={() => setView('dashboard')}>← Volver al Dashboard</button></div>
           <header className="modo-lab-hero"><div><p className="kicker">Modo Trivia · Aprende jugando</p><h1 id="modo-lab-title">Una pregunta puede abrir un modo.</h1><p>Explora los 12 modos de vida con tarjetas interactivas. Piensa primero, voltea después y descubre qué cultiva cada dimensión de tu vida.</p></div><div className="modo-lab-orbit"><span>✦</span><small>12<br />MODOS</small></div></header>
-          <div className="modo-lab-guide"><span>01</span><p>Lee la pregunta, responde desde tu experiencia y voltea la tarjeta para conocer el modo.</p><span>ACCESO LIBRE · SIN CUENTA</span></div>
+          <div className="modo-lab-guide"><span>01</span><p>Lee la pregunta, responde desde tu experiencia y voltea la tarjeta para conocer el modo.</p></div>
           <div className="modo-lab-grid">{modes.map((mode) => { const flipped = labFlippedCard === mode.key; const card = labCards[mode.key]; return <article className={`modo-lab-card${flipped ? ' modo-lab-card--flipped' : ''}`} key={mode.key} style={{ '--lab-color': mode.color, '--lab-accent': mode.accent } as CSSProperties}><div className="modo-lab-card-inner"><div className="modo-lab-face modo-lab-front"><div className="modo-lab-card-top"><span>{mode.roman}</span><small>FICHA {mode.roman}</small></div><div className="modo-lab-icon">{mode.icon}</div><p className="modo-lab-label">PREGUNTA</p><h2>{card.question}</h2><p className="modo-lab-mode">{mode.name}</p><button type="button" onClick={() => setLabFlippedCard(flipped ? null : mode.key)}>Voltear tarjeta <span>↗</span></button></div><div className="modo-lab-face modo-lab-back"><div className="modo-lab-card-top"><span>↺</span><small>DESCUBRIMIENTO</small></div><p className="modo-lab-label">INFORMACIÓN DEL MODO</p><h2>{mode.name}</h2><p className="modo-lab-answer">{card.answer}</p><div className="modo-lab-description"><span>{mode.icon}</span>{mode.description}</div><button type="button" onClick={() => setLabFlippedCard(null)}>Volver a la pregunta <span>↺</span></button></div></div></article>; })}</div>
         </section>
       ) : view === 'cult' ? (
         <section className="cult-view" data-layer="6" aria-labelledby="cult-title">
           <div className="cult-topline"><button className="cult-exit" type="button" onClick={() => setView('plans')}>← {tr('premium')}</button><span className="cult-access"><i /> {tr('globalName').toUpperCase()} · ULTIMATE MODE</span><span className="cult-layer-mark">{tr('globalName').toUpperCase()}</span></div>
           <header className="cult-hero"><div><p className="kicker">{tr('globalEyebrow')}</p><h1 id="cult-title">{tr('globalTitle')}</h1><p>{tr('globalSubtitle')}</p></div><div className="cult-orbit-mark"><span>∞</span><small>FULL<br />ACCESS</small></div></header>
-          <nav className="cult-nav" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['badges', 'Insignias'], ['skins', tr('skinsGallery')]] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => setCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
+          <nav className="cult-nav" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['badges', 'Insignias'], ] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => setCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
           <div className="cult-layout"><main className="cult-main">
             {cultTab === 'home' && <><div className="cult-section-heading"><div><p className="kicker">Panel ULTIMATE MODE</p><h2>Todo tu potencial, en un solo nodo.</h2></div><span className="cult-live-pill"><i /> LIVE NETWORK</span></div><div className="cult-metric-grid"><article className="cult-metric cult-metric--wide"><span className="cult-metric-icon">✦</span><div><small>MODO IA · USO JUSTO</small><strong>Sin límites artificiales</strong><p>Contextualiza, consulta y establece actividades con una inteligencia que entiende tus 12 modos.</p></div><b>∞</b></article><article className="cult-metric"><small>INSIGHTS</small><strong>Global</strong><p>Conecta con estrategias de cultivo más allá de tu círculo.</p><span className="cult-metric-line" /></article><article className="cult-metric"><small>PROFESSIONAL</small><strong>Verified</strong><p>Encuentra orientación de especialistas por modo.</p><span className="cult-metric-line cult-metric-line--gold" /></article></div><div className="cult-feature-grid"><article><span>01 · TU RED</span><h3>Cultiva acompañado.</h3><p>Descubre recomendaciones comunitarias y comparte presets con tu red de apoyo.</p><button type="button" onClick={() => setCultTab('insights')}>Explorar Insights <span>→</span></button></article><article><span>02 · TU PRÓXIMO NIVEL</span><h3>Habla con experiencia.</h3><p>Solicita orientación privada y sigue el progreso de las recomendaciones profesionales.</p><button type="button" onClick={() => setCultTab('network')}>Encontrar especialistas <span>→</span></button></article></div></>}
             {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">Actividades compartidas por la comunidad</p><h2>Insights Globales.</h2></div><span className="cult-live-pill"><i /> {globalInsightActivities.length} ACTIVIDADES</span></div><p className="cult-section-copy">Descubre las prácticas que otras personas han realizado para avanzar de un nivel al siguiente en cada Modo. Abre una tarjeta para analizarla y guardarla en tu journey.</p>{insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}<div className="cult-insight-grid">{globalInsightActivities.map((insight) => { const mode = modes.find((item) => item.key === insight.modeKey)!; return <article className="cult-insight-activity" key={`${insight.modeKey}-${insight.level}`} style={{ '--insight-color': mode.color } as CSSProperties}><div className="cult-insight-activity-top"><span>{mode.icon} {mode.name}</span><small>NIVEL {insight.level} → {insight.level + 1}</small></div><h3>{insight.activity}</h3><button type="button" onClick={() => setCultInsightPreview(insight)}>Analizar actividad <span>↗</span></button></article>; })}</div></>}
@@ -1355,7 +1340,7 @@ function App() {
           <article className="crm-card crm-focus-card"><div className="crm-card-heading"><div><span className="crm-eyebrow">PRÓXIMOS FOCOS</span><h2>Áreas para cultivar</h2></div><span className="crm-card-caption">NIVELES MÁS BAJOS</span></div><div className="crm-focus-list">{dashboardSummary.leastCultivated.map((mode) => <button type="button" key={mode.key} onClick={() => openMode(mode)} style={{ '--mode-color': mode.color } as CSSProperties}><span className="crm-focus-icon">{mode.icon}</span><span><strong>{mode.shortName}</strong><small>{mode.description}</small></span><b>NIVEL {levels[mode.key]} ↗</b></button>)}</div></article>
           <article className="crm-card crm-next-card"><span className="crm-eyebrow">SIGUIENTE MOVIMIENTO</span><h2>Continúa tu cultivo</h2><p>Regresa al mapa de modos, elige un foco y define el próximo rumbo que quieres convertir en práctica.</p><button type="button" onClick={() => setView('welcome')}>Volver al mapa de modos <span>↗</span></button></article>
         </div>
-         <article className="crm-card crm-trivia-card"><div><span className="crm-eyebrow">{tr('triviaTitle').toUpperCase()} · ACCESO LIBRE</span><h2>{tr('triviaTitle')}</h2><p>{tr('triviaSubtitle')}</p></div><button type="button" onClick={() => setView('lab')}>{tr('triviaCta')} <span>↗</span></button></article>
+         <article className="crm-card crm-trivia-card"><div><span className="crm-eyebrow">{tr('triviaTitle').toUpperCase()}</span><h2>{tr('triviaTitle')}</h2><p>{tr('triviaSubtitle')}</p></div><button type="button" onClick={() => setView('lab')}>{tr('triviaCta')} <span>↗</span></button></article>
       </section>
 
       <footer className="dashboard-footer"><span className="footer-tip">Selecciona un foco para continuar tu Journey</span></footer>
