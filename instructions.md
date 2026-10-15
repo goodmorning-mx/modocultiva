@@ -46,6 +46,7 @@ GoodMorning Factory administra este producto. El repositorio del producto es la 
 ### Validación y Definition of Done
 
 - Ejecutar los checks documentados del producto: typecheck/lint, tests unitarios e integración, build, `docker compose config` o builds de servicios cuando apliquen.
+- Todo módulo GoodMorning nuevo o actualizado debe usar un release aprobado y un `source_commit` SHA completo coincidente con el registry de Factory; instala desde la URL Git fijada al SHA, no desde una rama ni un tag mutable.
 - Validar healthchecks y smoke checks de DEV después de cambios de despliegue; no afirmar que un entorno está funcionando sin evidencia.
 - Confirmar que no se agregaron secretos, tokens, credenciales, UUIDs privados ni identificadores de infraestructura.
 - Confirmar que las capacidades existentes y las migraciones siguen siendo compatibles.
