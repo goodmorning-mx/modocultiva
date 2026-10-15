@@ -1430,6 +1430,7 @@ function App() {
           <div className="overview-stage" aria-label="Overview de tus 12 modos de vida">
             <div className="overview-orbit overview-orbit--outer" />
             <div className="overview-orbit overview-orbit--inner" />
+              <span className="overview-light-sweep" aria-hidden="true" />
             {modes.map((mode, index) => (
               <button className="overview-mode" key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${modeName(mode)}, nivel ${levels[mode.key]}`}>
                 <span className="overview-mode-icon">{mode.icon}</span><span className="overview-mode-name">{modeShortName(mode)}</span><strong>{levels[mode.key]}</strong><span className="overview-mode-description">{modeDescription(mode)}</span>
