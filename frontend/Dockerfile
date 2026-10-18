@@ -2,6 +2,7 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 COPY package*.json ./
+COPY scripts ./scripts
 RUN npm ci
 COPY . .
 ARG VITE_API_URL=https://api.dev.modocultiva.goodmorning.mx
