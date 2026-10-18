@@ -24,6 +24,7 @@ public final class MainActivity extends Activity {
         });
         webView.setWebChromeClient(new WebChromeClient());
         webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setUserAgentString(webView.getSettings().getUserAgentString() + " ModoCultivaAndroidApp/1.0");
         webView.getSettings().setDomStorageEnabled(true);
         webView.getSettings().setDatabaseEnabled(true);
         webView.getSettings().setSupportZoom(false);
