@@ -1,0 +1,23 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
+const read = (relative) => readFileSync(resolve(root, relative), 'utf8');
+const fail = (message) => { console.error(`[pwa-check] ${message}`); process.exit(1); };
+
+const manifest = JSON.parse(read('public/manifest.webmanifest'));
+for (const field of ['name', 'short_name', 'start_url', 'scope', 'display', 'icons']) {
+  if (!manifest[field]) fail(`manifest is missing ${field}`);
+}
+
+const serviceWorker = read('public/sw.js');
+for (const required of ["request.method !== 'GET'", "startsWith('/auth/')", "startsWith('/api/')", "SKIP_WAITING", 'clients.claim']) {
+  if (!serviceWorker.includes(required)) fail(`service worker contract is missing ${required}`);
+}
+
+if (serviceWorker.includes('modo-cultiva-shell-v3')) fail('old service-worker cache remains');
+if (read('src/main.tsx').includes('serviceWorker.register')) fail('service worker is still registered outside GM-PWA');
+if (!existsSync(resolve(root, 'node_modules/@goodmorning/gm-pwa/frontend/dist/index.js'))) fail('GM-PWA build output is missing');
+
+console.log('[pwa-check] manifest, service worker boundaries and GM-PWA build output verified');
