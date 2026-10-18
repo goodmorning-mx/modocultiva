@@ -7,6 +7,7 @@ const read = (relative) => readFileSync(resolve(root, relative), 'utf8');
 const fail = (message) => { console.error(`[pwa-check] ${message}`); process.exit(1); };
 
 const manifest = JSON.parse(read('public/manifest.webmanifest'));
+if (!existsSync(resolve(root, 'public/downloads/modo-cultiva.apk'))) fail('Android fallback APK is missing');
 for (const field of ['name', 'short_name', 'start_url', 'scope', 'display', 'icons']) {
   if (!manifest[field]) fail(`manifest is missing ${field}`);
 }
@@ -23,7 +24,7 @@ for (const requiredIcon of [
 
 const serviceWorker = read('public/sw.js');
 const nginx = read('nginx.conf');
-if (!nginx.includes('text/html html;') || !nginx.includes('application/javascript js mjs;') || !nginx.includes('text/css css;') || !nginx.includes('application/manifest+json webmanifest') || !nginx.includes('location = /') || !nginx.includes('location = /index.html') || !nginx.includes('default_type text/html') || !nginx.includes('location ~* \\.m?js$') || !nginx.includes('location ~* \\.css$') || !nginx.includes('location = /manifest.webmanifest') || !nginx.includes('default_type application/manifest+json') || !nginx.includes('location = /sw.js') || !nginx.includes('default_type application/javascript') || !nginx.includes('Content-Disposition "inline"')) {
+if (!nginx.includes('text/html html;') || !nginx.includes('application/javascript js mjs;') || !nginx.includes('text/css css;') || !nginx.includes('application/manifest+json webmanifest') || !nginx.includes('location = /') || !nginx.includes('location = /index.html') || !nginx.includes('default_type text/html') || !nginx.includes('location ~* \\.m?js$') || !nginx.includes('location ~* \\.css$') || !nginx.includes('location = /manifest.webmanifest') || !nginx.includes('default_type application/manifest+json') || !nginx.includes('location = /sw.js') || !nginx.includes('default_type application/javascript') || !nginx.includes('location = /downloads/modo-cultiva.apk') || !nginx.includes('application/vnd.android.package-archive') || !nginx.includes('Content-Disposition "inline"')) {
   fail('nginx does not serve webmanifest with the installable MIME type');
 }
 for (const required of ["request.method !== 'GET'", "startsWith('/auth/')", "startsWith('/api/')", "SKIP_WAITING", 'clients.claim']) {
