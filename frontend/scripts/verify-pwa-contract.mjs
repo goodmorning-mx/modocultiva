@@ -11,6 +11,16 @@ for (const field of ['name', 'short_name', 'start_url', 'scope', 'display', 'ico
   if (!manifest[field]) fail(`manifest is missing ${field}`);
 }
 
+for (const requiredIcon of [
+  { src: '/modo-cultiva-icon-192.png', sizes: '192x192' },
+  { src: '/modo-cultiva-icon-512.png', sizes: '512x512' },
+]) {
+  if (!manifest.icons.some((icon) => icon.src === requiredIcon.src && icon.sizes === requiredIcon.sizes)) {
+    fail(`manifest is missing ${requiredIcon.sizes} install icon`);
+  }
+  if (!existsSync(resolve(root, `public${requiredIcon.src}`))) fail(`install icon is missing: ${requiredIcon.src}`);
+}
+
 const serviceWorker = read('public/sw.js');
 for (const required of ["request.method !== 'GET'", "startsWith('/auth/')", "startsWith('/api/')", "SKIP_WAITING", 'clients.claim']) {
   if (!serviceWorker.includes(required)) fail(`service worker contract is missing ${required}`);
