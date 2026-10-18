@@ -33,6 +33,12 @@ const copy: Record<PwaLanguage, PwaCopy> = {
 };
 
 const isIos = () => typeof navigator !== 'undefined' && (/iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+const isAndroid = () => typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+const androidDownloadLabels: Record<PwaLanguage, string> = {
+  es: 'Descargar app Android', en: 'Download Android app', zh: '下载 Android 应用', hi: 'Android ऐप डाउनलोड करें', ar: 'تنزيل تطبيق Android',
+  it: 'Scarica app Android', pt: 'Baixar app Android', ru: 'Скачать приложение Android', de: 'Android-App herunterladen', fr: 'Télécharger l’app Android', da: 'Download Android-app',
+};
+const androidDownloadUrl = 'https://github.com/goodmorning-mx/modocultiva/releases/download/android-dev/app-debug.apk';
 
 export function PwaControls({ language }: { language: string }) {
   const selectedLanguage = (language in copy ? language : 'en') as PwaLanguage;
@@ -45,6 +51,7 @@ export function PwaControls({ language }: { language: string }) {
     <div className="pwa-controls" aria-label="PWA controls">
       <span className={`pwa-status pwa-status--${status.online ? 'online' : 'offline'}`} role="status" aria-live="polite"><i />{status.online ? labels.online : labels.offline}</span>
       {!install.installed && <button className="pwa-action" type="button" onClick={() => void install.install()}>{install.installReady ? labels.install : labels.howToInstall}</button>}
+      {isAndroid() && !install.installed && <a className="pwa-action pwa-action--apk" href={androidDownloadUrl}>{androidDownloadLabels[selectedLanguage]}</a>}
       {update.updateReady && <button className="pwa-action pwa-action--update" type="button" onClick={() => void update.update()} disabled={update.updating}>{update.updating ? labels.updating : labels.update}</button>}
     </div>
     {install.guideOpen && <div className="pwa-guide-backdrop" role="presentation" onClick={install.closeGuide}><section className="pwa-guide" role="dialog" aria-modal="true" aria-labelledby="pwa-guide-title" onClick={(event) => event.stopPropagation()}>
