@@ -38,7 +38,7 @@ const androidDownloadLabels: Record<PwaLanguage, string> = {
   es: 'Descargar app Android', en: 'Download Android app', zh: '下载 Android 应用', hi: 'Android ऐप डाउनलोड करें', ar: 'تنزيل تطبيق Android',
   it: 'Scarica app Android', pt: 'Baixar app Android', ru: 'Скачать приложение Android', de: 'Android-App herunterladen', fr: 'Télécharger l’app Android', da: 'Download Android-app',
 };
-const androidDownloadUrl = 'https://github.com/goodmorning-mx/modocultiva/releases/download/android-dev/app-debug.apk';
+const androidDownloadUrl = '/downloads/modo-cultiva.apk';
 
 export function PwaControls({ language }: { language: string }) {
   const selectedLanguage = (language in copy ? language : 'en') as PwaLanguage;
