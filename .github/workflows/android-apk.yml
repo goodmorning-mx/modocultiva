@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: [dev]
+  pull_request:
+    branches: [dev]
 
 permissions:
   contents: write
@@ -26,6 +28,7 @@ jobs:
           if-no-files-found: error
       - name: Publish dev APK
         uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
         with:
           tag_name: android-dev
           name: Modo Cultiva Android (dev)
