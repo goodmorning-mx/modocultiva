@@ -23,7 +23,7 @@ for (const requiredIcon of [
 
 const serviceWorker = read('public/sw.js');
 const nginx = read('nginx.conf');
-if (!nginx.includes('application/manifest+json webmanifest') || !nginx.includes('location = /manifest.webmanifest') || !nginx.includes('default_type application/manifest+json')) {
+if (!nginx.includes('application/manifest+json webmanifest') || !nginx.includes('location = /manifest.webmanifest') || !nginx.includes('default_type application/manifest+json') || !nginx.includes('Content-Disposition "inline"')) {
   fail('nginx does not serve webmanifest with the installable MIME type');
 }
 for (const required of ["request.method !== 'GET'", "startsWith('/auth/')", "startsWith('/api/')", "SKIP_WAITING", 'clients.claim']) {
