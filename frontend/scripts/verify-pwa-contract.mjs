@@ -22,6 +22,8 @@ for (const requiredIcon of [
 }
 
 const serviceWorker = read('public/sw.js');
+const nginx = read('nginx.conf');
+if (!nginx.includes('application/manifest+json webmanifest')) fail('nginx does not serve webmanifest with the installable MIME type');
 for (const required of ["request.method !== 'GET'", "startsWith('/auth/')", "startsWith('/api/')", "SKIP_WAITING", 'clients.claim']) {
   if (!serviceWorker.includes(required)) fail(`service worker contract is missing ${required}`);
 }
