@@ -31,25 +31,18 @@ const copy: Record<PwaLanguage, PwaCopy> = {
 };
 
 const isIos = () => typeof navigator !== 'undefined' && (/iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
-const isAndroid = () => typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 const isNativeApp = () => typeof navigator !== 'undefined' && /ModoCultivaAndroidApp/i.test(navigator.userAgent);
-const androidDownloadLabels: Record<PwaLanguage, string> = {
-  es: 'Descargar app Android', en: 'Download Android app', zh: '下载 Android 应用', hi: 'Android ऐप डाउनलोड करें', ar: 'تنزيل تطبيق Android',
-  it: 'Scarica app Android', pt: 'Baixar app Android', ru: 'Скачать приложение Android', de: 'Android-App herunterladen', fr: 'Télécharger l’app Android', da: 'Download Android-app',
-};
-const androidDownloadUrl = '/downloads/modo-cultiva.apk';
 
 export function PwaControls({ language }: { language: string }) {
   const selectedLanguage = (language in copy ? language : 'en') as PwaLanguage;
   const labels = copy[selectedLanguage];
   const install = usePwaInstall();
   const isApp = isNativeApp();
-  const update = usePwaUpdate({ serviceWorkerUrl: '/sw.js', version: '2026-10-17', updateIntervalMs: 60 * 60 * 1000 });
+  const update = usePwaUpdate({ serviceWorkerUrl: '/sw.js', version: '2026-10-18-pwa', updateIntervalMs: 15 * 60 * 1000 });
 
   return <>
     <div className="pwa-controls" aria-label="PWA controls">
       {!isApp && !install.installed && <button className="pwa-action" type="button" onClick={() => void install.install()}>{install.installReady ? labels.install : labels.howToInstall}</button>}
-      {!isApp && isAndroid() && !install.installed && <a className="pwa-action pwa-action--apk" href={androidDownloadUrl}>{androidDownloadLabels[selectedLanguage]}</a>}
       {update.updateReady && <button className="pwa-action pwa-action--update" type="button" onClick={() => void update.update()} disabled={update.updating}>{update.updating ? labels.updating : labels.update}</button>}
     </div>
     {install.guideOpen && <div className="pwa-guide-backdrop" role="presentation" onClick={install.closeGuide}><section className="pwa-guide" role="dialog" aria-modal="true" aria-labelledby="pwa-guide-title" onClick={(event) => event.stopPropagation()}>
