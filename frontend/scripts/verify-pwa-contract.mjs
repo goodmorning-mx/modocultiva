@@ -34,7 +34,7 @@ for (const required of ["request.method !== 'GET'", "startsWith('/auth/')", "sta
 }
 
 if (serviceWorker.includes('modo-cultiva-shell-v3')) fail('old service-worker cache remains');
-if (read('src/main.tsx').includes('serviceWorker.register')) fail('service worker is still registered outside GM-PWA');
+if (!read('src/main.tsx').includes("navigator.serviceWorker.register('/sw.js')")) fail('service worker is not registered before the app mounts');
 if (!existsSync(resolve(root, 'node_modules/@goodmorning/gm-pwa/frontend/dist/index.js'))) fail('GM-PWA build output is missing');
 
 console.log('[pwa-check] manifest, service worker boundaries and GM-PWA build output verified');
