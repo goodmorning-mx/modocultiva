@@ -1,4 +1,5 @@
-import { usePwaInstall, usePwaUpdate } from '@goodmorning/gm-pwa';
+import { usePwaUpdate } from '@goodmorning/gm-pwa';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type PwaLanguage = 'es' | 'en' | 'zh' | 'hi' | 'ar' | 'it' | 'pt' | 'ru' | 'de' | 'fr' | 'da';
 
@@ -33,10 +34,67 @@ const copy: Record<PwaLanguage, PwaCopy> = {
 const isIos = () => typeof navigator !== 'undefined' && (/iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 const isNativeApp = () => typeof navigator !== 'undefined' && /ModoCultivaAndroidApp/i.test(navigator.userAgent);
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+};
+
+let capturedInstallPrompt: BeforeInstallPromptEvent | null = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    capturedInstallPrompt = event as BeforeInstallPromptEvent;
+    window.dispatchEvent(new Event('modo-cultiva-install-ready'));
+  });
+}
+
+function useReliablePwaInstall() {
+  const promptRef = useRef<BeforeInstallPromptEvent | null>(capturedInstallPrompt);
+  const [installed, setInstalled] = useState(() => typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true));
+  const [installReady, setInstallReady] = useState(() => Boolean(capturedInstallPrompt));
+  const [guideOpen, setGuideOpen] = useState(false);
+
+  useEffect(() => {
+    const onPromptReady = () => {
+      promptRef.current = capturedInstallPrompt;
+      setInstallReady(Boolean(promptRef.current));
+    };
+    const onInstalled = () => {
+      capturedInstallPrompt = null;
+      promptRef.current = null;
+      setInstallReady(false);
+      setInstalled(true);
+      setGuideOpen(false);
+    };
+    window.addEventListener('modo-cultiva-install-ready', onPromptReady);
+    window.addEventListener('appinstalled', onInstalled);
+    onPromptReady();
+    return () => {
+      window.removeEventListener('modo-cultiva-install-ready', onPromptReady);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
+  }, []);
+
+  const install = useCallback(async () => {
+    if (isIos() || !promptRef.current) {
+      setGuideOpen(true);
+      return;
+    }
+    const prompt = promptRef.current;
+    await prompt.prompt();
+    await prompt.userChoice;
+    capturedInstallPrompt = null;
+    promptRef.current = null;
+    setInstallReady(false);
+  }, []);
+
+  return { installed, installReady, guideOpen, install, closeGuide: () => setGuideOpen(false) };
+}
+
 export function PwaControls({ language }: { language: string }) {
   const selectedLanguage = (language in copy ? language : 'en') as PwaLanguage;
   const labels = copy[selectedLanguage];
-  const install = usePwaInstall();
+  const install = useReliablePwaInstall();
   const isApp = isNativeApp();
   const update = usePwaUpdate({ serviceWorkerUrl: '/sw.js', version: '2026-10-18-pwa', updateIntervalMs: 15 * 60 * 1000 });
 
