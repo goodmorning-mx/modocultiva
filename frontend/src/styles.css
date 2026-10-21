@@ -521,6 +521,33 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
   .overview-mode:hover, .overview-mode:focus-visible { min-height: 76px; transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(-112px) rotate(calc(var(--mode-angle) * -1)) scale(1.04) !important; }
   .overview-core { width: 132px; height: 132px; }
 }
+/* Keep the twelve Holista cards separated on touch screens. The old 128px
+   radius produced only ~66px between neighbouring cards, while cards were
+   74px wide. A stable radius and fixed touch box prevent overlap and keep
+   every mode independently tappable. */
+@media (max-width: 680px) {
+  .overview-mode {
+    width: clamp(62px, 18vw, 74px);
+    min-height: 68px;
+    transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(clamp(-150px, -40vw, -128px)) rotate(calc(var(--mode-angle) * -1));
+    transition: border-color .3s ease, box-shadow .3s ease, background .3s ease;
+  }
+  .overview-mode:hover, .overview-mode:focus-visible {
+    min-height: 68px;
+    transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(clamp(-150px, -40vw, -128px)) rotate(calc(var(--mode-angle) * -1));
+  }
+}
+@media (max-width: 380px) {
+  .overview-mode {
+    width: clamp(60px, 18vw, 68px);
+    min-height: 64px;
+    transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(clamp(-136px, -40vw, -124px)) rotate(calc(var(--mode-angle) * -1));
+  }
+  .overview-mode:hover, .overview-mode:focus-visible {
+    min-height: 64px;
+    transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(clamp(-136px, -40vw, -124px)) rotate(calc(var(--mode-angle) * -1));
+  }
+}
 @media (prefers-reduced-motion: reduce) { .overview-light-sweep, .overview-orbit--inner { animation: none; } }
  .agent-runtime-strip { display: flex; align-items: center; gap: 8px; margin: 15px 0 4px; padding: 8px 10px; border: 1px solid rgba(112, 237, 156, .2); border-radius: 8px; background: rgba(4, 25, 29, .58); color: #a9c9b8; font-size: .62rem; }
  .agent-runtime-strip strong { color: #70ed9c; font-family: 'DM Mono', monospace; font-size: .55rem; letter-spacing: .05em; text-transform: uppercase; }
