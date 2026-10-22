@@ -6,7 +6,7 @@ body { margin: 0; min-width: 0; min-height: 100vh; background: radial-gradient(c
 button, input { font: inherit; }
 button { cursor: pointer; }
 .app-shell { width: min(100%, 1480px); min-height: 100vh; margin: 0 auto; padding: 24px clamp(20px, 4vw, 64px) 28px; overflow: hidden; }
-.topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 5px 0 28px; border-bottom: 1px solid rgba(190, 235, 208, .13); }
+.topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding: 5px 0 28px 60px; border-bottom: 1px solid rgba(190, 235, 208, .13); }
 .brand { display: inline-flex; align-items: center; gap: 12px; color: #f6faf6; text-decoration: none; font-size: 1rem; font-weight: 800; letter-spacing: -.02em; }
 .brand img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; object-position: center 33%; }
 .topbar-meta, .kicker, .stat-label, .level-row, .card-number, .dashboard-footer { font-family: 'DM Mono', monospace; letter-spacing: .13em; text-transform: uppercase; }
@@ -272,8 +272,11 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 
 @media (max-width: 680px) { .dj-profile-entry { align-self: end; width: 142px; flex-basis: 142px; }.dj-profile-button { width: 142px; height: 142px; }.dj-profile-copy strong { font-size: .85rem; }.dj-profile-copy span { font-size: .42rem; } }
 
-.profile-menu { position: relative; }
-.profile-menu-dropdown { position: absolute; z-index: 20; top: calc(100% + 9px); right: 0; min-width: 150px; padding: 6px; border: 1px solid rgba(112, 237, 156, .28); border-radius: 9px; background: linear-gradient(145deg, #163638, #091c24); box-shadow: 0 14px 30px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.1); }
+.profile-menu { position: fixed; top: max(24px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); z-index: 9; }
+.profile-menu > .profile-button { display: grid; place-items: center; width: 44px; height: 44px; box-shadow: 0 4px 16px rgba(0,0,0,.24); }
+.profile-menu-dropdown { position: absolute; z-index: 20; top: calc(100% + 9px); left: 0; right: auto; min-width: 176px; max-width: calc(100vw - 32px); padding: 6px; border: 1px solid rgba(112, 237, 156, .28); border-radius: 9px; background: linear-gradient(145deg, #163638, #091c24); box-shadow: 0 14px 30px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.1); }
+.profile-menu .profile-menu-dropdown button { text-align: start; }
+@media (max-width: 680px) { .profile-menu { top: max(18px, env(safe-area-inset-top)); } }
 .profile-menu-dropdown button { width: 100%; padding: 9px 11px; border: 0; border-radius: 6px; color: #c8e9d3; background: transparent; font-size: .68rem; text-align: left; }.profile-menu-dropdown button:hover, .profile-menu-dropdown button:focus-visible { color: #061a16; background: #70ed9c; outline: none; }
 .login-view { background-size: cover; background-position: center; }
 
