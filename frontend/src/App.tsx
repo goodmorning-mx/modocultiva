@@ -279,6 +279,8 @@ const translations: Record<Language, Record<string, string>> = {
   da: { enter: 'GÅ IND', login: 'Log ind', createAccount: 'Opret konto', logout: 'Log ud', premium: 'Premium-tilstande', welcome: 'Velkommen til dit livskort', dashboard: 'Dashboard', customize: 'Tilpas', pressToEnter: 'Tryk for at gå ind', chooseLanguage: 'Sprog', journey: 'Mode-rejse', back: 'Tilbage', activity: 'Aktivitet', askAI: 'Spørg Mode AI', useActivity: 'Brug denne aktivitet', context: 'Din kontekst til AI', plans: 'Vælg dit næste niveau', freeAccess: 'Fortsæt som gæst', password: 'Adgangskode', email: 'E-mail', name: 'Navn', home: 'Hjem', levels: 'Niveauer', modes: 'Modes', save: 'Gem', load: 'Indlæs', remove: 'Slet', close: 'Luk', viewProfile: 'Se profil', next: 'Næste', previous: 'Forrige', recommendations: 'Anbefalinger', filters: 'Filtre', skins: 'Skins', analyze: 'Analysér aktivitet', useInMap: 'Gem på mit kort' },
  };
 const extraTranslations: Record<string, Record<Language, string>> = {
+  pressToEnter: { es: 'Accesar al Dashboard', en: 'Access the Dashboard', zh: '进入仪表板', hi: 'डैशबोर्ड पर जाएँ', ar: 'الدخول إلى لوحة التحكم', it: 'Accedi alla dashboard', pt: 'Acessar o painel', ru: 'Перейти в панель управления', de: 'Dashboard öffnen', fr: 'Accéder au tableau de bord', da: 'Åbn dashboardet' },
+  openProfileMenu: { es: 'Abrir perfil', en: 'Open profile', zh: '打开个人资料', hi: 'प्रोफ़ाइल खोलें', ar: 'فتح الملف الشخصي', it: 'Apri profilo', pt: 'Abrir perfil', ru: 'Открыть профиль', de: 'Profil öffnen', fr: 'Ouvrir le profil', da: 'Åbn profil' },
   level: { es: 'NIVEL', en: 'LEVEL', zh: '等级', hi: 'स्तर', ar: 'المستوى', it: 'LIVELLO', pt: 'NÍVEL', ru: 'УРОВЕНЬ', de: 'STUFE', fr: 'NIVEAU', da: 'NIVEAU' },
   overview: { es: 'Overview', en: 'Overview', zh: '概览', hi: 'ओवरव्यू', ar: 'نظرة عامة', it: 'Panoramica', pt: 'Visão geral', ru: 'Обзор', de: 'Übersicht', fr: 'Vue d’ensemble', da: 'Oversigt' },
   globalActivitiesEyebrow: { es: 'ACTIVIDADES COMPARTIDAS POR LA COMUNIDAD', en: 'ACTIVITIES SHARED BY THE COMMUNITY', zh: '社区分享的活动', hi: 'समुदाय द्वारा साझा की गई गतिविधियाँ', ar: 'أنشطة شاركها المجتمع', it: 'ATTIVITÀ CONDIVISE DALLA COMUNITÀ', pt: 'ATIVIDADES COMPARTILHADAS PELA COMUNIDADE', ru: 'АКТИВНОСТИ, КОТОРЫМИ ДЕЛИТСЯ СООБЩЕСТВО', de: 'VON DER COMMUNITY GETEILTE AKTIVITÄTEN', fr: 'ACTIVITÉS PARTAGÉES PAR LA COMMUNAUTÉ', da: 'AKTIVITETER DELT AF FÆLLESSKABET' },
@@ -1408,12 +1410,12 @@ function App() {
   return (
     <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
       <header className="topbar">
+        <div className="profile-menu"><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div>
         <a className="brand" href="/" aria-label="Modo Cultiva, inicio">
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
         <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> {tr('lifeModes')} <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select></label></div>
-        <div className="profile-menu"><button className="profile-button" type="button" aria-label="Abrir perfil" aria-expanded={profileMenuOpen} aria-haspopup="menu" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div>
         <PwaControls language={language} />
       </header>
 
@@ -1487,7 +1489,7 @@ function App() {
               </button>
             ))}
             <div className="overview-person">
-              <button className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={`Presiona para entrar al Dashboard${displayedProfileName ? ` de ${displayedProfileName}` : ''}`}>
+              <button className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={tr('pressToEnter')}>
                 <span className="overview-photo-content"><strong>{displayedProfileName}</strong>{displayedProfileRole && <span className="profile-badge">{displayedProfileRole}</span>}</span>
                 <span className="overview-enter-prompt">{tr('pressToEnter')} <b>↗</b></span>
               </button>
