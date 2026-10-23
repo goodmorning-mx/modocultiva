@@ -172,6 +172,12 @@ def save_state(payload: UserStatePayload, identity: AuthIdentity = Depends(ident
     return {"status": "saved"}
 
 
+@app.post("/state/merge")
+def merge_device_state(payload: UserStatePayload, identity: AuthIdentity = Depends(identity_required)) -> dict[str, str]:
+    user_state_store.merge(identity.user_id, identity.organization_id, payload.state)
+    return {"status": "merged"}
+
+
 @app.post("/agent/chat")
 async def agent_chat(payload: AgentChatInput, identity: AuthIdentity = Depends(identity_required)) -> dict[str, str]:
     content, conversation_id = await _respond(identity, payload.conversation_id, payload.prompt, payload.model)

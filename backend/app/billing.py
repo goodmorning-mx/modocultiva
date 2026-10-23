@@ -101,3 +101,50 @@ class UserStateStore:
                     "state": json.dumps(state),
                 },
             )
+
+    def merge(self, user_id: str, organization_id: str, state: dict[str, Any]) -> None:
+        """Merge a device's pre-account state without discarding cloud data."""
+        with self.engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO modocultiva_user_state
+                    (user_id, organization_id, state, updated_at)
+                    VALUES (:user_id, :organization_id, CAST(:state AS jsonb), now())
+                    ON CONFLICT (user_id, organization_id)
+                    DO UPDATE SET state =
+                      jsonb_set(
+                        jsonb_set(
+                          jsonb_set(
+                            jsonb_set(
+                              jsonb_set(
+                                modocultiva_user_state.state || EXCLUDED.state,
+                                '{levels}',
+                                COALESCE(modocultiva_user_state.state->'levels', '{}'::jsonb) || COALESCE(EXCLUDED.state->'levels', '{}'::jsonb),
+                                true
+                              ),
+                              '{presets}',
+                              COALESCE(modocultiva_user_state.state->'presets', '{}'::jsonb) || COALESCE(EXCLUDED.state->'presets', '{}'::jsonb),
+                              true
+                            ),
+                            '{activityDrafts}',
+                            COALESCE(modocultiva_user_state.state->'activityDrafts', '{}'::jsonb) || COALESCE(EXCLUDED.state->'activityDrafts', '{}'::jsonb),
+                            true
+                          ),
+                          '{insightRequests}',
+                          COALESCE(modocultiva_user_state.state->'insightRequests', '{}'::jsonb) || COALESCE(EXCLUDED.state->'insightRequests', '{}'::jsonb),
+                          true
+                        ),
+                        '{visionImages}',
+                        COALESCE(modocultiva_user_state.state->'visionImages', '{}'::jsonb) || COALESCE(EXCLUDED.state->'visionImages', '{}'::jsonb),
+                        true
+                      ),
+                      updated_at = now()
+                    """
+                ),
+                {
+                    "user_id": user_id,
+                    "organization_id": organization_id,
+                    "state": json.dumps(state),
+                },
+            )
