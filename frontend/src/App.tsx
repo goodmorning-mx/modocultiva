@@ -281,6 +281,9 @@ const translations: Record<Language, Record<string, string>> = {
 const extraTranslations: Record<string, Record<Language, string>> = {
   pressToEnter: { es: 'Accesar al Dashboard', en: 'Access the Dashboard', zh: '进入仪表板', hi: 'डैशबोर्ड पर जाएँ', ar: 'الدخول إلى لوحة التحكم', it: 'Accedi alla dashboard', pt: 'Acessar o painel', ru: 'Перейти в панель управления', de: 'Dashboard öffnen', fr: 'Accéder au tableau de bord', da: 'Åbn dashboardet' },
   openProfileMenu: { es: 'Abrir perfil', en: 'Open profile', zh: '打开个人资料', hi: 'प्रोफ़ाइल खोलें', ar: 'فتح الملف الشخصي', it: 'Apri profilo', pt: 'Abrir perfil', ru: 'Открыть профиль', de: 'Profil öffnen', fr: 'Ouvrir le profil', da: 'Åbn profil' },
+  syncState: { es: 'Sincronizando configuración…', en: 'Syncing settings…', zh: '正在同步设置…', hi: 'सेटिंग सिंक हो रही हैं…', ar: 'جارٍ مزامنة الإعدادات…', it: 'Sincronizzazione impostazioni…', pt: 'Sincronizando configurações…', ru: 'Синхронизация настроек…', de: 'Einstellungen werden synchronisiert…', fr: 'Synchronisation des réglages…', da: 'Synkroniserer indstillinger…' },
+  syncReady: { es: 'Configuración sincronizada', en: 'Settings synced', zh: '设置已同步', hi: 'सेटिंग सिंक हो गईं', ar: 'تمت مزامنة الإعدادات', it: 'Impostazioni sincronizzate', pt: 'Configurações sincronizadas', ru: 'Настройки синхронизированы', de: 'Einstellungen synchronisiert', fr: 'Réglages synchronisés', da: 'Indstillinger synkroniseret' },
+  syncFailed: { es: 'No se sincronizó; tus datos siguen guardados aquí', en: 'Sync failed; your data is still saved on this device', zh: '同步失败；数据仍保存在此设备', hi: 'सिंक विफल; डेटा इस डिवाइस पर सुरक्षित है', ar: 'تعذرت المزامنة؛ بياناتك ما زالت محفوظة على هذا الجهاز', it: 'Sincronizzazione non riuscita; i dati sono ancora su questo dispositivo', pt: 'Falha na sincronização; seus dados ainda estão salvos neste dispositivo', ru: 'Синхронизация не удалась; данные сохранены на этом устройстве', de: 'Synchronisierung fehlgeschlagen; Daten sind weiterhin auf diesem Gerät gespeichert', fr: 'Échec de la synchronisation ; vos données restent sur cet appareil', da: 'Synkronisering mislykkedes; dine data er stadig gemt på denne enhed' },
   level: { es: 'NIVEL', en: 'LEVEL', zh: '等级', hi: 'स्तर', ar: 'المستوى', it: 'LIVELLO', pt: 'NÍVEL', ru: 'УРОВЕНЬ', de: 'STUFE', fr: 'NIVEAU', da: 'NIVEAU' },
   overview: { es: 'Overview', en: 'Overview', zh: '概览', hi: 'ओवरव्यू', ar: 'نظرة عامة', it: 'Panoramica', pt: 'Visão geral', ru: 'Обзор', de: 'Übersicht', fr: 'Vue d’ensemble', da: 'Oversigt' },
   globalActivitiesEyebrow: { es: 'ACTIVIDADES COMPARTIDAS POR LA COMUNIDAD', en: 'ACTIVITIES SHARED BY THE COMMUNITY', zh: '社区分享的活动', hi: 'समुदाय द्वारा साझा की गई गतिविधियाँ', ar: 'أنشطة شاركها المجتمع', it: 'ATTIVITÀ CONDIVISE DALLA COMUNITÀ', pt: 'ATIVIDADES COMPARTILHADAS PELA COMUNIDADE', ru: 'АКТИВНОСТИ, КОТОРЫМИ ДЕЛИТСЯ СООБЩЕСТВО', de: 'VON DER COMMUNITY GETEILTE AKTIVITÄTEN', fr: 'ACTIVITÉS PARTAGÉES PAR LA COMMUNAUTÉ', da: 'AKTIVITETER DELT AF FÆLLESSKABET' },
@@ -510,6 +513,46 @@ const authClient = {
   async logout(refresh_token: string): Promise<void> { await fetch(`${apiUrl}/auth/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token }) }); },
 };
 
+const legacyDeviceStateKey = 'modoCultiva_deviceStateMigrated';
+const readLegacyDeviceState = (): Record<string, unknown> => {
+  const readJson = (key: string, fallback: unknown) => {
+    try { return JSON.parse(window.localStorage.getItem(key) ?? JSON.stringify(fallback)); }
+    catch { return fallback; }
+  };
+  const state: Record<string, unknown> = {
+    levels: { ...defaultLevels, ...readJson('modoCultiva_lastState', {}) },
+    presets: readJson('modoCultiva_presets', {}),
+    activityDrafts: readJson('modoCultiva_activityDrafts', {}),
+    insightRequests: readJson('modoCultiva_insightRequests', {}),
+    visionImages: readJson('modoCultiva_visionImages', {}),
+    featuredBadges: readJson('modoCultiva_featuredBadges', []),
+    selectedPreset: window.localStorage.getItem('modoCultiva_selectedPreset') ?? '',
+    profileName: window.localStorage.getItem('modoCultiva_profileName') ?? '',
+    profileImage: window.localStorage.getItem('modoCultiva_profileImage'),
+    skin: window.localStorage.getItem('modoCultiva_skin') ?? 'holista',
+    paletteFilter: 'none',
+  };
+  const savedPlan = window.localStorage.getItem('modoCultiva_plan');
+  if (savedPlan === 'basic' || savedPlan === 'gold' || savedPlan === 'ultimate') state.activePlan = savedPlan;
+  if (window.localStorage.getItem('modoCultiva_language_source') === 'manual') {
+    const savedLanguage = window.localStorage.getItem('modoCultiva_language');
+    if (savedLanguage && supportedLanguages.includes(savedLanguage as Language)) state.language = savedLanguage;
+  }
+  return state;
+};
+const hasLegacyDeviceConfiguration = (state: Record<string, unknown>): boolean => {
+  const levels = state.levels as Record<string, number>;
+  const hasProgress = Object.values(levels).some((level) => Number(level) > 0);
+  const hasEntries = (key: string) => {
+    const value = state[key];
+    return value !== null && typeof value === 'object' && Object.keys(value).length > 0;
+  };
+  return hasProgress || hasEntries('presets') || hasEntries('activityDrafts')
+    || hasEntries('insightRequests') || hasEntries('visionImages')
+    || (Array.isArray(state.featuredBadges) && state.featuredBadges.length > 0)
+    || Boolean(state.profileName) || Boolean(state.profileImage);
+};
+
 function App() {
   const [language, setLanguage] = useState<Language>(detectLanguage);
   const handleLanguageChange = (nextLanguage: Language) => {
@@ -635,6 +678,7 @@ function App() {
     : (profileName.trim() === defaultUserProfile.name ? '' : profileName);
   const displayedProfileRole = isOwnerAccount ? defaultUserProfile.role : '';
   const [stateHydrated, setStateHydrated] = useState(false);
+  const [stateSyncStatus, setStateSyncStatus] = useState<'syncing' | 'synced' | 'error'>('syncing');
   const [authError, setAuthError] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
   const [activePlan, setActivePlan] = useState<PlanKey>(() => {
@@ -719,7 +763,7 @@ function App() {
     }
   });
   const [presetName, setPresetName] = useState('');
-  const [selectedPreset, setSelectedPreset] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState(() => window.localStorage.getItem('modoCultiva_selectedPreset') ?? '');
   const [presetNotice, setPresetNotice] = useState<string | null>(null);
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -913,30 +957,60 @@ function App() {
     const controller = new AbortController();
     async function hydrateUserState() {
       try {
+        setStateSyncStatus('syncing');
         const response = await fetch(`${apiUrl}/state`, {
           signal: controller.signal,
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         if (!response.ok) throw new Error('No fue posible cargar tu mapa personal.');
         const payload = await response.json() as { state?: Record<string, unknown> };
-        const state = payload.state ?? {};
-        if (typeof state.profileName === 'string') setProfileName(state.profileName);
-        if (typeof state.profileImage === 'string' || state.profileImage === null) setProfileImage(state.profileImage as string | null);
-        if (state.levels && typeof state.levels === 'object') setLevels({ ...defaultLevels, ...(state.levels as Record<string, number>) });
-        if (state.activityDrafts && typeof state.activityDrafts === 'object') setActivityDrafts(state.activityDrafts as Record<string, string>);
-        if (state.insightRequests && typeof state.insightRequests === 'object') setInsightRequests(state.insightRequests as Record<string, boolean>);
-        if (state.presets && typeof state.presets === 'object') setPresets(state.presets as Record<string, Preset>);
-        if (state.visionImages && typeof state.visionImages === 'object') setVisionImages(state.visionImages as Record<string, string>);
+        let state = payload.state ?? {};
+        if (window.localStorage.getItem(legacyDeviceStateKey) !== 'true') {
+          const localState = readLegacyDeviceState();
+          if (hasLegacyDeviceConfiguration(localState)) {
+            const migrationResponse = await fetch(`${apiUrl}/state/merge`, {
+              method: 'POST',
+              signal: controller.signal,
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+              body: JSON.stringify({ state: localState }),
+            });
+            if (!migrationResponse.ok) throw new Error('No fue posible sincronizar la configuración de este dispositivo. Tus datos locales siguen guardados.');
+            const syncedResponse = await fetch(`${apiUrl}/state`, {
+              signal: controller.signal,
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            if (!syncedResponse.ok) throw new Error('No fue posible confirmar la sincronización de tu mapa. Tus datos locales siguen guardados.');
+            state = ((await syncedResponse.json()) as { state?: Record<string, unknown> }).state ?? {};
+          }
+          window.localStorage.setItem(legacyDeviceStateKey, 'true');
+        }
+        setProfileName(typeof state.profileName === 'string' ? state.profileName : '');
+        setProfileImage(typeof state.profileImage === 'string' ? state.profileImage : null);
+        setLevels({ ...defaultLevels, ...(state.levels && typeof state.levels === 'object' ? state.levels as Record<string, number> : {}) });
+        setActivityDrafts(state.activityDrafts && typeof state.activityDrafts === 'object' ? state.activityDrafts as Record<string, string> : {});
+        setInsightRequests(state.insightRequests && typeof state.insightRequests === 'object' ? state.insightRequests as Record<string, boolean> : {});
+        setPresets(state.presets && typeof state.presets === 'object' ? state.presets as Record<string, Preset> : {});
+        setVisionImages(state.visionImages && typeof state.visionImages === 'object' ? state.visionImages as Record<string, string> : {});
+        setFeaturedBadges(Array.isArray(state.featuredBadges) ? state.featuredBadges as string[] : []);
+        const remotePreset = typeof state.selectedPreset === 'string' && state.presets && typeof state.presets === 'object' && state.selectedPreset in state.presets
+          ? state.selectedPreset : '';
+        setSelectedPreset(remotePreset);
+        window.localStorage.setItem('modoCultiva_selectedPreset', remotePreset);
+        setLanguage(typeof state.language === 'string' && supportedLanguages.includes(state.language as Language) ? state.language as Language : detectBrowserLanguage());
         const remoteSkin = typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin) ? state.skin as Skin : null;
         if (loginSkinChoice.current) {
           setSkin('holista');
           window.localStorage.setItem('modoCultiva_skin', 'holista');
-        } else if (remoteSkin) setSkin('holista');
+        } else setSkin(remoteSkin ?? 'holista');
         setPaletteFilter('none');
-        if (state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate') setActivePlan(state.activePlan);
+        setActivePlan(state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate' ? state.activePlan : 'ultimate');
         setStateHydrated(true);
+        setStateSyncStatus('synced');
       } catch (error) {
-        if (!(error instanceof DOMException && error.name === 'AbortError')) setAuthError(error instanceof Error ? error.message : 'No fue posible cargar tu mapa.');
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          setStateSyncStatus('error');
+          setAuthError(error instanceof Error ? error.message : 'No fue posible cargar tu mapa.');
+        }
       }
     }
     void hydrateUserState();
@@ -949,15 +1023,26 @@ function App() {
 
   useEffect(() => {
     if (!authTokens?.access_token || !stateHydrated) return;
-    const timer = window.setTimeout(() => {
+    const persistState = () => {
+      setStateSyncStatus('syncing');
       void fetch(`${apiUrl}/state`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authTokens.access_token}` },
-        body: JSON.stringify({ state: { profileName, profileImage, levels, activityDrafts, insightRequests, presets, visionImages, skin, paletteFilter, activePlan } }),
-      });
+        keepalive: true,
+        body: JSON.stringify({ state: { profileName, profileImage, levels, activityDrafts, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language } }),
+      }).then((response) => setStateSyncStatus(response.ok ? 'synced' : 'error')).catch(() => setStateSyncStatus('error'));
+    };
+    window.addEventListener('pagehide', persistState);
+    window.addEventListener('online', persistState);
+    const timer = window.setTimeout(() => {
+      persistState();
     }, 350);
-    return () => window.clearTimeout(timer);
-  }, [activePlan, activityDrafts, authTokens?.access_token, insightRequests, levels, paletteFilter, presets, profileImage, profileName, skin, stateHydrated, visionImages]);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('pagehide', persistState);
+      window.removeEventListener('online', persistState);
+    };
+  }, [activePlan, activityDrafts, authTokens?.access_token, featuredBadges, insightRequests, language, levels, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1316,6 +1401,7 @@ function App() {
     const next = { ...presets, [name]: { ...levels } };
     setPresets(next);
     setSelectedPreset(name);
+    window.localStorage.setItem('modoCultiva_selectedPreset', name);
     setPresetName('');
     setPresetNotice(trf('presetSaved', { name }));
     try {
@@ -1343,6 +1429,7 @@ function App() {
     delete next[selectedPreset];
     setPresets(next);
     setSelectedPreset('');
+    window.localStorage.removeItem('modoCultiva_selectedPreset');
     setPresetNotice(tr('presetDeleted'));
     try {
       window.localStorage.setItem('modoCultiva_presets', JSON.stringify(next));
@@ -1416,6 +1503,7 @@ function App() {
           <span>Modo Cultiva</span>
         </a>
         <div className="topbar-meta"><span className="live-dot" /> MODO CULTIVA <span className="meta-divider" /> {tr('lifeModes')} <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select></label></div>
+        {isAuthenticated && <span className={`state-sync-state state-sync-state--${stateSyncStatus}`} role="status">{tr(stateSyncStatus === 'syncing' ? 'syncState' : stateSyncStatus === 'synced' ? 'syncReady' : 'syncFailed')}</span>}
         <PwaControls language={language} />
       </header>
 
@@ -1504,7 +1592,7 @@ function App() {
             <div className="preset-controls">
               <label htmlFor="preset-name">{tr('newPreset')}<input id="preset-name" value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder={tr('presetExample')} /></label>
               <button className="preset-action preset-action--primary" type="button" onClick={savePreset}>{tr('save')}</button>
-              <label htmlFor="preset-select">{tr('savedPresets')}<select id="preset-select" value={selectedPreset} onChange={(event) => setSelectedPreset(event.target.value)}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
+              <label htmlFor="preset-select">{tr('savedPresets')}<select id="preset-select" value={selectedPreset} onChange={(event) => { setSelectedPreset(event.target.value); window.localStorage.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
               <button className="preset-action" type="button" onClick={loadPreset}>{tr('load')}</button><button className="preset-action preset-action--danger" type="button" onClick={deletePreset}>{tr('remove')}</button>
             </div>
             {presetNotice && <p className="preset-notice" role="status">{presetNotice}</p>}
