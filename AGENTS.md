@@ -13,6 +13,7 @@
 - Report every command run and its result.
 - Call out any check that could not run and explain the environment limitation.
 - Confirm that no real secrets, credentials, tokens, or production identifiers were added.
+- Preserve existing user data across application updates. Changes to persistence or migrations must include regression coverage for loading and saving an existing user state, including presets and all 12 mode levels; never reset or drop user data as part of a routine deploy.
 
 ## Safety and approvals
 - Do not perform destructive operations without explicit approval.
