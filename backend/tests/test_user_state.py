@@ -36,11 +36,16 @@ class _InMemoryStateDatabase:
             incoming = json.loads(parameters["state"])
             assert "ON CONFLICT (user_id, organization_id)" in query
             if "jsonb_set(" in query:
-                for field in ("levels", "presets", "activityDrafts", "insightRequests", "visionImages"):
+                for field in ("levels", "presets", "activityDrafts", "insightRequests", "visionImages", "featuredBadges"):
                     assert f"'{{{field}}}'" in query
-                merged = {**self.rows.get(key, {}), **incoming}
+                existing = self.rows.get(key, {})
+                merged = {**incoming, **existing}
                 for field in ("levels", "presets", "activityDrafts", "insightRequests", "visionImages"):
-                    merged[field] = {**self.rows.get(key, {}).get(field, {}), **incoming.get(field, {})}
+                    merged[field] = {**incoming.get(field, {}), **existing.get(field, {})}
+                if "featuredBadges" in incoming or "featuredBadges" in existing:
+                    merged["featuredBadges"] = list(dict.fromkeys(
+                        [*existing.get("featuredBadges", []), *incoming.get("featuredBadges", [])]
+                    ))
                 self.rows[key] = merged
             else:
                 assert "DO UPDATE SET state = EXCLUDED.state" in query
@@ -111,22 +116,23 @@ def test_device_migration_merges_local_preset_and_levels_into_existing_account()
         "levels": remote_levels,
         "presets": {"10 Julio": remote_levels},
         "profileName": "Cuenta existente",
+        "featuredBadges": ["three-moves"],
     })
 
     store.merge("user-1", "org-1", {
         "levels": local_levels,
-        "presets": {"Prueba Preset 1": local_levels},
+        "presets": {"10 Julio": local_levels, "Prueba Preset 1": local_levels},
         "featuredBadges": ["first-step"],
     })
 
     saved_state = store.get("user-1", "org-1")
     assert saved_state["profileName"] == "Cuenta existente"
-    assert saved_state["levels"] == local_levels
+    assert saved_state["levels"] == remote_levels
     assert saved_state["presets"] == {
         "10 Julio": remote_levels,
         "Prueba Preset 1": local_levels,
     }
-    assert saved_state["featuredBadges"] == ["first-step"]
+    assert set(saved_state["featuredBadges"]) == {"first-step", "three-moves"}
 
 
 def test_device_migration_keeps_existing_cloud_fields_missing_from_device_snapshot() -> None:

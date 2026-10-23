@@ -118,25 +118,36 @@ class UserStateStore:
                           jsonb_set(
                             jsonb_set(
                               jsonb_set(
-                                modocultiva_user_state.state || EXCLUDED.state,
+                                jsonb_set(
+                                  EXCLUDED.state || modocultiva_user_state.state,
                                 '{levels}',
-                                COALESCE(modocultiva_user_state.state->'levels', '{}'::jsonb) || COALESCE(EXCLUDED.state->'levels', '{}'::jsonb),
+                                COALESCE(EXCLUDED.state->'levels', '{}'::jsonb) || COALESCE(modocultiva_user_state.state->'levels', '{}'::jsonb),
                                 true
                               ),
                               '{presets}',
-                              COALESCE(modocultiva_user_state.state->'presets', '{}'::jsonb) || COALESCE(EXCLUDED.state->'presets', '{}'::jsonb),
+                              COALESCE(EXCLUDED.state->'presets', '{}'::jsonb) || COALESCE(modocultiva_user_state.state->'presets', '{}'::jsonb),
                               true
                             ),
                             '{activityDrafts}',
-                            COALESCE(modocultiva_user_state.state->'activityDrafts', '{}'::jsonb) || COALESCE(EXCLUDED.state->'activityDrafts', '{}'::jsonb),
+                            COALESCE(EXCLUDED.state->'activityDrafts', '{}'::jsonb) || COALESCE(modocultiva_user_state.state->'activityDrafts', '{}'::jsonb),
                             true
                           ),
                           '{insightRequests}',
-                          COALESCE(modocultiva_user_state.state->'insightRequests', '{}'::jsonb) || COALESCE(EXCLUDED.state->'insightRequests', '{}'::jsonb),
+                          COALESCE(EXCLUDED.state->'insightRequests', '{}'::jsonb) || COALESCE(modocultiva_user_state.state->'insightRequests', '{}'::jsonb),
                           true
                         ),
                         '{visionImages}',
-                        COALESCE(modocultiva_user_state.state->'visionImages', '{}'::jsonb) || COALESCE(EXCLUDED.state->'visionImages', '{}'::jsonb),
+                        COALESCE(EXCLUDED.state->'visionImages', '{}'::jsonb) || COALESCE(modocultiva_user_state.state->'visionImages', '{}'::jsonb),
+                        true
+                      ),
+                        '{featuredBadges}',
+                        (
+                          SELECT COALESCE(jsonb_agg(DISTINCT badge), '[]'::jsonb)
+                          FROM jsonb_array_elements(
+                            COALESCE(modocultiva_user_state.state->'featuredBadges', '[]'::jsonb) ||
+                            COALESCE(EXCLUDED.state->'featuredBadges', '[]'::jsonb)
+                          ) AS badges(badge)
+                        ),
                         true
                       ),
                       updated_at = now()
