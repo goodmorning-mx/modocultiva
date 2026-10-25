@@ -1771,20 +1771,32 @@ function App() {
       </>
       )}
 
-      {configurationsOpen && <dialog ref={configurationsDialogRef} id="life-configurations-card" className="preset-panel life-configurations-card" aria-labelledby="presets-title" aria-describedby="presets-description" tabIndex={-1} onCancel={(event) => { event.preventDefault(); setConfigurationsOpen(false); }} onClick={(event) => {
+      {configurationsOpen && <dialog ref={configurationsDialogRef} id="life-configurations-card" className="life-configurations-card" aria-labelledby="presets-title" aria-describedby="presets-description" tabIndex={-1} onCancel={(event) => { event.preventDefault(); setConfigurationsOpen(false); }} onClick={(event) => {
         if (event.target !== event.currentTarget) return;
         const bounds = event.currentTarget.getBoundingClientRect();
         if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) setConfigurationsOpen(false);
       }}>
         <button className="close-journey" type="button" onClick={() => setConfigurationsOpen(false)} aria-label={tr('close')}>×</button>
-        <div className="preset-copy"><p className="kicker">{tr('savedConfigurationsEyebrow')}</p><h2 id="presets-title">{tr('presets')}</h2><p id="presets-description">{tr('savedPresetDescription')}</p></div>
-        <div className="preset-controls">
-          <label htmlFor="preset-name">{tr('newPreset')}<input id="preset-name" value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder={tr('presetExample')} /></label>
-          <button className="preset-action preset-action--primary" type="button" onClick={savePreset}>{tr('save')}</button>
-          <label htmlFor="preset-select">{tr('savedPresets')}<select id="preset-select" value={selectedPreset} onChange={(event) => { setSelectedPreset(event.target.value); window.localStorage.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
-          <button className="preset-action" type="button" onClick={loadPreset}>{tr('load')}</button><button className="preset-action preset-action--danger" type="button" onClick={deletePreset}>{tr('remove')}</button>
+        <div className="configuration-heading"><p className="kicker">{tr('savedConfigurationsEyebrow')}</p><h2 id="presets-title">{tr('presets')}</h2><p id="presets-description">{tr('savedPresetDescription')}</p></div>
+        <div className="configuration-composition">
+          <div className="configuration-orbit" role="img" aria-label={`${tr('levelMap')}: ${modes.map((mode) => `${modeShortName(mode)} ${levels[mode.key]}`).join(', ')}`}>
+            <span className="configuration-orbit-trail" aria-hidden="true" />
+            <div className="configuration-orbit-core" aria-hidden="true"><span>✦</span><strong>{tr('currentMap')}</strong><small>{tr('lifeModes')}</small></div>
+            {modes.map((mode, index) => <span className="configuration-orbit-node" key={mode.key} title={`${modeShortName(mode)} · ${tr('level')} ${levels[mode.key]}`} style={{ '--orbit-angle': `${index * 30}deg`, '--orbit-color': mode.color } as CSSProperties} aria-hidden="true"><i>{mode.icon}</i><b>{levels[mode.key]}</b></span>)}
+          </div>
+          <div className="configuration-controls">
+            <div className="configuration-save-group">
+              <label htmlFor="preset-name"><span className="configuration-step" aria-hidden="true">01</span>{tr('newPreset')}</label>
+              <div className="configuration-name-entry"><input id="preset-name" value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder={tr('presetExample')} /><button className="configuration-save-action" type="button" onClick={savePreset}>{tr('save')} <span aria-hidden="true">＋</span></button></div>
+            </div>
+            <div className="configuration-library-group">
+              <label htmlFor="preset-select"><span className="configuration-step" aria-hidden="true">02</span>{tr('savedPresets')}</label>
+              <div className="configuration-select-wrap"><select id="preset-select" value={selectedPreset} onChange={(event) => { setSelectedPreset(event.target.value); window.localStorage.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select><span aria-hidden="true">⌄</span></div>
+              <div className="configuration-library-actions"><button className="configuration-load-action" type="button" onClick={loadPreset}>{tr('load')} <span aria-hidden="true">↗</span></button><button className="configuration-delete-action" type="button" onClick={deletePreset}>{tr('remove')}</button></div>
+            </div>
+          </div>
         </div>
-        {presetNotice && <p className="preset-notice" role="status">{presetNotice}</p>}
+        {presetNotice && <p className="configuration-notice" role="status">{presetNotice}</p>}
       </dialog>}
 
       {selectedPlan && <div className="feature-preview-backdrop" role="presentation" onClick={() => setSelectedPlan(null)}><section className="plan-detail-modal" role="dialog" aria-modal="true" aria-labelledby="plan-detail-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setSelectedPlan(null)} aria-label="Cerrar detalles del plan">×</button><p className="kicker">Detalles del plan</p><h2 id="plan-detail-title">{planDetails[selectedPlan].name}</h2><strong className="plan-detail-price">{planDetails[selectedPlan].price}</strong><p className="plan-detail-promise">{planDetails[selectedPlan].promise}</p><ul className="plan-detail-list">{planDetails[selectedPlan].features.map((feature) => <li key={feature}>{feature}</li>)}</ul>{selectedPlan === 'ultimate' && <button className="feature-preview-cta cult-entry-cta" type="button" onClick={() => { setSelectedPlan(null); setPendingAccess(null); setCultTab('insights'); setSelectedMode(modes[0]); setCultOpen(true); setView('dashboard'); }}>{tr('globalName')} <span>✦</span></button>}<button className="feature-preview-dismiss" type="button" onClick={() => setSelectedPlan(null)}>Volver a Modos Premium</button></section></div>}
