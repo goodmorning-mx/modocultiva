@@ -396,7 +396,7 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   savedConfigurationsEyebrow: { es: 'DIFERENTES MODOS DE OPERAR', en: 'SAVED PRESETS', zh: '已保存的生活模式组合', hi: 'सहेजे गए जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة المحفوظة', it: 'COMBINAZIONI DEI MODI DI VITA', pt: 'COMBINAÇÕES DE MODOS DE VIDA', ru: 'СОЧЕТАНИЯ ЖИЗНЕННЫХ СФЕР', de: 'KOMBINATIONEN DER LEBENSBEREICHE', fr: 'COMBINAISONS DES MODES DE VIE', da: 'KOMBINATIONER AF LIVSOMRÅDER' },
   presets: { es: 'Configuraciones de Vida', en: 'Presets', zh: '生活模式组合', hi: 'जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة', it: 'Combinazioni dei modi di vita', pt: 'Combinações de modos de vida', ru: 'Сочетания жизненных сфер', de: 'Kombinationen der Lebensbereiche', fr: 'Combinaisons des modes de vie', da: 'Kombinationer af livsområder' },
   selectPreset: { es: '— Selecciona una Configuración de Vida —', en: '— Select a preset —', zh: '— 选择生活模式组合 —', hi: '— जीवन-मोड संयोजन चुनें —', ar: '— اختر توليفة أنماط الحياة —', it: '— Seleziona una combinazione dei modi di vita —', pt: '— Selecione uma combinação de modos de vida —', ru: '— Выберите сочетание жизненных сфер —', de: '— Wähle eine Kombination der Lebensbereiche —', fr: '— Choisissez une combinaison des modes de vie —', da: '— Vælg en kombination af livsområder —' },
-  newPreset: { es: 'Nueva Configuración de Vida', en: 'New preset', zh: '新建生活模式组合', hi: 'नया जीवन-मोड संयोजन', ar: 'توليفة جديدة لأنماط الحياة', it: 'Nuova combinazione dei modi di vita', pt: 'Nova combinação de modos de vida', ru: 'Новое сочетание жизненных сфер', de: 'Neue Kombination der Lebensbereiche', fr: 'Nouvelle combinaison des modes de vie', da: 'Ny kombination af livsområder' },
+  newPreset: { es: 'Nombra tu Configuración de Vida actual', en: 'Name your current preset', zh: '为当前生活模式组合命名', hi: 'अपने वर्तमान जीवन-मोड संयोजन को नाम दें', ar: 'سمّ توليفة أنماط حياتك الحالية', it: 'Dai un nome alla tua combinazione attuale dei modi di vita', pt: 'Nomeie sua combinação atual de modos de vida', ru: 'Назовите текущее сочетание жизненных сфер', de: 'Benenne deine aktuelle Kombination der Lebensbereiche', fr: 'Nommez votre combinaison actuelle des modes de vie', da: 'Navngiv din aktuelle kombination af livsområder' },
   savedPresetDescription: { es: 'Guarda y recupera tus Configuraciones de Vida para explorar distintas combinaciones de los 12 modos.', en: 'Save and restore level combinations to explore different presence maps.', zh: '保存和恢复你的生活模式组合，探索12种模式的不同等级搭配。', hi: '12 मोड के अलग-अलग स्तर संयोजनों को देखने के लिए अपनी जीवन-मोड संयोजन सहेजें और वापस लाएं।', ar: 'احفظ توليفات أنماط حياتك واستعدها لاستكشاف مستويات مختلفة عبر الأوضاع الاثني عشر.', it: 'Salva e ripristina le tue combinazioni dei modi di vita per esplorare diversi livelli nei 12 modi.', pt: 'Salve e recupere suas combinações de modos de vida para explorar diferentes níveis nos 12 modos.', ru: 'Сохраняйте и восстанавливайте сочетания жизненных сфер, чтобы исследовать разные уровни во всех 12 режимах.', de: 'Speichere und lade deine Kombinationen der Lebensbereiche, um verschiedene Stufen in allen 12 Modi zu erkunden.', fr: 'Enregistrez et restaurez vos combinaisons des modes de vie pour explorer différents niveaux dans les 12 modes.', da: 'Gem og gendan dine kombinationer af livsområder for at udforske forskellige niveauer på tværs af de 12 områder.' },
   activityLevel: { es: 'ACTIVIDAD NIVEL', en: 'LEVEL ACTIVITY', zh: '等级活动', hi: 'स्तर गतिविधि', ar: 'نشاط المستوى', it: 'ATTIVITÀ LIVELLO', pt: 'ATIVIDADE NÍVEL', ru: 'АКТИВНОСТЬ УРОВНЯ', de: 'STUFENAKTIVITÄT', fr: 'ACTIVITÉ NIVEAU', da: 'NIVEAUAKTIVITET' },
   recommendation: { es: 'Recomendación', en: 'Recommendation', zh: '推荐', hi: 'सुझाव', ar: 'توصية', it: 'Raccomandazione', pt: 'Recomendação', ru: 'Рекомендация', de: 'Empfehlung', fr: 'Recommandation', da: 'Anbefaling' },
@@ -780,6 +780,9 @@ function App() {
   const [cultInsightPreview, setCultInsightPreview] = useState<(typeof globalInsightActivities)[number] | null>(null);
   const [specialistPreview, setSpecialistPreview] = useState<Specialist | null>(null);
   const [profilePreviewMode, setProfilePreviewMode] = useState<boolean>(false);
+  const [configurationsOpen, setConfigurationsOpen] = useState(false);
+  const configurationsDialogRef = useRef<HTMLDialogElement | null>(null);
+  const configurationsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
   const [cultTab, setCultTab] = useState<CultTab>('insights');
   const [insightSlide, setInsightSlide] = useState(0);
@@ -1157,9 +1160,26 @@ function App() {
   }, [profileMenuOpen]);
 
   useEffect(() => {
+    if (!configurationsOpen) return;
+    const dialog = configurationsDialogRef.current;
+    if (!dialog) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog.showModal();
+    dialog.focus({ preventScroll: true });
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+      configurationsTriggerRef.current?.focus({ preventScroll: true });
+    };
+  }, [configurationsOpen, language]);
+
+  useEffect(() => {
     const goBackWithinApp = () => {
       if (profileMenuOpen) {
         setProfileMenuOpen(false);
+      } else if (configurationsOpen) {
+        setConfigurationsOpen(false);
       } else if (customizingAvatar) {
         setCustomizingAvatar(false);
       } else if (profilePreviewMode) {
@@ -1207,7 +1227,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [activeActivity, cultInsightPreview, customizingAvatar, journeyReturnView, profileMenuOpen, profilePreviewMode, selectedMode, selectedPlan, specialistPreview, view]);
+  }, [activeActivity, configurationsOpen, cultInsightPreview, customizingAvatar, journeyReturnView, profileMenuOpen, profilePreviewMode, selectedMode, selectedPlan, specialistPreview, view]);
 
   const average = useMemo(() => {
     const values = Object.values(levels);
@@ -1702,9 +1722,9 @@ function App() {
               </button>
             ))}
             <div className="overview-person">
-              <button className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={tr('pressToEnter')}>
+              <button ref={configurationsTriggerRef} className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} type="button" onClick={() => setConfigurationsOpen(true)} aria-label={tr('presets')} aria-haspopup="dialog" aria-controls="life-configurations-card">
                 <span className="overview-photo-content"><strong>{displayedProfileName}</strong>{displayedProfileRole && <span className="profile-badge">{displayedProfileRole}</span>}</span>
-                <span className="overview-enter-prompt">{tr('accessDashboard')} <b>↗</b></span>
+                <span className="overview-enter-prompt">{tr('presets')} <b>↗</b></span>
               </button>
               <div className="overview-person-actions">
                 <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setProfilePreviewMode(true); }}>✦ {tr('profileButton')}</button>
@@ -1712,16 +1732,9 @@ function App() {
             </div>
           </div>
           </div>
-          <section className="preset-panel preset-panel--overview" aria-labelledby="presets-title">
-            <div className="preset-copy"><p className="kicker">{tr('savedConfigurationsEyebrow')}</p><h2 id="presets-title">{tr('presets')}</h2><p>{tr('savedPresetDescription')}</p></div>
-            <div className="preset-controls">
-              <label htmlFor="preset-name">{tr('newPreset')}<input id="preset-name" value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder={tr('presetExample')} /></label>
-              <button className="preset-action preset-action--primary" type="button" onClick={savePreset}>{tr('save')}</button>
-              <label htmlFor="preset-select">{tr('savedPresets')}<select id="preset-select" value={selectedPreset} onChange={(event) => { setSelectedPreset(event.target.value); window.localStorage.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
-              <button className="preset-action" type="button" onClick={loadPreset}>{tr('load')}</button><button className="preset-action preset-action--danger" type="button" onClick={deletePreset}>{tr('remove')}</button>
-            </div>
-            {presetNotice && <p className="preset-notice" role="status">{presetNotice}</p>}
-          </section>
+          <div className="overview-dashboard-entry">
+            <button className="overview-dashboard-cta" type="button" onClick={() => setView('dashboard')}>{tr('accessDashboard')} <span aria-hidden="true">↗</span></button>
+          </div>
         </section>
       ) : (
       <>
@@ -1757,6 +1770,22 @@ function App() {
       <footer className="dashboard-footer"><span className="footer-tip">Selecciona un foco para continuar tu Journey</span></footer>
       </>
       )}
+
+      {configurationsOpen && <dialog ref={configurationsDialogRef} id="life-configurations-card" className="preset-panel life-configurations-card" aria-labelledby="presets-title" aria-describedby="presets-description" tabIndex={-1} onCancel={(event) => { event.preventDefault(); setConfigurationsOpen(false); }} onClick={(event) => {
+        if (event.target !== event.currentTarget) return;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) setConfigurationsOpen(false);
+      }}>
+        <button className="close-journey" type="button" onClick={() => setConfigurationsOpen(false)} aria-label={tr('close')}>×</button>
+        <div className="preset-copy"><p className="kicker">{tr('savedConfigurationsEyebrow')}</p><h2 id="presets-title">{tr('presets')}</h2><p id="presets-description">{tr('savedPresetDescription')}</p></div>
+        <div className="preset-controls">
+          <label htmlFor="preset-name">{tr('newPreset')}<input id="preset-name" value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder={tr('presetExample')} /></label>
+          <button className="preset-action preset-action--primary" type="button" onClick={savePreset}>{tr('save')}</button>
+          <label htmlFor="preset-select">{tr('savedPresets')}<select id="preset-select" value={selectedPreset} onChange={(event) => { setSelectedPreset(event.target.value); window.localStorage.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
+          <button className="preset-action" type="button" onClick={loadPreset}>{tr('load')}</button><button className="preset-action preset-action--danger" type="button" onClick={deletePreset}>{tr('remove')}</button>
+        </div>
+        {presetNotice && <p className="preset-notice" role="status">{presetNotice}</p>}
+      </dialog>}
 
       {selectedPlan && <div className="feature-preview-backdrop" role="presentation" onClick={() => setSelectedPlan(null)}><section className="plan-detail-modal" role="dialog" aria-modal="true" aria-labelledby="plan-detail-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setSelectedPlan(null)} aria-label="Cerrar detalles del plan">×</button><p className="kicker">Detalles del plan</p><h2 id="plan-detail-title">{planDetails[selectedPlan].name}</h2><strong className="plan-detail-price">{planDetails[selectedPlan].price}</strong><p className="plan-detail-promise">{planDetails[selectedPlan].promise}</p><ul className="plan-detail-list">{planDetails[selectedPlan].features.map((feature) => <li key={feature}>{feature}</li>)}</ul>{selectedPlan === 'ultimate' && <button className="feature-preview-cta cult-entry-cta" type="button" onClick={() => { setSelectedPlan(null); setPendingAccess(null); setCultTab('insights'); setSelectedMode(modes[0]); setCultOpen(true); setView('dashboard'); }}>{tr('globalName')} <span>✦</span></button>}<button className="feature-preview-dismiss" type="button" onClick={() => setSelectedPlan(null)}>Volver a Modos Premium</button></section></div>}
 
