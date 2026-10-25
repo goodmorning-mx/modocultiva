@@ -160,8 +160,8 @@ h1 { max-width: 760px; margin-bottom: 18px; color: #f3f7f2; font-size: clamp(2.4
 
 /* The map opens saved configurations; the dashboard has its own final action. */
 .overview-dashboard-entry { display: flex; justify-content: center; margin: 36px auto 12px; }
-.app-shell .overview-dashboard-cta { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: min(100%, 380px); min-height: 54px; padding: 15px 22px; border: 1px solid #70ed9c; border-radius: 12px; color: #06251b; background: #70ed9c; box-shadow: 0 8px 28px rgba(112, 237, 156, .15); font-family: 'DM Mono', monospace; font-size: .76rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-.app-shell .overview-dashboard-cta:hover { background: #8cf2ae; border-color: #8cf2ae; }
+.app-shell .overview-dashboard-cta { display: flex; align-items: center; justify-content: space-between; gap: 28px; width: fit-content; max-width: 100%; min-height: 42px; padding: 10px 20px; border: 1px solid #80d6a7; border-radius: 999px; color: #0c3025; background: #80d6a7; box-shadow: 0 4px 18px rgba(112, 237, 156, .08); font-family: 'DM Mono', monospace; font-size: .65rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.app-shell .overview-dashboard-cta:hover { background: #94e0b7; border-color: #94e0b7; }
 .overview-dashboard-cta:focus-visible { outline: 2px solid #e5ffef; outline-offset: 4px; }
 .overview-dashboard-cta > span { font-size: 1.2rem; }
 dialog.life-configurations-card {
@@ -205,19 +205,36 @@ dialog.life-configurations-card {
 .configuration-select-wrap > span { position: absolute; top: 50%; right: 18px; color: #9dd9bb; font-size: 1.15rem; transform: translateY(-65%); pointer-events: none; }
 [dir='rtl'] .configuration-select-wrap select { padding-right: 19px; padding-left: 40px; }
 [dir='rtl'] .configuration-select-wrap > span { right: auto; left: 18px; }
-.configuration-library-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
-.configuration-library-actions button { min-height: 44px; padding: 10px 20px; border: 1px solid rgba(139, 217, 185, .3); border-radius: 999px; font-size: .75rem; font-weight: 700; transition: background .2s ease, border-color .2s ease; }
+.configuration-library-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.configuration-library-actions button { min-height: 44px; padding: 10px 14px; border: 1px solid rgba(139, 217, 185, .3); border-radius: 999px; font-size: .72rem; font-weight: 700; transition: background .2s ease, border-color .2s ease; }
 .configuration-library-actions .configuration-load-action { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex: 1; color: #b5f3cd; background: rgba(70, 169, 122, .15); }
 .configuration-load-action > span { font-size: 1.1rem; }
 .configuration-library-actions .configuration-delete-action { color: #94b4a7; background: transparent; border-color: transparent; }
+.configuration-library-actions .configuration-rename-action { color: #bae5cf; background: transparent; }
+.configuration-library-actions .configuration-rename-action:hover:enabled { border-color: #83eab4; background: rgba(70, 169, 122, .12); }
+.configuration-library-actions button:disabled { opacity: .4; cursor: default; }
+.configuration-rename-editor { display: grid; gap: 8px; margin-top: 18px; }
+.configuration-rename-editor label { margin: 0; }
+.configuration-cancel-rename { justify-self: end; min-height: 32px; padding: 4px 12px; border: 0; border-radius: 999px; color: #a1bfb2; background: transparent; font-size: .7rem; }
 .configuration-library-actions .configuration-delete-action:hover { border-color: rgba(241, 159, 144, .4); color: #ffc0b1; background: rgba(122, 49, 45, .1); }
 .configuration-save-action:hover { filter: brightness(1.08); }
 .configuration-library-actions .configuration-load-action:hover { background: rgba(70, 169, 122, .28); border-color: #83eab4; }
 .configuration-controls button:focus-visible, .configuration-select-wrap select:focus-visible, .life-configurations-card .close-journey:focus-visible { outline: 2px solid #86efbd; outline-offset: 3px; }
 .configuration-notice { margin: 0; padding: 12px 18px; border-radius: 999px; color: #b5efcc; background: rgba(70, 169, 122, .1); font-size: .74rem; text-align: center; }
-@keyframes configuration-revolve { to { transform: rotate(360deg); } }
+@keyframes configuration-revolve { to { transform: rotate(-360deg); } }
 @keyframes configuration-breathe { 50% { transform: scale(1.06); opacity: .4; } }
 @keyframes configuration-arrive { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+.overview-identity-orb { position: relative; width: 210px; height: 210px; flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(144, 228, 204, .55); border-radius: 50%; background: radial-gradient(circle at 50% 30%, #164c50, #061b25 78%); background-position: center; background-size: cover; box-shadow: 0 0 0 7px rgba(108, 207, 188, .045), 0 12px 40px rgba(0, 0, 0, .2), inset 0 0 22px rgba(63, 169, 147, .1); transition: border-color .2s ease, box-shadow .2s ease; }
+.overview-identity-orb:focus-within, .overview-identity-orb:hover { border-color: #a3e5cc; box-shadow: 0 0 0 7px rgba(108, 207, 188, .08), 0 8px 36px rgba(67, 173, 147, .12); }
+.overview-identity-orb .overview-core { position: absolute; inset: 0; width: 100%; height: 100%; padding: 22px 14px 48px; border: 0; border-radius: 50%; background: transparent; box-shadow: none; transform: none; gap: 9px; }
+.overview-identity-orb .overview-core:hover, .overview-identity-orb .overview-core:focus-visible { background: rgba(9, 35, 36, .06); box-shadow: none; }
+.overview-identity-orb .overview-photo-content { max-width: 100%; }
+.overview-identity-orb .overview-photo-content strong { max-width: 150px; overflow: hidden; font-size: 1rem; text-overflow: ellipsis; white-space: nowrap; }
+.overview-identity-orb .overview-enter-prompt { justify-content: center; max-width: 100%; gap: 10px; margin: 0; padding: 9px 12px; border: 1px solid rgba(171, 225, 211, .5); border-radius: 999px; color: #e0f5ec; background: rgba(5, 25, 30, .3); box-shadow: inset 0 1px rgba(220, 255, 242, .06); backdrop-filter: blur(4px); font-size: .5rem; line-height: 1.4; }
+.overview-identity-orb .overview-enter-prompt b { color: #b2e6cf; }
+.overview-profile-dock { position: absolute; z-index: 1; bottom: 10px; left: 50%; display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 30px; max-width: calc(100% - 30px); padding: 4px 11px; border: 1px solid rgba(192, 233, 219, .22); border-radius: 999px; color: #d1e7dc; background: rgba(7, 27, 32, .42); backdrop-filter: blur(8px); font-size: .56rem; font-weight: 600; transform: translateX(-50%); }
+.overview-profile-dock svg { flex-shrink: 0; }
+.overview-profile-dock:hover, .overview-profile-dock:focus-visible { border-color: #a3e5cc; color: #f0fff6; outline: none; }
 @media (max-width: 680px) {
   dialog.life-configurations-card { width: calc(100% - 24px); max-height: calc(100dvh - 24px); padding: 36px 20px 26px; gap: 22px; border-radius: 34px; }
   .life-configurations-card .close-journey { top: 12px; right: 12px; width: 30px; height: 30px; font-size: 1.4rem; }
@@ -241,7 +258,17 @@ dialog.life-configurations-card {
   .configuration-name-entry input { padding-inline-start: 9px; font-size: .73rem; }
   .configuration-name-entry .configuration-save-action { padding: 0 12px; font-size: .69rem; }
   .configuration-select-wrap select { font-size: .73rem; }
-  .configuration-library-actions button { padding: 10px 16px; }
+  .configuration-library-actions button { padding: 10px 11px; font-size: .68rem; }
+  .configuration-library-actions .configuration-load-action { gap: 8px; }
+  .configuration-rename-editor .configuration-name-entry { flex-wrap: wrap; border-radius: 24px; }
+  .configuration-rename-editor input { flex-basis: 100%; }
+  .configuration-rename-editor .configuration-save-action { width: 100%; }
+  .overview-identity-orb { width: clamp(136px, 44vw, 164px); height: clamp(136px, 44vw, 164px); }
+  .overview-identity-orb .overview-core { padding: 15px 10px 42px; gap: 5px; }
+  .overview-identity-orb .overview-photo-content strong { max-width: 115px; font-size: .76rem; }
+  .overview-identity-orb .overview-photo-content .profile-badge { padding: 2px 5px; font-size: .36rem; }
+  .overview-identity-orb .overview-enter-prompt { gap: 5px; padding: 7px 9px; font-size: .45rem; }
+  .overview-profile-dock { bottom: 7px; min-height: 28px; font-size: .5rem; }
   .overview-enter-prompt { max-width: 100%; justify-content: center; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -8,6 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "verify:pwa": "node scripts/verify-pwa-contract.mjs",
+    "verify:navigation": "node scripts/verify-navigation-history.mjs",
+    "verify:configurations": "node scripts/verify-life-configurations.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "postinstall": "node scripts/prepare-gm-pwa.mjs"
   },

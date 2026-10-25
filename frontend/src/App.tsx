@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { PwaControls } from './PwaControls';
+import { createNavigationHistory } from './navigationHistory';
+import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
 import logo from './assets/modo-cultiva-logo-neon.png';
 import './skin-overrides.css';
 
@@ -453,6 +455,15 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   editMyProfile: { es: 'Editar mi perfil', en: 'Edit my profile', zh: '编辑我的个人资料', hi: 'मेरी प्रोफ़ाइल संपादित करें', ar: 'تعديل ملفي الشخصي', it: 'Modifica il mio profilo', pt: 'Editar meu perfil', ru: 'Изменить мой профиль', de: 'Mein Profil bearbeiten', fr: 'Modifier mon profil', da: 'Rediger min profil' },
   profileButton: { es: 'Perfil', en: 'Profile', zh: '个人资料', hi: 'प्रोफ़ाइल', ar: 'الملف الشخصي', it: 'Profilo', pt: 'Perfil', ru: 'Профиль', de: 'Profil', fr: 'Profil', da: 'Profil' },
   accessDashboard: { es: 'Accesar al Dashboard', en: 'Access dashboard', zh: '进入控制面板', hi: 'डैशबोर्ड खोलें', ar: 'الدخول إلى لوحة التحكم', it: 'Accedi alla dashboard', pt: 'Acessar o painel', ru: 'Открыть панель', de: 'Zum Dashboard', fr: 'Accéder au tableau de bord', da: 'Åbn dashboard' },
+  controlCenter: { es: 'Centro de Control', en: 'Control Center', zh: '控制中心', hi: 'नियंत्रण केंद्र', ar: 'مركز التحكم', it: 'Centro di controllo', pt: 'Centro de Controle', ru: 'Центр управления', de: 'Kontrollzentrum', fr: 'Centre de contrôle', da: 'Kontrolcenter' },
+  renameConfiguration: { es: 'Renombrar', en: 'Rename', zh: '重命名', hi: 'नाम बदलें', ar: 'إعادة التسمية', it: 'Rinomina', pt: 'Renomear', ru: 'Переименовать', de: 'Umbenennen', fr: 'Renommer', da: 'Omdøb' },
+  configurationNewName: { es: 'Nuevo nombre', en: 'New name', zh: '新名称', hi: 'नया नाम', ar: 'الاسم الجديد', it: 'Nuovo nome', pt: 'Novo nome', ru: 'Новое название', de: 'Neuer Name', fr: 'Nouveau nom', da: 'Nyt navn' },
+  saveConfigurationName: { es: 'Guardar nombre', en: 'Save name', zh: '保存名称', hi: 'नाम सहेजें', ar: 'حفظ الاسم', it: 'Salva nome', pt: 'Salvar nome', ru: 'Сохранить название', de: 'Namen speichern', fr: 'Enregistrer le nom', da: 'Gem navn' },
+  cancelRename: { es: 'Cancelar', en: 'Cancel', zh: '取消', hi: 'रद्द करें', ar: 'إلغاء', it: 'Annulla', pt: 'Cancelar', ru: 'Отмена', de: 'Abbrechen', fr: 'Annuler', da: 'Annuller' },
+  presetSelectRename: { es: 'Selecciona una Configuración de Vida para renombrarla.', en: 'Select a preset to rename.', zh: '选择要重命名的生活模式组合。', hi: 'नाम बदलने के लिए जीवन-मोड संयोजन चुनें।', ar: 'اختر توليفة أنماط الحياة لإعادة تسميتها.', it: 'Seleziona una combinazione da rinominare.', pt: 'Selecione uma combinação para renomear.', ru: 'Выберите сочетание для переименования.', de: 'Wähle eine Kombination zum Umbenennen aus.', fr: 'Sélectionnez une combinaison à renommer.', da: 'Vælg en kombination, der skal omdøbes.' },
+  presetNameExists: { es: 'Ya existe una Configuración de Vida con ese nombre. Elige otro.', en: 'A preset with that name already exists. Choose another name.', zh: '该名称已存在，请选择其他名称。', hi: 'इस नाम का संयोजन पहले से मौजूद है। दूसरा नाम चुनें।', ar: 'توجد توليفة بهذا الاسم. اختر اسماً آخر.', it: 'Questo nome esiste già. Scegline un altro.', pt: 'Já existe uma combinação com esse nome. Escolha outro.', ru: 'Такое название уже существует. Выберите другое.', de: 'Dieser Name ist bereits vergeben. Wähle einen anderen.', fr: 'Ce nom existe déjà. Choisissez-en un autre.', da: 'Navnet findes allerede. Vælg et andet.' },
+  presetRenamed: { es: 'Configuración de Vida renombrada a “{name}”.', en: 'Preset renamed to “{name}”.', zh: '已重命名为“{name}”。', hi: 'नाम बदलकर “{name}” कर दिया गया।', ar: 'تمت إعادة التسمية إلى “{name}”.', it: 'Combinazione rinominata “{name}”.', pt: 'Combinação renomeada para “{name}”.', ru: 'Новое название: «{name}».', de: 'Umbenannt in „{name}“.', fr: 'Combinaison renommée « {name} ».', da: 'Omdøbt til “{name}”.' },
+  presetRenameFailed: { es: 'No se pudo guardar el nuevo nombre. Inténtalo de nuevo.', en: 'Could not save the new name. Try again.', zh: '无法保存新名称，请重试。', hi: 'नया नाम सहेजा नहीं जा सका। फिर कोशिश करें।', ar: 'تعذر حفظ الاسم الجديد. حاول مجدداً.', it: 'Impossibile salvare il nuovo nome. Riprova.', pt: 'Não foi possível salvar o novo nome. Tente novamente.', ru: 'Не удалось сохранить новое название. Повторите попытку.', de: 'Der neue Name konnte nicht gespeichert werden. Versuche es erneut.', fr: 'Impossible d’enregistrer le nouveau nom. Réessayez.', da: 'Det nye navn kunne ikke gemmes. Prøv igen.' },
   journeyGrowthBenefit: { es: 'Desarrollarlo fortalece tu bienestar y te da herramientas concretas para avanzar con más equilibrio.', en: 'Developing this area supports your wellbeing and gives you practical tools to move forward with greater balance.', zh: '发展这一领域有助于提升幸福感，并提供更平衡前进的实用方法。', hi: 'इस क्षेत्र को विकसित करने से आपका कल्याण बेहतर होता है और संतुलित प्रगति के व्यावहारिक साधन मिलते हैं।', ar: 'يساعد تطوير هذا المجال على تعزيز رفاهك ويمنحك أدوات عملية للتقدم بتوازن أكبر.', it: 'Coltivare quest’area sostiene il tuo benessere e ti offre strumenti concreti per progredire con più equilibrio.', pt: 'Desenvolver esta área favorece seu bem-estar e oferece ferramentas práticas para avançar com mais equilíbrio.', ru: 'Развитие этой сферы поддерживает благополучие и даёт практические способы двигаться вперёд сбалансированно.', de: 'Die Entwicklung dieses Bereichs stärkt dein Wohlbefinden und gibt dir konkrete Mittel für ausgewogene Fortschritte.', fr: 'Développer ce domaine favorise votre bien-être et vous donne des moyens concrets d’avancer avec plus d’équilibre.', da: 'Udvikling af dette område styrker dit velbefindende og giver konkrete værktøjer til mere balance.' },
   current: { es: 'Actual', en: 'Current', zh: '当前', hi: 'वर्तमान', ar: 'الحالي', it: 'Attuale', pt: 'Atual', ru: 'Текущий', de: 'Aktuell', fr: 'Actuel', da: 'Aktuel' },
   presetNameRequired: { es: 'Escribe un nombre para guardar tu configuración.', en: 'Enter a name to save your configuration.', zh: '输入名称以保存配置。', hi: 'अपना कॉन्फ़िगरेशन सहेजने के लिए नाम दर्ज करें।', ar: 'أدخل اسماً لحفظ إعداداتك.', it: 'Inserisci un nome per salvare la configurazione.', pt: 'Digite um nome para salvar sua configuração.', ru: 'Введите название, чтобы сохранить конфигурацию.', de: 'Gib einen Namen ein, um deine Konfiguration zu speichern.', fr: 'Saisissez un nom pour enregistrer votre configuration.', da: 'Indtast et navn for at gemme din konfiguration.' },
@@ -853,6 +864,9 @@ function App() {
   const [presetName, setPresetName] = useState('');
   const [selectedPreset, setSelectedPreset] = useState(() => window.localStorage.getItem('modoCultiva_selectedPreset') ?? '');
   const [presetNotice, setPresetNotice] = useState<string | null>(null);
+  const [renamingPreset, setRenamingPreset] = useState(false);
+  const [presetRenameName, setPresetRenameName] = useState('');
+  const presetRenameInputRef = useRef<HTMLInputElement | null>(null);
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginName, setLoginName] = useState('');
@@ -1160,7 +1174,7 @@ function App() {
   }, [profileMenuOpen]);
 
   useEffect(() => {
-    if (!configurationsOpen) return;
+    if (!configurationsOpen) { setRenamingPreset(false); return; }
     const dialog = configurationsDialogRef.current;
     if (!dialog) return;
     const previousOverflow = document.body.style.overflow;
@@ -1174,60 +1188,48 @@ function App() {
     };
   }, [configurationsOpen, language]);
 
+  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyReturnView, cultOpen, cultTab, profileMenuOpen, configurationsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview };
+  const navigationSnapshotKey = JSON.stringify(navigationSnapshot);
+  const navigationSnapshotRef = useRef(navigationSnapshot);
+  navigationSnapshotRef.current = navigationSnapshot;
+  const restoreNavigationRef = useRef((snapshot: typeof navigationSnapshot) => {});
+  restoreNavigationRef.current = (snapshot) => {
+    setView(snapshot.view); setSelectedMode(snapshot.selectedMode); setActiveActivity(snapshot.activeActivity);
+    setActivityEntry(snapshot.activityEntry); setJourneySlide(snapshot.journeySlide); setJourneyReturnView(snapshot.journeyReturnView);
+    setCultOpen(snapshot.cultOpen); setCultTab(snapshot.cultTab); setProfileMenuOpen(snapshot.profileMenuOpen);
+    setConfigurationsOpen(snapshot.configurationsOpen); setRenamingPreset(snapshot.renamingPreset);
+    setCustomizingAvatar(snapshot.customizingAvatar); setProfilePreviewMode(snapshot.profilePreviewMode);
+    setSelectedPlan(snapshot.selectedPlan); setInsightPreview(snapshot.insightPreview);
+    setCultInsightPreview(snapshot.cultInsightPreview); setSpecialistPreview(snapshot.specialistPreview);
+    if (snapshot.selectedMode && snapshot.activeActivity === null) restoreJourneyPosition();
+  };
+  const navigationHistoryRef = useRef<ReturnType<typeof createNavigationHistory<typeof navigationSnapshot>> | null>(null);
   useEffect(() => {
-    const goBackWithinApp = () => {
-      if (profileMenuOpen) {
-        setProfileMenuOpen(false);
-      } else if (configurationsOpen) {
-        setConfigurationsOpen(false);
-      } else if (customizingAvatar) {
-        setCustomizingAvatar(false);
-      } else if (profilePreviewMode) {
-        setProfilePreviewMode(false);
-      } else if (activeActivity !== null) {
-        setActiveActivity(null);
-        restoreJourneyPosition();
-      } else if (cultInsightPreview) {
-        setCultInsightPreview(null);
-        setCultOpen(true);
-        setCultTab('insights');
-      } else if (specialistPreview) {
-        setSpecialistPreview(null);
-        setCultOpen(true);
-        setCultTab('network');
-      } else if (selectedMode) {
-        setSelectedMode(null);
-        setView(journeyReturnView);
-      } else if (view === 'dashboard') {
-        setView('welcome');
-      } else if (selectedPlan) {
-        setSelectedPlan(null);
-        setPendingAccess(null);
-        setView('plans');
-      } else if (view === 'plans') {
-        setSelectedPlan(null);
-        setPendingAccess(null);
-        setView('welcome');
-      }
-    };
+    const navigation = createNavigationHistory(window.history, navigationSnapshotRef.current, (snapshot) => {
+      const base = snapshot.view === 'welcome' ? 0 : snapshot.view === 'lab' ? 2 : 1;
+      return base + Number(Boolean(snapshot.selectedMode)) + Number(snapshot.activeActivity !== null)
+        + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
+        + Number(snapshot.customizingAvatar) + Number(snapshot.profilePreviewMode) + Number(Boolean(snapshot.selectedPlan))
+        + Number(Boolean(snapshot.insightPreview)) + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview));
+    }, (snapshot) => restoreNavigationRef.current(snapshot));
+    navigationHistoryRef.current = navigation;
+    const handlePopState = (event: PopStateEvent) => navigation.onPopState(event.state);
+    window.addEventListener('popstate', handlePopState);
+    return () => { window.removeEventListener('popstate', handlePopState); navigationHistoryRef.current = null; };
+  }, []);
+  useEffect(() => { navigationHistoryRef.current?.sync(navigationSnapshotRef.current); }, [navigationSnapshotKey]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       event.preventDefault();
-      goBackWithinApp();
-    };
-    const historyGuard = { ...(window.history.state ?? {}), modoCultivaBackGuard: true };
-    if (!window.history.state?.modoCultivaBackGuard) window.history.pushState(historyGuard, '', window.location.href);
-    const handlePopState = () => {
-      goBackWithinApp();
-      window.history.pushState(historyGuard, '', window.location.href);
+      navigationHistoryRef.current?.back();
     };
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('popstate', handlePopState);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('popstate', handlePopState);
     };
-  }, [activeActivity, configurationsOpen, cultInsightPreview, customizingAvatar, journeyReturnView, profileMenuOpen, profilePreviewMode, selectedMode, selectedPlan, specialistPreview, view]);
+  }, []);
 
   const average = useMemo(() => {
     const values = Object.values(levels);
@@ -1564,6 +1566,33 @@ function App() {
     setPresetNotice(trf('presetLoaded', { name: selectedPreset }));
   };
 
+  const beginPresetRename = () => {
+    if (!selectedPreset || !presets[selectedPreset]) { setPresetNotice(tr('presetSelectRename')); return; }
+    setPresetRenameName(selectedPreset);
+    setPresetNotice(null);
+    setRenamingPreset(true);
+  };
+  const commitPresetRename = () => {
+    const result = renameLifeConfiguration(presets, selectedPreset, presetRenameName);
+    if (!result.ok) {
+      setPresetNotice(tr(result.reason === 'empty' ? 'presetNameRequired' : result.reason === 'duplicate' ? 'presetNameExists' : 'presetSelectRename'));
+      return;
+    }
+    try {
+      persistRenamedConfiguration(window.localStorage, result.configurations, result.selectedName);
+    } catch {
+      setPresetNotice(tr('presetRenameFailed'));
+      return;
+    }
+    setPresets(result.configurations);
+    setSelectedPreset(result.selectedName);
+    setRenamingPreset(false);
+    setPresetNotice(trf('presetRenamed', { name: result.selectedName }));
+  };
+  useEffect(() => {
+    if (renamingPreset) { presetRenameInputRef.current?.focus(); presetRenameInputRef.current?.select(); }
+  }, [renamingPreset]);
+
   const deletePreset = () => {
     if (!selectedPreset || !presets[selectedPreset]) {
       setPresetNotice(tr('presetSelectDelete'));
@@ -1722,18 +1751,18 @@ function App() {
               </button>
             ))}
             <div className="overview-person">
-              <button ref={configurationsTriggerRef} className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} type="button" onClick={() => setConfigurationsOpen(true)} aria-label={tr('presets')} aria-haspopup="dialog" aria-controls="life-configurations-card">
+              <div className="overview-identity-orb" style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .12), rgba(4, 18, 29, .6)), url(${profileImage})` } : undefined}>
+              <button ref={configurationsTriggerRef} className="overview-core" type="button" onClick={() => setConfigurationsOpen(true)} aria-label={tr('presets')} aria-haspopup="dialog" aria-controls="life-configurations-card">
                 <span className="overview-photo-content"><strong>{displayedProfileName}</strong>{displayedProfileRole && <span className="profile-badge">{displayedProfileRole}</span>}</span>
                 <span className="overview-enter-prompt">{tr('presets')} <b>↗</b></span>
               </button>
-              <div className="overview-person-actions">
-                <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setProfilePreviewMode(true); }}>✦ {tr('profileButton')}</button>
+                <button className="overview-profile-dock" type="button" onClick={() => setProfilePreviewMode(true)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg>{tr('profileButton')}</button>
               </div>
             </div>
           </div>
           </div>
           <div className="overview-dashboard-entry">
-            <button className="overview-dashboard-cta" type="button" onClick={() => setView('dashboard')}>{tr('accessDashboard')} <span aria-hidden="true">↗</span></button>
+            <button className="overview-dashboard-cta" type="button" onClick={() => setView('dashboard')}>{tr('controlCenter')} <span aria-hidden="true">↗</span></button>
           </div>
         </section>
       ) : (
@@ -1771,7 +1800,7 @@ function App() {
       </>
       )}
 
-      {configurationsOpen && <dialog ref={configurationsDialogRef} id="life-configurations-card" className="life-configurations-card" aria-labelledby="presets-title" aria-describedby="presets-description" tabIndex={-1} onCancel={(event) => { event.preventDefault(); setConfigurationsOpen(false); }} onClick={(event) => {
+      {configurationsOpen && <dialog ref={configurationsDialogRef} id="life-configurations-card" className="life-configurations-card" aria-labelledby="presets-title" aria-describedby="presets-description" tabIndex={-1} onCancel={(event) => { event.preventDefault(); if (renamingPreset) setRenamingPreset(false); else setConfigurationsOpen(false); }} onClick={(event) => {
         if (event.target !== event.currentTarget) return;
         const bounds = event.currentTarget.getBoundingClientRect();
         if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) setConfigurationsOpen(false);
@@ -1791,8 +1820,9 @@ function App() {
             </div>
             <div className="configuration-library-group">
               <label htmlFor="preset-select"><span className="configuration-step" aria-hidden="true">02</span>{tr('savedPresets')}</label>
-              <div className="configuration-select-wrap"><select id="preset-select" value={selectedPreset} onChange={(event) => { setSelectedPreset(event.target.value); window.localStorage.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select><span aria-hidden="true">⌄</span></div>
-              <div className="configuration-library-actions"><button className="configuration-load-action" type="button" onClick={loadPreset}>{tr('load')} <span aria-hidden="true">↗</span></button><button className="configuration-delete-action" type="button" onClick={deletePreset}>{tr('remove')}</button></div>
+              <div className="configuration-select-wrap"><select id="preset-select" value={selectedPreset} onChange={(event) => { setRenamingPreset(false); setPresetNotice(null); setSelectedPreset(event.target.value); window.localStorage.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select><span aria-hidden="true">⌄</span></div>
+              <div className="configuration-library-actions"><button className="configuration-load-action" type="button" onClick={loadPreset}>{tr('load')} <span aria-hidden="true">↗</span></button><button className="configuration-rename-action" type="button" onClick={beginPresetRename} disabled={!selectedPreset || !presets[selectedPreset]}>{tr('renameConfiguration')}</button><button className="configuration-delete-action" type="button" onClick={deletePreset}>{tr('remove')}</button></div>
+              {renamingPreset && <form className="configuration-rename-editor" onSubmit={(event) => { event.preventDefault(); commitPresetRename(); }}><label htmlFor="preset-rename-name">{tr('configurationNewName')}</label><div className="configuration-name-entry"><input ref={presetRenameInputRef} id="preset-rename-name" value={presetRenameName} onChange={(event) => setPresetRenameName(event.target.value)} /><button className="configuration-save-action" type="submit">{tr('saveConfigurationName')}</button></div><button className="configuration-cancel-rename" type="button" onClick={() => setRenamingPreset(false)}>{tr('cancelRename')}</button></form>}
             </div>
           </div>
         </div>
