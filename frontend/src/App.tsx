@@ -290,7 +290,7 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   globalRecommendationsCopy: { es: 'Recomendaciones seleccionadas para ayudarte a avanzar desde los niveles actuales de tu mapa. Cada visita muestra una combinación diferente.', en: 'Selected recommendations to help you move forward from your map’s current levels. Each visit shows a different combination.', zh: '根据你地图中的当前等级精选建议。每次访问都会显示不同的组合。', hi: 'आपके मानचित्र के वर्तमान स्तरों से आगे बढ़ने में मदद करने के लिए चुने गए सुझाव। हर बार अलग संयोजन दिखता है।', ar: 'توصيات مختارة لمساعدتك على التقدم من المستويات الحالية في خريطتك. تعرض كل زيارة مجموعة مختلفة.', it: 'Raccomandazioni selezionate per aiutarti ad avanzare dai livelli attuali della tua mappa. Ogni visita mostra una combinazione diversa.', pt: 'Recomendações selecionadas para ajudar você a avançar a partir dos níveis atuais do seu mapa. Cada visita mostra uma combinação diferente.', ru: 'Подобранные рекомендации помогут двигаться дальше от текущих уровней карты. При каждом посещении показывается новая комбинация.', de: 'Ausgewählte Empfehlungen helfen dir, von den aktuellen Stufen deiner Karte weiterzugehen. Bei jedem Besuch erscheint eine andere Kombination.', fr: 'Des recommandations choisies pour vous aider à avancer depuis les niveaux actuels de votre carte. Chaque visite affiche une combinaison différente.', da: 'Udvalgte anbefalinger hjælper dig videre fra de aktuelle niveauer på dit kort. Hvert besøg viser en anden kombination.' },
   globalSharedBy: { es: 'Compartida por', en: 'Shared by', zh: '分享者', hi: 'साझा किया', ar: 'شاركها', it: 'Condivisa da', pt: 'Compartilhada por', ru: 'Автор', de: 'Geteilt von', fr: 'Partagée par', da: 'Delt af' },
   globalAnalyzeSave: { es: 'Analizar y guardar en mi mapa', en: 'Analyze and save to my map', zh: '分析并保存到我的地图', hi: 'विश्लेषण करें और मेरे मानचित्र में सहेजें', ar: 'حلّل واحفظ في خريطتي', it: 'Analizza e salva nella mia mappa', pt: 'Analisar e salvar no meu mapa', ru: 'Проанализировать и сохранить на карте', de: 'Analysieren und auf meiner Karte speichern', fr: 'Analyser et enregistrer sur ma carte', da: 'Analysér og gem på mit kort' },
-  insightSharedActivity: { es: 'Insight Global · Actividad compartida', en: 'Global Insight · Shared activity', zh: '全球洞察 · 社区分享的活动', hi: 'ग्लोबल इनसाइट · साझा गतिविधि', ar: 'رؤية عالمية · نشاط مشترك', it: 'Insight globale · Attività condivisa', pt: 'Insight global · Atividade compartilhada', ru: 'Глобальный инсайт · Общая активность', de: 'Globaler Insight · Geteilte Aktivität', fr: 'Insight global · Activité partagée', da: 'Globalt insight · Delt aktivitet' },
+  insightSharedActivity: { es: 'Idea global · Actividad compartida', en: 'Global idea · Shared activity', zh: '全球创意 · 社区分享的活动', hi: 'वैश्विक विचार · साझा गतिविधि', ar: 'فكرة عالمية · نشاط مشترك', it: 'Idea globale · Attività condivisa', pt: 'Ideia global · Atividade compartilhada', ru: 'Глобальная идея · Общая активность', de: 'Globale Idee · Geteilte Aktivität', fr: 'Idée globale · Activité partagée', da: 'Global idé · Delt aktivitet' },
   presetOf: { es: 'PRESET DE', en: 'PRESET BY', zh: '预设创建者', hi: 'प्रीसेट निर्माता', ar: 'إعداد بواسطة', it: 'PRESET DI', pt: 'PRESET DE', ru: 'ПРЕСЕТ АВТОРА', de: 'PRESET VON', fr: 'PRÉRÉGLAGE DE', da: 'PRESET AF' },
   insightPresetDescription: { es: 'Configuración del mapa de la persona que compartió esta actividad.', en: 'The map configuration from the person who shared this activity.', zh: '分享此活动的成员的地图配置。', hi: 'इस गतिविधि को साझा करने वाले व्यक्ति के मानचित्र का विन्यास।', ar: 'إعداد خريطة الشخص الذي شارك هذا النشاط.', it: 'La configurazione della mappa della persona che ha condiviso questa attività.', pt: 'A configuração do mapa da pessoa que compartilhou esta atividade.', ru: 'Конфигурация карты человека, поделившегося этой активностью.', de: 'Die Kartenkonfiguration der Person, die diese Aktivität geteilt hat.', fr: 'La configuration de la carte de la personne qui a partagé cette activité.', da: 'Kortopsætningen fra personen, der delte denne aktivitet.' },
   featuredBadges: { es: 'INSIGNIAS DESTACADAS', en: 'FEATURED BADGES', zh: '精选徽章', hi: 'विशेष बैज', ar: 'الشارات المميزة', it: 'DISTINTIVI IN EVIDENZA', pt: 'EMBLEMAS EM DESTAQUE', ru: 'ИЗБРАННЫЕ ЗНАЧКИ', de: 'HERVORGEHOBENE ABZEICHEN', fr: 'BADGES À LA UNE', da: 'FREMHÆVEDE BADGES' },
@@ -384,7 +384,7 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   recommendation: { es: 'Recomendación', en: 'Recommendation', zh: '推荐', hi: 'सुझाव', ar: 'توصية', it: 'Raccomandazione', pt: 'Recomendação', ru: 'Рекомендация', de: 'Empfehlung', fr: 'Recommandation', da: 'Anbefaling' },
   globalSection: { es: 'Modo Global', en: 'Global Mode', zh: '全球模式', hi: 'ग्लोबल मोड', ar: 'الوضع العالمي', it: 'Modalità globale', pt: 'Modo Global', ru: 'Глобальный режим', de: 'Globaler Modus', fr: 'Mode global', da: 'Global mode' },
   commandCenter: { es: 'Centro de Mando', en: 'Command Center', zh: '指挥中心', hi: 'कमांड सेंटर', ar: 'مركز القيادة', it: 'Centro di comando', pt: 'Centro de comando', ru: 'Центр управления', de: 'Kommandozentrale', fr: 'Centre de commande', da: 'Kommandocenter' },
-  globalInsights: { es: 'Insights Globales', en: 'Global Insights', zh: '全球洞察', hi: 'वैश्विक इनसाइट्स', ar: 'رؤى عالمية', it: 'Insight globali', pt: 'Insights globais', ru: 'Глобальные инсайты', de: 'Globale Insights', fr: 'Insights globaux', da: 'Globale insights' },
+  globalInsights: { es: 'Ideas globales', en: 'Global ideas', zh: '全球创意', hi: 'वैश्विक विचार', ar: 'أفكار عالمية', it: 'Idee globali', pt: 'Ideias globais', ru: 'Глобальные идеи', de: 'Globale Ideen', fr: 'Idées globales', da: 'Globale idéer' },
   specialistNetwork: { es: 'Red de Especialistas', en: 'Specialist Network', zh: '专家网络', hi: 'विशेषज्ञ नेटवर्क', ar: 'شبكة المتخصصين', it: 'Rete di specialisti', pt: 'Rede de especialistas', ru: 'Сеть специалистов', de: 'Expertennetzwerk', fr: 'Réseau de spécialistes', da: 'Specialistnetværk' },
   skinsGallery: { es: 'Galería de Skins & Filtros', en: 'Skins & Filters Gallery', zh: '皮肤与滤镜库', hi: 'स्किन और फ़िल्टर गैलरी', ar: 'معرض الواجهات والفلاتر', it: 'Galleria di skin e filtri', pt: 'Galeria de skins e filtros', ru: 'Галерея скинов и фильтров', de: 'Skins- und Filtergalerie', fr: 'Galerie des skins et filtres', da: 'Galleri med skins og filtre' },
   globalEyebrowLine: { es: 'ENTRA A LA RED DONDE LAS PRÁCTICAS SE VUELVEN CONEXIONES', en: 'ENTER THE NETWORK WHERE PRACTICES BECOME CONNECTIONS', zh: '进入让实践成为连接的网络', hi: 'उस नेटवर्क में प्रवेश करें जहाँ अभ्यास संबंध बनते हैं', ar: 'ادخل الشبكة حيث تتحول الممارسات إلى روابط', it: 'ENTRA NELLA RETE DOVE LE PRATICHE DIVENTANO CONNESSIONI', pt: 'ENTRE NA REDE ONDE PRÁTICAS VIRAM CONEXÕES', ru: 'ВОЙДИТЕ В СЕТЬ, ГДЕ ПРАКТИКИ СТАНОВЯТСЯ СВЯЗЯМИ', de: 'BETRITT DAS NETZWERK, IN DEM PRAKTIKEN ZU VERBINDUNGEN WERDEN', fr: 'ENTREZ DANS LE RÉSEAU OÙ LES PRATIQUES DEVIENNENT DES LIENS', da: 'TRÆD IND I NETVÆRKET, HVOR PRAKSIS BLIVER TIL FORBINDELSER' },
@@ -403,10 +403,13 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   activitySavedToJourney: { es: 'Actividad guardada en el journey correspondiente.', en: 'Activity saved to the corresponding journey.', zh: '活动已保存到对应的模式旅程。', hi: 'गतिविधि संबंधित मोड यात्रा में सहेजी गई है।', ar: 'تم حفظ النشاط في رحلة الوضع المقابلة.', it: 'Attività salvata nel percorso corrispondente.', pt: 'Atividade salva na jornada correspondente.', ru: 'Активность сохранена в соответствующем пути режима.', de: 'Aktivität im entsprechenden Modus-Journey gespeichert.', fr: 'Activité enregistrée dans le parcours correspondant.', da: 'Aktiviteten blev gemt i den tilsvarende mode-rejse.' },
   modifyActivity: { es: 'Modificar Actividad', en: 'Modify activity', zh: '修改活动', hi: 'गतिविधि संशोधित करें', ar: 'تعديل النشاط', it: 'Modifica attività', pt: 'Modificar atividade', ru: 'Изменить активность', de: 'Aktivität ändern', fr: 'Modifier l’activité', da: 'Redigér aktivitet' },
   addActivity: { es: 'Agregar Actividad', en: 'Add activity', zh: '添加活动', hi: 'गतिविधि जोड़ें', ar: 'إضافة نشاط', it: 'Aggiungi attività', pt: 'Adicionar atividade', ru: 'Добавить активность', de: 'Aktivität hinzufügen', fr: 'Ajouter une activité', da: 'Tilføj aktivitet' },
-  activityPool: { es: 'Pool de Actividades', en: 'Activity Pool', zh: '活动池', hi: 'गतिविधि पूल', ar: 'مجموعة الأنشطة', it: 'Raccolta attività', pt: 'Pool de atividades', ru: 'Банк активностей', de: 'Aktivitätspool', fr: 'Bibliothèque d’activités', da: 'Aktivitetspulje' },
+  activityPool: { es: 'Banco de actividades', en: 'Activity bank', zh: '活动库', hi: 'गतिविधि बैंक', ar: 'بنك الأنشطة', it: 'Raccolta di attività', pt: 'Banco de atividades', ru: 'Банк занятий', de: 'Aktivitätensammlung', fr: 'Banque d’activités', da: 'Aktivitetsbank' },
   modeAI: { es: 'Modo IA', en: 'Mode AI', zh: '模式 AI', hi: 'मोड AI', ar: 'وضع الذكاء الاصطناعي', it: 'Modo IA', pt: 'Modo IA', ru: 'Mode AI', de: 'Mode AI', fr: 'Mode IA', da: 'Mode AI' },
   insightRequested: { es: 'Insight pedido', en: 'Insight requested', zh: '已请求洞察', hi: 'इनसाइट का अनुरोध किया गया', ar: 'تم طلب الرؤية', it: 'Insight richiesto', pt: 'Insight solicitado', ru: 'Инсайт запрошен', de: 'Insight angefordert', fr: 'Insight demandé', da: 'Insight anmodet' },
-  requestInsights: { es: 'Pedir Insights', en: 'Request Insights', zh: '请求洞察', hi: 'इनसाइट मांगें', ar: 'اطلب رؤى', it: 'Richiedi insight', pt: 'Pedir Insights', ru: 'Запросить инсайт', de: 'Insights anfordern', fr: 'Demander des insights', da: 'Bed om insights' },
+  requestInsights: { es: 'Ideas locales', en: 'Local ideas', zh: '本地创意', hi: 'स्थानीय विचार', ar: 'أفكار محلية', it: 'Idee locali', pt: 'Ideias locais', ru: 'Локальные идеи', de: 'Lokale Ideen', fr: 'Idées locales', da: 'Lokale idéer' },
+  profileButton: { es: 'Perfil', en: 'Profile', zh: '个人资料', hi: 'प्रोफ़ाइल', ar: 'الملف الشخصي', it: 'Profilo', pt: 'Perfil', ru: 'Профиль', de: 'Profil', fr: 'Profil', da: 'Profil' },
+  accessDashboard: { es: 'Accesar al Dashboard', en: 'Access dashboard', zh: '进入控制面板', hi: 'डैशबोर्ड खोलें', ar: 'الدخول إلى لوحة التحكم', it: 'Accedi alla dashboard', pt: 'Acessar o painel', ru: 'Открыть панель', de: 'Zum Dashboard', fr: 'Accéder au tableau de bord', da: 'Åbn dashboard' },
+  journeyGrowthBenefit: { es: 'Desarrollarlo fortalece tu bienestar y te da herramientas concretas para avanzar con más equilibrio.', en: 'Developing this area supports your wellbeing and gives you practical tools to move forward with greater balance.', zh: '发展这一领域有助于提升幸福感，并提供更平衡前进的实用方法。', hi: 'इस क्षेत्र को विकसित करने से आपका कल्याण बेहतर होता है और संतुलित प्रगति के व्यावहारिक साधन मिलते हैं।', ar: 'يساعد تطوير هذا المجال على تعزيز رفاهك ويمنحك أدوات عملية للتقدم بتوازن أكبر.', it: 'Coltivare quest’area sostiene il tuo benessere e ti offre strumenti concreti per progredire con più equilibrio.', pt: 'Desenvolver esta área favorece seu bem-estar e oferece ferramentas práticas para avançar com mais equilíbrio.', ru: 'Развитие этой сферы поддерживает благополучие и даёт практические способы двигаться вперёд сбалансированно.', de: 'Die Entwicklung dieses Bereichs stärkt dein Wohlbefinden und gibt dir konkrete Mittel für ausgewogene Fortschritte.', fr: 'Développer ce domaine favorise votre bien-être et vous donne des moyens concrets d’avancer avec plus d’équilibre.', da: 'Udvikling af dette område styrker dit velbefindende og giver konkrete værktøjer til mere balance.' },
   current: { es: 'Actual', en: 'Current', zh: '当前', hi: 'वर्तमान', ar: 'الحالي', it: 'Attuale', pt: 'Atual', ru: 'Текущий', de: 'Aktuell', fr: 'Actuel', da: 'Aktuel' },
   presetNameRequired: { es: 'Escribe un nombre para guardar tu configuración.', en: 'Enter a name to save your configuration.', zh: '输入名称以保存配置。', hi: 'अपना कॉन्फ़िगरेशन सहेजने के लिए नाम दर्ज करें।', ar: 'أدخل اسماً لحفظ إعداداتك.', it: 'Inserisci un nome per salvare la configurazione.', pt: 'Digite um nome para salvar sua configuração.', ru: 'Введите название, чтобы сохранить конфигурацию.', de: 'Gib einen Namen ein, um deine Konfiguration zu speichern.', fr: 'Saisissez un nom pour enregistrer votre configuration.', da: 'Indtast et navn for at gemme din konfiguration.' },
   presetSelectLoad: { es: 'Selecciona un preset para cargarlo.', en: 'Select a preset to load it.', zh: '选择一个预设以加载。', hi: 'लोड करने के लिए एक प्रीसेट चुनें।', ar: 'اختر إعداداً مسبقاً لتحميله.', it: 'Seleziona un preset da caricare.', pt: 'Selecione um preset para carregá-lo.', ru: 'Выберите пресет для загрузки.', de: 'Wähle ein Preset zum Laden aus.', fr: 'Sélectionnez un preset à charger.', da: 'Vælg et preset, der skal indlæses.' },
@@ -457,6 +460,36 @@ const localizedModeDescriptions: Partial<Record<Language, Record<string, string>
   en: { fisico: 'Body health and wellbeing', intelectual: 'Intellectual and cognitive development', emocional: 'Emotional balance and regulation', arquetipico: 'Character, coherence and personal essence', espiritual: 'Purpose, meaning and connection', romantico: 'Partnership and love', familiar: 'Family roots and close bonds', social: 'Friendships, support network and community', financiero: 'Money management, saving and investing', profesional: 'Career, vocation and work performance', ludico: 'Enjoyment, rest and renewed energy', visionario: 'Goals, long-term planning and legacy' },
   it: { fisico: 'Salute e benessere del corpo', intelectual: 'Sviluppo intellettuale e cognitivo', emocional: 'Gestione ed equilibrio delle emozioni', arquetipico: 'Carattere, coerenza ed essenza personale', espiritual: 'Scopo, significato e connessione', romantico: 'Relazione di coppia e amore', familiar: 'Legami familiari e radici', social: 'Amicizie, rete di sostegno e comunità', financiero: 'Gestione del denaro, risparmio e investimenti', profesional: 'Carriera, vocazione e rendimento professionale', ludico: 'Piacere, tempo libero, riposo ed energia', visionario: 'Obiettivi, pianificazione e lascito' },
   da: { fisico: 'Sundhed og kropsligt velvære', intelectual: 'Intellektuel og kognitiv udvikling', emocional: 'Håndtering og balance af følelser', arquetipico: 'Karakter, sammenhæng og personlig essens', espiritual: 'Formål, mening og forbindelse', romantico: 'Parforhold og kærlighed', familiar: 'Familiebånd og rødder', social: 'Venskaber, netværk og fællesskab', financiero: 'Penge, opsparing og investering', profesional: 'Karriere, kald og arbejdspræstation', ludico: 'Glæde, fritid, hvile og ny energi', visionario: 'Mål, langsigtet planlægning og arv' },
+};
+const localizedJourneyModeDescriptions: Partial<Record<Language, Record<string, string>>> = {
+  es: {
+    fisico: 'Cuidar tu salud física sostiene tu energía, autonomía y bienestar diario. Trabajarlo ayuda a prevenir desgaste y te da más capacidad para disfrutar y avanzar en las demás áreas.',
+    intelectual: 'Cultivar tu curiosidad y pensamiento amplía lo que puedes comprender y crear. Te ayuda a aprender mejor, tomar decisiones con criterio y adaptarte a los cambios.',
+    emocional: 'Reconocer y regular tus emociones mejora cómo respondes a los retos y te relacionas. Practicarlo aporta calma, resiliencia y decisiones más alineadas contigo.',
+    arquetipico: 'Explorar tus valores, carácter y patrones fortalece una identidad coherente. Así puedes actuar con autenticidad, elegir mejor y sostener cambios que sí representan quién eres.',
+    espiritual: 'Conectar con propósito y sentido da dirección a tus decisiones, especialmente en momentos difíciles. Cultivarlo puede aportar perspectiva, serenidad y motivación duradera.',
+    romantico: 'Cuidar la intimidad y la vida de pareja construye confianza y apoyo mutuo. Trabajarlo favorece una comunicación más honesta, cercanía y vínculos más sanos.',
+    familiar: 'Atender los vínculos familiares ayuda a crear pertenencia, apoyo y límites saludables. Puede mejorar la convivencia y fortalecer una red cercana para las distintas etapas de vida.',
+    social: 'Construir amistades y comunidad reduce el aislamiento y multiplica las oportunidades de apoyo. Invertir en esta área fortalece la colaboración, la confianza y el sentido de pertenencia.',
+    financiero: 'Comprender y ordenar tus finanzas reduce incertidumbre y amplía tus opciones. Avanzar aquí ayuda a tomar decisiones sostenibles, prepararte para imprevistos y financiar tus prioridades.',
+    profesional: 'Desarrollar tu trabajo con intención puede unir habilidades, propósito y contribución. Cultivarlo abre oportunidades, fortalece tu autonomía y hace más sostenible tu crecimiento.',
+    ludico: 'El juego, el descanso y el disfrute restauran energía y alimentan la creatividad. Darles espacio ayuda a prevenir el agotamiento y hace que el progreso sea más equilibrado y sostenible.',
+    visionario: 'Definir una visión convierte deseos dispersos en dirección y prioridades. Trabajarla ayuda a planear a largo plazo, elegir próximos pasos y construir un legado significativo.',
+  },
+  en: {
+    fisico: 'Caring for your physical health supports energy, independence, and everyday wellbeing. It helps prevent depletion and gives you more capacity to enjoy life and grow in other areas.',
+    intelectual: 'Nurturing curiosity and clear thinking expands what you can understand and create. It helps you learn, make sound decisions, and adapt to change.',
+    emocional: 'Recognizing and regulating emotions improves how you respond to challenges and connect with others. It can build calm, resilience, and decisions that feel true to you.',
+    arquetipico: 'Exploring your values, character, and patterns strengthens a coherent identity. This helps you act authentically, choose wisely, and sustain changes that reflect who you are.',
+    espiritual: 'Connecting with purpose gives direction to choices, especially during difficult moments. Cultivating it can bring perspective, serenity, and lasting motivation.',
+    romantico: 'Caring for intimacy and partnership builds trust and mutual support. It encourages honest communication, closeness, and healthier relationships.',
+    familiar: 'Attending to family relationships can create belonging, support, and healthy boundaries. It may improve daily life and strengthen a close support network.',
+    social: 'Building friendships and community reduces isolation and expands support. Investing here strengthens collaboration, trust, and belonging.',
+    financiero: 'Understanding and organizing your finances reduces uncertainty and expands your choices. Progress helps you plan sustainably, prepare for surprises, and fund what matters.',
+    profesional: 'Developing your work with intention can connect skills, purpose, and contribution. It creates opportunity, strengthens independence, and supports sustainable growth.',
+    ludico: 'Play, rest, and enjoyment restore energy and nurture creativity. Making room for them helps prevent burnout and keeps progress balanced and sustainable.',
+    visionario: 'Defining a vision turns scattered wishes into direction and priorities. Working on it helps you plan ahead, choose next steps, and build a meaningful legacy.',
+  },
 };
 const localizedLevelDescriptions: Record<Language, string[]> = {
   es: levelDescriptions,
@@ -564,6 +597,7 @@ function App() {
   const modeName = (mode: Mode) => localizedModeNames[language][mode.key] ?? mode.name;
   const modeShortName = (mode: Mode) => modeName(mode).replace(/^(Modo |Mode |模式|모드 )/i, '').replace(/\s+Mode$/i, '');
   const modeDescription = (mode: Mode) => localizedModeDescriptions[language]?.[mode.key] ?? `${modeName(mode)} · ${tr('cultivationArea')}`;
+  const modeJourneyDescription = (mode: Mode) => localizedJourneyModeDescriptions[language]?.[mode.key] ?? `${modeDescription(mode)}. ${tr('journeyGrowthBenefit')}`;
   const triviaQuestion = (mode: Mode) => language === 'es' ? labCards[mode.key].question : tr('triviaQuestionPrompt');
   const triviaAnswer = (mode: Mode) => language === 'es' ? labCards[mode.key].answer : `${tr('triviaAnswerPrefix')} ${modeDescription(mode).toLowerCase()}.`;
   const levelDescription = (level: number) => localizedLevelDescriptions[language][level] ?? levelDescriptions[level];
@@ -813,10 +847,11 @@ function App() {
       'Configuraciones guardadas': { es: 'Configuraciones guardadas', en: 'Saved configurations', zh: '已保存的配置', hi: 'सहेजे गए कॉन्फ़िगरेशन', ar: 'الإعدادات المحفوظة', it: 'Configurazioni salvate', pt: 'Configurações salvas', ru: 'Сохранённые настройки', de: 'Gespeicherte Konfigurationen', fr: 'Configurations enregistrées', da: 'Gemte konfigurationer' },
       'Tu ruta de cultivo': { es: 'Tu ruta de cultivo', en: 'Your cultivation path', zh: '你的培育路径', hi: 'आपका विकास मार्ग', ar: 'مسار تنميتك', it: 'Il tuo percorso di crescita', pt: 'Sua rota de cultivo', ru: 'Ваш путь развития', de: 'Dein Entwicklungsweg', fr: 'Votre parcours de développement', da: 'Din udviklingsrejse' },
       'Diseño de Actividad': { es: 'Diseño de Actividad', en: 'Activity Design', zh: '活动设计', hi: 'गतिविधि डिजाइन', ar: 'تصميم النشاط', it: 'Progettazione dell’attività', pt: 'Design da atividade', ru: 'Дизайн активности', de: 'Aktivitätsdesign', fr: 'Conception de l’activité', da: 'Aktivitetsdesign' },
-      'Pool de Actividades': { es: 'Pool de Actividades', en: 'Activity Pool', zh: '活动池', hi: 'गतिविधि पूल', ar: 'مجموعة الأنشطة', it: 'Raccolta attività', pt: 'Pool de atividades', ru: 'Банк активностей', de: 'Aktivitätspool', fr: 'Bibliothèque d’activités', da: 'Aktivitetspulje' },
+      'Pool de Actividades': { es: 'Banco de actividades', en: 'Activity bank', zh: '活动库', hi: 'गतिविधि बैंक', ar: 'بنك الأنشطة', it: 'Raccolta di attività', pt: 'Banco de atividades', ru: 'Банк занятий', de: 'Aktivitätensammlung', fr: 'Banque d’activités', da: 'Aktivitetsbank' },
       'Construyamos tu actividad': { es: 'Construyamos tu actividad', en: 'Let’s build your activity', zh: '一起设计你的活动', hi: 'अपनी गतिविधि बनाएं', ar: 'لنصمم نشاطك', it: 'Costruiamo la tua attività', pt: 'Vamos criar sua atividade', ru: 'Создадим вашу активность', de: 'Entwickeln wir deine Aktivität', fr: 'Construisons votre activité', da: 'Lad os bygge din aktivitet' },
-      'Pedir Insights': { es: 'Pedir Insights', en: 'Request Insights', zh: '请求洞察', hi: 'इनसाइट मांगें', ar: 'اطلب رؤى', it: 'Richiedi insight', pt: 'Pedir Insights', ru: 'Запросить инсайт', de: 'Insights anfordern', fr: 'Demander des insights', da: 'Bed om insights' },
-      'Insights Globales': { es: 'Insights Globales', en: 'Global Insights', zh: '全球洞察', hi: 'वैश्विक इनसाइट्स', ar: 'رؤى عالمية', it: 'Insight globali', pt: 'Insights globais', ru: 'Глобальные инсайты', de: 'Globale Insights', fr: 'Insights globaux', da: 'Globale insights' },
+      'Pedir Insights': { es: 'Ideas locales', en: 'Local ideas', zh: '本地创意', hi: 'स्थानीय विचार', ar: 'أفكار محلية', it: 'Idee locali', pt: 'Ideias locais', ru: 'Локальные идеи', de: 'Lokale Ideen', fr: 'Idées locales', da: 'Lokale idéer' },
+      'Insights Globales': { es: 'Ideas globales', en: 'Global ideas', zh: '全球创意', hi: 'वैश्विक विचार', ar: 'أفكار عالمية', it: 'Idee globali', pt: 'Ideias globais', ru: 'Глобальные идеи', de: 'Globale Ideen', fr: 'Idées globales', da: 'Globale idéer' },
+      'Insights Globales.': { es: 'Ideas globales.', en: 'Global ideas.', zh: '全球创意。', hi: 'वैश्विक विचार।', ar: 'أفكار عالمية.', it: 'Idee globali.', pt: 'Ideias globais.', ru: 'Глобальные идеи.', de: 'Globale Ideen.', fr: 'Idées globales.', da: 'Globale idéer.' },
       'Red de Especialistas': { es: 'Red de Especialistas', en: 'Specialist Network', zh: '专家网络', hi: 'विशेषज्ञ नेटवर्क', ar: 'شبكة المتخصصين', it: 'Rete di specialisti', pt: 'Rede de especialistas', ru: 'Сеть специалистов', de: 'Expertennetzwerk', fr: 'Réseau de spécialistes', da: 'Specialistnetværk' },
       'Galería de Skins & Filtros': { es: 'Galería de Skins & Filtros', en: 'Skins & Filters Gallery', zh: '皮肤与滤镜库', hi: 'स्किन और फ़िल्टर गैलरी', ar: 'معرض الواجهات والفلاتر', it: 'Galleria di skin e filtri', pt: 'Galeria de skins e filtros', ru: 'Галерея скинов и фильтров', de: 'Skins- und Filtergalerie', fr: 'Galerie des skins et filtres', da: 'Galleri med skins og filtre' },
       'Presets': { es: 'Presets', en: 'Presets', zh: '预设', hi: 'प्रीसेट', ar: 'إعدادات', it: 'Preset', pt: 'Presets', ru: 'Пресеты', de: 'Presets', fr: 'Préréglages', da: 'Presets' },
@@ -864,7 +899,7 @@ function App() {
     replacements.set('NIVELES', language === 'es' ? 'NIVELES' : tr('levels').toUpperCase());
     replacements.set('MODO IA', language === 'es' ? 'MODO IA' : 'MODE AI');
     replacements.set('Agregar actividad', tr('activity'));
-    replacements.set('Pool de actividades', tr('activity') === 'Actividad' ? 'Pool de Actividades' : `${tr('activity')} Pool`);
+    replacements.set('Pool de actividades', tr('activityPool'));
     replacements.set('Voltear tarjeta', language === 'es' ? 'Voltear tarjeta' : 'Flip card');
     replacements.set('Volver a la pregunta', language === 'es' ? 'Volver a la pregunta' : 'Back to the question');
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -1061,8 +1096,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
+    const goBackWithinApp = () => {
       if (customizingAvatar) {
         setCustomizingAvatar(false);
       } else if (profilePreviewMode) {
@@ -1093,8 +1127,23 @@ function App() {
         setView('welcome');
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      goBackWithinApp();
+    };
+    const historyGuard = { ...(window.history.state ?? {}), modoCultivaBackGuard: true };
+    if (!window.history.state?.modoCultivaBackGuard) window.history.pushState(historyGuard, '', window.location.href);
+    const handlePopState = () => {
+      goBackWithinApp();
+      window.history.pushState(historyGuard, '', window.location.href);
+    };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, [activeActivity, cultInsightPreview, customizingAvatar, journeyReturnView, profilePreviewMode, selectedMode, selectedPlan, specialistPreview, view]);
 
   const average = useMemo(() => {
@@ -1579,10 +1628,10 @@ function App() {
             <div className="overview-person">
               <button className={profileImage ? 'overview-core overview-core--with-photo' : 'overview-core'} style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .18), rgba(4, 18, 29, .74)), url(${profileImage})` } : undefined} type="button" onClick={() => setView('dashboard')} aria-label={tr('pressToEnter')}>
                 <span className="overview-photo-content"><strong>{displayedProfileName}</strong>{displayedProfileRole && <span className="profile-badge">{displayedProfileRole}</span>}</span>
-                <span className="overview-enter-prompt">{tr('pressToEnter')} <b>↗</b></span>
+                <span className="overview-enter-prompt">{tr('accessDashboard')} <b>↗</b></span>
               </button>
               <div className="overview-person-actions">
-                <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setCustomizingAvatar(true); }}>✦ {tr('customize')}</button>
+                <button className="avatar-customize" type="button" onClick={(event) => { event.stopPropagation(); setProfilePreviewMode(true); }}>✦ {tr('profileButton')}</button>
               </div>
             </div>
           </div>
@@ -1690,7 +1739,7 @@ function App() {
             <div className="agent-actions"><button className="agent-ask" type="button" disabled={aiLoading} onClick={() => { void consultModeAi(); }}>{aiLoading ? tr('consulting') : tr('askAI')} <span>→</span></button><button className="agent-save" type="button" disabled={aiLoading} onClick={saveModeAiActivity}>{tr('useActivity')} <span>→</span></button></div>
           </>}
         </section> : <>
-          <div className="journey-intro-compact"><span className="journey-icon">{selectedMode.icon}</span><div><h2 id="journey-title">{modeName(selectedMode)}</h2><p className="journey-description">{modeDescription(selectedMode)}.</p></div></div>
+          <div className="journey-intro-compact"><span className="journey-icon">{selectedMode.icon}</span><div><h2 id="journey-title">{modeName(selectedMode)}</h2><p className="journey-description">{modeJourneyDescription(selectedMode)}</p></div></div>
           <div className="journey-level journey-level--compact"><div><span>{tr('level')}</span><strong>{levels[selectedMode.key]}</strong></div><span className="journey-level-name">{localizedLevelNames[language][levels[selectedMode.key]]}</span></div><div className="level-definition level-definition--compact"><strong>{localizedLevelNames[language][levels[selectedMode.key]]}</strong><p>{levelDescription(levels[selectedMode.key])}</p></div>
           <label htmlFor="journey-slider">{tr('presenceLevel')}</label><input id="journey-slider" className="journey-slider" type="range" min="0" max="9" value={levels[selectedMode.key]} onChange={(event) => updateLevel(selectedMode.key, Number(event.target.value))} />
           <section className="journey-builder" data-layer="3" aria-labelledby="journey-builder-title">

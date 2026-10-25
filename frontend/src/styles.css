@@ -609,3 +609,47 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
   .pwa-status, .pwa-action { font-size: .58rem; }
   .pwa-guide { padding: 1.5rem; }
 }
+
+/* Keep the account control in the page header instead of pinning it to the viewport. */
+.topbar { position: relative; padding-right: 56px; }
+.profile-menu { position: absolute; top: 5px; right: 0; z-index: 9; }
+@media (max-width: 680px) { .topbar { padding-right: 52px; }.profile-menu { top: 0; right: 0; } }
+
+/* Touch-safe 12-mode ring: adjacent card hit areas no longer overlap. */
+@media (max-width: 680px) {
+  .overview-stage { width: min(100%, 410px); height: 430px; margin-right: auto; margin-left: auto; }
+  .overview-mode {
+    z-index: 3;
+    width: clamp(51px, 17.5vw, 66px);
+    min-height: 64px;
+    padding: 5px 3px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(clamp(-132px, -36vw, -108px)) rotate(calc(var(--mode-angle) * -1));
+  }
+  .overview-mode:hover, .overview-mode:focus-visible {
+    z-index: 4;
+    min-height: 64px;
+    transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(clamp(-132px, -36vw, -108px)) rotate(calc(var(--mode-angle) * -1));
+  }
+  .overview-mode-icon { width: 21px; height: 21px; margin-bottom: 3px; font-size: .85rem; }
+  .overview-mode-name { display: block; width: 100%; max-width: none; overflow: visible; font-size: clamp(.43rem, 2.5vw, .53rem); line-height: 1.1; text-align: center; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+  .overview-mode strong { margin-top: 2px; font-size: .68rem; }
+  .overview-mode-description { display: none; }
+  .overview-person { z-index: 2; width: min(100%, 300px); pointer-events: none; }
+  .overview-person > * { pointer-events: auto; }
+  .overview-core { width: clamp(136px, 44vw, 164px); height: clamp(136px, 44vw, 164px); }
+  .overview-orbit--outer, .overview-light-sweep { width: min(88vw, 330px); height: min(88vw, 330px); }
+  .overview-stage::before, .overview-stage::after { width: min(72vw, 280px); height: min(72vw, 280px); }
+}
+
+/* Let translated level names and effort badges wrap instead of clipping. */
+.journey-level-card-top { display: grid; grid-template-columns: auto auto minmax(0, 1fr) minmax(0, auto); align-items: center; gap: 8px; min-width: 0; }
+.journey-level-card-top .journey-level-card-name { min-width: 0; overflow: visible; line-height: 1.25; text-align: center; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+.journey-level-card-top .journey-level-card-effort { max-width: 100%; padding: 5px 7px; white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .journey-level-card { padding: 10px; }
+  .journey-level-card-top { grid-template-columns: auto auto minmax(0, 1fr); gap: 5px; }
+  .journey-level-card-top .journey-level-card-name { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; text-align: left; }
+  .journey-level-card-top .journey-level-card-effort, .journey-level-card-top em { grid-column: 3; grid-row: 1; justify-self: end; max-width: 100%; margin-left: 0; font-size: .48rem !important; }
+}
