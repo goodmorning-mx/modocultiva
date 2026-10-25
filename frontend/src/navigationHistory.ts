@@ -6,7 +6,7 @@ type HistoryPort = {
 };
 
 // Only UI navigation lives here. User data stays in the existing persistence flow.
-export function createNavigationHistory<T>(history: HistoryPort, initial: T, depth: (snapshot: T) => number, restore: (snapshot: T) => void) {
+export function createNavigationHistory<T>(history: HistoryPort, initial: T, depth: (snapshot: T) => number, restore: (snapshot: T) => void, sameLocation: (left: T, right: T) => boolean = (left, right) => JSON.stringify(left) === JSON.stringify(right)) {
   const session = Math.random().toString(36).slice(2);
   let frames = [{ snapshot: initial, depth: depth(initial) }];
   let index = 0;
@@ -30,9 +30,15 @@ export function createNavigationHistory<T>(history: HistoryPort, initial: T, dep
       if (nextDepth < frames[index].depth && index > 0) {
         let target = index - 1;
         while (target > 0 && frames[target].depth > nextDepth) target -= 1;
-        pendingBack = true;
-        history.go(target - index);
-      } else if (nextDepth > frames[index].depth) {
+        if (frames[target].depth === nextDepth && sameLocation(frames[target].snapshot, snapshot)) {
+          pendingBack = true;
+          history.go(target - index);
+          return;
+        }
+        // Closing a menu can also open a different screen (e.g. Sign in).
+        // That is a new destination, not a request to restore its old parent.
+      }
+      if (nextDepth > frames[index].depth) {
         frames = frames.slice(0, index + 1);
         frames.push({ snapshot, depth: nextDepth });
         index += 1;

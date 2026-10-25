@@ -1211,7 +1211,17 @@ function App() {
         + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
         + Number(snapshot.customizingAvatar) + Number(snapshot.profilePreviewMode) + Number(Boolean(snapshot.selectedPlan))
         + Number(Boolean(snapshot.insightPreview)) + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview));
-    }, (snapshot) => restoreNavigationRef.current(snapshot));
+    }, (snapshot) => restoreNavigationRef.current(snapshot), (left, right) => {
+      // Ignore details belonging to hidden layers when matching an old parent.
+      const location = (snapshot: typeof navigationSnapshot) => [
+        snapshot.view, snapshot.selectedMode?.key, snapshot.activeActivity,
+        snapshot.selectedMode || snapshot.view === 'cult' ? [snapshot.cultOpen, snapshot.cultTab] : null,
+        snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.configurationsOpen && snapshot.renamingPreset,
+        snapshot.customizingAvatar, snapshot.profilePreviewMode, snapshot.selectedPlan,
+        snapshot.insightPreview, snapshot.cultInsightPreview, snapshot.specialistPreview,
+      ];
+      return JSON.stringify(location(left)) === JSON.stringify(location(right));
+    });
     navigationHistoryRef.current = navigation;
     const handlePopState = (event: PopStateEvent) => navigation.onPopState(event.state);
     window.addEventListener('popstate', handlePopState);
