@@ -643,13 +643,18 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
   .overview-stage::before, .overview-stage::after { width: min(72vw, 280px); height: min(72vw, 280px); }
 }
 
-/* Let translated level names and effort badges wrap instead of clipping. */
-.journey-level-card-top { display: grid; grid-template-columns: auto auto minmax(0, 1fr) minmax(0, auto); align-items: center; gap: 8px; min-width: 0; }
-.journey-level-card-top .journey-level-card-name { min-width: 0; overflow: visible; line-height: 1.25; text-align: center; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
-.journey-level-card-top .journey-level-card-effort { max-width: 100%; padding: 5px 7px; white-space: normal; overflow-wrap: anywhere; }
+/* Keep all translated level metadata readable in desktop and installed PWAs. */
+.journey-level-card-top { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, auto); align-items: center; gap: 8px; min-width: 0; }
+.journey-level-card-index { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.journey-level-card-index > span { color: #6d8c87; font-family: 'DM Mono', monospace; font-size: .52rem; letter-spacing: .1em; }
+.journey-level-card-index > strong { color: var(--mode-color); font-size: 1.25rem; line-height: 1; }
+.journey-level-card-top .journey-level-card-name { min-width: 0; margin: 0; overflow: visible; color: #c9e7d1; font-size: .58rem; font-weight: 600; line-height: 1.25; text-align: right; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+.journey-level-card-top .journey-level-card-effort { grid-column: 3; min-width: 0; max-width: 100%; margin: 0; padding: 5px 7px; overflow: visible; border: 1px solid color-mix(in srgb, var(--mode-color) 34%, transparent); border-radius: 6px; color: color-mix(in srgb, var(--mode-color) 82%, #e8fff0); background: color-mix(in srgb, var(--mode-color) 7%, transparent); font-size: clamp(.48rem, .9vw, .58rem) !important; font-weight: 600; line-height: 1.25; letter-spacing: .04em; text-align: center; white-space: normal; overflow-wrap: anywhere; }
+.journey-level-card-top em { grid-column: 3; margin: 0; color: var(--mode-color); font-family: 'DM Mono', monospace; font-size: .49rem; font-style: normal; text-align: right; text-transform: uppercase; }
 @media (max-width: 520px) {
   .journey-level-card { padding: 10px; }
-  .journey-level-card-top { grid-template-columns: auto auto minmax(0, 1fr); gap: 5px; }
-  .journey-level-card-top .journey-level-card-name { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; text-align: left; }
-  .journey-level-card-top .journey-level-card-effort, .journey-level-card-top em { grid-column: 3; grid-row: 1; justify-self: end; max-width: 100%; margin-left: 0; font-size: .48rem !important; }
+  .journey-level-card-top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 7px; }
+  .journey-level-card-index { grid-column: 1; grid-row: 1; }
+  .journey-level-card-top .journey-level-card-name { grid-column: 2; grid-row: 1; justify-self: end; text-align: right; }
+  .journey-level-card-top .journey-level-card-effort, .journey-level-card-top em { grid-column: 1 / -1; grid-row: 2; justify-self: center; max-width: 100%; font-size: .48rem !important; text-align: center; }
 }
