@@ -393,8 +393,8 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   globalAccess: { es: 'ACCESO LIBRE · RED EN MOVIMIENTO', en: 'OPEN ACCESS · NETWORK IN MOTION', zh: '开放访问 · 网络正在连接', hi: 'खुली पहुंच · नेटवर्क सक्रिय है', ar: 'وصول مفت · شبكة متحركة', it: 'ACCESSO LIBERO · RETE IN MOVIMENTO', pt: 'ACESSO LIVRE · REDE EM MOVIMENTO', ru: 'СВОБОДНЫЙ ДОСТУП · СЕТЬ В ДВИЖЕНИИ', de: 'FREIER ZUGANG · NETZWERK IN BEWEGUNG', fr: 'ACCÈS LIBRE · RÉSEAU EN MOUVEMENT', da: 'ÅBEN ADGANG · NETVÆRK I BEVÆGELSE' },
   presetExample: { es: 'Ej. Mi equilibrio', en: 'e.g. My balance', zh: '例如：我的平衡', hi: 'जैसे: मेरा संतुलन', ar: 'مثال: توازني', it: 'Es. Il mio equilibrio', pt: 'Ex.: Meu equilíbrio', ru: 'Например: Моё равновесие', de: 'z. B. Mein Gleichgewicht', fr: 'Ex. : Mon équilibre', da: 'Fx. Min balance' },
   savedPresets: { es: 'Configuraciones de Vida Guardadas', en: 'Saved presets', zh: '已保存的生活模式组合', hi: 'सहेजे गए जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة المحفوظة', it: 'Combinazioni salvate dei modi di vita', pt: 'Combinações salvas de modos de vida', ru: 'Сохранённые сочетания жизненных сфер', de: 'Gespeicherte Kombinationen der Lebensbereiche', fr: 'Combinaisons enregistrées des modes de vie', da: 'Gemte kombinationer af livsområder' },
-  savedConfigurationsEyebrow: { es: 'CONFIGURACIONES DE VIDA', en: 'SAVED PRESETS', zh: '已保存的生活模式组合', hi: 'सहेजे गए जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة المحفوظة', it: 'COMBINAZIONI DEI MODI DI VITA', pt: 'COMBINAÇÕES DE MODOS DE VIDA', ru: 'СОЧЕТАНИЯ ЖИЗНЕННЫХ СФЕР', de: 'KOMBINATIONEN DER LEBENSBEREICHE', fr: 'COMBINAISONS DES MODES DE VIE', da: 'KOMBINATIONER AF LIVSOMRÅDER' },
-  presets: { es: 'Diferentes Modos de Operar', en: 'Presets', zh: '不同的生活模式', hi: 'जीवन जीने के अलग-अलग तरीके', ar: 'طرق مختلفة لعيش الحياة', it: 'Diversi modi di vivere', pt: 'Diferentes modos de viver', ru: 'Разные способы жить', de: 'Unterschiedliche Lebensweisen', fr: 'Différentes façons de vivre', da: 'Forskellige måder at leve på' },
+  savedConfigurationsEyebrow: { es: 'DIFERENTES MODOS DE OPERAR', en: 'SAVED PRESETS', zh: '已保存的生活模式组合', hi: 'सहेजे गए जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة المحفوظة', it: 'COMBINAZIONI DEI MODI DI VITA', pt: 'COMBINAÇÕES DE MODOS DE VIDA', ru: 'СОЧЕТАНИЯ ЖИЗНЕННЫХ СФЕР', de: 'KOMBINATIONEN DER LEBENSBEREICHE', fr: 'COMBINAISONS DES MODES DE VIE', da: 'KOMBINATIONER AF LIVSOMRÅDER' },
+  presets: { es: 'Configuraciones de Vida', en: 'Presets', zh: '生活模式组合', hi: 'जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة', it: 'Combinazioni dei modi di vita', pt: 'Combinações de modos de vida', ru: 'Сочетания жизненных сфер', de: 'Kombinationen der Lebensbereiche', fr: 'Combinaisons des modes de vie', da: 'Kombinationer af livsområder' },
   selectPreset: { es: '— Selecciona una Configuración de Vida —', en: '— Select a preset —', zh: '— 选择生活模式组合 —', hi: '— जीवन-मोड संयोजन चुनें —', ar: '— اختر توليفة أنماط الحياة —', it: '— Seleziona una combinazione dei modi di vita —', pt: '— Selecione uma combinação de modos de vida —', ru: '— Выберите сочетание жизненных сфер —', de: '— Wähle eine Kombination der Lebensbereiche —', fr: '— Choisissez une combinaison des modes de vie —', da: '— Vælg en kombination af livsområder —' },
   newPreset: { es: 'Nueva Configuración de Vida', en: 'New preset', zh: '新建生活模式组合', hi: 'नया जीवन-मोड संयोजन', ar: 'توليفة جديدة لأنماط الحياة', it: 'Nuova combinazione dei modi di vita', pt: 'Nova combinação de modos de vida', ru: 'Новое сочетание жизненных сфер', de: 'Neue Kombination der Lebensbereiche', fr: 'Nouvelle combinaison des modes de vie', da: 'Ny kombination af livsområder' },
   savedPresetDescription: { es: 'Guarda y recupera tus Configuraciones de Vida para explorar distintas combinaciones de los 12 modos.', en: 'Save and restore level combinations to explore different presence maps.', zh: '保存和恢复你的生活模式组合，探索12种模式的不同等级搭配。', hi: '12 मोड के अलग-अलग स्तर संयोजनों को देखने के लिए अपनी जीवन-मोड संयोजन सहेजें और वापस लाएं।', ar: 'احفظ توليفات أنماط حياتك واستعدها لاستكشاف مستويات مختلفة عبر الأوضاع الاثني عشر.', it: 'Salva e ripristina le tue combinazioni dei modi di vita per esplorare diversi livelli nei 12 modi.', pt: 'Salve e recupere suas combinações de modos de vida para explorar diferentes níveis nos 12 modos.', ru: 'Сохраняйте и восстанавливайте сочетания жизненных сфер, чтобы исследовать разные уровни во всех 12 режимах.', de: 'Speichere und lade deine Kombinationen der Lebensbereiche, um verschiedene Stufen in allen 12 Modi zu erkunden.', fr: 'Enregistrez et restaurez vos combinaisons des modes de vie pour explorer différents niveaux dans les 12 modes.', da: 'Gem og gendan dine kombinationer af livsområder for at udforske forskellige niveauer på tværs af de 12 områder.' },
@@ -854,6 +854,7 @@ function App() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginName, setLoginName] = useState('');
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const journeyPanelRef = useRef<HTMLElement | null>(null);
   const journeyReturnScrollTop = useRef(0);
   const cultEmbeddedRef = useRef<HTMLElement | null>(null);
@@ -1147,8 +1148,19 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!profileMenuOpen) return;
+    const closeProfileMenuOnOutsidePress = (event: PointerEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) setProfileMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', closeProfileMenuOnOutsidePress);
+    return () => document.removeEventListener('pointerdown', closeProfileMenuOnOutsidePress);
+  }, [profileMenuOpen]);
+
+  useEffect(() => {
     const goBackWithinApp = () => {
-      if (customizingAvatar) {
+      if (profileMenuOpen) {
+        setProfileMenuOpen(false);
+      } else if (customizingAvatar) {
         setCustomizingAvatar(false);
       } else if (profilePreviewMode) {
         setProfilePreviewMode(false);
@@ -1195,7 +1207,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [activeActivity, cultInsightPreview, customizingAvatar, journeyReturnView, profilePreviewMode, selectedMode, selectedPlan, specialistPreview, view]);
+  }, [activeActivity, cultInsightPreview, customizingAvatar, journeyReturnView, profileMenuOpen, profilePreviewMode, selectedMode, selectedPlan, specialistPreview, view]);
 
   const average = useMemo(() => {
     const values = Object.values(levels);
@@ -1610,7 +1622,7 @@ function App() {
   return (
     <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
       <header className="topbar">
-        <div className="profile-menu"><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div>
+        <div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div>
         <a className="brand" href="/" aria-label="Modo Cultiva, inicio">
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
