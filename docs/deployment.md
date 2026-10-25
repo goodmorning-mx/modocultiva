@@ -76,3 +76,22 @@ Do not copy every variable from `.env.example` into both Coolify applications. U
 - Local Compose only: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, plus local placeholder defaults.
 
 No real secrets, credentials, tokens, production identifiers, Coolify UUIDs, or generated hostnames belong in Git.
+
+## PWA installation identity
+
+Both `name` and `short_name` in the web app manifest must remain `Modo Cultiva`.
+The document title, `application-name` and Apple home-screen title use the same name.
+Keep the manifest `id`, `start_url` and `scope` at `/` so existing installations keep
+their identity and saved user state.
+
+When installation metadata changes, update the manifest URL version in both
+`frontend/index.html` and `frontend/public/sw.js`, and increment the shell cache.
+HTML, the manifest and service worker require HTTP revalidation. The worker fetches
+the manifest without the browser HTTP cache and uses only the current shell's
+manifest offline. Old shell caches can be removed; user storage and unrelated
+caches must be preserved.
+
+An already-installed home-screen label is managed by the browser/launcher and may
+require the user to accept an app identity update. A website cannot directly rename
+an existing shortcut. Validate new installations separately from existing ones;
+do not clear site storage or reset users' maps to fix an installation label.
