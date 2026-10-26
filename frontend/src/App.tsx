@@ -1892,7 +1892,7 @@ function App() {
                   <use className="crm-score-leaf-light" href="#score-leaf-shape" stroke="#c4ffb8" strokeWidth="1.5" strokeDasharray="4 96" strokeLinecap="round" />
                 </g>
               </svg>
-              <div className="score-orbit score-orbit--large" aria-label={trf('currentScoreAria', { average })}><strong>{average}</strong><small>/ 9</small></div>
+              <div className="score-orbit score-orbit--large" aria-label={trf('currentScoreAria', { average })}><strong>{average}</strong></div>
             </div>
             <div className="crm-score-context"><strong>{tr('currentCultivaLevel')}</strong></div>
           </div>
