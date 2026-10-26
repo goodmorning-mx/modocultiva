@@ -5,7 +5,7 @@ import { VisionImage } from './VisionImage';
 import { JourneyActivityCard } from './JourneyActivityCard';
 import { ModeAiStudio } from './ModeAiStudio';
 import { modeAiMessage, readModeAiProposal } from './modeAiMessages';
-import { CULTIVA_LEAF_SHAPE } from './CultivaLeaf';
+import { CultivaLeaf, CULTIVA_LEAF_SHAPE } from './CultivaLeaf';
 import { activityReactionKey, cleanReactions, type ActivityReactions, type Reaction } from './journeySocial';
 import { calculateCultivaLevel, CULTIVA_MAX_LEVEL } from './cultivaLevel';
 import { getBankActivities } from './quoteActivityCatalog';
@@ -13,6 +13,7 @@ import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
 import logo from './assets/modo-cultiva-logo-neon.png';
 import './skin-overrides.css';
+import './life-map-polish.css';
 
 type HealthResponse = {
   service: string;
@@ -1845,7 +1846,7 @@ function App() {
           </main><aside className="cult-rail"><div className="cult-status-card"><span className="cult-status-label">TU ESTATUS</span><div className="cult-badge">U</div><h3>ULTIMATE MODE</h3><p>{tr('globalTitle')}</p><div className="cult-status-rule" /><span className="cult-status-label">TU RED</span><strong>24 conexiones</strong><small>+6 esta semana</small></div><div className="cult-rail-card"><span className="cult-status-label">PRÓXIMO EN TU RUTA</span><strong>{modeName(modes[11])}</strong><p>3 recomendaciones esperan tu revisión.</p><button type="button" onClick={() => setCultTab('insights')}>{tr('recommendations')} →</button></div><div className="cult-quote">“No cultivas una sola versión de ti.<br /><strong>Cultivas todas.</strong>”</div></aside></div>
         </section>
       ) : view === 'welcome' ? (
-        <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ''}`} data-layer="home" aria-labelledby="welcome-title">
+        <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ' welcome-view--polished'}`} data-layer="home" aria-labelledby="welcome-title">
           {isInterfaceSkin && skin !== 'zen' && <section className={`skin-interface skin-interface--${skin}`} aria-label={`${skinInfo(skin)?.name} overview`}><div className="skin-interface-orbit"><span>{skinInfo(skin)?.icon}</span><small>12 MODOS<br />ENFOCADOS</small></div><div><p className="kicker">{skinInfo(skin)?.name} · MAPA DE VIDA</p><h1>{skinInfo(skin)?.signature}</h1><p>{skinInfo(skin)?.description}</p><div className="skin-interface-grid">{modes.slice(0, 4).map((mode) => <article key={mode.key} tabIndex={0} title={modeDescription(mode)}><span>{mode.icon}</span><strong>{modeShortName(mode)}</strong><small>NIVEL {levels[mode.key]}</small><span className="skin-interface-mode-description">{modeDescription(mode)}</span></article>)}</div><button className="skin-interface-entry" type="button" onClick={() => setView('dashboard')}>Entrar a mi mapa <span>↗</span></button></div></section>}
           {skin === 'zen' && <section className="zen-garden-overview" aria-labelledby="zen-garden-title"><div className="zen-garden-sun" aria-hidden="true" /><div className="zen-garden-water" aria-hidden="true" /><div className="zen-garden-bonsai zen-garden-bonsai--left" aria-hidden="true">🌳</div><div className="zen-garden-bonsai zen-garden-bonsai--right" aria-hidden="true">🌲</div><div className="zen-garden-header"><p className="kicker">Zen Garden · MAPA DE VIDA</p><h1 id="zen-garden-title">Respira. Observa. Cultiva.</h1><p>Un jardín para recorrer tus 12 modos con calma, atención y un paso a la vez.</p><button className="zen-garden-entry" type="button" onClick={() => setView('dashboard')}>Entrar a mi mapa <span>↗</span></button></div><div className="zen-garden-path" aria-label="Tus 12 modos de vida">{modes.map((mode, index) => <button className={`zen-stone zen-stone--${index + 1}`} key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--stone-color': mode.color } as CSSProperties} aria-label={`${modeName(mode)}, nivel ${levels[mode.key]}`}><span className="zen-stone-icon">{mode.icon}</span><strong>{modeShortName(mode)}</strong><small>NIVEL {levels[mode.key]}</small><span className="zen-stone-description">{modeDescription(mode)}</span></button>)}</div><div className="zen-garden-rake zen-garden-rake--one" aria-hidden="true" /><div className="zen-garden-rake zen-garden-rake--two" aria-hidden="true" /><span className="zen-garden-caption">12 MODOS · UN JARDÍN EN MOVIMIENTO</span></section>}
           {skin === 'dj' && <section className="dj-console" aria-labelledby="dj-console-title">
@@ -1861,19 +1862,20 @@ function App() {
             <h1 id="welcome-title">Cultiva todos tus modos.</h1>
             <p className="intro-copy">{tr('welcomeOverviewCopy')}</p>
           </div>
-          <div className="overview-stage" aria-label="Overview de tus 12 modos de vida">
-            <div className="overview-orbit overview-orbit--outer" />
-            <div className="overview-orbit overview-orbit--inner" />
+          <div className="overview-stage" aria-label={tr('lifeModes')}>
+            <div className="overview-orbit overview-orbit--outer" aria-hidden="true" />
+            <div className="overview-orbit overview-orbit--inner" aria-hidden="true" />
+            <svg className="overview-map-guides" viewBox="0 0 640 640" fill="none" aria-hidden="true" focusable="false">{modes.map((mode, index) => <g key={mode.key} transform={`translate(320 320) rotate(${index * 30})`}><path d="M0-154V-222" stroke={mode.color} strokeOpacity=".18" /><circle cy="-206" r="1.7" fill={mode.color} fillOpacity=".5" /></g>)}</svg>
               <span className="overview-light-sweep" aria-hidden="true" />
             {modes.map((mode, index) => (
-              <button className="overview-mode" key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${modeName(mode)}, nivel ${levels[mode.key]}`}>
-                <span className="overview-mode-icon">{mode.icon}</span><span className="overview-mode-name">{modeShortName(mode)}</span><strong>{levels[mode.key]}</strong><span className="overview-mode-description">{modeDescription(mode)}</span>
+              <button className="overview-mode" key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${modeName(mode)}, ${tr('level')} ${levels[mode.key]}`}>
+                <span className="overview-mode-icon" aria-hidden="true">{mode.icon}</span><span className="overview-mode-name">{modeShortName(mode)}</span><strong>{levels[mode.key]}</strong><span className="overview-mode-meter" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < levels[mode.key] ? 'is-active' : undefined} />)}</span><span className="overview-mode-description">{modeDescription(mode)}</span>
               </button>
             ))}
             <div className="overview-person">
               <div className="overview-identity-orb" style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .12), rgba(4, 18, 29, .6)), url(${profileImage})` } : undefined}>
               <button ref={configurationsTriggerRef} className="overview-core" type="button" onClick={() => setConfigurationsOpen(true)} aria-label={tr('presets')} aria-haspopup="dialog" aria-controls="life-configurations-card">
-                <span className="overview-photo-content"><strong>{displayedProfileName}</strong>{displayedProfileRole && <span className="profile-badge">{displayedProfileRole}</span>}</span>
+                <span className="overview-photo-content">{!profileImage && !displayedProfileName && <span className="overview-core-fallback" aria-hidden="true"><CultivaLeaf /></span>}<strong>{displayedProfileName}</strong>{displayedProfileRole && <span className="profile-badge">{displayedProfileRole}</span>}</span>
                 <span className="overview-enter-prompt">{tr('presets')} <b>↗</b></span>
               </button>
                 <button className="overview-profile-dock" type="button" onClick={() => setProfilePreviewMode(true)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg>{tr('profileButton')}</button>
