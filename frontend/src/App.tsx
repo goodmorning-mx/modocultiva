@@ -1861,32 +1861,32 @@ function App() {
 
       <section className="crm-dashboard" aria-label={tr('dashboardTitle')}>
         <article className="crm-card crm-card--score">
-          <div className="crm-card-heading"><div><span className="crm-eyebrow">{tr('executiveSummary')}</span><h2>{tr('progressAtGlance')}</h2></div></div>
+          <div className="crm-card-heading"><h2 className="crm-eyebrow">{tr('progressAtGlance')}</h2></div>
           <div className="crm-score-layout">
             <div className="crm-score-stage">
-              <svg className="crm-score-sculpture" viewBox="0 0 340 280" fill="none" aria-hidden="true" focusable="false">
+              <svg className="crm-score-crystal" viewBox="0 0 340 280" fill="none" aria-hidden="true" focusable="false">
                 <defs>
-                  <linearGradient id="score-ribbon-mint" x1="15" y1="200" x2="305" y2="32" gradientUnits="userSpaceOnUse"><stop stopColor="#287d81" stopOpacity="0" /><stop offset=".3" stopColor="#6bddd3" /><stop offset=".64" stopColor="#bcffdc" /><stop offset="1" stopColor="#3b9281" stopOpacity="0" /></linearGradient>
-                  <linearGradient id="score-ribbon-blue" x1="0" y1="210" x2="340" y2="170" gradientUnits="userSpaceOnUse"><stop stopColor="#66aec7" stopOpacity="0" /><stop offset=".4" stopColor="#8acfdc" /><stop offset=".72" stopColor="#c1c7ff" /><stop offset="1" stopColor="#6b8bd0" stopOpacity="0" /></linearGradient>
-                  <filter id="score-ribbon-glow" x="-40%" y="-50%" width="180%" height="200%"><feGaussianBlur stdDeviation="7" /></filter>
-                  <path id="score-ribbon-upper" pathLength="100" d="M-24 177C43 210 29 82 99 60S205 96 255 58S316 17 365 39" />
-                  <path id="score-ribbon-lower" pathLength="100" d="M-20 229C58 263 76 191 150 213S278 248 360 134" />
+                  <linearGradient id="score-crystal-mint" x1="75" y1="38" x2="258" y2="225" gradientUnits="userSpaceOnUse"><stop stopColor="#b1ffe0" stopOpacity=".58" /><stop offset=".45" stopColor="#61d4c7" stopOpacity=".06" /><stop offset="1" stopColor="#99b5ff" stopOpacity=".32" /></linearGradient>
+                  <linearGradient id="score-crystal-blue" x1="275" y1="50" x2="65" y2="235" gradientUnits="userSpaceOnUse"><stop stopColor="#b6c7ff" stopOpacity=".42" /><stop offset=".5" stopColor="#688dba" stopOpacity=".03" /><stop offset="1" stopColor="#78e0d5" stopOpacity=".36" /></linearGradient>
+                  <linearGradient id="score-crystal-edge" x1="60" y1="45" x2="280" y2="230" gradientUnits="userSpaceOnUse"><stop stopColor="#d0ffe8" /><stop offset=".35" stopColor="#7ed0c2" stopOpacity=".12" /><stop offset=".7" stopColor="#b2beff" stopOpacity=".65" /><stop offset="1" stopColor="#92e6e3" stopOpacity=".18" /></linearGradient>
+                  <linearGradient id="score-crystal-face" x1="90" y1="65" x2="244" y2="215" gradientUnits="userSpaceOnUse"><stop stopColor="#1f454b" stopOpacity=".88" /><stop offset="1" stopColor="#091c2a" stopOpacity=".94" /></linearGradient>
+                  <linearGradient id="score-crystal-sheen"><stop stopColor="#d6fff0" stopOpacity="0" /><stop offset=".5" stopColor="#d6fff0" stopOpacity=".14" /><stop offset="1" stopColor="#d6fff0" stopOpacity="0" /></linearGradient>
+                  <clipPath id="score-crystal-clip"><path d="M91 72L231 58L254 92L244 198L215 218L104 208L77 178L80 101Z" /></clipPath>
                 </defs>
-                <g className="crm-score-ribbon crm-score-ribbon--upper" stroke="url(#score-ribbon-mint)">
-                  <use href="#score-ribbon-upper" strokeWidth="18" opacity=".38" filter="url(#score-ribbon-glow)" />
-                  <use href="#score-ribbon-upper" strokeWidth="12" opacity=".12" />
-                  <use href="#score-ribbon-upper" strokeWidth="1" />
-                  <use href="#score-ribbon-upper" transform="translate(0 -9)" strokeWidth=".6" opacity=".48" />
-                  <use href="#score-ribbon-upper" transform="translate(0 9)" strokeWidth=".6" opacity=".35" />
-                  <use className="crm-score-light" href="#score-ribbon-upper" pathLength="100" strokeWidth="2" strokeLinecap="round" strokeDasharray="8 92" />
-                </g>
-                <g className="crm-score-ribbon crm-score-ribbon--lower" stroke="url(#score-ribbon-blue)">
-                  <use href="#score-ribbon-lower" strokeWidth="16" opacity=".3" filter="url(#score-ribbon-glow)" />
-                  <use href="#score-ribbon-lower" strokeWidth="10" opacity=".12" />
-                  <use href="#score-ribbon-lower" strokeWidth="1" />
-                  <use href="#score-ribbon-lower" transform="translate(0 -8)" strokeWidth=".6" opacity=".4" />
-                  <use href="#score-ribbon-lower" transform="translate(0 8)" strokeWidth=".6" opacity=".32" />
-                  <use className="crm-score-light" href="#score-ribbon-lower" pathLength="100" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 94" />
+                <g className="crm-score-facets">
+                  <path d="M78 38L240 22L231 58L91 72Z" fill="url(#score-crystal-mint)" />
+                  <path d="M240 22L292 72L254 92L231 58Z" fill="url(#score-crystal-blue)" />
+                  <path d="M292 72L280 213L244 198L254 92Z" fill="url(#score-crystal-mint)" />
+                  <path d="M280 213L229 250L215 218L244 198Z" fill="url(#score-crystal-blue)" />
+                  <path d="M229 250L88 236L104 208L215 218Z" fill="url(#score-crystal-mint)" />
+                  <path d="M88 236L37 183L77 178L104 208Z" fill="url(#score-crystal-blue)" />
+                  <path d="M37 183L46 88L80 101L77 178Z" fill="url(#score-crystal-mint)" />
+                  <path d="M46 88L78 38L91 72L80 101Z" fill="url(#score-crystal-blue)" />
+                  <path d="M91 72L231 58L254 92L244 198L215 218L104 208L77 178L80 101Z" fill="url(#score-crystal-face)" stroke="url(#score-crystal-edge)" strokeWidth=".7" />
+                  <path d="M78 38L240 22L292 72L280 213L229 250L88 236L37 183L46 88Z" stroke="url(#score-crystal-edge)" strokeWidth="1" />
+                  <path d="M78 38L91 72M240 22L231 58M292 72L254 92M280 213L244 198M229 250L215 218M88 236L104 208M37 183L77 178M46 88L80 101" stroke="url(#score-crystal-edge)" strokeWidth=".6" opacity=".7" />
+                  <g clipPath="url(#score-crystal-clip)"><path className="crm-score-reflection" d="M-40 0H10L150 280H100Z" fill="url(#score-crystal-sheen)" /></g>
+                  <path className="crm-score-edge-light" d="M46 88L78 38L240 22L292 72L280 213L229 250L88 236L37 183Z" pathLength="100" stroke="#c6f9ed" strokeWidth="1.5" strokeDasharray="4 96" strokeLinecap="round" />
                 </g>
               </svg>
               <div className="score-orbit score-orbit--large" aria-label={trf('currentScoreAria', { average })}><strong>{average}</strong><small>/ 9</small></div>
