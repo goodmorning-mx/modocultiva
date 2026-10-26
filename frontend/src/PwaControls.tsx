@@ -100,7 +100,7 @@ export function PwaControls({ language }: { language: string }) {
 
   return <>
     <div className="pwa-controls" aria-label="PWA controls">
-      {!isApp && !install.installed && <button className="pwa-action" type="button" onClick={() => void install.install()}>{labels.install}</button>}
+      {!isApp && !install.installed && <button className="pwa-action pwa-action--install" type="button" title={labels.install} onClick={() => void install.install()}><svg className="pwa-install-icon" viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><path d="M10 3v9m-3-3 3 3 3-3M4 13v3a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg><span className="pwa-install-label">{labels.install}</span></button>}
       {update.updateReady && <button className="pwa-action pwa-action--update" type="button" onClick={() => void update.update()} disabled={update.updating}>{update.updating ? labels.updating : labels.update}</button>}
     </div>
     {install.guideOpen && <div className="pwa-guide-backdrop" role="presentation" onClick={install.closeGuide}><section className="pwa-guide" role="dialog" aria-modal="true" aria-labelledby="pwa-guide-title" onClick={(event) => event.stopPropagation()}>
