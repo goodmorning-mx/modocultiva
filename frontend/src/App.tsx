@@ -1862,7 +1862,37 @@ function App() {
       <section className="crm-dashboard" aria-label={tr('dashboardTitle')}>
         <article className="crm-card crm-card--score">
           <div className="crm-card-heading"><div><span className="crm-eyebrow">{tr('executiveSummary')}</span><h2>{tr('progressAtGlance')}</h2></div></div>
-          <div className="crm-score-layout"><div className="score-orbit score-orbit--large" aria-label={trf('currentScoreAria', { average })}><strong>{average}</strong><small>/ 9</small></div><div className="crm-score-context"><strong>{tr('currentCultivaLevel')}</strong></div></div>
+          <div className="crm-score-layout">
+            <div className="crm-score-stage">
+              <svg className="crm-score-sculpture" viewBox="0 0 340 280" fill="none" aria-hidden="true" focusable="false">
+                <defs>
+                  <linearGradient id="score-ribbon-mint" x1="15" y1="200" x2="305" y2="32" gradientUnits="userSpaceOnUse"><stop stopColor="#287d81" stopOpacity="0" /><stop offset=".3" stopColor="#6bddd3" /><stop offset=".64" stopColor="#bcffdc" /><stop offset="1" stopColor="#3b9281" stopOpacity="0" /></linearGradient>
+                  <linearGradient id="score-ribbon-blue" x1="0" y1="210" x2="340" y2="170" gradientUnits="userSpaceOnUse"><stop stopColor="#66aec7" stopOpacity="0" /><stop offset=".4" stopColor="#8acfdc" /><stop offset=".72" stopColor="#c1c7ff" /><stop offset="1" stopColor="#6b8bd0" stopOpacity="0" /></linearGradient>
+                  <filter id="score-ribbon-glow" x="-40%" y="-50%" width="180%" height="200%"><feGaussianBlur stdDeviation="7" /></filter>
+                  <path id="score-ribbon-upper" pathLength="100" d="M-24 177C43 210 29 82 99 60S205 96 255 58S316 17 365 39" />
+                  <path id="score-ribbon-lower" pathLength="100" d="M-20 229C58 263 76 191 150 213S278 248 360 134" />
+                </defs>
+                <g className="crm-score-ribbon crm-score-ribbon--upper" stroke="url(#score-ribbon-mint)">
+                  <use href="#score-ribbon-upper" strokeWidth="18" opacity=".38" filter="url(#score-ribbon-glow)" />
+                  <use href="#score-ribbon-upper" strokeWidth="12" opacity=".12" />
+                  <use href="#score-ribbon-upper" strokeWidth="1" />
+                  <use href="#score-ribbon-upper" transform="translate(0 -9)" strokeWidth=".6" opacity=".48" />
+                  <use href="#score-ribbon-upper" transform="translate(0 9)" strokeWidth=".6" opacity=".35" />
+                  <use className="crm-score-light" href="#score-ribbon-upper" pathLength="100" strokeWidth="2" strokeLinecap="round" strokeDasharray="8 92" />
+                </g>
+                <g className="crm-score-ribbon crm-score-ribbon--lower" stroke="url(#score-ribbon-blue)">
+                  <use href="#score-ribbon-lower" strokeWidth="16" opacity=".3" filter="url(#score-ribbon-glow)" />
+                  <use href="#score-ribbon-lower" strokeWidth="10" opacity=".12" />
+                  <use href="#score-ribbon-lower" strokeWidth="1" />
+                  <use href="#score-ribbon-lower" transform="translate(0 -8)" strokeWidth=".6" opacity=".4" />
+                  <use href="#score-ribbon-lower" transform="translate(0 8)" strokeWidth=".6" opacity=".32" />
+                  <use className="crm-score-light" href="#score-ribbon-lower" pathLength="100" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 94" />
+                </g>
+              </svg>
+              <div className="score-orbit score-orbit--large" aria-label={trf('currentScoreAria', { average })}><strong>{average}</strong><small>/ 9</small></div>
+            </div>
+            <div className="crm-score-context"><strong>{tr('currentCultivaLevel')}</strong></div>
+          </div>
         </article>
         <div className="crm-metric-grid">
           <article className="crm-card crm-metric-card"><span className="crm-eyebrow">{tr('strongestMode')}</span><strong>{modeShortName(dashboardSummary.strongest)}</strong><span>{trf('strongestModeDetail', { level: String(levels[dashboardSummary.strongest.key]) })}</span></article>
