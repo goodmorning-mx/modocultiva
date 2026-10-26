@@ -25,6 +25,7 @@ jobs:
       - run: npm run verify:pwa
       - run: npm run verify:navigation
       - run: npm run verify:configurations
+      - run: npm run verify:activities
       - run: npm run build
 
   backend:
