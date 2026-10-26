@@ -1879,11 +1879,6 @@ function App() {
             <div className="overview-orbit overview-orbit--inner" aria-hidden="true" />
             <svg className="overview-map-guides" viewBox="0 0 640 640" fill="none" aria-hidden="true" focusable="false">{modes.map((mode, index) => <g key={mode.key} transform={`translate(320 320) rotate(${index * 30})`}><path d="M0-154V-222" stroke={mode.color} strokeOpacity=".18" /><circle cy="-206" r="1.7" fill={mode.color} fillOpacity=".5" /></g>)}</svg>
               <span className="overview-light-sweep" aria-hidden="true" />
-            {modes.map((mode, index) => (
-              <button className="overview-mode" key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${modeName(mode)}, ${tr('level')} ${levels[mode.key]}`}>
-                <span className="overview-mode-icon" aria-hidden="true">{mode.icon}</span><span className="overview-mode-name">{modeShortName(mode)}</span><strong>{levels[mode.key]}</strong><span className="overview-mode-meter" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < levels[mode.key] ? 'is-active' : undefined} />)}</span><span className="overview-mode-description">{modeDescription(mode)}</span>
-              </button>
-            ))}
             <div className="overview-person">
               <div className="overview-identity-orb" style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .12), rgba(4, 18, 29, .6)), url(${profileImage})` } : undefined}>
               <button ref={configurationsTriggerRef} className="overview-core" type="button" onClick={() => setConfigurationsOpen(true)} aria-label={tr('presets')} aria-haspopup="dialog" aria-controls="life-configurations-card">
@@ -1893,6 +1888,11 @@ function App() {
                 <button className="overview-profile-dock" type="button" onClick={() => setProfilePreviewMode(true)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg>{tr('profileButton')}</button>
               </div>
             </div>
+            {modes.map((mode, index) => (
+              <button className="overview-mode" key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${modeName(mode)}, ${tr('level')} ${levels[mode.key]}`}>
+                <span className="overview-mode-icon" aria-hidden="true">{mode.icon}</span><span className="overview-mode-name">{modeShortName(mode)}</span><strong>{levels[mode.key]}</strong><span className="overview-mode-meter" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < levels[mode.key] ? 'is-active' : undefined} />)}</span><span className="overview-mode-description">{modeDescription(mode)}</span>
+              </button>
+            ))}
           </div>
           </div>
           <div className="overview-dashboard-entry">
