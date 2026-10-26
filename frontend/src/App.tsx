@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
 import { VisionImage } from './VisionImage';
+import { calculateCultivaLevel, CULTIVA_MAX_LEVEL } from './cultivaLevel';
 import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
@@ -288,7 +289,8 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   dashboardIntro: { es: 'Una lectura ejecutiva de tu progreso, tus focos de atención y los siguientes movimientos de tu mapa de vida.', en: 'An executive view of your progress, your areas of focus, and the next movements on your life map.', zh: '概览你的进展、关注重点以及人生地图上的下一步。', hi: 'आपकी प्रगति, ध्यान के क्षेत्रों और जीवन मानचित्र की अगली चालों का कार्यकारी अवलोकन।', ar: 'نظرة تنفيذية على تقدمك ومجالات تركيزك وخطواتك التالية على خريطة حياتك.', it: 'Una lettura esecutiva dei tuoi progressi, delle aree su cui concentrarti e dei prossimi passi sulla tua mappa della vita.', pt: 'Uma visão executiva do seu progresso, dos seus focos de atenção e dos próximos movimentos no seu mapa de vida.', ru: 'Обзор вашего прогресса, зон внимания и следующих шагов на карте жизни.', de: 'Ein Überblick über deinen Fortschritt, deine Fokusbereiche und die nächsten Schritte auf deiner Lebenskarte.', fr: 'Une lecture synthétique de vos progrès, de vos domaines d’attention et de vos prochaines étapes sur votre carte de vie.', da: 'Et overblik over din fremgang, dine fokusområder og de næste skridt på dit livskort.' },
   executiveSummary: { es: 'RESUMEN EJECUTIVO', en: 'EXECUTIVE SUMMARY', zh: '执行摘要', hi: 'कार्यकारी सारांश', ar: 'ملخص تنفيذي', it: 'RIEPILOGO ESECUTIVO', pt: 'RESUMO EXECUTIVO', ru: 'КРАТКИЙ ОБЗОР', de: 'EXECUTIVE SUMMARY', fr: 'RÉSUMÉ EXÉCUTIF', da: 'EXECUTIVE RESUMÉ' },
   progressAtGlance: { es: 'Tu progreso en una mirada', en: 'Your progress at a glance', zh: '一眼看见你的进展', hi: 'एक नज़र में आपकी प्रगति', ar: 'تقدمك في لمحة', it: 'I tuoi progressi a colpo d’occhio', pt: 'Seu progresso em um olhar', ru: 'Ваш прогресс одним взглядом', de: 'Dein Fortschritt auf einen Blick', fr: 'Votre progression en un coup d’œil', da: 'Dit fremskridt på et øjeblik' },
-  currentScoreAria: { es: 'Nivel actual de Modo Cultiva: {average} de 9', en: 'Current Modo Cultiva level: {average} out of 9', zh: '当前 Modo Cultiva 等级：{average} / 9', hi: 'वर्तमान Modo Cultiva स्तर: 9 में से {average}', ar: 'مستوى Modo Cultiva الحالي: {average} من 9', it: 'Livello attuale di Modo Cultiva: {average} su 9', pt: 'Nível atual do Modo Cultiva: {average} de 9', ru: 'Текущий уровень Modo Cultiva: {average} из 9', de: 'Aktuelles Modo-Cultiva-Level: {average} von 9', fr: 'Niveau actuel de Modo Cultiva : {average} sur 9', da: 'Aktuelt Modo Cultiva-niveau: {average} ud af 9' },
+  currentScoreAria: { es: 'Nivel actual de Modo Cultiva: {level} de {max}', en: 'Current Modo Cultiva level: {level} out of {max}', zh: '当前 Modo Cultiva 等级：{level} / {max}', hi: 'वर्तमान Modo Cultiva स्तर: {max} में से {level}', ar: 'مستوى Modo Cultiva الحالي: {level} من {max}', it: 'Livello attuale di Modo Cultiva: {level} su {max}', pt: 'Nível atual do Modo Cultiva: {level} de {max}', ru: 'Текущий уровень Modo Cultiva: {level} из {max}', de: 'Aktuelles Modo-Cultiva-Level: {level} von {max}', fr: 'Niveau actuel de Modo Cultiva : {level} sur {max}', da: 'Aktuelt Modo Cultiva-niveau: {level} ud af {max}' },
+  scoreMax: { es: 'Máx. {max}', en: 'Max {max}', zh: '最高 {max}', hi: 'अधिकतम {max}', ar: 'الحد الأقصى {max}', it: 'Max {max}', pt: 'Máx. {max}', ru: 'Макс. {max}', de: 'Max. {max}', fr: 'Max. {max}', da: 'Maks. {max}' },
   strongestMode: { es: 'MODO MÁS FUERTE', en: 'STRONGEST MODE', zh: '最强模式', hi: 'सबसे मजबूत मोड', ar: 'أقوى وضع', it: 'MODALITÀ PIÙ FORTE', pt: 'MODO MAIS FORTE', ru: 'САМЫЙ СИЛЬНЫЙ РЕЖИМ', de: 'STÄRKSTER MODUS', fr: 'MODE LE PLUS FORT', da: 'STÆRKESTE MODE' },
   strongestModeDetail: { es: 'Nivel {level} · tu mayor impulso', en: 'Level {level} · your strongest impulse', zh: '等级 {level} · 你的最强动力', hi: 'स्तर {level} · आपकी सबसे मजबूत प्रेरणा', ar: 'المستوى {level} · أقوى دفعة لك', it: 'Livello {level} · il tuo impulso più forte', pt: 'Nível {level} · seu maior impulso', ru: 'Уровень {level} · ваш главный импульс', de: 'Level {level} · dein stärkster Impuls', fr: 'Niveau {level} · votre plus grand élan', da: 'Niveau {level} · din stærkeste drivkraft' },
   leastCultivatedMode: { es: 'MODO MENOS CULTIVADO', en: 'LEAST CULTIVATED MODE', zh: '最需要培育的模式', hi: 'सबसे कम विकसित मोड', ar: 'أقل وضع تنمية', it: 'MODALITÀ MENO COLTIVATA', pt: 'MODO MENOS CULTIVADO', ru: 'НАИМЕНЕЕ РАЗВИТЫЙ РЕЖИМ', de: 'AM WENIGSTEN ENTWICKELTER MODUS', fr: 'MODE LE MOINS CULTIVÉ', da: 'MINDST DYRKEDE MODE' },
@@ -1274,10 +1276,8 @@ function App() {
     };
   }, []);
 
-  const average = useMemo(() => {
-    const values = Object.values(levels);
-    return (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1);
-  }, [levels]);
+  const cultivaLevel = useMemo(() => calculateCultivaLevel(modes.map(mode => levels[mode.key])), [levels]);
+  const cultivaLevelLabel = new Intl.NumberFormat(language, { maximumFractionDigits: 1 }).format(cultivaLevel);
   const focusedDjMode = modes.find((mode) => mode.key === djFocusedMode) ?? modes[0];
   const isInterfaceSkin = Boolean(skinInfo(skin));
 
@@ -1890,7 +1890,7 @@ function App() {
                   <use className="crm-score-leaf-light" href="#score-leaf-shape" stroke="#c4ffb8" strokeWidth="1.5" strokeDasharray="4 96" strokeLinecap="round" />
                 </g>
               </svg>
-              <div className="score-orbit score-orbit--large" aria-label={trf('currentScoreAria', { average })}><strong>{average}</strong></div>
+              <div className="score-orbit score-orbit--large" aria-label={trf('currentScoreAria', { level: cultivaLevelLabel, max: String(CULTIVA_MAX_LEVEL) })}><strong>{cultivaLevelLabel}</strong><small>{trf('scoreMax', { max: String(CULTIVA_MAX_LEVEL) })}</small></div>
             </div>
             <div className="crm-score-context"><strong>{tr('currentCultivaLevel')}</strong></div>
           </div>

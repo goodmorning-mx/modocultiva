@@ -663,7 +663,7 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .crm-score-leaf-light { animation: score-leaf-light 15s linear infinite; filter: drop-shadow(0 0 4px rgba(123, 255, 149, .8)); }
 .crm-score-layout .score-orbit--large { position: absolute; inset: 0; display: flex; flex-direction: column; align-self: auto; align-items: center; justify-content: center; gap: 13px; width: 100%; min-width: 0; height: 100%; padding: 0 0 4px; border: 0; border-radius: 0; background: none; box-shadow: none; }
 .crm-score-layout .score-orbit--large strong { margin: 0; padding-inline-end: .07em; color: #edfff7; font-size: clamp(4.4rem, 7vw, 6.4rem); font-weight: 500; letter-spacing: -.085em; line-height: .95; font-variant-numeric: tabular-nums; text-shadow: 0 2px 12px #022d1b, 0 0 28px rgba(158, 255, 188, .22); }
-.crm-score-layout .score-orbit--large small { margin: 0; color: #b8e9c6; font-size: .62rem; letter-spacing: .28em; text-shadow: 0 1px 5px #022d1b; }
+.crm-score-layout .score-orbit--large small { margin: 0; color: #b8e9c6; font-size: .62rem; letter-spacing: .1em; text-shadow: 0 1px 5px #022d1b; }
 .crm-score-context { position: relative; flex: 0 1 220px; max-width: 220px; padding-block: 25px; }
 .crm-score-context::before { position: absolute; top: 0; inset-inline-start: 0; width: 42px; height: 2px; background: linear-gradient(90deg, #a7eddb, #7eafcf); box-shadow: 0 0 16px rgba(133, 226, 203, .4); content: ''; }
 .crm-score-context strong { display: block; color: #d6eae4; font-size: clamp(1.1rem, 2.2vw, 1.5rem); font-weight: 500; letter-spacing: -.025em; line-height: 1.4; text-wrap: balance; }
