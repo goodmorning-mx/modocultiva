@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
+import { VisionImage } from './VisionImage';
 import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
@@ -1653,20 +1654,12 @@ function App() {
     }
   };
 
-  const handleVisionImage = (modeKey: string, file: File | undefined) => {
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result !== 'string') return;
-      const next = { ...visionImages, [modeKey]: reader.result };
-      setVisionImages(next);
-      try {
-        window.localStorage.setItem('modoCultiva_visionImages', JSON.stringify(next));
-      } catch {
-        // The image remains available for the current session.
-      }
-    };
-    reader.readAsDataURL(file);
+  const saveVisionImage = (modeKey: string, image: string) => {
+    const next = { ...visionImages, [modeKey]: image };
+    // Commit storage first: if full/unavailable, keep the previous image visible
+    // and let the upload control explain that the replacement was not saved.
+    window.localStorage.setItem('modoCultiva_visionImages', JSON.stringify(next));
+    setVisionImages(next);
   };
 
   const selectCultTab = (tab: CultTab) => {
@@ -2017,7 +2010,10 @@ function App() {
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.max(0, current - 1))} disabled={journeySlide === 0} aria-label={tr('previousLevel')}>←</button>
             <div className="journey-carousel-viewport">
               <div className="journey-level-grid journey-level-grid--carousel">
-                {journeyLevels.filter((level) => level === journeySlide).map((level) => <article className={`journey-level-card journey-level-card--active${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} style={level === 9 && visionImages[selectedMode.key] ? { backgroundImage: `linear-gradient(135deg, rgba(4, 18, 22, .74), rgba(4, 18, 22, .35)), url(${visionImages[selectedMode.key]})` } : undefined} key={level}><div className="journey-level-card-top"><div className="journey-level-card-index"><span>{tr('level')}</span><strong>{level}</strong></div><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span>{level < 9 && <strong className="journey-level-card-effort effort-tag">{effortLabel(level)}</strong>}{level === 9 && <em>{tr('finalVision')}</em>}</div>{level < 9 ? <h4 className={activityTitleClass(activityDrafts[`${selectedMode.key}-${level}`] ?? tr('activityUndefined'), !activityDrafts[`${selectedMode.key}-${level}`])}>{activityDrafts[`${selectedMode.key}-${level}`] ?? tr('activityUndefined')}</h4> : <><h4 className="journey-activity-title journey-activity-title--short">{tr('finalVision')}</h4><label className="vision-upload"><span className="vision-upload-icon">＋</span><input type="file" accept="image/*" onChange={(event) => handleVisionImage(selectedMode.key, event.target.files?.[0])} />{visionImages[selectedMode.key] ? tr('changeImage') : tr('uploadImage')}</label></>}</article>)}
+                {journeyLevels.filter((level) => level === journeySlide).map((level) => <article className={`journey-level-card journey-level-card--active${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} key={level}>
+                  <div className="journey-level-card-top"><div className="journey-level-card-index"><span>{tr('level')}</span><strong>{level}</strong></div><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span>{level < 9 && <strong className="journey-level-card-effort effort-tag">{effortLabel(level)}</strong>}{level === 9 && <em>{tr('finalVision')}</em>}</div>
+                  {level < 9 ? <h4 className={activityTitleClass(activityDrafts[`${selectedMode.key}-${level}`] ?? tr('activityUndefined'), !activityDrafts[`${selectedMode.key}-${level}`])}>{activityDrafts[`${selectedMode.key}-${level}`] ?? tr('activityUndefined')}</h4> : <VisionImage key={selectedMode.key} value={visionImages[selectedMode.key]} onChange={image => saveVisionImage(selectedMode.key, image)} language={language} title={tr('finalVision')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} />}
+                </article>)}
               </div>
             </div>
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.min(9, current + 1))} disabled={journeySlide === 9} aria-label={tr('nextLevel')}>→</button>
