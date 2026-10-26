@@ -3,6 +3,8 @@ import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
 import { VisionImage } from './VisionImage';
 import { JourneyActivityCard } from './JourneyActivityCard';
+import { ModeAiStudio } from './ModeAiStudio';
+import { modeAiMessage, readModeAiProposal } from './modeAiMessages';
 import { CULTIVA_LEAF_SHAPE } from './CultivaLeaf';
 import { activityReactionKey, cleanReactions, type ActivityReactions, type Reaction } from './journeySocial';
 import { calculateCultivaLevel, CULTIVA_MAX_LEVEL } from './cultivaLevel';
@@ -18,11 +20,6 @@ type HealthResponse = {
   environment: string;
 };
 
-type ModeAIResponse = {
-  proposal: string;
-  model: string;
-  conversation_id?: string;
-};
 type AuthTokens = { access_token: string; refresh_token: string; expires_in: number; identity: { user_id: string; organization_id: string; name?: string | null; email?: string | null; roles: string[]; permissions: string[] } };
 
 type ApiState =
@@ -778,6 +775,15 @@ function App() {
   const [aiHasConsulted, setAiHasConsulted] = useState(false);
   const [aiProposal, setAiProposal] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const aiRequestRef = useRef<AbortController | null>(null);
+  useEffect(() => () => {
+    aiRequestRef.current?.abort();
+    aiRequestRef.current = null;
+    setAiLoading(false);
+    setAiHasConsulted(false);
+    setAiProposal('');
+    setAiNotice(null);
+  }, [selectedMode?.key, activeActivity, activityEntry, language]);
   const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>(() => {
     try {
       return JSON.parse(window.localStorage.getItem('modoCultiva_activityDrafts') ?? '{}');
@@ -1454,6 +1460,8 @@ function App() {
   };
 
   const openActivity = (level: number, entry: ActivityEntry = 'custom') => {
+    aiRequestRef.current?.abort();
+    aiRequestRef.current = null;
     journeyReturnScrollTop.current = journeyPanelRef.current?.scrollTop ?? 0;
     setActiveActivity(level);
     setActivityEntry(entry);
@@ -1479,21 +1487,27 @@ function App() {
   };
 
   const consultModeAi = async () => {
+    if (aiRequestRef.current || aiLoading) return;
     if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
       openPlan('gold', 'Modo IA');
       return;
     }
     if (!activityPrompt.trim()) {
-      setAiNotice('Escribe primero tu contexto o pregunta para que el Modo IA prepare una propuesta.');
+      setAiNotice(modeAiMessage(language, 'context'));
       setAiHasConsulted(false);
       return;
     }
     if (!selectedMode || activeActivity === null) return;
+    const controller = new AbortController();
+    aiRequestRef.current = controller;
     setAiLoading(true);
+    setAiHasConsulted(false);
+    setAiProposal('');
     setAiNotice(null);
     try {
       const response = await fetch(`${apiUrl}${isAuthenticated ? '/ai/mode' : '/ai/mode/public'}`, {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json', ...(authTokens?.access_token ? { Authorization: `Bearer ${authTokens.access_token}` } : {}) },
         body: JSON.stringify({
           mode_name: modeName(selectedMode),
@@ -1505,17 +1519,23 @@ function App() {
           user_name: profileName,
         }),
       });
-      const data = await response.json() as ModeAIResponse | { detail?: string };
-      if (!response.ok || !('proposal' in data)) throw new Error('detail' in data && data.detail ? data.detail : 'Modo IA no pudo responder.');
-      setAiProposal(data.proposal);
+      const data: unknown = await response.json();
+      const proposal = readModeAiProposal(data);
+      if (!response.ok || !proposal) throw new Error('No valid activity proposal');
+      if (controller.signal.aborted) return;
+      setAiProposal(proposal);
       setAiHasConsulted(true);
-      setAiNotice('Modo IA ha preparado una propuesta personalizada para este nivel.');
-    } catch (error) {
+      setAiNotice(null);
+    } catch {
+      if (controller.signal.aborted) return;
       setAiHasConsulted(false);
       setAiProposal('');
-      setAiNotice(error instanceof Error ? error.message : 'No fue posible consultar al Modo IA.');
+      setAiNotice(modeAiMessage(language, 'failed'));
     } finally {
-      setAiLoading(false);
+      if (aiRequestRef.current === controller) {
+        aiRequestRef.current = null;
+        setAiLoading(false);
+      }
     }
   };
 
@@ -1525,8 +1545,8 @@ function App() {
       openPlan('gold', 'Modo IA');
       return;
     }
-    if (!aiHasConsulted) {
-      setAiNotice('Consulta primero al Modo IA para generar una propuesta antes de usarla.');
+    if (aiLoading || !aiHasConsulted || !aiProposal.trim()) {
+      setAiNotice(modeAiMessage(language, 'first'));
       return;
     }
     saveActivity(selectedMode.key, activeActivity, aiProposal);
@@ -1988,7 +2008,7 @@ function App() {
         <button className="customizer-done" type="button" onClick={() => setCustomizingAvatar(false)}>{tr('customizerDone')} <span>→</span></button>
       </section></div>}
 
-      {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className="journey-panel" data-layer={activeActivity !== null ? '5' : '3'} role="dialog" aria-modal="true" aria-labelledby="journey-title" style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
+      {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className={`journey-panel${activeActivity !== null && activityEntry === 'ai' ? ' journey-panel--mode-ai' : ''}`} data-layer={activeActivity !== null ? '5' : '3'} role="dialog" aria-modal="true" aria-labelledby={activeActivity === null ? 'journey-title' : 'activity-agent-title'} style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label={tr('journeyClose')}>×</button>
         {activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← {tr('back')} {journeyReturnView === 'dashboard' ? tr('dashboard') : tr('overview')}</button>}
         {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← {tr('back')}</button>}
@@ -2004,16 +2024,11 @@ function App() {
             <h2 id="activity-agent-title">{tr('activityPool')}</h2>
           <p className="journey-description">{tr('activityPoolDescription')}</p>
             <ActivityBank modeKey={selectedMode.key} modeName={modeName(selectedMode)} modeIcon={selectedMode.icon} level={activeActivity} language={language} selection={poolSelection} onSelect={setPoolSelection} onUse={usePoolActivity} activityLabel={trf('activityLevel', { level: String(activeActivity) })} effortLabel={effortLabel(activeActivity)} useLabel={tr('useActivity')} previousLabel={tr('previous')} nextLabel={tr('next')} recommendationsLabel={tr('recommendations')} />
-          </> : <>
-            <h2 id="activity-agent-title">{tr('buildActivity')}</h2>
-            <p className="journey-description">{trf('modeAiDescription', { mode: modeName(selectedMode), level: String(activeActivity) })}</p>
-            <div className="effort-panel"><span className="effort-label">{tr('considerThis')}</span><strong>{effortLabel(activeActivity)}</strong><p>{tr(`effort${effortByLevel[activeActivity]}`)}</p></div>
-            <div className="agent-runtime-strip" aria-label={tr('agentStatus')}><span className="agent-runtime-dot" /> <strong>{tr('agentReady')}</strong><small>{aiHasConsulted ? tr('proposalReady') : tr('agentWaiting')}</small></div>
-            <div className="agent-chat" aria-live="polite"><div className="agent-message"><span>IA</span><p>{trf('journeyAiQuestion', { level: String(activeActivity) })}</p></div>{aiHasConsulted ? <div className="agent-message agent-message--proposal"><span>IA</span><p>{aiProposal}</p></div> : <div className="agent-message agent-message--waiting"><span>IA</span><p>{tr('journeyAiWaiting')}</p></div>}</div>
-            <label className="agent-input-label" htmlFor="activity-prompt">{tr('context')}</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => { setActivityPrompt(event.target.value); setAiHasConsulted(false); setAiNotice(null); }} placeholder={tr('activityPlaceholder')} rows={3} />
-            {aiNotice && <div className="insight-notice" role="status">✦ {aiNotice}</div>}
-            <div className="agent-actions"><button className="agent-ask" type="button" disabled={aiLoading} onClick={() => { void consultModeAi(); }}>{aiLoading ? tr('consulting') : tr('askAI')} <span>→</span></button><button className="agent-save" type="button" disabled={aiLoading} onClick={saveModeAiActivity}>{tr('useActivity')} <span>→</span></button></div>
-          </>}
+          </> : <ModeAiStudio language={language} brand={tr('modeAI')} title={tr('buildActivity')} description={trf('modeAiDescription', { mode: modeName(selectedMode), level: String(activeActivity) })} modeIcon={selectedMode.icon}
+            level={activeActivity} levelLabel={tr('level')} stage={localizedLevelNames[language][activeActivity]} considerLabel={tr('considerThis')} effort={effortLabel(activeActivity)} effortDescription={tr(`effort${effortByLevel[activeActivity]}`)}
+            question={trf('journeyAiQuestion', { level: String(activeActivity) })} contextLabel={tr('context')} placeholder={tr('activityPlaceholder')} activityLabel={tr('activity')} readyLabel={tr('proposalReady')} waiting={tr('journeyAiWaiting')}
+            askLabel={tr('askAI')} useLabel={tr('useActivity')} consultingLabel={tr('consulting')} context={activityPrompt} proposal={aiProposal} hasProposal={aiHasConsulted} loading={aiLoading} notice={aiNotice}
+            onContext={value => { setActivityPrompt(value); setAiHasConsulted(false); setAiProposal(''); setAiNotice(null); }} onAsk={() => { void consultModeAi(); }} onUse={saveModeAiActivity} />}
         </section> : <>
           <div className="journey-intro-compact"><span className="journey-icon">{selectedMode.icon}</span><div><h2 id="journey-title">{modeName(selectedMode)}</h2><p className="journey-description">{modeJourneyDescription(selectedMode)}</p></div></div>
           <div className="journey-level journey-level--compact"><div><span>{tr('currentLevelLabel')}</span><strong>{levels[selectedMode.key]}</strong></div><span className="journey-level-name">{localizedLevelNames[language][levels[selectedMode.key]]}</span></div><div className="level-definition level-definition--compact"><strong>{localizedLevelNames[language][levels[selectedMode.key]]}</strong><p>{levelDefinitionText(levels[selectedMode.key])}</p></div>
