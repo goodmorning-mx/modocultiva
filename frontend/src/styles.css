@@ -443,6 +443,47 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .pool-activity-card h3 { max-width: 90%; margin: 13px 0 8px; color: #edfff2; font-size: 1.08rem; line-height: 1.25; }
 .pool-activity-card p { max-width: 92%; margin: 0; color: #a9c7ba; font-size: .73rem; line-height: 1.5; }
 .pool-activity-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.activity-agent--pool > .journey-description { max-width: 650px; margin-bottom: 28px; }
+.bank-presentation { --bank-paper: #e7eadb; --bank-ink: #152c2b; }
+.bank-presentation-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; color: #c4d5c9; font-size: .68rem; }
+.bank-slide-count { flex: none; color: var(--mode-color); font: 500 .85rem 'DM Mono', monospace; }
+.bank-slide-count i { color: #8ca59d; font-size: .58rem; font-style: normal; }
+.bank-slide { display: grid; grid-template-columns: 1.04fr 1fr; overflow: hidden; border: 1px solid color-mix(in srgb, var(--mode-color) 40%, transparent); border-radius: 18px; background: #092126; box-shadow: 0 18px 40px #0003; animation: bank-page-reveal .35s ease-out both; touch-action: pan-y; }
+.bank-quote-page { position: relative; display: flex; flex-direction: column; align-items: start; min-width: 0; min-height: 360px; padding: clamp(24px, 3vw, 36px); color: var(--bank-ink); background: radial-gradient(ellipse at top left, #fff8, transparent 65%), var(--bank-paper); }
+.bank-quote-page::after { position: absolute; inset-block: 0; inset-inline-end: 0; width: 10px; background: linear-gradient(90deg, transparent, #10292612); content: ''; pointer-events: none; }
+.bank-quote-mark { position: absolute; inset-block-start: 60px; inset-inline-end: 20px; color: #1843380b; font: 13rem/.8 Georgia, serif; pointer-events: none; }
+.bank-page-category { position: relative; display: flex; align-items: center; gap: 9px; color: #35554b; font: .53rem/1.5 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
+.bank-page-category > span { font-size: 1.2rem; }
+.bank-quote-page blockquote { position: relative; flex: 1; display: flex; align-items: center; margin: 30px 0 24px; color: #18372e; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.45rem, 2.65vw, 2.15rem); font-weight: 400; line-height: 1.28; letter-spacing: -.035em; text-wrap: pretty; }
+.bank-attribution { display: grid; gap: 7px; }
+.bank-author-line { width: 30px; height: 1px; margin-bottom: 3px; background: #37624f; }
+.bank-attribution cite { font-size: .73rem; font-weight: 750; font-style: normal; }
+.bank-attribution small { color: #52685a; font-size: .51rem; line-height: 1.5; }
+.bank-source { position: relative; width: 100%; margin-top: 18px; padding-top: 12px; border-top: 1px solid #2c52322b; font-size: .56rem; }
+.bank-source summary { width: fit-content; cursor: pointer; color: #355846; line-height: 1.6; }
+.bank-source summary span { margin-inline-start: 6px; }
+.bank-source p { color: #355846; font: italic .69rem/1.5 Georgia, serif; }
+.bank-source a { display: block; margin-top: 8px; color: #204c3c; line-height: 1.6; overflow-wrap: anywhere; text-underline-offset: 3px; }
+.bank-practice-page { display: flex; flex-direction: column; min-width: 0; padding: clamp(24px, 3vw, 36px); background: linear-gradient(140deg, color-mix(in srgb, var(--mode-color) 7%, #092126), #071b20); }
+.bank-practice-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 34px; color: #b6ccc1; font-size: .6rem; }
+.bank-practice-top > span:last-child { color: var(--mode-color); font-size: 1.3rem; }
+.bank-level { color: var(--mode-color); font: .5rem/1.5 'DM Mono', monospace; letter-spacing: .08em; }
+.bank-practice-page h3 { margin: 12px 0; color: #eff9f0; font-size: clamp(1.05rem, 2vw, 1.4rem); line-height: 1.28; letter-spacing: -.035em; text-wrap: pretty; }
+.bank-practice-page > p { margin: 0 0 20px; color: #b1c9bf; font-size: .71rem; line-height: 1.65; }
+.bank-effort { width: fit-content; padding-inline-start: 9px; border-inline-start: 2px solid var(--mode-color); color: var(--mode-color); font: .48rem/1.65 'DM Mono', monospace; }
+.bank-editorial-credit { margin: 16px 0 20px; color: #8ba79b; font-size: .51rem; }
+.bank-use { display: flex; justify-content: space-between; align-items: center; gap: 15px; width: 100%; min-height: 44px; margin-top: auto; padding: 11px 14px; border: 1px solid var(--mode-color); border-radius: 7px; background: var(--mode-color); color: #092026; font-size: .65rem; font-weight: 750; transition: filter .2s; }
+.bank-use:hover { filter: brightness(1.1); }
+.bank-navigation { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; gap: 15px; align-items: center; margin-top: 18px; }
+.bank-arrow { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #9db9a941; border-radius: 8px; background: #071b2066; color: #c1d8c6; font-size: 1rem; }
+.bank-pagination { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 7px; }
+.bank-pagination button { min-width: 0; min-height: 40px; padding: 6px 0; border: 0; border-top: 2px solid #9db9a92e; background: transparent; color: #86a095; font: .46rem 'DM Mono', monospace; transition: border-color .2s, color .2s; }
+.bank-pagination button[aria-current='true'] { border-color: var(--mode-color); color: var(--mode-color); }
+.bank-pagination button:hover, .bank-arrow:hover { border-color: var(--mode-color); color: var(--mode-color); }
+.bank-presentation button:focus-visible, .bank-source summary:focus-visible, .bank-source a:focus-visible { outline: 2px solid var(--mode-color); outline-offset: 4px; }
+@keyframes bank-page-reveal { from { opacity: .35; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 680px) { .bank-slide { grid-template-columns: 1fr; }.bank-quote-page { min-height: 260px; padding: 24px; }.bank-quote-page blockquote { min-height: 100px; font-size: 1.65rem; }.bank-practice-page { padding: 24px; }.bank-practice-top { margin-bottom: 22px; }.bank-navigation { gap: 8px; grid-template-columns: 36px minmax(0, 1fr) 36px; }.bank-arrow { width: 36px; }.bank-pagination { gap: 3px; }.bank-pagination button { font-size: .4rem; }.bank-presentation-heading { font-size: .6rem; } }
+@media (prefers-reduced-motion: reduce) { .bank-slide { animation: none; }.bank-presentation button { transition: none; } }
 .pool-activity-meta span { padding: 5px 8px; border: 1px solid color-mix(in srgb, var(--mode-color) 30%, transparent); border-radius: 999px; color: var(--mode-color); font-family: 'DM Mono', monospace; font-size: .5rem; letter-spacing: .08em; text-transform: uppercase; }
 @media (max-width: 680px) { .pool-activity-card { padding: 16px; }.agent-actions--single .agent-save { width: 100%; } }
 

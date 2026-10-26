@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { PwaControls } from './PwaControls';
+import { ActivityBank } from './ActivityBank';
+import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
 import logo from './assets/modo-cultiva-logo-neon.png';
@@ -745,7 +747,7 @@ function App() {
     };
     return labels[language][tier];
   };
-  const poolActivities = (modeKey: string, level: number) => localizedPoolActivities(modeKey, level, language);
+  const poolActivities = (modeKey: string, level: number) => getBankActivities(modeKey, level, language);
   const [profileName, setProfileName] = useState(() => {
     try {
       const saved = window.localStorage.getItem('modoCultiva_profileName');
@@ -1456,7 +1458,7 @@ function App() {
       return;
     }
     const activity = poolActivities(selectedMode.key, activeActivity)[poolSelection];
-    saveActivity(selectedMode.key, activeActivity, activity.title);
+    saveActivity(selectedMode.key, activeActivity, `${activity.title}. ${activity.description}`);
   };
 
   const consultModeAi = async () => {
@@ -1992,9 +1994,7 @@ function App() {
           </> : activityEntry === 'pool' ? <>
             <h2 id="activity-agent-title">{tr('activityPool')}</h2>
           <p className="journey-description">{tr('activityPoolDescription')}</p>
-            <label className="pool-selector-label" htmlFor="pool-selection">{tr('recommendations')}<select id="pool-selection" value={poolSelection} onChange={(event) => setPoolSelection(Number(event.target.value))}>{poolActivities(selectedMode.key, activeActivity).map((activity, index) => <option value={index} key={activity.title}>{tr('recommendation')} {index + 1}/10 - {activity.title}</option>)}</select></label>
-            <article className="pool-activity-card"><span className="pool-activity-index">{trf('activityLevel', { level: String(activeActivity) })}</span><h3>{poolActivities(selectedMode.key, activeActivity)[poolSelection].title}</h3><p>{poolActivities(selectedMode.key, activeActivity)[poolSelection].description}</p><div className="pool-activity-meta"><span>{effortLabel(activeActivity)}</span></div></article>
-            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={usePoolActivity}>{tr('useActivity')} <span>→</span></button></div>
+            <ActivityBank modeKey={selectedMode.key} modeName={modeName(selectedMode)} modeIcon={selectedMode.icon} level={activeActivity} language={language} selection={poolSelection} onSelect={setPoolSelection} onUse={usePoolActivity} activityLabel={trf('activityLevel', { level: String(activeActivity) })} effortLabel={effortLabel(activeActivity)} useLabel={tr('useActivity')} previousLabel={tr('previous')} nextLabel={tr('next')} recommendationsLabel={tr('recommendations')} />
           </> : <>
             <h2 id="activity-agent-title">{tr('buildActivity')}</h2>
             <p className="journey-description">{trf('modeAiDescription', { mode: modeName(selectedMode), level: String(activeActivity) })}</p>
