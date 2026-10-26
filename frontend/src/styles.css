@@ -615,6 +615,35 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 .crm-next-card--final h2 { margin: 5px 0 8px; }
 .crm-next-card--final p { max-width: 62ch; margin: 0; }
 .crm-next-card--final button { flex: 0 0 auto; gap: 24px; margin-top: 0; }
+.crm-next-card--final .crm-life-map-button {
+  --orbit-radius: 88px;
+  display: block;
+  flex: 0 0 214px;
+  width: 214px;
+  height: 214px;
+  min-width: 214px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(130, 234, 180, .24);
+  border-radius: 50%;
+  color: inherit;
+  background: radial-gradient(circle, rgba(80, 214, 176, .12), transparent 72%);
+  box-shadow: 0 0 30px rgba(104, 224, 174, .06);
+  cursor: pointer;
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.crm-life-map-button .configuration-orbit-core { inset: 46px; }
+.crm-life-map-button .configuration-orbit-core > span { font-size: 1.5rem; line-height: 1; }
+.crm-life-map-button .configuration-orbit-core > strong { font-size: .68rem; line-height: 1.35; text-wrap: balance; }
+.crm-life-map-button .configuration-orbit-core > small { font-size: .38rem; }
+.crm-life-map-button .configuration-orbit-node { width: 28px; height: 28px; }
+.crm-life-map-button .configuration-orbit-node > i { font-size: .68rem; }
+.crm-life-map-button .configuration-orbit-node > b { font-size: .48rem; }
+.crm-next-card--final .crm-life-map-button:hover { transform: scale(1.025); border-color: rgba(130, 234, 180, .65); box-shadow: 0 0 32px rgba(104, 224, 174, .16); }
+.crm-next-card--final .crm-life-map-button:focus-visible { outline: 2px solid #b2ffda; outline-offset: 6px; }
+.crm-next-card--final .crm-life-map-button:active { transform: scale(.98); }
+@media (max-width: 680px) { .crm-next-card--final .crm-life-map-button { --orbit-radius: 84px; align-self: center; flex-basis: 206px; width: 206px; height: 206px; min-width: 206px; } .crm-life-map-button .configuration-orbit-core { inset: 42px; } }
+@media (prefers-reduced-motion: reduce) { .crm-next-card--final .crm-life-map-button { transition: none; } .crm-next-card--final .crm-life-map-button:is(:hover, :active) { transform: none; } }
 @media (max-width: 680px) { .crm-dashboard .crm-next-card--final { min-height: 0; flex-direction: column; align-items: stretch; gap: 18px; } }
 @media (max-width: 1050px) { .crm-dashboard { grid-template-columns: 1fr; }.crm-card--score { grid-row: auto; }.crm-distribution-card { grid-column: auto; }.crm-bottom-grid { grid-column: auto; } }
 @media (max-width: 680px) { .crm-score-layout { flex-direction: column; margin-top: 24px; }.score-orbit--large { align-self: center; min-width: 150px; width: 150px; height: 150px; }.score-orbit--large strong { font-size: 3.4rem; }.crm-score-context { max-width: none; text-align: center; }.crm-card--score { padding: 17px; }.crm-score-line { margin: 29px 0 24px; }.crm-score-line strong { font-size: 4.7rem; }.crm-metric-grid, .crm-bottom-grid { grid-template-columns: 1fr; }.crm-distribution { gap: 10px; }.crm-focus-list button { grid-template-columns: 29px minmax(0, 1fr); }.crm-focus-list b { grid-column: 2; }.crm-next-card { min-height: 220px; } }
