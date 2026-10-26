@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
 import { VisionImage } from './VisionImage';
+import { JourneyActivityCard } from './JourneyActivityCard';
+import { CULTIVA_LEAF_SHAPE } from './CultivaLeaf';
+import { activityReactionKey, cleanReactions, type ActivityReactions, type Reaction } from './journeySocial';
 import { calculateCultivaLevel, CULTIVA_MAX_LEVEL } from './cultivaLevel';
 import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
@@ -648,6 +651,7 @@ const readLegacyDeviceState = (): Record<string, unknown> => {
     levels: { ...defaultLevels, ...readJson('modoCultiva_lastState', {}) },
     presets: readJson('modoCultiva_presets', {}),
     activityDrafts: readJson('modoCultiva_activityDrafts', {}),
+    activityReactions: cleanReactions(readJson('modoCultiva_activityReactions', {})),
     insightRequests: readJson('modoCultiva_insightRequests', {}),
     visionImages: readJson('modoCultiva_visionImages', {}),
     featuredBadges: readJson('modoCultiva_featuredBadges', []),
@@ -672,7 +676,7 @@ const hasLegacyDeviceConfiguration = (state: Record<string, unknown>): boolean =
     const value = state[key];
     return value !== null && typeof value === 'object' && Object.keys(value).length > 0;
   };
-  return hasProgress || hasEntries('presets') || hasEntries('activityDrafts')
+  return hasProgress || hasEntries('presets') || hasEntries('activityDrafts') || hasEntries('activityReactions')
     || hasEntries('insightRequests') || hasEntries('visionImages')
     || (Array.isArray(state.featuredBadges) && state.featuredBadges.length > 0)
     || Boolean(state.profileName) || Boolean(state.profileImage);
@@ -703,11 +707,6 @@ function App() {
   const activityDescription = (level: number) => {
     const tier = level <= 2 ? 'low' : level <= 5 ? 'medium' : level <= 8 ? 'high' : 'vision';
     return localizedEffortDescriptions[language]?.[tier] ?? localizedEffortDescriptions.es[tier];
-  };
-  const activityTitleClass = (title: string, placeholder: boolean) => {
-    const length = title.trim().length;
-    const size = length > 105 ? 'long' : length > 62 ? 'medium' : 'short';
-    return `journey-activity-title journey-activity-title--${size}${placeholder ? ' journey-activity-title--placeholder' : ''}`;
   };
   const localizeGlobalInsight = (insight: GlobalInsight): GlobalInsight => ({
     ...insight,
@@ -786,6 +785,19 @@ function App() {
       return {};
     }
   });
+  const [activityReactions, setActivityReactions] = useState<ActivityReactions>(() => {
+    try { return cleanReactions(JSON.parse(window.localStorage.getItem('modoCultiva_activityReactions') ?? '{}')); }
+    catch { return {}; }
+  });
+  const reactToActivity = (modeKey: string, level: number, reaction: Reaction) => {
+    const key = activityReactionKey(modeKey, level, activityDrafts[`${modeKey}-${level}`] ?? '');
+    const next = { ...activityReactions };
+    if (next[key] === reaction) delete next[key];
+    else next[key] = reaction;
+    // Persist first: quota errors must not look like a successfully saved reaction.
+    window.localStorage.setItem('modoCultiva_activityReactions', JSON.stringify(next));
+    setActivityReactions(next);
+  };
   const [insightRequests, setInsightRequests] = useState<Record<string, boolean>>(() => {
     try {
       return JSON.parse(window.localStorage.getItem('modoCultiva_insightRequests') ?? '{}');
@@ -1127,6 +1139,10 @@ function App() {
         setProfileImage(typeof state.profileImage === 'string' ? state.profileImage : null);
         setLevels({ ...defaultLevels, ...(state.levels && typeof state.levels === 'object' ? state.levels as Record<string, number> : {}) });
         setActivityDrafts(state.activityDrafts && typeof state.activityDrafts === 'object' ? state.activityDrafts as Record<string, string> : {});
+        const remoteReactions = cleanReactions(state.activityReactions);
+        setActivityReactions(remoteReactions);
+        try { window.localStorage.setItem('modoCultiva_activityReactions', JSON.stringify(remoteReactions)); }
+        catch { /* A full device cache must not prevent loading the account's map. */ }
         setInsightRequests(state.insightRequests && typeof state.insightRequests === 'object' ? state.insightRequests as Record<string, boolean> : {});
         setPresets(state.presets && typeof state.presets === 'object' ? state.presets as Record<string, Preset> : {});
         setVisionImages(state.visionImages && typeof state.visionImages === 'object' ? state.visionImages as Record<string, string> : {});
@@ -1168,7 +1184,7 @@ function App() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authTokens.access_token}` },
         keepalive: true,
-        body: JSON.stringify({ state: { profileName, profileImage, levels, activityDrafts, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language } }),
+        body: JSON.stringify({ state: { profileName, profileImage, levels, activityDrafts, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language } }),
       }).then((response) => setStateSyncStatus(response.ok ? 'synced' : 'error')).catch(() => setStateSyncStatus('error'));
     };
     window.addEventListener('pagehide', persistState);
@@ -1181,7 +1197,7 @@ function App() {
       window.removeEventListener('pagehide', persistState);
       window.removeEventListener('online', persistState);
     };
-  }, [activePlan, activityDrafts, authTokens?.access_token, featuredBadges, insightRequests, language, levels, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
+  }, [activePlan, activityDrafts, activityReactions, authTokens?.access_token, featuredBadges, insightRequests, language, levels, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1874,7 +1890,7 @@ function App() {
                   <radialGradient id="score-leaf-shade" cx="170" cy="140" r="96" gradientUnits="userSpaceOnUse"><stop stopColor="#002712" stopOpacity=".52" /><stop offset=".55" stopColor="#002712" stopOpacity=".35" /><stop offset="1" stopColor="#002712" stopOpacity="0" /></radialGradient>
                   <radialGradient id="score-leaf-clear" cx="50%" cy="47%" r="42%"><stop offset=".35" stopColor="black" /><stop offset="1" stopColor="white" /></radialGradient>
                   <mask id="score-leaf-vein-mask"><rect width="340" height="280" fill="url(#score-leaf-clear)" /></mask>
-                  <path id="score-leaf-shape" pathLength="100" d="M62 230C20 160 47 65 136 46C189 35 243 48 284 22C294 84 280 150 237 190C193 231 130 253 62 230Z" />
+                  <path id="score-leaf-shape" pathLength="100" d={CULTIVA_LEAF_SHAPE} />
                   <clipPath id="score-leaf-clip"><use href="#score-leaf-shape" /></clipPath>
                 </defs>
                 <g className="crm-score-leaf-body">
@@ -2010,9 +2026,12 @@ function App() {
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.max(0, current - 1))} disabled={journeySlide === 0} aria-label={tr('previousLevel')}>←</button>
             <div className="journey-carousel-viewport">
               <div className="journey-level-grid journey-level-grid--carousel">
-                {journeyLevels.filter((level) => level === journeySlide).map((level) => <article className={`journey-level-card journey-level-card--active${level === 0 ? ' journey-level-card--start' : ''}${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}${level === 9 ? ' journey-level-card--vision' : ''}`} key={level}>
-                  <div className="journey-level-card-top"><div className="journey-level-card-index"><span>{tr('level')}</span><strong>{level}</strong></div><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span>{level < 9 && <strong className="journey-level-card-effort effort-tag">{effortLabel(level)}</strong>}{level === 9 && <em>{tr('finalVision')}</em>}</div>
-                  {level < 9 ? <h4 className={activityTitleClass(activityDrafts[`${selectedMode.key}-${level}`] ?? tr('activityUndefined'), !activityDrafts[`${selectedMode.key}-${level}`])}>{activityDrafts[`${selectedMode.key}-${level}`] ?? tr('activityUndefined')}</h4> : <VisionImage key={selectedMode.key} value={visionImages[selectedMode.key]} onChange={image => saveVisionImage(selectedMode.key, image)} language={language} title={tr('finalVision')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} />}
+                {journeyLevels.filter((level) => level === journeySlide).map((level) => level < 9 ? <JourneyActivityCard key={`${selectedMode.key}-${level}`} current={level === levels[selectedMode.key]} defined={Boolean(activityDrafts[`${selectedMode.key}-${level}`])}
+                  card={{ mode: modeName(selectedMode), level, levelLabel: tr('level'), stage: localizedLevelNames[language][level], effort: effortLabel(level), activity: activityDrafts[`${selectedMode.key}-${level}`] ?? tr('activityUndefined'), color: selectedMode.color, icon: selectedMode.icon, language }}
+                  reaction={activityReactions[activityReactionKey(selectedMode.key, level, activityDrafts[`${selectedMode.key}-${level}`] ?? '')]}
+                  onReact={reaction => reactToActivity(selectedMode.key, level, reaction)} /> : <article className={`journey-level-card journey-level-card--active journey-level-card--vision${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}`} key={level}>
+                  <div className="journey-level-card-top"><div className="journey-level-card-index"><span>{tr('level')}</span><strong>{level}</strong></div><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span><em>{tr('finalVision')}</em></div>
+                  <VisionImage key={selectedMode.key} value={visionImages[selectedMode.key]} onChange={image => saveVisionImage(selectedMode.key, image)} language={language} title={tr('finalVision')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} />
                 </article>)}
               </div>
             </div>

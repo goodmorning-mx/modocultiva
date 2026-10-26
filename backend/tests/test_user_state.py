@@ -36,11 +36,11 @@ class _InMemoryStateDatabase:
             incoming = json.loads(parameters["state"])
             assert "ON CONFLICT (user_id, organization_id)" in query
             if "jsonb_set(" in query:
-                for field in ("levels", "presets", "activityDrafts", "insightRequests", "visionImages", "featuredBadges"):
+                for field in ("levels", "presets", "activityDrafts", "activityReactions", "insightRequests", "visionImages", "featuredBadges"):
                     assert f"'{{{field}}}'" in query
                 existing = self.rows.get(key, {})
                 merged = {**incoming, **existing}
-                for field in ("levels", "presets", "activityDrafts", "insightRequests", "visionImages"):
+                for field in ("levels", "presets", "activityDrafts", "activityReactions", "insightRequests", "visionImages"):
                     merged[field] = {**incoming.get(field, {}), **existing.get(field, {})}
                 if "featuredBadges" in incoming or "featuredBadges" in existing:
                     merged["featuredBadges"] = list(dict.fromkeys(
@@ -156,3 +156,34 @@ def test_device_migration_keeps_existing_cloud_fields_missing_from_device_snapsh
     }
     assert saved_state["profileName"] == "Cuenta existente"
     assert saved_state["language"] == "es"
+
+
+def test_activity_reactions_round_trip_and_device_merge_preserve_existing_map() -> None:
+    database = _InMemoryStateDatabase()
+    store = UserStateStore(database)
+    levels = {mode: 4 for mode in ("fisico", "intelectual", "emocional", "arquetipico", "espiritual", "romantico", "familiar", "social", "financiero", "profesional", "ludico", "visionario")}
+    old_state = {
+        "levels": levels,
+        "presets": {"Existing": levels},
+        "activityDrafts": {"fisico-3": "Walk for ten minutes"},
+        "visionImages": {"fisico": "data:image/png;base64,existing"},
+    }
+    store.save("user-1", "org-1", old_state)
+    assert store.get("user-1", "org-1") == old_state
+    reaction_state = {**old_state, "activityReactions": {"fisico-3-0123456789abcdef": "leaf"}}
+    store.save("user-1", "org-1", reaction_state)
+    assert store.get("user-1", "org-1") == reaction_state
+    store.merge("user-1", "org-1", {"activityReactions": {
+        "fisico-3-0123456789abcdef": "sun",
+        "ludico-2-fedcba9876543210": "water",
+    }})
+    saved = store.get("user-1", "org-1")
+    assert saved["activityReactions"] == {
+        "fisico-3-0123456789abcdef": "leaf",
+        "ludico-2-fedcba9876543210": "water",
+    }
+    for field in old_state:
+        assert saved[field] == old_state[field]
+    assert store.get("user-2", "org-1") == {}
+    store.save("user-1", "org-1", {**saved, "activityReactions": {}})
+    assert store.get("user-1", "org-1")["activityReactions"] == {}
