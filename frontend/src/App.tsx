@@ -1658,7 +1658,38 @@ function App() {
     const promotedMode = (promotedInsight ? modes.find((mode) => mode.key === promotedInsight.modeKey) : undefined) ?? modes[0]!;
     const journeyXp = Object.keys(activityDrafts).length * 100 + Object.values(levels).reduce((sum, level) => sum + level * 25, 0);
     return <section ref={cultEmbeddedRef} className="cult-embedded" aria-labelledby="cult-embedded-title">
-    <div className="cult-embedded-heading"><div><p className="kicker">{tr('globalEyebrow')}</p><h3 id="cult-embedded-title">{tr('globalTitle')}</h3><p className="cult-embedded-subtitle">{tr('globalSubtitle')}</p></div></div><div className="cult-embedded-divider" aria-hidden="true"><span /><i>{tr('globalEyebrowLine')}</i><span /></div>
+    <div className="cult-embedded-heading cult-global-hero" onPointerMove={(event) => {
+      if (event.pointerType !== 'mouse') return;
+      const bounds = event.currentTarget.getBoundingClientRect();
+      event.currentTarget.style.setProperty('--global-pointer-x', `${((event.clientX - bounds.left) / bounds.width) * 100}%`);
+      event.currentTarget.style.setProperty('--global-pointer-y', `${((event.clientY - bounds.top) / bounds.height) * 100}%`);
+    }} onPointerLeave={(event) => {
+      event.currentTarget.style.removeProperty('--global-pointer-x');
+      event.currentTarget.style.removeProperty('--global-pointer-y');
+    }}><div>
+      <div className="cult-global-emblem" aria-hidden="true">
+        <svg viewBox="0 0 160 110" fill="none" focusable="false">
+          <circle className="cult-global-sphere" cx="80" cy="55" r="36" />
+          <g className="cult-global-meridians">
+            <ellipse cx="80" cy="55" rx="16" ry="36" />
+            <ellipse cx="80" cy="55" rx="36" ry="13" />
+            <path d="M49 37Q80 50 111 37M49 73Q80 60 111 73M80 19V91" />
+          </g>
+          <g className="cult-global-orbit">
+            <ellipse cx="80" cy="55" rx="71" ry="26" transform="rotate(-22 80 55)" />
+            <ellipse className="cult-global-signal" cx="80" cy="55" rx="71" ry="26" transform="rotate(-22 80 55)" />
+          </g>
+          <g className="cult-global-nodes">
+            <circle cx="25" cy="74" r="3" /><circle cx="55" cy="29" r="2.5" />
+            <circle cx="99" cy="47" r="3" /><circle cx="135" cy="36" r="3" />
+            <circle cx="66" cy="84" r="2.5" /><circle cx="107" cy="79" r="2" />
+          </g>
+        </svg>
+      </div>
+      <h3 id="cult-embedded-title" className="cult-global-title">{tr('globalEyebrow')}</h3>
+      <p className="cult-global-tagline">{tr('globalTitle')}</p>
+      <p className="cult-embedded-subtitle">{tr('globalSubtitle')}</p>
+    </div></div><div className="cult-embedded-divider" aria-hidden="true"><span /><i>{tr('globalEyebrowLine')}</i><span /></div>
      <nav className="cult-nav cult-nav--embedded" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['badges', tr('badges')], ] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => selectCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
     <div className="cult-embedded-content">
       {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">{tr('globalActivitiesEyebrow')}</p><h4>{tr('globalInsights')}</h4></div></div><p className="cult-section-copy">{tr('globalRecommendationsCopy')}</p>{insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('close')}>×</button></div>}{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art"><span>{promotedMode.icon}</span><small>{tr('globalSection').toUpperCase()} · {insightSlide + 1}/12</small></div><div className="cult-insight-spotlight-copy"><div className="cult-insight-activity-top"><span>{modeName(promotedMode)} · {tr('level')} {promotedInsight.level} → {promotedInsight.level + 1}</span><small>{effortLabel(promotedInsight.level)}</small></div><h3>{promotedInsight.activity}</h3><p>{tr('globalSharedBy')} <strong>{promotedInsight.author}</strong> · {promotedInsight.location}</p><div className="cult-insight-actions"><button type="button" onClick={() => setCultInsightPreview(promotedInsight)}>{tr('globalAnalyzeSave')} <span>↗</span></button><button className="cult-insight-regenerate-button" type="button" onClick={() => regenerateGlobalInsight(promotedInsight.modeKey, promotedInsight.level)}><span aria-hidden="true">↻</span></button></div></div>{personalizedInsights.length > 1 && <div className="cult-insight-controls" aria-label={tr('globalInsights')}><button type="button" onClick={() => setInsightSlide((current) => (current - 1 + personalizedInsights.length) % personalizedInsights.length)} aria-label={tr('previous')}>←</button><div className="cult-insight-dots" aria-label={tr('globalInsights')}><span className="cult-insight-dot-list">{personalizedInsights.map((insight, index) => <button className={index === insightSlide ? 'is-active' : ''} key={`${insight.modeKey}-${insight.level}-${index}`} type="button" onClick={() => setInsightSlide(index)} aria-label={`${tr('globalInsights')} ${index + 1}`} />)}</span></div><button type="button" onClick={() => setInsightSlide((current) => (current + 1) % personalizedInsights.length)} aria-label={tr('next')}>→</button></div>}</article>}</>}
