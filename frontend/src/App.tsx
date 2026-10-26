@@ -1864,29 +1864,29 @@ function App() {
           <div className="crm-card-heading"><h2 className="crm-eyebrow">{tr('progressAtGlance')}</h2></div>
           <div className="crm-score-layout">
             <div className="crm-score-stage">
-              <svg className="crm-score-crystal" viewBox="0 0 340 280" fill="none" aria-hidden="true" focusable="false">
+              <svg className="crm-score-leaf" viewBox="0 0 340 280" fill="none" aria-hidden="true" focusable="false">
                 <defs>
-                  <linearGradient id="score-crystal-mint" x1="75" y1="38" x2="258" y2="225" gradientUnits="userSpaceOnUse"><stop stopColor="#b1ffe0" stopOpacity=".58" /><stop offset=".45" stopColor="#61d4c7" stopOpacity=".06" /><stop offset="1" stopColor="#99b5ff" stopOpacity=".32" /></linearGradient>
-                  <linearGradient id="score-crystal-blue" x1="275" y1="50" x2="65" y2="235" gradientUnits="userSpaceOnUse"><stop stopColor="#b6c7ff" stopOpacity=".42" /><stop offset=".5" stopColor="#688dba" stopOpacity=".03" /><stop offset="1" stopColor="#78e0d5" stopOpacity=".36" /></linearGradient>
-                  <linearGradient id="score-crystal-edge" x1="60" y1="45" x2="280" y2="230" gradientUnits="userSpaceOnUse"><stop stopColor="#d0ffe8" /><stop offset=".35" stopColor="#7ed0c2" stopOpacity=".12" /><stop offset=".7" stopColor="#b2beff" stopOpacity=".65" /><stop offset="1" stopColor="#92e6e3" stopOpacity=".18" /></linearGradient>
-                  <linearGradient id="score-crystal-face" x1="90" y1="65" x2="244" y2="215" gradientUnits="userSpaceOnUse"><stop stopColor="#1f454b" stopOpacity=".88" /><stop offset="1" stopColor="#091c2a" stopOpacity=".94" /></linearGradient>
-                  <linearGradient id="score-crystal-sheen"><stop stopColor="#d6fff0" stopOpacity="0" /><stop offset=".5" stopColor="#d6fff0" stopOpacity=".14" /><stop offset="1" stopColor="#d6fff0" stopOpacity="0" /></linearGradient>
-                  <clipPath id="score-crystal-clip"><path d="M91 72L231 58L254 92L244 198L215 218L104 208L77 178L80 101Z" /></clipPath>
+                  <linearGradient id="score-leaf-metal" x1="60" y1="58" x2="265" y2="233" gradientUnits="userSpaceOnUse"><stop stopColor="#074b27" /><stop offset=".22" stopColor="#1db65a" /><stop offset=".36" stopColor="#8af7a2" /><stop offset=".43" stopColor="#37ba69" /><stop offset=".56" stopColor="#096238" /><stop offset=".78" stopColor="#073b27" /><stop offset="1" stopColor="#1c9b4a" /></linearGradient>
+                  <linearGradient id="score-leaf-fold" x1="85" y1="216" x2="272" y2="45" gradientUnits="userSpaceOnUse"><stop stopColor="#0e5331" stopOpacity=".15" /><stop offset=".5" stopColor="#001e13" stopOpacity=".5" /><stop offset="1" stopColor="#b5ffc2" stopOpacity=".2" /></linearGradient>
+                  <linearGradient id="score-leaf-edge" x1="65" y1="58" x2="273" y2="230" gradientUnits="userSpaceOnUse"><stop stopColor="#d8ffcc" /><stop offset=".28" stopColor="#72ff9a" /><stop offset=".6" stopColor="#23c466" stopOpacity=".4" /><stop offset="1" stopColor="#83ff9d" /></linearGradient>
+                  <linearGradient id="score-leaf-sheen"><stop stopColor="#caffb8" stopOpacity="0" /><stop offset=".5" stopColor="#caffb8" stopOpacity=".24" /><stop offset="1" stopColor="#caffb8" stopOpacity="0" /></linearGradient>
+                  <radialGradient id="score-leaf-shade" cx="170" cy="140" r="96" gradientUnits="userSpaceOnUse"><stop stopColor="#002712" stopOpacity=".52" /><stop offset=".55" stopColor="#002712" stopOpacity=".35" /><stop offset="1" stopColor="#002712" stopOpacity="0" /></radialGradient>
+                  <radialGradient id="score-leaf-clear" cx="50%" cy="47%" r="42%"><stop offset=".35" stopColor="black" /><stop offset="1" stopColor="white" /></radialGradient>
+                  <mask id="score-leaf-vein-mask"><rect width="340" height="280" fill="url(#score-leaf-clear)" /></mask>
+                  <path id="score-leaf-shape" pathLength="100" d="M62 230C20 160 47 65 136 46C189 35 243 48 284 22C294 84 280 150 237 190C193 231 130 253 62 230Z" />
+                  <clipPath id="score-leaf-clip"><use href="#score-leaf-shape" /></clipPath>
                 </defs>
-                <g className="crm-score-facets">
-                  <path d="M78 38L240 22L231 58L91 72Z" fill="url(#score-crystal-mint)" />
-                  <path d="M240 22L292 72L254 92L231 58Z" fill="url(#score-crystal-blue)" />
-                  <path d="M292 72L280 213L244 198L254 92Z" fill="url(#score-crystal-mint)" />
-                  <path d="M280 213L229 250L215 218L244 198Z" fill="url(#score-crystal-blue)" />
-                  <path d="M229 250L88 236L104 208L215 218Z" fill="url(#score-crystal-mint)" />
-                  <path d="M88 236L37 183L77 178L104 208Z" fill="url(#score-crystal-blue)" />
-                  <path d="M37 183L46 88L80 101L77 178Z" fill="url(#score-crystal-mint)" />
-                  <path d="M46 88L78 38L91 72L80 101Z" fill="url(#score-crystal-blue)" />
-                  <path d="M91 72L231 58L254 92L244 198L215 218L104 208L77 178L80 101Z" fill="url(#score-crystal-face)" stroke="url(#score-crystal-edge)" strokeWidth=".7" />
-                  <path d="M78 38L240 22L292 72L280 213L229 250L88 236L37 183L46 88Z" stroke="url(#score-crystal-edge)" strokeWidth="1" />
-                  <path d="M78 38L91 72M240 22L231 58M292 72L254 92M280 213L244 198M229 250L215 218M88 236L104 208M37 183L77 178M46 88L80 101" stroke="url(#score-crystal-edge)" strokeWidth=".6" opacity=".7" />
-                  <g clipPath="url(#score-crystal-clip)"><path className="crm-score-reflection" d="M-40 0H10L150 280H100Z" fill="url(#score-crystal-sheen)" /></g>
-                  <path className="crm-score-edge-light" d="M46 88L78 38L240 22L292 72L280 213L229 250L88 236L37 183Z" pathLength="100" stroke="#c6f9ed" strokeWidth="1.5" strokeDasharray="4 96" strokeLinecap="round" />
+                <g className="crm-score-leaf-body">
+                  <path d="M37 258C51 244 58 234 70 220" stroke="url(#score-leaf-edge)" strokeWidth="3" strokeLinecap="round" />
+                  <use href="#score-leaf-shape" fill="url(#score-leaf-metal)" stroke="url(#score-leaf-edge)" strokeWidth="1.5" />
+                  <path d="M62 230C115 173 205 101 284 22C294 84 280 150 237 190C193 231 130 253 62 230Z" fill="url(#score-leaf-fold)" />
+                  <use href="#score-leaf-shape" fill="url(#score-leaf-shade)" />
+                  <g mask="url(#score-leaf-vein-mask)" stroke="#baffbc" strokeLinecap="round">
+                    <path d="M63 230C115 174 202 104 284 22" strokeWidth="1.6" opacity=".7" />
+                    <path d="M89 202Q65 161 75 111M121 172Q93 118 117 65M159 138Q137 86 167 43M198 101Q186 68 215 43M91 202Q151 220 187 216M122 171Q188 192 231 184M161 137Q222 153 263 136M201 98Q246 104 279 77" strokeWidth=".85" opacity=".5" />
+                  </g>
+                  <g clipPath="url(#score-leaf-clip)"><path className="crm-score-leaf-sheen" d="M-40 0H22L150 280H88Z" fill="url(#score-leaf-sheen)" /></g>
+                  <use className="crm-score-leaf-light" href="#score-leaf-shape" stroke="#c4ffb8" strokeWidth="1.5" strokeDasharray="4 96" strokeLinecap="round" />
                 </g>
               </svg>
               <div className="score-orbit score-orbit--large" aria-label={trf('currentScoreAria', { average })}><strong>{average}</strong><small>/ 9</small></div>
