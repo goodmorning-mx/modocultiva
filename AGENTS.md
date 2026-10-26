@@ -19,3 +19,9 @@
 - Do not perform destructive operations without explicit approval.
 - Do not run production operations, migrations, deploys, rollbacks, or infrastructure changes without explicit approval.
 - Do not fabricate infrastructure details, credentials, application IDs, server names, or deployment status.
+
+## Non-negotiable: Holista home map
+
+- Preserve the Holista visual style and keep all 12 home-screen mode cards on one circle around the existing central profile at every screen size. Never replace this map with a grid, list, columns, carousel, or different composition unless the user explicitly revokes this rule.
+- Card sizes, radius and angular spacing may be adjusted to fit complete single-line mode labels. Preserve all mode words, the mode order, central profile, colors, icons, meters, interactions and stored data. Localized generic words meaning "Mode" may be omitted from compact card labels, as already done in Spanish and English; retain full accessible names.
+- Verify the rendered circle, all 12 visible independent targets, complete single-line labels and lack of overlap at mobile, tablet and desktop widths before completing map changes. Do not treat a passing desktop check as evidence for mobile.

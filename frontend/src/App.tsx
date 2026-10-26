@@ -8,6 +8,7 @@ import { modeAiMessage, readModeAiProposal } from './modeAiMessages';
 import { CultivaLeaf, CULTIVA_LEAF_SHAPE } from './CultivaLeaf';
 import { activityReactionKey, cleanReactions, type ActivityReactions, type Reaction } from './journeySocial';
 import { calculateCultivaLevel, CULTIVA_MAX_LEVEL } from './cultivaLevel';
+import { lifeMapLabel } from './lifeMapLabel';
 import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
@@ -1043,6 +1044,8 @@ function App() {
     nodes.forEach((node) => {
       const parent = node.parentElement;
       if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(parent.tagName)) return;
+      // These labels are already localized by React; preserve the complete mode word.
+      if (parent.closest('.overview-mode-name')) return;
       let next = node.nodeValue ?? '';
       replacements.forEach((value, source) => {
         if (source && next.includes(source)) next = next.split(source).join(value);
@@ -1877,11 +1880,11 @@ function App() {
           <div className="overview-stage" aria-label={tr('lifeModes')}>
             <div className="overview-orbit overview-orbit--outer" aria-hidden="true" />
             <div className="overview-orbit overview-orbit--inner" aria-hidden="true" />
-            <svg className="overview-map-guides" viewBox="0 0 640 640" fill="none" aria-hidden="true" focusable="false">{modes.map((mode, index) => <g key={mode.key} transform={`translate(320 320) rotate(${index * 30})`}><path d="M0-154V-222" stroke={mode.color} strokeOpacity=".18" /><circle cy="-206" r="1.7" fill={mode.color} fillOpacity=".5" /></g>)}</svg>
+            <svg className="overview-map-guides" viewBox="0 0 640 640" fill="none" aria-hidden="true" focusable="false">{modes.map((mode, index) => <g key={mode.key} className="overview-map-guide" style={{ '--mode-angle': `${index * 30}deg` } as CSSProperties}><path d="M320 166V98" stroke={mode.color} strokeOpacity=".18" /><circle cx="320" cy="114" r="1.7" fill={mode.color} fillOpacity=".5" /></g>)}</svg>
               <span className="overview-light-sweep" aria-hidden="true" />
             {modes.map((mode, index) => (
               <button className="overview-mode" key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${modeName(mode)}, ${tr('level')} ${levels[mode.key]}`}>
-                <span className="overview-mode-icon" aria-hidden="true">{mode.icon}</span><span className="overview-mode-name">{modeShortName(mode)}</span><strong>{levels[mode.key]}</strong><span className="overview-mode-meter" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < levels[mode.key] ? 'is-active' : undefined} />)}</span><span className="overview-mode-description">{modeDescription(mode)}</span>
+                <span className="overview-mode-icon" aria-hidden="true">{mode.icon}</span><span className="overview-mode-name">{lifeMapLabel(modeName(mode))}</span><strong>{levels[mode.key]}</strong><span className="overview-mode-meter" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < levels[mode.key] ? 'is-active' : undefined} />)}</span><span className="overview-mode-description">{modeDescription(mode)}</span>
               </button>
             ))}
             <div className="overview-person">

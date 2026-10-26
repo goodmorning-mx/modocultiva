@@ -1,5 +1,5 @@
-/* A considered finish for the existing life map. No copy, order or state changes. */
-.welcome-view--polished { --map-tone: #95dfbd; --map-radius: 280px; --map-card-width: 122px; --map-card-height: 94px; position: relative; padding-top: clamp(34px, 4.4vw, 64px); }
+/* INVARIANT: one Holista circle at every width; never replace it with a grid. */
+.welcome-view--polished { --map-tone: #95dfbd; --map-radius: 296px; --map-card-width: 134px; --map-card-height: 100px; --map-first-angle: 30deg; --map-second-angle: 60deg; position: relative; padding-top: clamp(34px, 4.4vw, 64px); }
 .app-shell--nocturna .welcome-view--polished { --map-tone: #d5b7ed; }
 .app-shell--lucid .welcome-view--polished { --map-tone: #91e0e8; }
 .welcome-view--polished .welcome-copy { max-width: 790px; padding-inline: 10px; }
@@ -8,7 +8,7 @@
 .welcome-view--polished .welcome-copy .kicker::after { transform: rotate(180deg); }
 .welcome-view--polished .welcome-copy h1 { max-width: 22ch; margin: 0 auto 22px; color: #eef6ee; background: linear-gradient(165deg, #f4faf1 30%, #d0e8df); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: clamp(2.2rem, 4.5vw, 3.8rem); font-weight: 500; line-height: 1.08; letter-spacing: -.055em; text-wrap: balance; }
 .welcome-view--polished .welcome-copy .intro-copy { max-width: 66ch; margin: 0 auto; color: #9eb9b2; font-size: clamp(.88rem, 1.35vw, 1rem); line-height: 1.75; text-wrap: pretty; }
-.welcome-view--polished .overview-stage { width: min(100%, 820px); height: calc(var(--map-radius) + var(--map-radius) + var(--map-card-height) + 38px); margin: 30px auto 0; isolation: isolate; }
+.welcome-view--polished .overview-stage { display: block; width: min(100%, 820px); height: calc(var(--map-radius) + var(--map-radius) + var(--map-card-height) + 38px); margin: 30px auto 0; isolation: isolate; }
 .welcome-view--polished .overview-stage::before { inset: 0; width: 100%; height: 100%; border: 0; border-radius: 50%; background: radial-gradient(ellipse, color-mix(in srgb, var(--map-tone) 5%, transparent), transparent 66%); transform: none; }
 .welcome-view--polished .overview-stage::after { display: none; }
 .welcome-view--polished .overview-orbit--outer, .welcome-view--polished .overview-light-sweep { width: calc(var(--map-radius) + var(--map-radius) + 14px); height: calc(var(--map-radius) + var(--map-radius) + 14px); }
@@ -17,15 +17,24 @@
 .welcome-view--polished .overview-light-sweep { opacity: .6; filter: drop-shadow(0 0 5px #8ce2bb50); animation-duration: 28s; }
 .overview-map-guides { display: none; }
 .welcome-view--polished .overview-map-guides { position: absolute; top: 50%; left: 50%; z-index: 0; display: block; width: calc(var(--map-radius) + var(--map-radius)); height: calc(var(--map-radius) + var(--map-radius)); transform: translate(-50%, -50%); pointer-events: none; }
-.welcome-view--polished .overview-mode { z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 28px minmax(14px, 1fr) 3px; align-items: center; justify-items: start; gap: 6px 8px; width: var(--map-card-width); height: var(--map-card-height); min-height: var(--map-card-height); padding: 11px 12px 10px; overflow: visible; border: 1px solid color-mix(in srgb, var(--mode-color) 33%, #17343c); border-radius: 17px; background: linear-gradient(148deg, color-mix(in srgb, var(--mode-color) 10%, #112930), color-mix(in srgb, var(--mode-accent) 26%, #0a1b23) 76%); box-shadow: 0 9px 24px #010c132e, inset 0 1px 0 color-mix(in srgb, var(--mode-color) 12%, #ffffff08); transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(calc(0px - var(--map-radius))) rotate(calc(var(--mode-angle) * -1)); transition: border-color .25s ease, background .25s ease, box-shadow .25s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.welcome-view--polished .overview-map-guide { transform-origin: 320px 320px; transform: rotate(var(--map-angle, var(--mode-angle))); }
+.welcome-view--polished :is(.overview-mode, .overview-map-guide):nth-of-type(2) { --map-angle: var(--map-first-angle); }
+.welcome-view--polished :is(.overview-mode, .overview-map-guide):nth-of-type(3) { --map-angle: var(--map-second-angle); }
+.welcome-view--polished :is(.overview-mode, .overview-map-guide):nth-of-type(5) { --map-angle: calc(180deg - var(--map-second-angle)); }
+.welcome-view--polished :is(.overview-mode, .overview-map-guide):nth-of-type(6) { --map-angle: calc(180deg - var(--map-first-angle)); }
+.welcome-view--polished :is(.overview-mode, .overview-map-guide):nth-of-type(8) { --map-angle: calc(180deg + var(--map-first-angle)); }
+.welcome-view--polished :is(.overview-mode, .overview-map-guide):nth-of-type(9) { --map-angle: calc(180deg + var(--map-second-angle)); }
+.welcome-view--polished :is(.overview-mode, .overview-map-guide):nth-of-type(11) { --map-angle: calc(360deg - var(--map-second-angle)); }
+.welcome-view--polished :is(.overview-mode, .overview-map-guide):nth-of-type(12) { --map-angle: calc(360deg - var(--map-first-angle)); }
+.welcome-view--polished .overview-mode { z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 28px minmax(14px, 1fr) 3px; align-items: center; justify-items: start; gap: 6px 8px; width: var(--map-card-width); height: var(--map-card-height); min-height: var(--map-card-height); padding: 11px 12px 10px; overflow: visible; border: 1px solid color-mix(in srgb, var(--mode-color) 33%, #17343c); border-radius: 17px; background: linear-gradient(148deg, color-mix(in srgb, var(--mode-color) 10%, #112930), color-mix(in srgb, var(--mode-accent) 26%, #0a1b23) 76%); box-shadow: 0 9px 24px #010c132e, inset 0 1px 0 color-mix(in srgb, var(--mode-color) 12%, #ffffff08); transform: translate(-50%, -50%) rotate(var(--map-angle, var(--mode-angle))) translateY(calc(0px - var(--map-radius))) rotate(calc(var(--map-angle, var(--mode-angle)) * -1)); transition: border-color .25s ease, background .25s ease, box-shadow .25s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .welcome-view--polished .overview-mode-icon { grid-column: 1; grid-row: 1; width: 28px; height: 28px; margin: 0; border: 1px solid color-mix(in srgb, var(--mode-color) 16%, transparent); border-radius: 9px; background: color-mix(in srgb, var(--mode-color) 11%, transparent); font-size: 1.05rem; }
 .welcome-view--polished .overview-mode > strong { grid-column: 2; grid-row: 1; margin: 0; color: var(--mode-color); font: 500 1.2rem/1 'Manrope', sans-serif; letter-spacing: -.04em; }
-.welcome-view--polished .overview-mode-name { grid-column: 1 / -1; grid-row: 2; width: 100%; max-width: none; overflow: visible; color: #d0e0d9; font-size: .62rem; font-weight: 500; line-height: 1.22; text-align: start; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+.welcome-view--polished .overview-mode-name { grid-column: 1 / -1; grid-row: 2; width: 100%; min-width: 0; max-width: none; overflow: visible; color: #d0e0d9; font-size: .68rem; font-weight: 500; line-height: 1.25; text-align: start; text-overflow: clip; white-space: nowrap; overflow-wrap: normal; word-break: normal; hyphens: none; }
 .overview-mode-meter { display: none; }
 .welcome-view--polished .overview-mode-meter { grid-column: 1 / -1; grid-row: 3; display: flex; gap: 3px; align-self: end; width: 100%; }
 .overview-mode-meter > i { flex: 1; height: 2px; border-radius: 1px; background: color-mix(in srgb, var(--mode-color) 13%, transparent); }
 .overview-mode-meter > .is-active { background: var(--mode-color); opacity: .8; }
-.welcome-view--polished .overview-mode:hover, .welcome-view--polished .overview-mode:focus-visible { z-index: 4; min-height: var(--map-card-height); border-color: color-mix(in srgb, var(--mode-color) 75%, #d4f3db); box-shadow: 0 13px 30px #010c1355, 0 0 18px color-mix(in srgb, var(--mode-color) 10%, transparent), inset 0 1px 0 color-mix(in srgb, var(--mode-color) 25%, transparent); transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(calc(0px - var(--map-radius))) rotate(calc(var(--mode-angle) * -1)); }
+.welcome-view--polished .overview-mode:hover, .welcome-view--polished .overview-mode:focus-visible { z-index: 4; min-height: var(--map-card-height); border-color: color-mix(in srgb, var(--mode-color) 75%, #d4f3db); box-shadow: 0 13px 30px #010c1355, 0 0 18px color-mix(in srgb, var(--mode-color) 10%, transparent), inset 0 1px 0 color-mix(in srgb, var(--mode-color) 25%, transparent); transform: translate(-50%, -50%) rotate(var(--map-angle, var(--mode-angle))) translateY(calc(0px - var(--map-radius))) rotate(calc(var(--map-angle, var(--mode-angle)) * -1)); }
 .welcome-view--polished .overview-mode:focus-visible { outline: 2px solid #d7f4e1; outline-offset: 4px; }
 .welcome-view--polished .overview-mode-description { position: absolute; bottom: calc(100% + 10px); left: 50%; display: block; width: 165px; max-width: none; max-height: none; margin: 0; padding: 10px 12px; overflow: visible; border: 1px solid color-mix(in srgb, var(--mode-color) 35%, #18333b); border-radius: 11px; color: #cee1d6; background: #0b212af5; box-shadow: 0 10px 28px #0005; font-size: .65rem; line-height: 1.5; opacity: 0; visibility: hidden; transform: translateX(-50%); transition: opacity .18s ease, visibility .18s ease; pointer-events: none; }
 .welcome-view--polished .overview-mode:hover .overview-mode-description, .welcome-view--polished .overview-mode:focus-visible .overview-mode-description { max-height: none; margin: 0; opacity: 1; visibility: visible; }
@@ -45,27 +54,29 @@
 .welcome-view--polished .overview-dashboard-cta > span { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border: 1px solid #12342829; border-radius: 50%; background: #163c2b0a; font-size: 1rem; }
 .welcome-view--polished .overview-dashboard-cta:hover { filter: brightness(1.06); }
 @media (min-width: 681px) and (max-width: 900px) {
-  .welcome-view--polished { --map-radius: clamp(238px, 31vw, 264px); --map-card-width: 106px; --map-card-height: 86px; }
-  .welcome-view--polished .overview-mode { grid-template-rows: 25px minmax(14px, 1fr) 2px; padding: 9px 10px; gap: 5px 7px; border-radius: 15px; }
+  .welcome-view--polished { --map-radius: clamp(250px, 31vw, 280px); --map-card-width: 122px; --map-card-height: 94px; --map-first-angle: 31deg; --map-second-angle: 64deg; }
+  .welcome-view--polished .overview-mode { grid-template-rows: 25px minmax(14px, 1fr) 2px; padding: 9px 8px; gap: 5px 7px; border-radius: 15px; }
   .welcome-view--polished .overview-mode-icon { width: 25px; height: 25px; font-size: .95rem; }
   .welcome-view--polished .overview-mode > strong { font-size: 1.05rem; }
-  .welcome-view--polished .overview-mode-name { font-size: .62rem; }
+  .welcome-view--polished .overview-mode-name { font-size: .66rem; }
   .welcome-view--polished .overview-identity-orb { width: 202px; height: 202px; }
 }
 @media (max-width: 680px) {
-  .welcome-view--polished { --map-radius: clamp(146px, 38vw, 168px); --map-card-width: 64px; --map-card-height: 50px; padding-top: 34px; }
+  .welcome-view--polished { --map-radius: calc((100vw - var(--map-card-width) - 4px) / 2); --map-card-width: 92px; --map-card-height: 52px; --map-first-angle: 41deg; --map-second-angle: 68deg; padding-top: 34px; }
   .welcome-view--polished .welcome-copy { padding-inline: 0; }
   .welcome-view--polished .welcome-copy .kicker { gap: 8px; margin-bottom: 18px; font-size: .48rem; letter-spacing: .1em; }
   .welcome-view--polished .welcome-copy .kicker::before, .welcome-view--polished .welcome-copy .kicker::after { flex-basis: 12px; }
   .welcome-view--polished .welcome-copy h1 { max-width: 19ch; margin-bottom: 17px; font-size: clamp(2rem, 7.8vw, 2.8rem); line-height: 1.1; }
   .welcome-view--polished .welcome-copy .intro-copy { max-width: 49ch; font-size: .83rem; line-height: 1.7; }
-  .welcome-view--polished .overview-stage { margin-top: 24px; }
-  .welcome-view--polished .overview-mode { grid-template-rows: 16px minmax(18px, 1fr) 2px; gap: 2px 3px; padding: 4px 5px; border-radius: 10px; }
+  .welcome-view--polished .overview-stage { width: 100vw; max-width: none; margin-top: 24px; margin-inline: calc((100% - 100vw) / 2); }
+  .welcome-view--polished .overview-mode { grid-template-rows: 16px minmax(18px, 1fr) 2px; gap: 2px 3px; padding: 4px 3px; border-radius: 10px; }
   .welcome-view--polished .overview-mode-icon { width: 18px; height: 16px; border: 0; border-radius: 5px; font-size: .8rem; }
   .welcome-view--polished .overview-mode > strong { font-size: .85rem; }
-  .welcome-view--polished .overview-mode-name { display: block; font-size: .53rem; line-height: 1.05; }
+  .welcome-view--polished .overview-mode-name { display: block; font-size: .56rem; line-height: 1.15; }
+  .welcome-view--polished:lang(ru) .overview-mode-name { font-size: .53rem; }
   .welcome-view--polished .overview-mode-meter { gap: 2px; }
-  .welcome-view--polished .overview-mode:hover, .welcome-view--polished .overview-mode:focus-visible { transform: translate(-50%, -50%) rotate(var(--mode-angle)) translateY(calc(0px - var(--map-radius))) rotate(calc(var(--mode-angle) * -1)) !important; }
+  .welcome-view--polished .overview-mode:hover, .welcome-view--polished .overview-mode:focus-visible { transform: translate(-50%, -50%) rotate(var(--map-angle, var(--mode-angle))) translateY(calc(0px - var(--map-radius))) rotate(calc(var(--map-angle, var(--mode-angle)) * -1)) !important; }
+  .welcome-view--polished .overview-mode:focus-visible { outline-offset: -3px; }
   .welcome-view--polished .overview-mode-description { display: none; }
   .welcome-view--polished .overview-orbit--inner { width: calc(var(--map-radius) + 60px); height: calc(var(--map-radius) + 60px); }
   .welcome-view--polished .overview-identity-orb { width: 154px; height: 154px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--map-tone) 3%, transparent), 0 0 0 14px color-mix(in srgb, var(--map-tone) 2%, transparent), 0 10px 25px #010c1340; }
@@ -78,19 +89,20 @@
   .welcome-view--polished .overview-dashboard-cta { min-width: 205px; min-height: 46px; }
 }
 @media (min-width: 500px) and (max-width: 680px) {
-  .welcome-view--polished { --map-radius: clamp(194px, 33vw, 224px); --map-card-width: 90px; --map-card-height: 70px; }
-  .welcome-view--polished .overview-mode { grid-template-rows: 20px minmax(20px, 1fr) 2px; padding: 7px 6px; gap: 4px 5px; border-radius: 13px; }
+  .welcome-view--polished { --map-radius: calc((100vw - var(--map-card-width) - 4px) / 2); --map-card-width: 108px; --map-card-height: 74px; --map-first-angle: 34deg; --map-second-angle: 64deg; }
+  .welcome-view--polished .overview-mode { grid-template-rows: 20px minmax(20px, 1fr) 2px; padding: 7px 4px; gap: 4px 5px; border-radius: 13px; }
   .welcome-view--polished .overview-mode-icon { width: 22px; height: 20px; font-size: .9rem; }
   .welcome-view--polished .overview-mode > strong { font-size: 1rem; }
-  .welcome-view--polished .overview-mode-name { font-size: .57rem; line-height: 1.12; }
+  .welcome-view--polished .overview-mode-name, .welcome-view--polished:lang(ru) .overview-mode-name { font-size: .62rem; line-height: 1.15; }
   .welcome-view--polished .overview-identity-orb { width: 178px; height: 178px; }
 }
 @media (max-width: 380px) {
-  .welcome-view--polished { --map-radius: clamp(122px, 37vw, 140px); --map-card-width: 52px; --map-card-height: 44px; }
-  .welcome-view--polished .overview-mode { grid-template-rows: 14px minmax(16px, 1fr) 2px; gap: 1px 2px; padding: 3px; border-radius: 9px; }
+  .welcome-view--polished { --map-radius: calc((100vw - var(--map-card-width) - 4px) / 2); --map-card-width: 78px; --map-card-height: 44px; --map-first-angle: 41deg; --map-second-angle: 68deg; }
+  .welcome-view--polished .overview-mode { grid-template-rows: 14px minmax(16px, 1fr) 2px; gap: 1px 2px; padding: 3px 2px; border-radius: 9px; }
   .welcome-view--polished .overview-mode-icon { width: 16px; height: 14px; font-size: .73rem; }
   .welcome-view--polished .overview-mode > strong { font-size: .78rem; }
-  .welcome-view--polished .overview-mode-name { font-size: .48rem; line-height: 1.05; }
+  .welcome-view--polished .overview-mode-name { font-size: .52rem; line-height: 1.15; }
+  .welcome-view--polished:lang(ru) .overview-mode-name { font-size: .46rem; }
   .welcome-view--polished .overview-mode-meter { gap: 1px; }
   .welcome-view--polished .overview-identity-orb { width: 132px; height: 132px; }
   .welcome-view--polished .overview-identity-orb .overview-enter-prompt { font-size: .41rem; }
