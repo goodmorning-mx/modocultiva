@@ -12,6 +12,7 @@
     "verify:configurations": "node scripts/verify-life-configurations.mjs",
     "verify:activities": "node scripts/verify-activity-bank.mjs",
     "verify:level": "node scripts/verify-cultiva-level.mjs",
+    "verify:social": "node scripts/verify-journey-social.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "postinstall": "node scripts/prepare-gm-pwa.mjs"
   },

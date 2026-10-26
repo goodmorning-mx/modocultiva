@@ -114,6 +114,7 @@ class UserStateStore:
                     ON CONFLICT (user_id, organization_id)
                     DO UPDATE SET state =
                       jsonb_set(
+                      jsonb_set(
                         jsonb_set(
                           jsonb_set(
                             jsonb_set(
@@ -149,6 +150,10 @@ class UserStateStore:
                           ) AS badges(badge)
                         ),
                         true
+                      ),
+                      '{activityReactions}',
+                      COALESCE(EXCLUDED.state->'activityReactions', '{}'::jsonb) || COALESCE(modocultiva_user_state.state->'activityReactions', '{}'::jsonb),
+                      true
                       ),
                       updated_at = now()
                     """
