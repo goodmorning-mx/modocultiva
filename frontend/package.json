@@ -13,6 +13,7 @@
     "verify:activities": "node scripts/verify-activity-bank.mjs",
     "verify:level": "node scripts/verify-cultiva-level.mjs",
     "verify:social": "node scripts/verify-journey-social.mjs",
+    "verify:ai": "node scripts/verify-mode-ai.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "postinstall": "node scripts/prepare-gm-pwa.mjs"
   },

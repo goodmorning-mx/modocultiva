@@ -857,10 +857,6 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
   }
 }
 @media (prefers-reduced-motion: reduce) { .overview-light-sweep, .overview-orbit--inner { animation: none; } }
- .agent-runtime-strip { display: flex; align-items: center; gap: 8px; margin: 15px 0 4px; padding: 8px 10px; border: 1px solid rgba(112, 237, 156, .2); border-radius: 8px; background: rgba(4, 25, 29, .58); color: #a9c9b8; font-size: .62rem; }
- .agent-runtime-strip strong { color: #70ed9c; font-family: 'DM Mono', monospace; font-size: .55rem; letter-spacing: .05em; text-transform: uppercase; }
- .agent-runtime-strip small { margin-left: auto; color: #789d91; font-size: .6rem; }
- .agent-runtime-dot { width: 7px; height: 7px; border-radius: 50%; background: #70ed9c; box-shadow: 0 0 10px rgba(112, 237, 156, .8); }
 .cult-insight-modal { border-color: color-mix(in srgb, var(--insight-color) 62%, transparent); background: radial-gradient(circle at 12% 0, color-mix(in srgb, var(--insight-color) 25%, transparent), transparent 36%), radial-gradient(circle at 90% 100%, color-mix(in srgb, var(--insight-color) 16%, transparent), transparent 44%), linear-gradient(145deg, color-mix(in srgb, var(--insight-color) 18%, #10252b), #080f20 72%); box-shadow: 0 30px 100px rgba(0, 0, 0, .62), 0 0 35px color-mix(in srgb, var(--insight-color) 18%, transparent); }
 .cult-insight-modal .kicker { color: var(--insight-color); }
 .cult-insight-modal h2 { text-shadow: 0 0 22px color-mix(in srgb, var(--insight-color) 22%, transparent); }

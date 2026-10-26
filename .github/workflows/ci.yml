@@ -28,6 +28,7 @@ jobs:
       - run: npm run verify:activities
       - run: npm run verify:level
       - run: npm run verify:social
+      - run: npm run verify:ai
       - run: npm run build
 
   backend:
