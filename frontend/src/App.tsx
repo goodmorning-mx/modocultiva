@@ -1837,7 +1837,11 @@ function App() {
           <article className="crm-card crm-focus-card"><div className="crm-card-heading"><div><span className="crm-eyebrow">PRÓXIMOS FOCOS</span><h2>Áreas para cultivar</h2></div><span className="crm-card-caption">NIVELES MÁS BAJOS</span></div><div className="crm-focus-list">{dashboardSummary.leastCultivated.map((mode) => <button type="button" key={mode.key} onClick={() => openMode(mode)} style={{ '--mode-color': mode.color } as CSSProperties}><span className="crm-focus-icon">{mode.icon}</span><span><strong>{mode.shortName}</strong><small>{mode.description}</small></span><b>NIVEL {levels[mode.key]} ↗</b></button>)}</div></article>
           <article className="crm-card crm-trivia-card"><div><span className="crm-eyebrow">{tr('triviaTitle').toUpperCase()}</span><h2>{tr('triviaTitle')}</h2><p>{tr('triviaSubtitle')}</p></div><button type="button" onClick={() => setView('lab')}>{tr('triviaCta')} <span>↗</span></button></article>
         </div>
-        <article className="crm-card crm-next-card crm-next-card--final"><div><span className="crm-eyebrow">SIGUIENTE MOVIMIENTO</span><h2>Continúa tu cultivo</h2><p>Regresa al mapa de modos, elige un foco y define el próximo rumbo que quieres convertir en práctica.</p></div><button type="button" onClick={() => setView('welcome')}>{tr('returnMyLifeMap')} <span>↗</span></button></article>
+        <article className="crm-card crm-next-card crm-next-card--final"><div><span className="crm-eyebrow">SIGUIENTE MOVIMIENTO</span><h2>Continúa tu cultivo</h2><p>Regresa al mapa de modos, elige un foco y define el próximo rumbo que quieres convertir en práctica.</p></div><button className="crm-life-map-button configuration-orbit" type="button" onClick={() => setView('welcome')} aria-label={tr('returnMyLifeMap')}>
+          <span className="configuration-orbit-trail" aria-hidden="true" />
+          <span className="configuration-orbit-core" aria-hidden="true"><span>↗</span><strong>{tr('returnMyLifeMap')}</strong><small>{tr('lifeModes')}</small></span>
+          {modes.map((mode, index) => <span className="configuration-orbit-node" key={mode.key} title={`${modeShortName(mode)} · ${tr('level')} ${levels[mode.key]}`} style={{ '--orbit-angle': `${index * 30}deg`, '--orbit-color': mode.color } as CSSProperties} aria-hidden="true"><i>{mode.icon}</i><b>{levels[mode.key]}</b></span>)}
+        </button></article>
       </section>
       </>
       )}
