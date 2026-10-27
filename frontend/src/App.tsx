@@ -19,6 +19,7 @@ import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConf
 import logo from './assets/modo-cultiva-logo-neon.png';
 import './skin-overrides.css';
 import './life-map-polish.css';
+import './profile-level.css';
 
 type HealthResponse = {
   service: string;
@@ -299,6 +300,7 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   progressAtGlance: { es: 'Tu progreso en una mirada', en: 'Your progress at a glance', zh: '一眼看见你的进展', hi: 'एक नज़र में आपकी प्रगति', ar: 'تقدمك في لمحة', it: 'I tuoi progressi a colpo d’occhio', pt: 'Seu progresso em um olhar', ru: 'Ваш прогресс одним взглядом', de: 'Dein Fortschritt auf einen Blick', fr: 'Votre progression en un coup d’œil', da: 'Dit fremskridt på et øjeblik' },
   currentScoreAria: { es: 'Nivel actual de Modo Cultiva: {level} de {max}', en: 'Current Modo Cultiva level: {level} out of {max}', zh: '当前 Modo Cultiva 等级：{level} / {max}', hi: 'वर्तमान Modo Cultiva स्तर: {max} में से {level}', ar: 'مستوى Modo Cultiva الحالي: {level} من {max}', it: 'Livello attuale di Modo Cultiva: {level} su {max}', pt: 'Nível atual do Modo Cultiva: {level} de {max}', ru: 'Текущий уровень Modo Cultiva: {level} из {max}', de: 'Aktuelles Modo-Cultiva-Level: {level} von {max}', fr: 'Niveau actuel de Modo Cultiva : {level} sur {max}', da: 'Aktuelt Modo Cultiva-niveau: {level} ud af {max}' },
   scoreMax: { es: 'Máx. {max}', en: 'Max {max}', zh: '最高 {max}', hi: 'अधिकतम {max}', ar: 'الحد الأقصى {max}', it: 'Max {max}', pt: 'Máx. {max}', ru: 'Макс. {max}', de: 'Max. {max}', fr: 'Max. {max}', da: 'Maks. {max}' },
+  profileCultivaLevel: { es: 'Nivel Modo Cultiva', en: 'Modo Cultiva level', zh: 'Modo Cultiva 等级', hi: 'Modo Cultiva स्तर', ar: 'مستوى Modo Cultiva', it: 'Livello Modo Cultiva', pt: 'Nível Modo Cultiva', ru: 'Уровень Modo Cultiva', de: 'Modo-Cultiva-Level', fr: 'Niveau Modo Cultiva', da: 'Modo Cultiva-niveau' },
   strongestMode: { es: 'MODO MÁS FUERTE', en: 'STRONGEST MODE', zh: '最强模式', hi: 'सबसे मजबूत मोड', ar: 'أقوى وضع', it: 'MODALITÀ PIÙ FORTE', pt: 'MODO MAIS FORTE', ru: 'САМЫЙ СИЛЬНЫЙ РЕЖИМ', de: 'STÄRKSTER MODUS', fr: 'MODE LE PLUS FORT', da: 'STÆRKESTE MODE' },
   strongestModeDetail: { es: 'Nivel {level} · tu mayor impulso', en: 'Level {level} · your strongest impulse', zh: '等级 {level} · 你的最强动力', hi: 'स्तर {level} · आपकी सबसे मजबूत प्रेरणा', ar: 'المستوى {level} · أقوى دفعة لك', it: 'Livello {level} · il tuo impulso più forte', pt: 'Nível {level} · seu maior impulso', ru: 'Уровень {level} · ваш главный импульс', de: 'Level {level} · dein stärkster Impuls', fr: 'Niveau {level} · votre plus grand élan', da: 'Niveau {level} · din stærkeste drivkraft' },
   leastCultivatedMode: { es: 'MODO MENOS CULTIVADO', en: 'LEAST CULTIVATED MODE', zh: '最需要培育的模式', hi: 'सबसे कम विकसित मोड', ar: 'أقل وضع تنمية', it: 'MODALITÀ MENO COLTIVATA', pt: 'MODO MENOS CULTIVADO', ru: 'НАИМЕНЕЕ РАЗВИТЫЙ РЕЖИМ', de: 'AM WENIGSTEN ENTWICKELTER MODUS', fr: 'MODE LE MOINS CULTIVÉ', da: 'MINDST DYRKEDE MODE' },
@@ -1062,6 +1064,7 @@ function App() {
       if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(parent.tagName)) return;
       // These labels are already localized by React; preserve the complete mode word.
       if (parent.closest('.overview-mode-name')) return;
+      if (parent.closest('.profile-cultiva-level')) return;
       if (parent.closest('.badges-gallery, .activity-completion, .journey-final-activity')) return;
       let next = node.nodeValue ?? '';
       replacements.forEach((value, source) => {
@@ -2040,7 +2043,11 @@ function App() {
         <button className="close-journey" type="button" onClick={() => setProfilePreviewMode(false)} aria-label={tr('closeProfile')}>×</button>
         <p className="kicker">{tr('profileModalEyebrow')}</p><h2 id="profile-preview-title">{displayedProfileName || tr('profileYou')}</h2>
         <p className="profile-preview-description">{tr('profileOwnDescription')}</p>
-        <div className="profile-preview-identity">{profileImage ? <img src={profileImage} alt="" /> : <span>{(displayedProfileName || tr('profileYou')).slice(0, 1).toUpperCase()}</span>}<div><strong>{displayedProfileName || tr('profileYou')}</strong>{displayedProfileRole && <small>{displayedProfileRole}</small>}</div></div>
+        <div className="profile-preview-identity">{profileImage ? <img src={profileImage} alt="" /> : <span>{(displayedProfileName || tr('profileYou')).slice(0, 1).toUpperCase()}</span>}<div className="profile-preview-person"><strong>{displayedProfileName || tr('profileYou')}</strong>{displayedProfileRole && <small>{displayedProfileRole}</small>}</div>
+          <div className="profile-cultiva-level" role="group" aria-label={`${tr('profileCultivaLevel')}: ${cultivaLevelLabel}`}>
+            <CultivaLeaf /><span className="profile-cultiva-level-label">{tr('profileCultivaLevel')}</span><div className="profile-cultiva-level-value"><strong>{cultivaLevelLabel}</strong></div>
+          </div>
+        </div>
         <div className="profile-preview-badges"><span className="crm-eyebrow">{tr('featuredBadges')}</span><div>{visibleFeaturedBadges.length ? visibleFeaturedBadges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key)!; return <b key={key} title={badgeTitle(key)}>{key === 'completionist' || key === 'maxed' ? <BadgeMedal badgeKey={key} icon={badge.icon} small /> : badge.icon} {badgeTitle(key)}</b>; }) : <small>{tr('noFeaturedAchievements')}</small>}</div></div>
         <div className="profile-preview-preset"><div><span className="crm-eyebrow">{tr('currentPreset')}</span><strong>{selectedPreset || tr('currentMap')}</strong></div></div>
         <div className="profile-preview-levels">{modes.map((mode) => <div key={mode.key} style={{ '--mode-color': mode.color } as CSSProperties}><span>{mode.icon}</span><strong>{modeShortName(mode)}</strong><b>{levels[mode.key] ?? 0}</b></div>)}</div>

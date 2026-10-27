@@ -1,0 +1,17 @@
+/* Profile-only presentation: derives its number from the existing Cultiva score. */
+.profile-preview-modal .profile-preview-identity { flex-wrap: wrap; }
+.profile-preview-modal .profile-preview-identity > img,
+.profile-preview-modal .profile-preview-identity > span { flex-shrink: 0; }
+.profile-preview-person { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.profile-cultiva-level { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 4px 10px; align-items: center; flex-shrink: 0; max-width: 52%; margin-inline-start: auto; padding-inline-start: 18px; border-inline-start: 1px solid #9cdbb42e; }
+.profile-cultiva-level > svg { grid-column: 1; grid-row: 1 / 3; width: 32px; height: 28px; filter: drop-shadow(0 0 5px #64eb8b35); }
+.profile-cultiva-level-label { grid-column: 2; color: #b5d8c7; font-family: 'DM Mono', monospace; font-size: .52rem; line-height: 1.6; overflow-wrap: anywhere; }
+.profile-cultiva-level-value { grid-column: 2; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 9px; }
+.profile-preview-identity .profile-cultiva-level-value strong { color: #e2ffe8; font-size: 1.65rem; font-weight: 500; letter-spacing: -.045em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 480px) {
+  .profile-cultiva-level { flex-basis: 100%; max-width: none; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; margin-inline-start: 0; padding: 12px 0 0; border-inline-start: 0; border-top: 1px solid #9cdbb42e; }
+  .profile-cultiva-level > svg { grid-row: 1; width: 28px; height: 25px; }
+  .profile-cultiva-level-label { grid-row: 1; font-size: .56rem; }
+  .profile-cultiva-level-value { grid-column: 3; grid-row: 1; display: grid; justify-items: end; gap: 3px; }
+  .profile-preview-identity .profile-cultiva-level-value strong { font-size: 1.5rem; }
+}
