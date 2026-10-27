@@ -36,11 +36,11 @@ class _InMemoryStateDatabase:
             incoming = json.loads(parameters["state"])
             assert "ON CONFLICT (user_id, organization_id)" in query
             if "jsonb_set(" in query:
-                for field in ("levels", "presets", "activityDrafts", "activityReactions", "insightRequests", "visionImages", "featuredBadges"):
+                for field in ("levels", "presets", "activityDrafts", "activityCompletions", "activityReactions", "insightRequests", "visionImages", "featuredBadges"):
                     assert f"'{{{field}}}'" in query
                 existing = self.rows.get(key, {})
                 merged = {**incoming, **existing}
-                for field in ("levels", "presets", "activityDrafts", "activityReactions", "insightRequests", "visionImages"):
+                for field in ("levels", "presets", "activityDrafts", "activityCompletions", "activityReactions", "insightRequests", "visionImages"):
                     merged[field] = {**incoming.get(field, {}), **existing.get(field, {})}
                 if "featuredBadges" in incoming or "featuredBadges" in existing:
                     merged["featuredBadges"] = list(dict.fromkeys(
@@ -187,3 +187,29 @@ def test_activity_reactions_round_trip_and_device_merge_preserve_existing_map() 
     assert store.get("user-2", "org-1") == {}
     store.save("user-1", "org-1", {**saved, "activityReactions": {}})
     assert store.get("user-1", "org-1")["activityReactions"] == {}
+
+
+def test_activity_completions_preserve_existing_data_and_round_trip_undo() -> None:
+    database = _InMemoryStateDatabase()
+    store = UserStateStore(database)
+    levels = {mode: 9 for mode in ("fisico", "intelectual", "emocional", "arquetipico", "espiritual", "romantico", "familiar", "social", "financiero", "profesional", "ludico", "visionario")}
+    original = {
+        "levels": levels,
+        "presets": {"All twelve": levels},
+        "activityDrafts": {"fisico-0": "A completed practice", "visionario-9": "Teach my practice"},
+        "activityReactions": {"fisico-0-0123456789abcdef": "leaf"},
+        "visionImages": {"visionario": "data:image/png;base64,existing"},
+        "featuredBadges": ["first-step"],
+    }
+    store.save("user-1", "org-1", original)
+    assert store.get("user-1", "org-1") == original
+    ledger = {"fisico-0": "0123456789abcdef"}
+    store.save("user-1", "org-1", {**original, "activityCompletions": ledger})
+    store.merge("user-1", "org-1", {"activityCompletions": {"fisico-0": "fedcba9876543210", "visionario-9": "1234567890abcdef"}})
+    saved = store.get("user-1", "org-1")
+    assert saved["activityCompletions"] == {**ledger, "visionario-9": "1234567890abcdef"}
+    for field, value in original.items():
+        assert saved[field] == value
+    store.save("user-1", "org-1", {**saved, "activityCompletions": {}})
+    assert store.get("user-1", "org-1")["activityCompletions"] == {}
+    assert store.get("user-2", "org-1") == {}

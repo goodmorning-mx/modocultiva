@@ -9,6 +9,10 @@ import { CultivaLeaf, CULTIVA_LEAF_SHAPE } from './CultivaLeaf';
 import { activityReactionKey, cleanReactions, type ActivityReactions, type Reaction } from './journeySocial';
 import { calculateCultivaLevel, CULTIVA_MAX_LEVEL } from './cultivaLevel';
 import { lifeMapLabel } from './lifeMapLabel';
+import { BadgesGallery, ActivityCompletion } from './BadgesGallery';
+import { BadgeMedal } from './BadgeMedal';
+import { badgeCopy } from './badgeMessages';
+import { badgeProgress, cleanCompletions, isActivityCompleted, toggleActivityCompletion, eligibleFeaturedBadges, type ActivityCompletions } from './badgeProgress';
 import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
@@ -62,6 +66,8 @@ const cultBadgeCatalog: CultBadge[] = [
   { key: 'visionary', icon: '△', title: 'Visión final', description: 'Subiste una imagen para representar tu nivel 9.' },
   { key: 'preset-maker', icon: '⌘', title: 'Cartógrafo', description: 'Creaste una configuración de vida para explorar otro mapa.' },
   { key: 'skin-shift', icon: '◇', title: 'Cambio de piel', description: 'Activaste una nueva identidad visual.' },
+  { key: 'completionist', icon: '✺', title: 'Completionist', description: '' },
+  { key: 'maxed', icon: '◇', title: 'Maxed', description: '' },
 ];
 
 const skinCatalog: { key: Skin; name: string; icon: string; description: string; signature: string; access: 'base' | 'gold' | 'ultimate' }[] = [];
@@ -359,8 +365,6 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   badgesEyebrow: { es: 'PROGRESO QUE SE VUELVE IDENTIDAD', en: 'PROGRESS BECOMES IDENTITY', zh: '让进步成为身份', hi: 'प्रगति पहचान बनती है', ar: 'التقدم يصبح هوية', it: 'IL PROGRESSO DIVENTA IDENTITÀ', pt: 'O PROGRESSO VIRA IDENTIDADE', ru: 'ПРОГРЕСС СТАНОВИТСЯ ИДЕНТИЧНОСТЬЮ', de: 'FORTSCHRITT WIRD IDENTITÄT', fr: 'LE PROGRÈS DEVIENT IDENTITÉ', da: 'FREMSKRIDT BLIVER IDENTITET' },
   badgesDescription: { es: 'Reconoce los momentos importantes de tu Journey y elige hasta tres logros para mostrar en tu perfil y compartir con tu red.', en: 'Recognize important moments in your journey and choose up to three achievements to show on your profile and share with your network.', zh: '记录旅程中的重要时刻，选择最多三个成就展示在个人资料中并与社群分享。', hi: 'अपने जर्नी के महत्वपूर्ण क्षणों को पहचानें और प्रोफ़ाइल पर दिखाने व नेटवर्क के साथ साझा करने के लिए तीन उपलब्धियां चुनें।', ar: 'احتفِ باللحظات المهمة في رحلتك واختر ما يصل إلى ثلاثة إنجازات لعرضها في ملفك ومشاركتها مع شبكتك.', it: 'Riconosci i momenti importanti del tuo percorso e scegli fino a tre traguardi da mostrare nel profilo e condividere con la tua rete.', pt: 'Reconheça momentos importantes da sua jornada e escolha até três conquistas para mostrar no perfil e compartilhar com sua rede.', ru: 'Отмечайте важные моменты своего пути и выбирайте до трёх достижений для профиля и своей сети.', de: 'Erkenne wichtige Momente deiner Journey und wähle bis zu drei Erfolge für dein Profil und dein Netzwerk.', fr: 'Reconnaissez les moments importants de votre parcours et choisissez jusqu’à trois réussites à afficher sur votre profil et partager avec votre réseau.', da: 'Anerkend vigtige øjeblikke på din rejse, og vælg op til tre resultater til din profil og dit netværk.' },
   featuredCountLabel: { es: 'DESTACADAS', en: 'FEATURED', zh: '精选', hi: 'विशेष', ar: 'مميزة', it: 'IN EVIDENZA', pt: 'EM DESTAQUE', ru: 'В ИЗБРАННОМ', de: 'HERVORGEHOBEN', fr: 'À LA UNE', da: 'FREMHÆVEDE' },
-  xpCultiva: { es: 'XP DE CULTIVA', en: 'CULTIVA XP', zh: 'CULTIVA 经验值', hi: 'CULTIVA XP', ar: 'نقاط CULTIVA', it: 'XP CULTIVA', pt: 'XP CULTIVA', ru: 'XP CULTIVA', de: 'CULTIVA-XP', fr: 'XP CULTIVA', da: 'CULTIVA XP' },
-  xpProgressHint: { es: '25 XP por cada nivel y 100 XP por actividad', en: '25 XP per level and 100 XP per activity', zh: '每个等级 25 XP，每项活动 100 XP', hi: 'हर स्तर पर 25 XP और हर गतिविधि पर 100 XP', ar: '25 نقطة لكل مستوى و100 نقطة لكل نشاط', it: '25 XP per livello e 100 XP per attività', pt: '25 XP por nível e 100 XP por atividade', ru: '25 XP за уровень и 100 XP за активность', de: '25 XP pro Level und 100 XP pro Aktivität', fr: '25 XP par niveau et 100 XP par activité', da: '25 XP pr. niveau og 100 XP pr. aktivitet' },
   unlockedAchievements: { es: 'LOGROS DESBLOQUEADOS', en: 'UNLOCKED ACHIEVEMENTS', zh: '已解锁成就', hi: 'अनलॉक उपलब्धियां', ar: 'الإنجازات المفتوحة', it: 'TRAGUARDI SBLOCCATI', pt: 'CONQUISTAS DESBLOQUEADAS', ru: 'ОТКРЫТЫЕ ДОСТИЖЕНИЯ', de: 'FREIGESCHALTETE ERFOLGE', fr: 'RÉUSSITES DÉBLOQUÉES', da: 'LÅSTE RESULTATER OP' },
   unlockedHint: { es: 'Completa acciones en tus journeys para abrir nuevas insignias', en: 'Complete actions in your journeys to unlock new badges', zh: '完成旅程中的行动以解锁新徽章', hi: 'नई बैज अनलॉक करने के लिए अपनी यात्राओं में कार्य पूरे करें', ar: 'أكمل الإجراءات في رحلاتك لفتح شارات جديدة', it: 'Completa le azioni nei tuoi percorsi per sbloccare nuovi distintivi', pt: 'Conclua ações nas suas jornadas para desbloquear novos emblemas', ru: 'Выполняйте действия в своих путях, чтобы открывать новые значки', de: 'Schließe Aktionen in deinen Journeys ab, um neue Abzeichen freizuschalten', fr: 'Réalisez des actions dans vos parcours pour débloquer de nouveaux badges', da: 'Gennemfør handlinger på dine rejser for at låse nye badges op' },
   profileSection: { es: 'EN TU PERFIL', en: 'ON YOUR PROFILE', zh: '在你的资料中', hi: 'आपकी प्रोफ़ाइल में', ar: 'في ملفك', it: 'NEL TUO PROFILO', pt: 'NO SEU PERFIL', ru: 'В ВАШЕМ ПРОФИЛЕ', de: 'IN DEINEM PROFIL', fr: 'DANS VOTRE PROFIL', da: 'PÅ DIN PROFIL' },
@@ -662,6 +666,7 @@ const readLegacyDeviceState = (): Record<string, unknown> => {
     levels: { ...defaultLevels, ...readJson('modoCultiva_lastState', {}) },
     presets: readJson('modoCultiva_presets', {}),
     activityDrafts: readJson('modoCultiva_activityDrafts', {}),
+    activityCompletions: cleanCompletions(readJson('modoCultiva_activityCompletions', {})),
     activityReactions: cleanReactions(readJson('modoCultiva_activityReactions', {})),
     insightRequests: readJson('modoCultiva_insightRequests', {}),
     visionImages: readJson('modoCultiva_visionImages', {}),
@@ -687,7 +692,7 @@ const hasLegacyDeviceConfiguration = (state: Record<string, unknown>): boolean =
     const value = state[key];
     return value !== null && typeof value === 'object' && Object.keys(value).length > 0;
   };
-  return hasProgress || hasEntries('presets') || hasEntries('activityDrafts') || hasEntries('activityReactions')
+  return hasProgress || hasEntries('presets') || hasEntries('activityDrafts') || hasEntries('activityCompletions') || hasEntries('activityReactions')
     || hasEntries('insightRequests') || hasEntries('visionImages')
     || (Array.isArray(state.featuredBadges) && state.featuredBadges.length > 0)
     || Boolean(state.profileName) || Boolean(state.profileImage);
@@ -740,8 +745,8 @@ function App() {
     };
     return language === 'en' ? (english[author] ?? fallback.en) : fallback[language];
   };
-  const badgeTitle = (key: string) => tr(({ 'first-step': 'badgeTitleFirstStep', 'three-moves': 'badgeTitleThreeMoves', 'level-up': 'badgeTitleLevelUp', 'full-spectrum': 'badgeTitleFullSpectrum', 'global-eye': 'badgeTitleGlobalEye', visionary: 'badgeTitleVisionary', 'preset-maker': 'badgeTitlePresetMaker', 'skin-shift': 'badgeTitleSkinShift' } as Record<string, string>)[key] ?? key);
-  const badgeDescription = (key: string) => tr(({ 'first-step': 'badgeDescFirstStep', 'three-moves': 'badgeDescThreeMoves', 'level-up': 'badgeDescLevelUp', 'full-spectrum': 'badgeDescFullSpectrum', 'global-eye': 'badgeDescGlobalEye', visionary: 'badgeDescVisionary', 'preset-maker': 'badgeDescPresetMaker', 'skin-shift': 'badgeDescSkinShift' } as Record<string, string>)[key] ?? key);
+  const badgeTitle = (key: string) => key === 'completionist' ? 'Completionist' : key === 'maxed' ? 'Maxed' : tr(({ 'first-step': 'badgeTitleFirstStep', 'three-moves': 'badgeTitleThreeMoves', 'level-up': 'badgeTitleLevelUp', 'full-spectrum': 'badgeTitleFullSpectrum', 'global-eye': 'badgeTitleGlobalEye', visionary: 'badgeTitleVisionary', 'preset-maker': 'badgeTitlePresetMaker', 'skin-shift': 'badgeTitleSkinShift' } as Record<string, string>)[key] ?? key);
+  const badgeDescription = (key: string) => key === 'completionist' || key === 'maxed' ? badgeCopy(language)[key] : tr(({ 'first-step': 'badgeDescFirstStep', 'three-moves': 'badgeDescThreeMoves', 'level-up': 'badgeDescLevelUp', 'full-spectrum': 'badgeDescFullSpectrum', 'global-eye': 'badgeDescGlobalEye', visionary: 'badgeDescVisionary', 'preset-maker': 'badgeDescPresetMaker', 'skin-shift': 'badgeDescSkinShift' } as Record<string, string>)[key] ?? key);
   const effortLabel = (level: number) => {
     if (language === 'es') return effortLabelByLevel[level];
     const tier = level <= 2 ? 'low' : level <= 5 ? 'medium' : level <= 8 ? 'high' : 'vision';
@@ -805,6 +810,17 @@ function App() {
       return {};
     }
   });
+  const [activityCompletions, setActivityCompletions] = useState<ActivityCompletions>(() => {
+    try { return cleanCompletions(JSON.parse(window.localStorage.getItem('modoCultiva_activityCompletions') ?? '{}')); }
+    catch { return {}; }
+  });
+  const confirmActivity = (modeKey: string, level: number) => {
+    const slot = `${modeKey}-${level}`;
+    const next = toggleActivityCompletion(slot, activityDrafts[slot] ?? '', activityCompletions);
+    // Persist before acknowledging success. A full cache must not fake a completion.
+    window.localStorage.setItem('modoCultiva_activityCompletions', JSON.stringify(next));
+    setActivityCompletions(next);
+  };
   const [activityReactions, setActivityReactions] = useState<ActivityReactions>(() => {
     try { return cleanReactions(JSON.parse(window.localStorage.getItem('modoCultiva_activityReactions') ?? '{}')); }
     catch { return {}; }
@@ -1046,6 +1062,7 @@ function App() {
       if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(parent.tagName)) return;
       // These labels are already localized by React; preserve the complete mode word.
       if (parent.closest('.overview-mode-name')) return;
+      if (parent.closest('.badges-gallery, .activity-completion, .journey-final-activity')) return;
       let next = node.nodeValue ?? '';
       replacements.forEach((value, source) => {
         if (source && next.includes(source)) next = next.split(source).join(value);
@@ -1161,6 +1178,10 @@ function App() {
         setProfileImage(typeof state.profileImage === 'string' ? state.profileImage : null);
         setLevels({ ...defaultLevels, ...(state.levels && typeof state.levels === 'object' ? state.levels as Record<string, number> : {}) });
         setActivityDrafts(state.activityDrafts && typeof state.activityDrafts === 'object' ? state.activityDrafts as Record<string, string> : {});
+        const remoteCompletions = cleanCompletions(state.activityCompletions);
+        setActivityCompletions(remoteCompletions);
+        try { window.localStorage.setItem('modoCultiva_activityCompletions', JSON.stringify(remoteCompletions)); }
+        catch { /* Account hydration remains available even when the device cache is full. */ }
         const remoteReactions = cleanReactions(state.activityReactions);
         setActivityReactions(remoteReactions);
         try { window.localStorage.setItem('modoCultiva_activityReactions', JSON.stringify(remoteReactions)); }
@@ -1206,7 +1227,7 @@ function App() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authTokens.access_token}` },
         keepalive: true,
-        body: JSON.stringify({ state: { profileName, profileImage, levels, activityDrafts, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language } }),
+        body: JSON.stringify({ state: { profileName, profileImage, levels, activityDrafts, activityCompletions, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language } }),
       }).then((response) => setStateSyncStatus(response.ok ? 'synced' : 'error')).catch(() => setStateSyncStatus('error'));
     };
     window.addEventListener('pagehide', persistState);
@@ -1219,7 +1240,7 @@ function App() {
       window.removeEventListener('pagehide', persistState);
       window.removeEventListener('online', persistState);
     };
-  }, [activePlan, activityDrafts, activityReactions, authTokens?.access_token, featuredBadges, insightRequests, language, levels, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
+  }, [activePlan, activityDrafts, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, insightRequests, language, levels, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1337,11 +1358,14 @@ function App() {
     }).filter((insight): insight is (typeof globalInsightActivities)[number] => Boolean(insight));
     return candidates;
   }, [cultOpen, insightCycle, insightVariants, language, levels, selectedMode]);
+  const achievementProgress = useMemo(() => badgeProgress(activityDrafts, activityCompletions, levels), [activityDrafts, activityCompletions, levels]);
   const earnedBadges = useMemo(() => {
     const definedCount = Object.keys(activityDrafts).length;
     const activeModes = modes.filter((mode) => (levels[mode.key] ?? 0) > 0).length;
     const highestLevel = Math.max(...modes.map((mode) => levels[mode.key] ?? 0));
     return cultBadgeCatalog.filter((badge) => {
+      if (badge.key === 'completionist') return achievementProgress.completionist;
+      if (badge.key === 'maxed') return achievementProgress.maxed;
       if (badge.key === 'first-step') return definedCount >= 1;
       if (badge.key === 'three-moves') return definedCount >= 3;
       if (badge.key === 'level-up') return highestLevel >= 1;
@@ -1352,7 +1376,10 @@ function App() {
       if (badge.key === 'skin-shift') return skin !== 'holista';
       return false;
     });
-  }, [activityDrafts, insightRequests, levels, presets, skin, visionImages]);
+  }, [activityDrafts, achievementProgress, insightRequests, levels, presets, skin, visionImages]);
+  // Inactive/unknown badges must never be displayed as earned on a profile.
+  // Keep the saved selection intact so existing user data is not discarded.
+  const visibleFeaturedBadges = eligibleFeaturedBadges(featuredBadges, earnedBadges.map(badge => badge.key));
   const filteredSpecialists = useMemo(() => {
     const hasFilter = specialistModeFilter !== 'all' || specialistLanguageFilter !== 'all' || specialistContinentFilter !== 'all';
     const source = hasFilter ? specialistDirectory : specialists;
@@ -1380,10 +1407,12 @@ function App() {
   };
 
   const toggleFeaturedBadge = (badgeKey: string) => {
+    if (!earnedBadges.some(badge => badge.key === badgeKey)) return;
     setFeaturedBadges((current) => {
-      const next = current.includes(badgeKey)
-        ? current.filter((key) => key !== badgeKey)
-        : current.length < 3 ? [...current, badgeKey] : current;
+      const eligible = eligibleFeaturedBadges(current, earnedBadges.map(badge => badge.key));
+      const next = eligible.includes(badgeKey)
+        ? eligible.filter((key) => key !== badgeKey)
+        : eligible.length < 3 ? [...eligible, badgeKey] : eligible;
       try {
         window.localStorage.setItem('modoCultiva_featuredBadges', JSON.stringify(next));
       } catch {
@@ -1482,7 +1511,7 @@ function App() {
     setActiveActivity(level);
     setActivityEntry(entry);
     setPoolSelection(0);
-    setActivityPrompt('');
+    setActivityPrompt(entry === 'custom' && selectedMode ? activityDrafts[`${selectedMode.key}-${level}`] ?? '' : '');
     setAiNotice(null);
     setAiHasConsulted(false);
     setAiProposal('');
@@ -1730,7 +1759,6 @@ function App() {
   const renderCultSection = () => {
     const promotedInsight = personalizedInsights[insightSlide] ?? personalizedInsights[0];
     const promotedMode = (promotedInsight ? modes.find((mode) => mode.key === promotedInsight.modeKey) : undefined) ?? modes[0]!;
-    const journeyXp = Object.keys(activityDrafts).length * 100 + Object.values(levels).reduce((sum, level) => sum + level * 25, 0);
     return <section ref={cultEmbeddedRef} className="cult-embedded" aria-labelledby="cult-embedded-title">
     <div className="cult-embedded-heading cult-global-hero" onPointerMove={(event) => {
       if (event.pointerType !== 'mouse') return;
@@ -1784,7 +1812,10 @@ function App() {
       </div><div className="cult-insight-spotlight-copy"><div className="cult-insight-activity-top"><span>{modeName(promotedMode)} · {tr('level')} {promotedInsight.level} → {promotedInsight.level + 1}</span><small>{effortLabel(promotedInsight.level)}</small></div><h3>{promotedInsight.activity}</h3><p>{tr('globalSharedBy')} <strong>{promotedInsight.author}</strong> · {promotedInsight.location}</p><div className="cult-insight-actions"><button type="button" onClick={() => setCultInsightPreview(promotedInsight)}>{tr('globalAnalyzeSave')} <span>↗</span></button><button className="cult-insight-regenerate-button" type="button" onClick={() => regenerateGlobalInsight(promotedInsight.modeKey, promotedInsight.level)}><span aria-hidden="true">↻</span></button></div></div>{personalizedInsights.length > 1 && <div className="cult-insight-controls" aria-label={tr('globalInsights')}><button type="button" onClick={() => setInsightSlide((current) => (current - 1 + personalizedInsights.length) % personalizedInsights.length)} aria-label={tr('previous')}>←</button><div className="cult-insight-dots" aria-label={tr('globalInsights')}><span className="cult-insight-dot-list">{personalizedInsights.map((insight, index) => <button className={index === insightSlide ? 'is-active' : ''} key={`${insight.modeKey}-${insight.level}-${index}`} type="button" onClick={() => setInsightSlide(index)} aria-label={`${tr('globalInsights')} ${index + 1}`} />)}</span></div><button type="button" onClick={() => setInsightSlide((current) => (current + 1) % personalizedInsights.length)} aria-label={tr('next')}>→</button></div>}</article>}</>}
       {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">{tr('specialistNetwork')}</p><h4>{tr('findYourNextGuide')}</h4></div><span className="cult-live-pill cult-live-pill--gold"><i /> {tr('verifiedProfiles')}</span></div><div className="cult-filter-row"><select aria-label={tr('filterByMode')} value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">{tr('allModes')}</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{modeName(mode)}</option>)}</select><select aria-label={tr('filterByLanguage')} value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">{tr('anyLanguage')}</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label={tr('filterByLocation')} value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">{tr('anyContinent')}</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continentLabel(continent)}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name} <span>✓</span></strong><small>{modeName(mode)} · {specialist.specialty}</small><p>{tr('availableForGuidance')} · {specialistLocation(specialist.location)}</p></div><div className="cult-match"><span>{specialist.match} {tr('matchLabel')}</span><small>{specialist.language} · {continentLabel(specialist.continent)}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>{tr('viewSpecialistProfile')} ↗</button></article>; }) : <div className="cult-empty-state">{tr('noSpecialistsMatch')}</div>}</div></>}
             {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h4>Cambia la paleta de tu cultivo.</h4></div><span className="cult-live-pill"><i /> EXPERIENCIAS</span></div><section className="cult-skin-category" aria-labelledby="cult-filters-title"><div className="cult-skin-category-heading"><div><p className="kicker">Paletas de atmósfera</p><h5 id="cult-filters-title">Filtros</h5></div><span>2 EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--filters"><article className={`cult-skin-card${paletteFilter === 'nocturna' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--nocturna"><span className="skin-card-glyph skin-card-glyph--owl" aria-hidden="true">🦉</span></div><div><strong>Night Owl</strong><p>{tr('nightOwlDescription')}</p><button type="button" onClick={() => activatePaletteFilter('nocturna')}>{paletteFilter === 'nocturna' ? tr('activeNow') : tr('activateFilter')}</button></div></article><article className={`cult-skin-card cult-skin-card--lucid${paletteFilter === 'lucid' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--lucid"><span className="skin-card-glyph skin-card-glyph--dream" aria-hidden="true">◌</span></div><div><strong>Lucid</strong><p>{tr('lucidDescription')}</p><button type="button" onClick={() => activatePaletteFilter('lucid')}>{paletteFilter === 'lucid' ? tr('activeNow') : tr('activateFilter')}</button></div></article></div></section><section className="cult-skin-category" aria-labelledby="cult-skins-title"><div className="cult-skin-category-heading"><div><p className="kicker">Interfaces completas</p><h5 id="cult-skins-title">Skins</h5></div><span>{skinCatalog.length + 2} EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--skins"><article className={`cult-skin-card${skin === 'holista' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button" onClick={() => activateCultSkin('holista')}>{skin === 'holista' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'dj' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--dj"><span className="skin-card-glyph skin-card-glyph--faders" aria-hidden="true"><i /><i /><i /></span></div><div><strong>Consola DJ</strong><p>La mezcla perfecta para ecualizar la canción de tu vida.</p><button type="button" onClick={() => activateCultSkin('dj')}>{skin === 'dj' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>{skinCatalog.map((item) => <article className={`cult-skin-card cult-skin-card--${item.key}${skin === item.key ? ' cult-skin-card--active' : ''}`} key={item.key}><div className={`cult-skin-visual cult-skin-visual--${item.key}`}><span>{item.icon}</span></div><div><strong>{item.name}</strong><p>{item.description}</p><button type="button" onClick={() => activateCultSkin(item.key)}>{skin === item.key ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>)}</div></section></>}
-      {cultTab === 'badges' && <><div className="cult-section-heading"><div><p className="kicker">{tr('badgesEyebrow')}</p><h4>{tr('badges')}</h4></div><span className="cult-live-pill"><i /> {featuredBadges.length}/3 {tr('featuredCountLabel')}</span></div><p className="cult-section-copy">{tr('badgesDescription')}</p><div className="badge-progress-grid"><article><span>{tr('xpCultiva')}</span><strong>{journeyXp.toLocaleString(language)}</strong><small>{tr('xpProgressHint')}</small></article><article><span>{tr('unlockedAchievements')}</span><strong>{earnedBadges.length}<small> / {cultBadgeCatalog.length}</small></strong><small>{tr('unlockedHint')}</small></article></div><div className="badge-featured-strip"><div><span className="cult-status-label">{tr('profileSection')}</span><strong>{featuredBadges.length ? tr('featuredAchievements') : tr('noFeaturedAchievements')}</strong></div><div className="badge-mini-row">{featuredBadges.length ? featuredBadges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key)!; return <span className="badge-mini" key={key} title={badgeTitle(key)}>{badge.icon}</span>; }) : <span className="badge-empty">{tr('noFeaturedAchievements')}</span>}</div></div><div className="badge-profile-actions"><button type="button" onClick={() => setProfilePreviewMode(true)}>{tr('viewMyProfile')} <span>↗</span></button></div><div className="cult-badge-grid">{cultBadgeCatalog.map((badge) => { const earned = earnedBadges.some((item) => item.key === badge.key); const featured = featuredBadges.includes(badge.key); return <article className={`cult-badge-card${earned ? ' cult-badge-card--earned' : ' cult-badge-card--locked'}${featured ? ' cult-badge-card--featured' : ''}`} key={badge.key}><div className="cult-badge-medal">{earned ? badge.icon : '·'}</div><div><strong>{badgeTitle(badge.key)}</strong><p>{badgeDescription(badge.key)}</p></div><button type="button" disabled={!earned} onClick={() => toggleFeaturedBadge(badge.key)}>{earned ? featured ? tr('featuredBadge') : featuredBadges.length >= 3 ? tr('chooseOtherBadge') : tr('highlightBadge') : tr('badgeLocked')}</button></article>; })}</div></>}
+      {cultTab === 'badges' && <BadgesGallery language={language} tr={tr} progress={achievementProgress} featuredKeys={visibleFeaturedBadges}
+        badges={cultBadgeCatalog.map(badge => ({ ...badge, title: badgeTitle(badge.key), description: badgeDescription(badge.key), earned: earnedBadges.some(item => item.key === badge.key), featured: visibleFeaturedBadges.includes(badge.key) }))}
+        modes={modes.map(mode => ({ ...mode, name: lifeMapLabel(modeName(mode)) }))} onFeature={toggleFeaturedBadge} onProfile={() => setProfilePreviewMode(true)}
+        onLevel={(modeKey, level) => { const mode = modes.find(item => item.key === modeKey); if (!mode) return; openMode(mode); setJourneySlide(level); window.requestAnimationFrame(() => document.querySelector('.journey-builder')?.scrollIntoView({ block: 'start', behavior: 'smooth' })); }} />}
     </div>
   </section>;
   };
@@ -2010,7 +2041,7 @@ function App() {
         <p className="kicker">{tr('profileModalEyebrow')}</p><h2 id="profile-preview-title">{displayedProfileName || tr('profileYou')}</h2>
         <p className="profile-preview-description">{tr('profileOwnDescription')}</p>
         <div className="profile-preview-identity">{profileImage ? <img src={profileImage} alt="" /> : <span>{(displayedProfileName || tr('profileYou')).slice(0, 1).toUpperCase()}</span>}<div><strong>{displayedProfileName || tr('profileYou')}</strong>{displayedProfileRole && <small>{displayedProfileRole}</small>}</div></div>
-        <div className="profile-preview-badges"><span className="crm-eyebrow">{tr('featuredBadges')}</span><div>{featuredBadges.length ? featuredBadges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key)!; return <b key={key} title={badgeTitle(key)}>{badge.icon} {badgeTitle(key)}</b>; }) : <small>{tr('noFeaturedAchievements')}</small>}</div></div>
+        <div className="profile-preview-badges"><span className="crm-eyebrow">{tr('featuredBadges')}</span><div>{visibleFeaturedBadges.length ? visibleFeaturedBadges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key)!; return <b key={key} title={badgeTitle(key)}>{key === 'completionist' || key === 'maxed' ? <BadgeMedal badgeKey={key} icon={badge.icon} small /> : badge.icon} {badgeTitle(key)}</b>; }) : <small>{tr('noFeaturedAchievements')}</small>}</div></div>
         <div className="profile-preview-preset"><div><span className="crm-eyebrow">{tr('currentPreset')}</span><strong>{selectedPreset || tr('currentMap')}</strong></div></div>
         <div className="profile-preview-levels">{modes.map((mode) => <div key={mode.key} style={{ '--mode-color': mode.color } as CSSProperties}><span>{mode.icon}</span><strong>{modeShortName(mode)}</strong><b>{levels[mode.key] ?? 0}</b></div>)}</div>
         <button className="feature-preview-cta" type="button" onClick={() => { setProfilePreviewMode(false); setCustomizingAvatar(true); }}>{tr('editMyProfile')} <span>✎</span></button>
@@ -2036,7 +2067,7 @@ function App() {
             <p className="journey-description">{tr('journeyBuilderIntro')} {tr('level')} {activeActivity}.</p>
             <div className="effort-panel"><span className="effort-label">{tr('effortParameter')}</span><strong>{effortLabel(activeActivity)}</strong><p>{levelDescription(activeActivity)}</p></div>
             <label className="agent-input-label" htmlFor="activity-prompt">{tr('activity')}</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => setActivityPrompt(event.target.value)} placeholder={tr('activityPlaceholder')} rows={6} />
-            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" onClick={() => saveActivity(selectedMode.key, activeActivity, activityPrompt.trim() || tr('activityUndefined'))}>{tr('useActivity')} <span>→</span></button></div>
+            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" disabled={!activityPrompt.trim()} onClick={() => saveActivity(selectedMode.key, activeActivity, activityPrompt.trim())}>{tr('useActivity')} <span>→</span></button></div>
           </> : activityEntry === 'pool' ? <>
             <h2 id="activity-agent-title">{tr('activityPool')}</h2>
           <p className="journey-description">{tr('activityPoolDescription')}</p>
@@ -2070,6 +2101,8 @@ function App() {
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.min(9, current + 1))} disabled={journeySlide === 9} aria-label={tr('nextLevel')}>→</button>
           </div>
           <div className="journey-carousel-footer"><div className="journey-carousel-dots" aria-label={tr('selectLevel')}>{journeyLevels.map((level) => <button className={level === journeySlide ? 'is-active' : ''} type="button" key={level} onClick={() => setJourneySlide(level)} aria-label={`${tr('levels')} ${level}`}>{level}</button>)}</div></div>
+          {journeySlide === 9 && <div className="journey-final-activity"><span>{badgeCopy(language).finalActivity}</span>{activityDrafts[`${selectedMode.key}-9`] && <p dir="auto">{activityDrafts[`${selectedMode.key}-9`]}</p>}<button type="button" onClick={() => openActivity(9, 'custom')}>{activityDrafts[`${selectedMode.key}-9`] ? tr('modifyActivity') : tr('addActivity')}</button></div>}
+          <ActivityCompletion key={`${selectedMode.key}-${journeySlide}`} language={language} activity={activityDrafts[`${selectedMode.key}-${journeySlide}`] ?? ''} completed={isActivityCompleted(`${selectedMode.key}-${journeySlide}`, activityDrafts[`${selectedMode.key}-${journeySlide}`], activityCompletions)} onToggle={() => confirmActivity(selectedMode.key, journeySlide)} />
           {journeySlide < 9 ? <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}><button type="button" onClick={() => openActivity(journeySlide, 'custom')}>{activityDrafts[`${selectedMode.key}-${journeySlide}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(journeySlide, 'pool')}>▦ {tr('activityPool')}</button><button className="activity-ai-button" type="button" onClick={() => openActivity(journeySlide, 'ai')}>✦ {tr('modeAI')}</button><button className={insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" aria-pressed={Boolean(insightRequests[insightRequestKey(selectedMode.key, journeySlide)])} onClick={() => requestInsight(selectedMode.key, journeySlide)}>{insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button></div> : <div className="journey-vision-note">{tr('finalVision')} · {tr('finalVisionCopy')}</div>}
           </section>
           {renderCultSection()}

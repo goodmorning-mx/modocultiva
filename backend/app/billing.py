@@ -115,6 +115,7 @@ class UserStateStore:
                     DO UPDATE SET state =
                       jsonb_set(
                       jsonb_set(
+                      jsonb_set(
                         jsonb_set(
                           jsonb_set(
                             jsonb_set(
@@ -153,6 +154,10 @@ class UserStateStore:
                       ),
                       '{activityReactions}',
                       COALESCE(EXCLUDED.state->'activityReactions', '{}'::jsonb) || COALESCE(modocultiva_user_state.state->'activityReactions', '{}'::jsonb),
+                      true
+                      ),
+                      '{activityCompletions}',
+                      COALESCE(EXCLUDED.state->'activityCompletions', '{}'::jsonb) || COALESCE(modocultiva_user_state.state->'activityCompletions', '{}'::jsonb),
                       true
                       ),
                       updated_at = now()
