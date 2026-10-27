@@ -82,6 +82,7 @@ assert.doesNotMatch(app, /journey-final-activity|openActivity\(9/);
 assert.match(app, /badgeProgress\(activityDrafts, activityCompletions, levels, visionImages\)/);
 assert.match(app, /journeySlide < 9 && <ActivityCompletion/);
 assert.match(app, /hasVisionImage\(visionImages\[selectedMode.key\]\)/);
+assert.match(app, /journeySlide === 9 \? tr\('finalVisionCopy'\)/, 'Level 9 explains the image rather than asking for a practice');
 const start = app.indexOf('  const renderCultSection = () => {');
 const end = app.indexOf('\n  const ', start + 1);
 assert.doesNotMatch(app.slice(start, end), /insightNotice &&/, 'Embedded Global Ideas must not duplicate the journey notice');

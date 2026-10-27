@@ -2091,8 +2091,8 @@ function App() {
           <div className="journey-level journey-level--compact"><div><span>{tr('currentLevelLabel')}</span><strong>{levels[selectedMode.key]}</strong></div><span className="journey-level-name">{localizedLevelNames[language][levels[selectedMode.key]]}</span></div><div className="level-definition level-definition--compact"><strong>{localizedLevelNames[language][levels[selectedMode.key]]}</strong><p>{levelDefinitionText(levels[selectedMode.key])}</p></div>
           <label htmlFor="journey-slider">{tr('presenceLevel')}</label><input id="journey-slider" className="journey-slider" type="range" min="0" max="9" value={levels[selectedMode.key]} onChange={(event) => updateLevel(selectedMode.key, Number(event.target.value))} />
           <section className="journey-builder" data-layer="3" aria-labelledby="journey-builder-title">
-          <div className="journey-builder-heading"><div><p className="kicker">{tr('activityDesign')}</p><h3 id="journey-builder-title">{tr('cultivationPath')}</h3></div></div>
-          <p className="journey-builder-intro">{tr('journeyBuilderIntro')} {modeName(selectedMode)}.</p>
+          <div className="journey-builder-heading"><div><p className="kicker">{tr(journeySlide === 9 ? 'finalVision' : 'activityDesign')}</p><h3 id="journey-builder-title">{tr('cultivationPath')}</h3></div></div>
+          <p className="journey-builder-intro">{journeySlide === 9 ? tr('finalVisionCopy') : `${tr('journeyBuilderIntro')} ${modeName(selectedMode)}.`}</p>
           {insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
           <div className="journey-carousel" aria-label={`${tr('levels')} · ${modeName(selectedMode)}`}>
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.max(0, current - 1))} disabled={journeySlide === 0} aria-label={tr('previousLevel')}>←</button>
