@@ -12,7 +12,7 @@ import { lifeMapLabel } from './lifeMapLabel';
 import { BadgesGallery, ActivityCompletion } from './BadgesGallery';
 import { BadgeMedal } from './BadgeMedal';
 import { badgeCopy } from './badgeMessages';
-import { badgeProgress, cleanCompletions, isActivityCompleted, toggleActivityCompletion, eligibleFeaturedBadges, type ActivityCompletions } from './badgeProgress';
+import { badgeProgress, cleanCompletions, isActivityCompleted, hasVisionImage, toggleActivityCompletion, eligibleFeaturedBadges, type ActivityCompletions } from './badgeProgress';
 import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
@@ -817,6 +817,7 @@ function App() {
     catch { return {}; }
   });
   const confirmActivity = (modeKey: string, level: number) => {
+    if (level === 9) return;
     const slot = `${modeKey}-${level}`;
     const next = toggleActivityCompletion(slot, activityDrafts[slot] ?? '', activityCompletions);
     // Persist before acknowledging success. A full cache must not fake a completion.
@@ -1065,7 +1066,7 @@ function App() {
       // These labels are already localized by React; preserve the complete mode word.
       if (parent.closest('.overview-mode-name')) return;
       if (parent.closest('.profile-cultiva-level')) return;
-      if (parent.closest('.badges-gallery, .activity-completion, .journey-final-activity')) return;
+      if (parent.closest('.badges-gallery, .activity-completion, .journey-vision-completion')) return;
       let next = node.nodeValue ?? '';
       replacements.forEach((value, source) => {
         if (source && next.includes(source)) next = next.split(source).join(value);
@@ -1361,7 +1362,7 @@ function App() {
     }).filter((insight): insight is (typeof globalInsightActivities)[number] => Boolean(insight));
     return candidates;
   }, [cultOpen, insightCycle, insightVariants, language, levels, selectedMode]);
-  const achievementProgress = useMemo(() => badgeProgress(activityDrafts, activityCompletions, levels), [activityDrafts, activityCompletions, levels]);
+  const achievementProgress = useMemo(() => badgeProgress(activityDrafts, activityCompletions, levels, visionImages), [activityDrafts, activityCompletions, levels, visionImages]);
   const earnedBadges = useMemo(() => {
     const definedCount = Object.keys(activityDrafts).length;
     const activeModes = modes.filter((mode) => (levels[mode.key] ?? 0) > 0).length;
@@ -1508,6 +1509,7 @@ function App() {
   };
 
   const openActivity = (level: number, entry: ActivityEntry = 'custom') => {
+    if (level === 9) return;
     aiRequestRef.current?.abort();
     aiRequestRef.current = null;
     journeyReturnScrollTop.current = journeyPanelRef.current?.scrollTop ?? 0;
@@ -1797,7 +1799,7 @@ function App() {
     </div></div><div className="cult-embedded-divider" aria-hidden="true"><span /><i>{tr('globalEyebrowLine')}</i><span /></div>
      <nav className="cult-nav cult-nav--embedded" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['badges', tr('badges')], ] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => selectCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
     <div className="cult-embedded-content">
-      {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">{tr('globalActivitiesEyebrow')}</p><h4>{tr('globalInsights')}</h4></div></div><p className="cult-section-copy">{tr('globalRecommendationsCopy')}</p>{insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('close')}>×</button></div>}{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art">
+      {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">{tr('globalActivitiesEyebrow')}</p><h4>{tr('globalInsights')}</h4></div></div><p className="cult-section-copy">{tr('globalRecommendationsCopy')}</p>{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art">
         <span className="cult-insight-orbit" aria-hidden="true">
           <svg viewBox="0 0 120 120" fill="none" focusable="false">
             <circle className="cult-insight-orbit-ring" cx="60" cy="60" r="41" />
@@ -2108,9 +2110,8 @@ function App() {
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.min(9, current + 1))} disabled={journeySlide === 9} aria-label={tr('nextLevel')}>→</button>
           </div>
           <div className="journey-carousel-footer"><div className="journey-carousel-dots" aria-label={tr('selectLevel')}>{journeyLevels.map((level) => <button className={level === journeySlide ? 'is-active' : ''} type="button" key={level} onClick={() => setJourneySlide(level)} aria-label={`${tr('levels')} ${level}`}>{level}</button>)}</div></div>
-          {journeySlide === 9 && <div className="journey-final-activity"><span>{badgeCopy(language).finalActivity}</span>{activityDrafts[`${selectedMode.key}-9`] && <p dir="auto">{activityDrafts[`${selectedMode.key}-9`]}</p>}<button type="button" onClick={() => openActivity(9, 'custom')}>{activityDrafts[`${selectedMode.key}-9`] ? tr('modifyActivity') : tr('addActivity')}</button></div>}
-          <ActivityCompletion key={`${selectedMode.key}-${journeySlide}`} language={language} activity={activityDrafts[`${selectedMode.key}-${journeySlide}`] ?? ''} completed={isActivityCompleted(`${selectedMode.key}-${journeySlide}`, activityDrafts[`${selectedMode.key}-${journeySlide}`], activityCompletions)} onToggle={() => confirmActivity(selectedMode.key, journeySlide)} />
-          {journeySlide < 9 ? <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}><button type="button" onClick={() => openActivity(journeySlide, 'custom')}>{activityDrafts[`${selectedMode.key}-${journeySlide}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(journeySlide, 'pool')}>▦ {tr('activityPool')}</button><button className="activity-ai-button" type="button" onClick={() => openActivity(journeySlide, 'ai')}>✦ {tr('modeAI')}</button><button className={insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" aria-pressed={Boolean(insightRequests[insightRequestKey(selectedMode.key, journeySlide)])} onClick={() => requestInsight(selectedMode.key, journeySlide)}>{insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button></div> : <div className="journey-vision-note">{tr('finalVision')} · {tr('finalVisionCopy')}</div>}
+          {journeySlide < 9 && <ActivityCompletion key={`${selectedMode.key}-${journeySlide}`} language={language} activity={activityDrafts[`${selectedMode.key}-${journeySlide}`] ?? ''} completed={isActivityCompleted(`${selectedMode.key}-${journeySlide}`, activityDrafts[`${selectedMode.key}-${journeySlide}`], activityCompletions)} onToggle={() => confirmActivity(selectedMode.key, journeySlide)} />}
+          {journeySlide < 9 ? <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}><button type="button" onClick={() => openActivity(journeySlide, 'custom')}>{activityDrafts[`${selectedMode.key}-${journeySlide}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(journeySlide, 'pool')}>▦ {tr('activityPool')}</button><button className="activity-ai-button" type="button" onClick={() => openActivity(journeySlide, 'ai')}>✦ {tr('modeAI')}</button><button className={insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" aria-pressed={Boolean(insightRequests[insightRequestKey(selectedMode.key, journeySlide)])} onClick={() => requestInsight(selectedMode.key, journeySlide)}>{insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button></div> : <div className="journey-vision-note"><span className="journey-vision-completion" role="status"><strong>{hasVisionImage(visionImages[selectedMode.key]) ? `✓ ${badgeCopy(language).visionDone}` : badgeCopy(language).visionPending}</strong><span>{badgeCopy(language).visionHint}</span></span></div>}
           </section>
           {renderCultSection()}
         </>}
