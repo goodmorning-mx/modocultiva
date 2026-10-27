@@ -20,21 +20,29 @@ export function cleanCompletions(value: unknown): ActivityCompletions {
 }
 
 export function isActivityCompleted(slot: string, activity: unknown, ledger: ActivityCompletions): boolean {
-  return validSlot(slot) && typeof activity === 'string' && Boolean(activity.trim()) && ledger[slot] === completionToken(activity);
+  return validSlot(slot) && !slot.endsWith('-9') && typeof activity === 'string' && Boolean(activity.trim()) && ledger[slot] === completionToken(activity);
 }
 
 export function toggleActivityCompletion(slot: string, activity: string, ledger: ActivityCompletions): ActivityCompletions {
   const next = cleanCompletions(ledger);
-  if (!validSlot(slot) || !activity.trim()) return next;
+  if (!validSlot(slot) || slot.endsWith('-9') || !activity.trim()) return next;
   if (isActivityCompleted(slot, activity, next)) delete next[slot];
   else next[slot] = completionToken(activity);
   return next;
 }
 
-export function badgeProgress(drafts: Record<string, unknown>, ledger: ActivityCompletions, levels: Record<string, unknown>) {
+// Existing uploaded visions count too; no completion ledger or extra activity is
+// needed for level 9. New uploads are decoded and persisted before reaching here.
+export function hasVisionImage(value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  const image = value.trim();
+  return /^data:image\/[a-z0-9.+-]+(?:;[^,]*)?,[\s\S]+$/i.test(image) || /^https?:\/\/[^\s]+$/i.test(image);
+}
+
+export function badgeProgress(drafts: Record<string, unknown>, ledger: ActivityCompletions, levels: Record<string, unknown>, visionImages: Record<string, unknown> = {}) {
   const perMode = Object.fromEntries(BADGE_MODES.map(mode => [mode, Array.from({ length: 10 }, (_, level) => {
     const slot = `${mode}-${level}`;
-    return isActivityCompleted(slot, drafts[slot], ledger);
+    return level === 9 ? hasVisionImage(visionImages[mode]) : isActivityCompleted(slot, drafts[slot], ledger);
   })]));
   const completed = Object.values(perMode).flat().filter(Boolean).length;
   const maxedModes = BADGE_MODES.filter(mode => levels[mode] === 9).length;

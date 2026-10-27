@@ -32,7 +32,7 @@
 .achievement-progress-label strong { color: var(--medal-color); font-weight: 500; white-space: nowrap; }
 .achievement-progress { height: 3px; margin: 10px 0 18px; background: #b9c8c21a; border-radius: 3px; overflow: hidden; }
 .achievement-progress > i { display: block; height: 100%; background: var(--medal-color); border-radius: inherit; }
-.badges-gallery button, .activity-completion button, .journey-final-activity button { font: inherit; cursor: pointer; }
+.badges-gallery button, .activity-completion button { font: inherit; cursor: pointer; }
 .badges-gallery .achievement-feature { min-height: 42px; border: 1px solid #b7cec833; border-radius: 10px; background: #0a1c264d; color: #cbdfd6; padding: 10px 13px; font-size: .65rem; line-height: 1.5; }
 .badges-gallery .achievement-feature[aria-pressed='true'] { background: #37604a55; border-color: #9bd3a16b; color: #d7f1d9; }
 .badges-gallery button:disabled { cursor: default; opacity: .65; }
@@ -78,10 +78,9 @@
 .activity-completion.is-complete button { border-color: #90e1a5; color: #b6f4bf; }
 .activity-completion p { flex: 1; min-width: 150px; margin: 0; color: #a4bdb4; font-size: .63rem; line-height: 1.7; }
 .activity-completion [role='alert'] { color: #f7b7a3; flex-basis: 100%; }
-.journey-final-activity { margin-bottom: 16px; padding: 18px; border: 1px solid #9ecdb326; border-radius: 13px; background: #0b242c88; text-align: start; }
-.journey-final-activity > span { color: #acd5ba; font-size: .7rem; }
-.journey-final-activity > p { margin: 12px 0; font-size: .9rem; color: #d4eadd; white-space: pre-wrap; overflow-wrap: anywhere; }
-.journey-final-activity > button { min-height: 44px; padding: 10px 14px; border: 1px solid #a1d0ba66; border-radius: 9px; background: transparent; color: #c9e2d4; font-size: .7rem; }
+.journey-vision-note .journey-vision-completion { display: flex; flex-direction: column; gap: 6px; line-height: 1.7; overflow-wrap: anywhere; }
+.journey-vision-completion strong { color: #c7ebd4; font-size: .75rem; font-weight: 600; }
+.journey-vision-completion > span { color: #aac3b8; font-size: .67rem; }
 .profile-preview-badges b .achievement-medal--premium { width: 34px; height: 34px; }
 .profile-preview-badges b:has(.achievement-medal--premium) { display: inline-flex; align-items: center; gap: 8px; border-color: #d4bae47d; background: linear-gradient(130deg, #50415b55, #253c3355); }
 @media (max-width: 680px) {
