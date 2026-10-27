@@ -15,6 +15,7 @@
     "verify:social": "node scripts/verify-journey-social.mjs",
     "verify:ai": "node scripts/verify-mode-ai.mjs",
     "verify:map": "node scripts/verify-life-map.mjs",
+    "verify:badges": "node scripts/verify-badges.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "postinstall": "node scripts/prepare-gm-pwa.mjs"
   },
