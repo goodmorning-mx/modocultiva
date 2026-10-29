@@ -28,10 +28,13 @@ for (const language of languages) {
 for (const level of [-1,9,10,1.5,NaN,Infinity,null,undefined,'3',true]) assert.equal(clarityTransition(level,'es'), null);
 assert.deepEqual(clarityTransition(8,'unknown'), clarityTransition(8,'es'));
 const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
-assert.equal((app.match(/<ClarityGoal /g) ?? []).length,4, 'Journey, custom, bank and Mode AI show the same target');
-assert.match(app, /journeySlide < 9 && <ClarityGoal/);
+assert.equal((app.match(/<ClarityGoal /g) ?? []).length,3, 'Custom, bank and Mode AI retain the canonical target');
+assert.doesNotMatch(app, /journeySlide < 9 && <ClarityGoal/, 'Do not repeat the activity target above the journey card');
+assert.ok(app.includes("nextClarity: '.journey-builder .activity-flow-target > p:first-of-type'"), 'Tour uses the remaining activity definition');
+const flow = await readFile(new URL('../src/ActivityJourneyFlow.tsx', import.meta.url), 'utf8');
+assert.equal((flow.match(/<aside className="activity-flow-target"/g) ?? []).length,1, 'Keep one target inside the activity workflow');
 assert.match(app, /mode_name: modeName\(selectedMode\),\s+language,/);
 assert.match(app, /import clarityLevels from '\.\/clarity-levels\.json'/);
 const api = await readFile(new URL('../../backend/app/main.py', import.meta.url), 'utf8');
 assert.equal((api.match(/activity_alignment_instruction\(request.level, request.language\)/g) ?? []).length,2, 'Authenticated and guest AI both receive server-owned next-level criteria');
-console.log('[clarity] 99 transitions across 11 languages, identical client/server rubric, exact next level, effort boundaries, image-only9, invalid levels, four UI placements and both AI routes passed');
+console.log('[clarity] 99 transitions across 11 languages, identical client/server rubric, exact next level, effort boundaries, image-only9, one in-card target/no duplicate journey block, three authoring surfaces and both AI routes passed');
