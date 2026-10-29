@@ -1607,7 +1607,7 @@ function App() {
     const controlTopic = tourTopic.startsWith('control');
     const copy = guidedTourStepCopy(language, controlTopic ? 'controlCenter' : tourTopic as TourStageId);
     const targets: Record<TourTopic, string | readonly string[]> = {
-      modes: '.welcome-view .overview-mode', modeDescription: '.journey-intro-compact', selfAssessment: ['.level-definition--compact', '#journey-slider'], activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder > .clarity-goal .clarity-goal-definition',
+      modes: '.welcome-view .overview-mode', modeDescription: '.journey-intro-compact', selfAssessment: ['.level-definition--compact', '#journey-slider'], activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target > p:first-of-type',
       custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.community-header h2', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.activity-flow-stages', evidence: '.activity-flow-stages > li:nth-child(2)', audience: '.activity-flow-audience .card-audience-options', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
       reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading', specialists: '.cult-embedded-content .cult-section-heading', community: '.community-header h2', profile: '.profile-preview-identity', badges: '.achievement-heading', configurations: '#presets-title',
       controlCenter: '.crm-card--score .crm-card-heading', controlStrongest: '.crm-metric-card:nth-of-type(1)', controlLeast: '.crm-metric-card:nth-of-type(2)', controlFocus: '.crm-focus-card .crm-card-heading', controlTrivia: '.crm-trivia-card h2', replay: '[data-tour="replay"]',
@@ -2524,7 +2524,6 @@ function App() {
           <section className="journey-builder" data-layer="3" aria-labelledby="journey-builder-title">
           <div className="journey-builder-heading"><div><p className="kicker">{tr(journeySlide === 9 ? 'finalVision' : 'activityDesign')}</p><h3 id="journey-builder-title">{tr('cultivationPath')}</h3></div></div>
           <p className="journey-builder-intro">{journeySlide === 9 ? tr('finalVisionCopy') : `${tr('journeyBuilderIntro')} ${modeName(selectedMode)}.`}</p>
-          {journeySlide < 9 && <ClarityGoal level={journeySlide} language={language} />}
           {insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
           <div className="journey-carousel" aria-label={`${tr('levels')} · ${modeName(selectedMode)}`}>
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.max(0, current - 1))} disabled={journeySlide === 0} aria-label={tr('previousLevel')}>←</button>

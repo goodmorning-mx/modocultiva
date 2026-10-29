@@ -282,7 +282,12 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
     const inspected = await inspectSpotlight(page, owner);
     assert.equal(inspected.dir, configuration.language === 'ar' ? 'rtl' : 'ltr', 'Localized spotlight direction');
     if (inspected.scrollY > inspected.height) scrollEvidence.push(step);
-    if (step === 'nextClarity') assert.ok((await page.locator('.guided-tour-clarity').innerText()).trim());
+    if (step === 'nextClarity') {
+      assert.ok((await page.locator('.guided-tour-clarity').innerText()).trim());
+      assert.equal(await page.locator('.journey-builder > .clarity-goal').count(), 0, 'Duplicate target above the card is removed');
+      assert.equal(await page.locator('.journey-builder .activity-flow-target').count(), 1, 'Canonical next-clarity guidance remains inside the activity');
+      assert.ok((await page.locator('.journey-builder .activity-flow-target > p:first-of-type').innerText()).trim());
+    }
     if (step === 'methods') { assert.equal(await page.locator('.guided-tour-methods li[data-visited="true"]').count(), 4); if (regress) await methodRegression(page, configuration.timeout); }
     if (['activityCard', 'evidence', 'audience'].includes(step)) assert.equal(await page.locator('.activity-flow-stages > li').count(), 3, 'No fourth activity stage');
     if (step === 'audience') {
