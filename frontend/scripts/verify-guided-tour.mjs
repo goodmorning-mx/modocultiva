@@ -169,7 +169,7 @@ if (process.argv.includes('--browser')) {
         {scenario==='multi'&&Array.from({length:12},(_,i)=><button key={i} className="fixture-mode" style={{position:'absolute',left:fixtureWidth/2+Math.cos(i*Math.PI/6)*Math.min(110,fixtureWidth*.35)-22,top:230+Math.sin(i*Math.PI/6)*Math.min(110,fixtureWidth*.35)-15,width:44,height:30}} onClick={realClick}>{i+1}</button>)}
         {delayed&&<button id="delayed" style={buttonStyle} onClick={realClick}>Mounted later</button>}
         {scenario==='scroll'&&<button id="scroll-real" style={{...buttonStyle,top:1500}} onClick={realClick}>Scroll target</button>}
-        <dialog ref={dialog} style={{width:500,height:450}}><button id="dialog-real" style={buttonStyle} onClick={realClick}>Native modal target</button></dialog>
+        <div style={{position:'absolute',left:innerWidth-12,top:0,width:8,height:8,overflow:'hidden'}}><dialog ref={dialog} style={{width:500,height:450}}><button id="dialog-real" style={buttonStyle} onClick={realClick}>Native modal target</button></dialog></div>
         <GuidedTour step={open?step:null} language={scenario==='rtl'?'ar':'en'} targetWaitMs={350}
           visitedMethods={visits} showCounter={scenario==='owner'} counter={{current:3,total:25}}
           onNext={()=>stats.next++} onPrevious={()=>stats.back++} onClose={()=>stats.close++}

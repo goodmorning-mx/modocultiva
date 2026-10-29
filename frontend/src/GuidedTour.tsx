@@ -67,16 +67,20 @@ function liveRect(element: Element, viewport: TourRect): { layout: TourRect; vis
     // document box. Its box top becomes negative after a long page scroll while
     // clientHeight stays one viewport; combining those erased valid targets.
     if (parent === element.ownerDocument.documentElement || parent === element.ownerDocument.scrollingElement) continue;
-    if (!visible || !/(hidden|clip|auto|scroll)/.test(`${parentStyle.overflowX} ${parentStyle.overflowY}`)) continue;
-    const parentBox = parent.getBoundingClientRect();
-    const xClipped = /(hidden|clip|auto|scroll)/.test(parentStyle.overflowX);
-    const yClipped = /(hidden|clip|auto|scroll)/.test(parentStyle.overflowY);
-    visible = clipTourRect(visible, {
-      left: xClipped ? parentBox.left + parent.clientLeft : viewport.left,
-      top: yClipped ? parentBox.top + parent.clientTop : viewport.top,
-      width: xClipped ? parent.clientWidth : viewport.width,
-      height: yClipped ? parent.clientHeight : viewport.height,
-    });
+    if (visible && /(hidden|clip|auto|scroll)/.test(`${parentStyle.overflowX} ${parentStyle.overflowY}`)) {
+      const parentBox = parent.getBoundingClientRect();
+      const xClipped = /(hidden|clip|auto|scroll)/.test(parentStyle.overflowX);
+      const yClipped = /(hidden|clip|auto|scroll)/.test(parentStyle.overflowY);
+      visible = clipTourRect(visible, {
+        left: xClipped ? parentBox.left + parent.clientLeft : viewport.left,
+        top: yClipped ? parentBox.top + parent.clientTop : viewport.top,
+        width: xClipped ? parent.clientWidth : viewport.width,
+        height: yClipped ? parent.clientHeight : viewport.height,
+      });
+    }
+    // A native modal lives in the top layer and escapes its DOM ancestors'
+    // overflow/opacity. Its own scrolling bounds still apply to descendants.
+    if (parent.matches('dialog:modal')) break;
   }
   return Number(style.opacity) === 0 ? null : { layout: box, visible };
 }
