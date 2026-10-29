@@ -18,7 +18,7 @@ import type { ActivityJourneyFlowProps } from './ActivityJourneyFlow';
 import type { EvidenceDraft } from './visualEvidence';
 import { onboardingIntegrationCopy } from './onboardingIntegrationMessages';
 import { WelcomeIntro } from './WelcomeIntro';
-import { browserLanguage, resolveLanguagePreference, normalizeLanguageState, type AppLanguage, type LanguageSource } from './languagePreference';
+import { browserLanguage, readManualLanguage, resolveLanguagePreference, restoreLanguagePreference, normalizeLanguageState, type AppLanguage, type LanguageSource } from './languagePreference';
 import { decideWelcomeIntro, markWelcomeIntroComplete, readWelcomeIntroCompletion, welcomeIntroStorageKey, type WelcomeIntroScope } from './welcomeIntroState';
 import { GuidedTour } from './GuidedTour';
 import { getGuidedTourCopy, guidedTourStepCopy, type TourStageId } from './guidedTourMessages';
@@ -636,7 +636,7 @@ const detectBrowserLanguage = (): Language => {
 };
 const detectLanguagePreference = () => {
   const storage = scopedPersonalStorage(deviceStateStorage(), null);
-  return resolveLanguagePreference(storage.getItem('modoCultiva_language'), storage.getItem('modoCultiva_language_source'), detectBrowserLanguage());
+  return restoreLanguagePreference(null, 'auto', detectBrowserLanguage(), storage.getItem('modoCultiva_manualLanguage_v1'));
 };
 const detectLanguage = (): Language => detectLanguagePreference().language;
 const authClient = {
@@ -673,10 +673,8 @@ const readLegacyDeviceState = (): Record<string, unknown> => {
   };
   const savedPlan = window.localStorage.getItem('modoCultiva_plan');
   if (savedPlan === 'basic' || savedPlan === 'gold' || savedPlan === 'ultimate') state.activePlan = savedPlan;
-  if (window.localStorage.getItem('modoCultiva_language_source') === 'manual') {
-    const savedLanguage = window.localStorage.getItem('modoCultiva_language');
-    if (savedLanguage && supportedLanguages.includes(savedLanguage as Language)) { state.language = savedLanguage; state.languageSource = 'manual'; }
-  }
+  const manualLanguage = readManualLanguage(window.localStorage.getItem('modoCultiva_manualLanguage_v1'));
+  if (manualLanguage) { state.language = manualLanguage; state.languageSource = 'manual'; }
   return state;
 };
 const hasLegacyDeviceConfiguration = (state: Record<string, unknown>): boolean => {
@@ -700,7 +698,7 @@ function App() {
   const [language, setLanguage] = useState<Language>(detectLanguage);
   const [languageSource, setLanguageSource] = useState<LanguageSource>(() => detectLanguagePreference().languageSource);
   const handleLanguageChange = (nextLanguage: Language) => {
-    try { personalStorageRef.current.setItem('modoCultiva_language_source', 'manual'); } catch { /* Session language still works. */ }
+    try { personalStorageRef.current.setItem('modoCultiva_manualLanguage_v1', JSON.stringify({ version: 1, source: 'manual', language: nextLanguage })); } catch { /* Session/cloud language still works. */ }
     setLanguage(nextLanguage); setLanguageSource('manual');
     // Retain an explicit choice before any pending canonical response can run.
     persistedDocumentRef.current = { ...persistedDocumentRef.current, language: nextLanguage, languageSource: 'manual' };
@@ -1040,10 +1038,7 @@ function App() {
     retainPendingState(queue);
   });
 
-  const normalizeLanguageDocument = (state: StateObject): StateObject => normalizeLanguageState(state, detectBrowserLanguage(), {
-    language: personalStorageRef.current.getItem('modoCultiva_language'),
-    languageSource: personalStorageRef.current.getItem('modoCultiva_language_source'),
-  });
+  const normalizeLanguageDocument = (state: StateObject): StateObject => normalizeLanguageState(state, detectBrowserLanguage());
   const normalizeCanonicalSnapshot = (snapshot: StateSnapshot): StateSnapshot => snapshot.state && typeof snapshot.state === 'object' && !Array.isArray(snapshot.state)
     ? { ...snapshot, state: normalizeLanguageDocument(snapshot.state) } : snapshot;
 
@@ -1146,6 +1141,7 @@ function App() {
     try {
       personalStorageRef.current.setItem('modoCultiva_language', language);
       personalStorageRef.current.setItem('modoCultiva_language_source', languageSource);
+      if (languageSource === 'manual') personalStorageRef.current.setItem('modoCultiva_manualLanguage_v1', JSON.stringify({ version: 1, source: 'manual', language }));
     } catch { /* Cloud state and the current language remain available. */ }
     document.documentElement.lang = language === 'zh' ? 'zh-CN' : language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
@@ -1264,6 +1260,7 @@ function App() {
     visionImages: state.visionImages && typeof state.visionImages === 'object' ? state.visionImages : {},
     featuredBadges: Array.isArray(state.featuredBadges) ? state.featuredBadges : [],
     selectedPreset: typeof state.selectedPreset === 'string' && state.presets && typeof state.presets === 'object' && Object.prototype.hasOwnProperty.call(state.presets, state.selectedPreset) ? state.selectedPreset : '',
+    ...restoreLanguagePreference(state.language, state.languageSource, detectBrowserLanguage(), personalStorageRef.current.getItem('modoCultiva_manualLanguage_v1')),
     skin: typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin) ? state.skin : 'holista',
     paletteFilter: state.paletteFilter === 'nocturna' || state.paletteFilter === 'lucid' ? state.paletteFilter : 'none',
     activePlan: state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate' ? state.activePlan : 'ultimate',

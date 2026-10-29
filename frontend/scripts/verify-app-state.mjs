@@ -17,7 +17,7 @@ const recovery = (await pure('stateRecovery')).module;
 const { createStateSyncQueue } = (await pure('stateSyncQueue')).module;
 const { reconcileState, cloneStateValue: clone } = (await pure('stateReconcile')).module;
 const { stateAccountCopy, stateAccountMessageValues } = (await pure('stateAccountMessages')).module;
-const { resolveLanguagePreference, normalizeLanguageState } = (await pure('languagePreference')).module;
+const { resolveLanguagePreference, restoreLanguagePreference, normalizeLanguageState } = (await pure('languagePreference')).module;
 const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('App.tsx', app, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 function expression(name) {
@@ -66,6 +66,27 @@ function preferenceFixture(preference, browser) {
   f.q.refresh(f.normalize(snapshot(legacy, 'legacy-response')));
   f.assertPreference({ language: 'fr', languageSource: 'manual' });
   await f.q.flush(); f.assertPreference({ language: 'fr', languageSource: 'manual' }); f.q.dispose();
+}
+{
+  const f = preferenceFixture({ language: 'fr', languageSource: 'manual' }, 'en');
+  f.q.refresh(f.normalize(snapshot({...clone(state),language:'de'},'old-default')));
+  f.assertPreference({language:'fr',languageSource:'manual'});
+  assert.equal(f.q.isDirty(),true,'Acknowledged manual choice becomes a real repair write when old canonical data loses provenance');
+  await f.q.flush(); f.assertPreference({language:'fr',languageSource:'manual'});
+  assert.equal(f.q.getSnapshot().state.languageSource,'manual'); f.q.dispose();
+}
+{
+  const cloud = snapshot({...clone(state),language:'en',languageSource:'auto'},'owned-record-initial');
+  const normalizeLanguageDocument = value => normalizeLanguageState(value,'es');
+  const normalizeSnapshot = actual('normalizeCanonicalSnapshot',{normalizeLanguageDocument});
+  const desired = actual('normalizePersonalDocument', { normalizeLanguageDocument, restoreLanguagePreference,
+    personalStorageRef:{current:{getItem:()=>JSON.stringify({version:1,source:'manual',language:'fr'})}},detectBrowserLanguage:()=> 'es',
+    defaultLevels:levels,cleanCompletions:value=>value??{},cleanReactions:value=>value??{},allSkinKeys:new Set(['holista']) })(normalizeSnapshot(cloud).state);
+  const sent=[];
+  const q=createStateSyncQueue({initial:normalizeSnapshot(cloud),transport:async document=>{sent.push(clone(document));return snapshot(document,'owned-record-saved');}});
+  q.stage(desired); assert.equal(q.isDirty(),true,'Restored value-bound manual provenance must be genuinely staged, not falsely acknowledged');
+  await q.flush(); assert.equal(sent.length,1); assert.equal(sent[0].language,'fr'); assert.equal(sent[0].languageSource,'manual');
+  assert.deepEqual(sent[0].levels,levels); assert.deepEqual(sent[0].presets,state.presets); q.dispose();
 }
 {
   const f = preferenceFixture({ language: 'fr', languageSource: 'auto' }, 'fr');

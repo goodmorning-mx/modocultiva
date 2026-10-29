@@ -19,11 +19,21 @@ export function resolveLanguagePreference(saved: unknown, source: unknown, detec
     : { language: detected, languageSource: 'auto' };
 }
 
-export function normalizeLanguageState<T extends Record<string, unknown>>(state: T, detected: AppLanguage,
-  cached?: { language: unknown; languageSource: unknown }): T & LanguagePreference {
-  // An old account may lack cloud provenance while its OWN scoped cache still
-  // proves the exact same manual choice. Never infer this from another scope.
-  const source = state.languageSource === undefined && cached?.languageSource === 'manual' && cached.language === state.language
-    ? 'manual' : state.languageSource;
-  return { ...state, ...resolveLanguagePreference(state.language, source, detected) };
+export function normalizeLanguageState<T extends Record<string, unknown>>(state: T, detected: AppLanguage): T & LanguagePreference {
+  return { ...state, ...resolveLanguagePreference(state.language, state.languageSource, detected) };
+}
+
+/** Old independent value/source keys can disagree. Only this value-bound record
+ * (or explicit cloud provenance) establishes which language was actually chosen. */
+export function readManualLanguage(raw: string | null): AppLanguage | null {
+  try {
+    const record = JSON.parse(raw ?? 'null');
+    return record?.version === 1 && record.source === 'manual' && APP_LANGUAGES.includes(record.language) ? record.language : null;
+  } catch { return null; }
+}
+
+export function restoreLanguagePreference(saved: unknown, source: unknown, detected: AppLanguage, manualRecord: string | null): LanguagePreference {
+  const preference = resolveLanguagePreference(saved, source, detected);
+  const chosen = readManualLanguage(manualRecord);
+  return preference.languageSource === 'auto' && chosen ? { language: chosen, languageSource: 'manual' } : preference;
 }

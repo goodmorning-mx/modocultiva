@@ -30,10 +30,13 @@ for (const language of languages) {
 assert.equal(preference.browserLanguage(['xx-ZZ', 'pt-BR'], 'en-US'), 'pt');
 assert.equal(preference.browserLanguage([], 'zh-Hans-CN'), 'zh');
 assert.equal(preference.browserLanguage(['unknown']), 'es');
-assert.deepEqual(preference.normalizeLanguageState({ language: 'ja' }, 'es', { language: 'ja', languageSource: 'manual' }), { language: 'es', languageSource: 'auto' });
-assert.deepEqual(preference.normalizeLanguageState({ language: 'fr' }, 'es', { language: 'fr', languageSource: 'manual' }), { language: 'fr', languageSource: 'manual' });
-assert.deepEqual(preference.normalizeLanguageState({ language: 'en' }, 'es', { language: 'fr', languageSource: 'manual' }), { language: 'es', languageSource: 'auto' });
-assert.deepEqual(preference.normalizeLanguageState({ language: 'en', languageSource: 'auto' }, 'es', { language: 'en', languageSource: 'manual' }), { language: 'es', languageSource: 'auto' });
+for (const language of languages) {
+  const record = JSON.stringify({version:1,source:'manual',language});
+  assert.equal(preference.readManualLanguage(record), language);
+  assert.deepEqual(preference.restoreLanguagePreference('en', 'auto', 'es', record), {language,languageSource:'manual'});
+}
+for (const raw of [null,'{}','broken','{"version":0,"source":"manual","language":"fr"}','{"version":1,"source":"manual","language":"unsupported"}']) assert.equal(preference.readManualLanguage(raw), null);
+assert.deepEqual(preference.normalizeLanguageState({language:'en'}, 'es'), {language:'es',languageSource:'auto'});
 assert.deepEqual(messages.WELCOME_LANGUAGES, languages);
 assert.deepEqual(Object.keys(messages.welcomeMessages), languages);
 assert.deepEqual(messages.getWelcomeMessages('es').messages, [

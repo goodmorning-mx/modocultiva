@@ -20,7 +20,7 @@ const LANGUAGES = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', '
 const WIDTHS = [320, 390, 870, 1440];
 const MODES = ['fisico', 'intelectual', 'emocional', 'arquetipico', 'espiritual', 'romantico', 'familiar', 'social', 'financiero', 'profesional', 'ludico', 'visionario'];
 const STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
-const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-cached-manual-welcome', 'tour', 'identity', 'drafts'];
+const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-ambiguous-cache-welcome', 'tour', 'identity', 'drafts'];
 const ACCESS = 'synthetic-qa-token-not-a-credential';
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
@@ -141,9 +141,9 @@ async function installTransport(context, origin, state, { identity = serverIdent
   return { reads, writes, violations, blocked, identityGate, stateGate, snapshot, get aiCalls() { return aiCalls; } };
 }
 
-async function seed(context, state, { account = false, cachedOwner = false, guestCompleted = false, languageSource = 'manual', cachedManual = false } = {}) {
+async function seed(context, state, { account = false, cachedOwner = false, guestCompleted = false, languageSource = 'manual', cachedManual = false, manualRecord = true } = {}) {
   const cachedIdentity = serverIdentity(cachedOwner);
-  await context.addInitScript(({ state, localFields, account, cachedIdentity, access, visitor, guestCompleted, languageSource, cachedManual, organization, user }) => {
+  await context.addInitScript(({ state, localFields, account, cachedIdentity, access, visitor, guestCompleted, languageSource, cachedManual, manualRecord, organization, user }) => {
     if (!localStorage.getItem('__synthetic_onboarding_seed_v1__')) {
       for (const [field, suffix] of Object.entries(localFields)) {
         if (state[field] === null) continue;
@@ -151,6 +151,7 @@ async function seed(context, state, { account = false, cachedOwner = false, gues
         localStorage.setItem(key, typeof state[field] === 'string' ? state[field] : JSON.stringify(state[field]));
       }
       localStorage.setItem('modoCultiva_language_source', languageSource); localStorage.setItem('modoCultiva_welcomeVisitorId', visitor);
+      if (manualRecord) localStorage.setItem('modoCultiva_manualLanguage_v1', JSON.stringify({version:1,source:'manual',language:state.language}));
       if (guestCompleted) localStorage.setItem(`modo-cultiva:welcome-intro:v1:guest:${visitor}`, JSON.stringify({ version: 1, completed: true }));
       if (account) sessionStorage.setItem('gm-auth-tokens', JSON.stringify({ access_token: access, refresh_token: 'synthetic-refresh-not-a-credential', expires_in: 3600, identity: cachedIdentity }));
       if (cachedManual) {
@@ -169,7 +170,7 @@ async function seed(context, state, { account = false, cachedOwner = false, gues
     // Force the genuine in-app fallback without opening external share destinations.
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false });
     Object.defineProperty(navigator, 'share', { configurable: true, value: async () => { throw new DOMException('Synthetic native share cancellation', 'AbortError'); } });
-  }, { state, localFields, account, cachedIdentity, access: ACCESS, visitor: VISITOR, guestCompleted, languageSource, cachedManual, organization: ORG, user: USER });
+  }, { state, localFields, account, cachedIdentity, access: ACCESS, visitor: VISITOR, guestCompleted, languageSource, cachedManual, manualRecord, organization: ORG, user: USER });
 }
 async function eventually(callback, message, timeout = 12000) {
   const until = Date.now() + timeout; let last;
@@ -362,10 +363,10 @@ async function welcomeCase(page, configuration, account = false) {
 
 async function runCase(browser, config, task) {
   const welcomeTask = task.name.endsWith('welcome');
-  const localeTask = task.name.includes('locale'); const manualTask = task.name.includes('manual');
+  const localeTask = task.name.includes('locale') || task.name.includes('ambiguous-cache'); const manualTask = task.name.includes('manual');
   const established = task.name.startsWith('legacy-') || localeTask || manualTask || !welcomeTask; const state = fixture(task.language, established);
   const expectedLanguage = manualTask ? (task.language === 'en' ? 'es' : 'en') : task.language;
-  if (localeTask) { state.language = 'en'; if (!task.name.includes('legacy-locale')) state.languageSource = 'auto'; }
+  if (localeTask) { state.language = 'en'; if (!task.name.includes('legacy-locale') && !task.name.includes('ambiguous-cache')) state.languageSource = 'auto'; }
   if (manualTask) { state.language = expectedLanguage; if (!task.name.includes('cached-manual')) state.languageSource = 'manual'; }
   const account = task.name.includes('account') || task.name === 'identity'; const reduced = task.width === 320 || task.width === 870;
   // Other test cases represent a genuinely completed introduction, not merely
@@ -377,7 +378,7 @@ async function runCase(browser, config, task) {
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
   const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' });
-  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: localeTask ? 'auto' : 'manual', cachedManual: task.name.includes('cached-manual') });
+  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: 'manual', manualRecord: !localeTask, cachedManual: task.name.includes('ambiguous-cache') });
   const configuration = { ...config, ...task, language: expectedLanguage, reduced }; let result;
   try {
     if (welcomeTask) { await page.clock.install({ time: new Date('2026-10-29T12:00:00Z') }); await page.clock.pauseAt(new Date('2026-10-29T12:00:01Z')); }
