@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useReducer, useRef, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { CultivaLeaf } from './CultivaLeaf';
+import brandLogo from './assets/modo-cultiva-logo-official.png';
 import { getWelcomeMessages, resolveWelcomeLanguage } from './welcomeMessages';
 import {
   createWelcomeTimeline, reduceWelcomeTimeline, welcomeNextDelayMs,
@@ -163,7 +164,7 @@ export function WelcomeIntro({ language, onComplete }: WelcomeIntroProps) {
     <h1 id={titleId} className="mc-welcome__sr-only">{copy.title}</h1>
     <div className="mc-welcome__atmosphere" aria-hidden="true" />
     <header className="mc-welcome__header">
-      <div className="mc-welcome__brand" aria-hidden="true"><CultivaLeaf /><span dir="ltr">Modo Cultiva</span></div>
+      <div className="mc-welcome__brand" aria-hidden="true"><img src={brandLogo} alt="" width="40" height="40" /><span dir="ltr">Modo Cultiva</span></div>
       <button
         ref={pauseRef}
         type="button"

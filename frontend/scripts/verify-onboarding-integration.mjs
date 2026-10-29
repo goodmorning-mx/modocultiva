@@ -20,7 +20,7 @@ const LANGUAGES = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', '
 const WIDTHS = [320, 390, 870, 1440];
 const MODES = ['fisico', 'intelectual', 'emocional', 'arquetipico', 'espiritual', 'romantico', 'familiar', 'social', 'financiero', 'profesional', 'ludico', 'visionario'];
 const STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
-const CASES = ['welcome', 'tour', 'identity', 'drafts', 'account-welcome'];
+const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-cached-manual-welcome', 'tour', 'identity', 'drafts'];
 const ACCESS = 'synthetic-qa-token-not-a-credential';
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
@@ -141,18 +141,22 @@ async function installTransport(context, origin, state, { identity = serverIdent
   return { reads, writes, violations, blocked, identityGate, stateGate, snapshot, get aiCalls() { return aiCalls; } };
 }
 
-async function seed(context, state, { account = false, cachedOwner = false, guestCompleted = false } = {}) {
+async function seed(context, state, { account = false, cachedOwner = false, guestCompleted = false, languageSource = 'manual', cachedManual = false } = {}) {
   const cachedIdentity = serverIdentity(cachedOwner);
-  await context.addInitScript(({ state, localFields, account, cachedIdentity, access, visitor, guestCompleted }) => {
+  await context.addInitScript(({ state, localFields, account, cachedIdentity, access, visitor, guestCompleted, languageSource, cachedManual, organization, user }) => {
     if (!localStorage.getItem('__synthetic_onboarding_seed_v1__')) {
       for (const [field, suffix] of Object.entries(localFields)) {
         if (state[field] === null) continue;
         const key = `modoCultiva_${suffix}`;
         localStorage.setItem(key, typeof state[field] === 'string' ? state[field] : JSON.stringify(state[field]));
       }
-      localStorage.setItem('modoCultiva_language_source', 'manual'); localStorage.setItem('modoCultiva_welcomeVisitorId', visitor);
+      localStorage.setItem('modoCultiva_language_source', languageSource); localStorage.setItem('modoCultiva_welcomeVisitorId', visitor);
       if (guestCompleted) localStorage.setItem(`modo-cultiva:welcome-intro:v1:guest:${visitor}`, JSON.stringify({ version: 1, completed: true }));
       if (account) sessionStorage.setItem('gm-auth-tokens', JSON.stringify({ access_token: access, refresh_token: 'synthetic-refresh-not-a-credential', expires_in: 3600, identity: cachedIdentity }));
+      if (cachedManual) {
+        const prefix = `modo-cultiva:account-cache:v1:${organization}:${user}:`;
+        localStorage.setItem(`${prefix}modoCultiva_language`, state.language); localStorage.setItem(`${prefix}modoCultiva_language_source`, 'manual');
+      }
       localStorage.setItem('__synthetic_onboarding_seed_v1__', '1');
     }
     // Explicit synthetic visibility events exercise the real component handler.
@@ -165,7 +169,7 @@ async function seed(context, state, { account = false, cachedOwner = false, gues
     // Force the genuine in-app fallback without opening external share destinations.
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false });
     Object.defineProperty(navigator, 'share', { configurable: true, value: async () => { throw new DOMException('Synthetic native share cancellation', 'AbortError'); } });
-  }, { state, localFields, account, cachedIdentity, access: ACCESS, visitor: VISITOR, guestCompleted });
+  }, { state, localFields, account, cachedIdentity, access: ACCESS, visitor: VISITOR, guestCompleted, languageSource, cachedManual, organization: ORG, user: USER });
 }
 async function eventually(callback, message, timeout = 12000) {
   const until = Date.now() + timeout; let last;
@@ -313,6 +317,11 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
 async function welcomeCase(page, configuration, account = false) {
   const messages = welcomeMessages[configuration.language].messages; const intro = page.locator('.mc-welcome');
   await intro.waitFor({ timeout: configuration.timeout });
+  assert.equal(await intro.getAttribute('lang'), configuration.language);
+  assert.equal(await page.locator('html').getAttribute('lang'), configuration.language === 'zh' ? 'zh-CN' : configuration.language);
+  await eventually(async () => intro.locator('.mc-welcome__brand img').evaluate(img => img.complete && img.naturalWidth > 0), 'Official header logo must load');
+  assert.equal(await intro.locator('.mc-welcome__brand svg').count(), 0, 'Header uses the actual logo, not the cultivation leaf');
+  assert.equal(await intro.locator('.mc-welcome__mark svg').count(), 1, 'Central cultivation leaf is preserved');
   assert.equal(await intro.getAttribute('dir'), configuration.language === 'ar' ? 'rtl' : 'ltr');
   assert.equal(await intro.locator('button').count(), 1, 'Welcome has pause only; no forward/back/skip');
   assert.equal(await page.locator('.guided-tour-counter').count(), 0);
@@ -342,7 +351,9 @@ async function welcomeCase(page, configuration, account = false) {
   assert.deepEqual(await page.evaluate(() => globalThis.__qaWelcomePhrases), messages, 'Exactly seven automatic phrases, ordered once');
   const key = account ? `modo-cultiva:welcome-intro:v1:account:${ORG}:${USER}` : `modo-cultiva:welcome-intro:v1:guest:${VISITOR}`;
   assert.deepEqual(await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key), { version: 1, completed: true });
-  await page.clock.resume(); await ready(page, 'modes', configuration.timeout); await closeTour(page);
+  await page.clock.resume(); await ready(page, 'modes', configuration.timeout);
+  assert.equal(await page.locator('.guided-tour-layer').getAttribute('lang'), configuration.language, 'Automatic tutorial retains the resolved interface language');
+  await closeTour(page);
   await page.reload({ waitUntil: 'domcontentloaded' }); await settleHydration(page, configuration.language, configuration.timeout);
   await delay(150); assert.equal(await intro.count(), 0, 'Completed intro does not repeat on reload');
   assert.equal(await page.locator('.guided-tour-layer').count(), 0, 'Reload does not restart tutorial');
@@ -350,17 +361,26 @@ async function welcomeCase(page, configuration, account = false) {
 }
 
 async function runCase(browser, config, task) {
-  const established = !['welcome', 'account-welcome'].includes(task.name); const state = fixture(task.language, established);
-  const account = ['identity', 'account-welcome'].includes(task.name); const reduced = task.width === 320 || task.width === 870;
-  const context = await browser.newContext({ viewport: { width: task.width, height: 835 }, serviceWorkers: 'block', reducedMotion: reduced ? 'reduce' : 'no-preference', locale: task.language });
+  const welcomeTask = task.name.endsWith('welcome');
+  const localeTask = task.name.includes('locale'); const manualTask = task.name.includes('manual');
+  const established = task.name.startsWith('legacy-') || localeTask || manualTask || !welcomeTask; const state = fixture(task.language, established);
+  const expectedLanguage = manualTask ? (task.language === 'en' ? 'es' : 'en') : task.language;
+  if (localeTask) { state.language = 'en'; if (!task.name.includes('legacy-locale')) state.languageSource = 'auto'; }
+  if (manualTask) { state.language = expectedLanguage; if (!task.name.includes('cached-manual')) state.languageSource = 'manual'; }
+  const account = task.name.includes('account') || task.name === 'identity'; const reduced = task.width === 320 || task.width === 870;
+  // Other test cases represent a genuinely completed introduction, not merely
+  // saved map data. account-completed deliberately has no browser account flag.
+  if (account && !welcomeTask) state.onboardingWelcomeCompleted = true;
+  const regionalLocales = { es: 'es-MX', en: 'en-GB', zh: 'zh-Hans-CN', hi: 'hi-IN', ar: 'ar-SA', it: 'it-IT', pt: 'pt-BR', ru: 'ru-RU', de: 'de-DE', fr: 'fr-FR', da: 'da-DK' };
+  const context = await browser.newContext({ viewport: { width: task.width, height: 835 }, serviceWorkers: 'block', reducedMotion: reduced ? 'reduce' : 'no-preference', locale: regionalLocales[task.language] });
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
   const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' });
-  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: task.name === 'account-welcome' });
-  const configuration = { ...config, ...task, reduced }; let result;
+  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: localeTask ? 'auto' : 'manual', cachedManual: task.name.includes('cached-manual') });
+  const configuration = { ...config, ...task, language: expectedLanguage, reduced }; let result;
   try {
-    if (['welcome', 'account-welcome'].includes(task.name)) { await page.clock.install({ time: new Date('2026-10-29T12:00:00Z') }); await page.clock.pauseAt(new Date('2026-10-29T12:00:00Z')); }
+    if (welcomeTask) { await page.clock.install({ time: new Date('2026-10-29T12:00:00Z') }); await page.clock.pauseAt(new Date('2026-10-29T12:00:01Z')); }
     await page.goto(config.url, { waitUntil: 'domcontentloaded' });
     if (task.name === 'identity') {
       await page.locator('.state-account-boundary').waitFor();
@@ -369,12 +389,19 @@ async function runCase(browser, config, task) {
       assert.equal(await page.locator('.guided-tour-counter, .mc-welcome, .guided-tour-layer').count(), 0, 'Identity without completed state hydration cannot enable tour/counter');
       transport.stateGate.resolve();
     }
-    const consentSeen = account ? await settleHydration(page, task.language, config.timeout) : false;
-    if (['welcome', 'account-welcome'].includes(task.name)) result = await welcomeCase(page, configuration, account);
-    else {
-      await delay(150); assert.equal(await page.locator('.mc-welcome').count(), 0, 'Established people skip introduction');
+    const consentSeen = account ? await settleHydration(page, expectedLanguage, config.timeout) : false;
+    if (welcomeTask) {
+      result = await welcomeCase(page, configuration, account);
       await assertPreserved(page, state, account); await assertMap(page, state.levels);
-      if (task.name === 'tour') {
+      result.savedMapPreserved = true;
+    }
+    else {
+      await delay(150); assert.equal(await page.locator('.mc-welcome').count(), 0, 'A genuinely completed introduction does not repeat');
+      await assertPreserved(page, state, account); await assertMap(page, state.levels);
+      if (task.name === 'account-completed') {
+        assert.equal(await page.locator('.guided-tour-layer').count(), 0, 'Cloud completion does not restart tutorial on another browser');
+        result = { cloudCompletionWithoutBrowserFlag: true, noRepeat: true, preserved: true };
+      } else if (task.name === 'tour') {
         const tours = [];
         for (let replay = 0; replay < config.replays; replay++) {
           await openReplay(page, config.timeout);
@@ -451,14 +478,14 @@ function selfTest() {
 }
 async function main() {
   const config = options(process.argv.slice(2));
-  if (config.help) { process.stdout.write('Actual-App synthetic QA. --url=loopback --languages=en,ar --widths=320,390,870,1440 --cases=welcome,tour,identity,drafts,account-welcome --replays=2 --workers=2 --smoke --self-test\nDiagnostic-only subsets: --share-preview=off --draft-replay=keyboard --method-regressions=off. These omissions/entry paths are reported explicitly; default checks remain strict.\n'); return; }
+  if (config.help) { process.stdout.write('Actual-App synthetic QA. --url=loopback --languages=en,ar --widths=320,390,870,1440 --cases=welcome,legacy-welcome,account-welcome,legacy-account-welcome,account-completed,tour,identity,drafts --replays=2 --workers=2 --smoke --self-test\nDiagnostic-only subsets: --share-preview=off --draft-replay=keyboard --method-regressions=off. These omissions/entry paths are reported explicitly; default checks remain strict.\n'); return; }
   selfTest(); if (config['self-test']) return;
   let playwright;
   try { playwright = require(process.env.PLAYWRIGHT_MODULE ?? 'playwright'); }
   catch { playwright = require(resolve(dirname(process.execPath), '..', 'node_modules', 'playwright')); }
   const tasks = [];
   for (const name of config.cases) {
-    if (['welcome', 'tour'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
+    if (name.endsWith('welcome') || name === 'tour') for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
     else for (const [index, width] of config.widths.entries()) {
       const language = config.languages[index % config.languages.length];
       if (name === 'identity') for (const identity of ['normal', 'forged', 'owner']) tasks.push({ name, width, language, identity });

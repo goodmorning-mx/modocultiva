@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import { createHash } from 'node:crypto';
 
 async function loadPure(name) {
   const source = await readFile(new URL(`../src/${name}.ts`, import.meta.url), 'utf8');
@@ -16,6 +17,23 @@ const {
   decideWelcomeIntro: decide, parseWelcomeIntroCompletion: parse,
 } = state;
 const languages = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da'];
+const preference = await loadPure('languagePreference');
+assert.deepEqual(preference.APP_LANGUAGES, languages);
+for (const language of languages) {
+  assert.equal(preference.browserLanguage([`${language.toUpperCase()}_REGION`, 'en-US']), language);
+  for (const saved of languages) {
+    for (const source of [undefined, null, 'auto', 'stale']) assert.deepEqual(preference.resolveLanguagePreference(saved, source, language), { language, languageSource: 'auto' });
+    assert.deepEqual(preference.resolveLanguagePreference(saved, 'manual', language), { language: saved, languageSource: 'manual' });
+  }
+  assert.deepEqual(preference.resolveLanguagePreference('unsupported', 'manual', language), { language, languageSource: 'auto' });
+}
+assert.equal(preference.browserLanguage(['xx-ZZ', 'pt-BR'], 'en-US'), 'pt');
+assert.equal(preference.browserLanguage([], 'zh-Hans-CN'), 'zh');
+assert.equal(preference.browserLanguage(['unknown']), 'es');
+assert.deepEqual(preference.normalizeLanguageState({ language: 'ja' }, 'es', { language: 'ja', languageSource: 'manual' }), { language: 'es', languageSource: 'auto' });
+assert.deepEqual(preference.normalizeLanguageState({ language: 'fr' }, 'es', { language: 'fr', languageSource: 'manual' }), { language: 'fr', languageSource: 'manual' });
+assert.deepEqual(preference.normalizeLanguageState({ language: 'en' }, 'es', { language: 'fr', languageSource: 'manual' }), { language: 'es', languageSource: 'auto' });
+assert.deepEqual(preference.normalizeLanguageState({ language: 'en', languageSource: 'auto' }, 'es', { language: 'en', languageSource: 'manual' }), { language: 'es', languageSource: 'auto' });
 assert.deepEqual(messages.WELCOME_LANGUAGES, languages);
 assert.deepEqual(Object.keys(messages.welcomeMessages), languages);
 assert.deepEqual(messages.getWelcomeMessages('es').messages, [
@@ -105,14 +123,13 @@ assert.equal(timeline.index, old.index);
 
 const guest = { kind: 'guest', visitorId: 'synthetic-guest' };
 const account = { kind: 'account', organizationId: 'synthetic-org', accountId: 'synthetic-person' };
-const newPerson = (scope) => ({ status: 'ready', scope, savedPerson: 'new' });
-const established = { status: 'ready', scope: account, savedPerson: 'established' };
+const readyPerson = (scope) => ({ status: 'ready', scope });
 for (const completion of ['complete', 'incomplete', 'unavailable']) {
   assert.equal(decide({ status: 'pending' }, completion), 'wait');
   assert.equal(decide({ status: 'unavailable' }, completion), 'wait');
-  assert.equal(decide({ status: 'ready', scope: account, savedPerson: 'unknown' }, completion), 'wait');
-  assert.equal(decide(established, completion), 'skip', 'missing flags must never re-onboard established people');
-  assert.equal(decide(newPerson(account), completion), completion === 'complete' ? 'skip' : 'show');
+  for (const scope of [guest, account]) {
+    assert.equal(decide(readyPerson(scope), completion), completion === 'complete' ? 'skip' : 'show', 'Only actual welcome completion skips the introduction, never existing map data');
+  }
 }
 assert.notEqual(key(guest), key(account));
 assert.notEqual(key(account), key({ ...account, organizationId: 'another-org' }));
@@ -120,7 +137,7 @@ assert.notEqual(key({ ...account, accountId: 'a:b', organizationId: 'c' }), key(
 for (const visitorId of ['', ' ', '\ud800']) {
   const invalid = { kind: 'guest', visitorId };
   assert.equal(key(invalid), null);
-  assert.equal(decide(newPerson(invalid), 'incomplete'), 'wait');
+  assert.equal(decide(readyPerson(invalid), 'incomplete'), 'wait');
 }
 for (const raw of [null, '', 'not json', 'true', '1', '[]', '{}', '{"version":2,"completed":true}', '{"version":1,"completed":"true"}']) assert.equal(parse(raw), 'incomplete');
 assert.equal(parse('{"version":1,"completed":true}'), 'complete');
@@ -144,7 +161,7 @@ const entries = new Map([['existing-person-state', historical], ['existing-guest
 const storage = { getItem: (name) => entries.get(name) ?? null, setItem: (name, value) => entries.set(name, value) };
 const before = new Map(entries);
 assert.equal(read(storage, account), 'incomplete');
-assert.equal(decide(established, read(storage, account)), 'skip');
+assert.equal(decide(readyPerson(account), read(storage, account)), 'show', 'Existing historical state without a completed welcome still gets its first introduction');
 assert.deepEqual(entries, before, 'eligibility is read-only');
 assert.equal(complete(storage, guest), true);
 assert.equal(complete(storage, guest), true);
@@ -156,6 +173,11 @@ for (const [name, value] of before) assert.equal(entries.get(name), value);
 assert.equal(entries.size, before.size + 2, 'only the two scoped flags were written');
 
 const component = await readFile(new URL('../src/WelcomeIntro.tsx', import.meta.url), 'utf8');
+const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
+const welcomeEligibility = app.slice(app.indexOf('if (publicCardId) return; // Shared cards'), app.indexOf('const navigationHistoryRef'));
+assert.ok(welcomeEligibility.includes('decideWelcomeIntro'));
+assert.doesNotMatch(welcomeEligibility, /hasLegacyDeviceConfiguration|savedPerson|established/, 'Legacy configuration must not suppress a first welcome');
+assert.match(welcomeEligibility, /!stateHydrated \|\| !verifiedIdentity/);
 const css = await readFile(new URL('../src/welcome-intro.css', import.meta.url), 'utf8');
 assert.match(component, /completionSentRef\.current = true/);
 assert.match(component, /clearTimeout\(timeout\)/);
@@ -163,6 +185,10 @@ assert.match(component, /removeEventListener\('visibilitychange'/);
 assert.match(component, /removeEventListener\('focusin'/);
 assert.match(component, /element\.inert = inert/);
 assert.doesNotMatch(component, /localStorage|sessionStorage|fetch\(|onSkip|onNext|1\s*\/\s*7/);
+assert.match(component, /className="mc-welcome__brand"[^\n]+<img src=\{brandLogo\}/);
+assert.match(component.slice(component.indexOf('export function WelcomeIntroMark'), component.indexOf('const now')), /<CultivaLeaf \/>/);
+const logoBytes = await readFile(new URL('../src/assets/modo-cultiva-logo-official.png', import.meta.url));
+assert.equal(createHash('sha256').update(logoBytes).digest('hex'), '74b3793b31bd1de21cf688e5d5e4ff2a6bc1163e44a7e1457ccc8ae2b1ee54d0', 'Use the supplied official logo unmodified');
 assert.match(css, /prefers-reduced-motion: reduce/);
 assert.doesNotMatch(css, /(?:^|\n)(?:body|:root|\.overview-mode)\s*\{/);
 console.log('[welcome] exact Spanish; 77 messages; 11 locales; normal/reduced timing; hidden/pause/language/late timers; terminal completion; scoped flags/storage failures; existing 12 modes/presets/drafts/images unchanged: passed');
