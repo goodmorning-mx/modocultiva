@@ -177,7 +177,16 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
         width: match.rect.visible.width * sx, height: match.rect.visible.height * sy,
       }] : []);
       if (!reason && holes.some(rect => rect.width >= width - 1 && rect.height >= height - 1)) reason = 'unsafe-target';
-      if (!reason && !holes.length && !scrolled && resolved.elements[0]) {
+      const singleTarget = measured.length === 1 ? measured[0]?.rect : null;
+      // A tall localized section may only fit when partly visible. Do not center
+      // it if doing so would remove every safe place for the tutorial controls.
+      const centeredTarget = singleTarget?.visible && holes[0] ? {
+        ...holes[0], top: (height - singleTarget.layout.height * sy) / 2, height: singleTarget.layout.height * sy,
+      } : null;
+      const partiallyClipped = singleTarget?.visible && singleTarget.layout.height < height - 32
+        && (singleTarget.layout.height - singleTarget.visible.height > 2 || singleTarget.layout.width - singleTarget.visible.width > 2)
+        && centeredTarget && placeTourPanel(width, height, [centeredTarget], rtl);
+      if (!reason && (!holes.length || partiallyClipped) && !scrolled && resolved.elements[0]) {
         scrolled = true;
         resolved.elements[0].scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
       }

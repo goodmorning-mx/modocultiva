@@ -159,6 +159,8 @@ if (process.argv.includes('--browser')) {
       if(scenario==='rejected') step={...step,onEnter:()=>Promise.reject(new Error('synthetic navigation failure'))};
       if(scenario==='dialog') step={...step,target:'#dialog-real'};
       if(scenario==='scroll') step={...step,target:'#scroll-real'};
+      if(scenario==='partial') step={...step,target:'#partial-real'};
+      if(scenario==='partialTall') step={...step,target:'#partial-tall'};
       if(scenario==='section') step={...step,target:'#real-section'};
       const realClick=()=>{stats.actual++};
       return <><button id="start" style={{position:'absolute',left:4,top:4}} onClick={()=>setOpen(true)}>Start</button>
@@ -169,6 +171,8 @@ if (process.argv.includes('--browser')) {
         {scenario==='multi'&&Array.from({length:12},(_,i)=><button key={i} className="fixture-mode" style={{position:'absolute',left:fixtureWidth/2+Math.cos(i*Math.PI/6)*Math.min(110,fixtureWidth*.35)-22,top:230+Math.sin(i*Math.PI/6)*Math.min(110,fixtureWidth*.35)-15,width:44,height:30}} onClick={realClick}>{i+1}</button>)}
         {delayed&&<button id="delayed" style={buttonStyle} onClick={realClick}>Mounted later</button>}
         {scenario==='scroll'&&<button id="scroll-real" style={{...buttonStyle,top:1500}} onClick={realClick}>Scroll target</button>}
+        {scenario==='partial'&&<div style={{position:'absolute',left:20,top:80,width:200,height:160,overflow:'auto'}}><div style={{height:500,position:'relative'}}><button id="partial-real" style={{...buttonStyle,top:140}} onClick={realClick}>Partly clipped target</button></div></div>}
+        {scenario==='partialTall'&&<div id="tall-scroll" style={{position:'absolute',left:0,top:80,width:320,height:380,overflow:'auto'}}><div style={{height:900,position:'relative'}}><button id="partial-tall" style={{...buttonStyle,left:20,top:140,width:280,height:550}} onClick={realClick}>Tall localized section</button></div></div>}
         <div style={{position:'absolute',left:innerWidth-12,top:0,width:8,height:8,overflow:'hidden'}}><dialog ref={dialog} style={{width:500,height:450}}><button id="dialog-real" style={buttonStyle} onClick={realClick}>Native modal target</button></dialog></div>
         <GuidedTour step={open?step:null} language={scenario==='rtl'?'ar':'en'} targetWaitMs={350}
           visitedMethods={visits} showCounter={scenario==='owner'} counter={{current:3,total:25}}
@@ -282,6 +286,18 @@ if (process.argv.includes('--browser')) {
     await page.keyboard.press('Escape'); assert.equal(await page.evaluate(() => window.__tour.stats.close),beforeEscape+1);
     assert.equal(await page.locator('dialog').evaluate(el => el.open),true,'Escape must not dismiss the underlying dialog');
     console.log('PASS browser: native modal/top-layer host, real click, Escape isolation');
+
+    await scenario('partial'); await ready();
+    await page.waitForFunction(() => { const button=document.querySelector('#partial-real').getBoundingClientRect(); const hole=document.querySelector('.guided-tour-outline').getBoundingClientRect(); return Math.abs(button.height-hole.height)<2; });
+    await page.locator('#partial-real').click();
+    console.log('PASS browser: a partly visible bounded target is framed completely once, without moving the circle');
+
+    await page.setViewportSize({width:320,height:700}); await scenario('partialTall'); await ready();
+    assert.equal(await page.locator('#tall-scroll').evaluate(el=>el.scrollTop),0,'do not center a tall section when the controls would no longer fit');
+    assert.equal(await page.getByRole('button',{name:'Next',exact:true}).isEnabled(),true);
+    await page.locator('.guided-tour-rail button:last-child').click();
+    console.log('PASS browser: tall localized sections retain a usable non-overlapping navigation panel');
+    await page.setViewportSize({width:800,height:700});
 
     await page.addStyleTag({ content: 'html { overflow-x: hidden; overflow-y: auto; } body { overflow-x: hidden; }' });
     await scenario('scroll'); await ready();
