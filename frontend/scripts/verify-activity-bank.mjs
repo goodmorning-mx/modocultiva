@@ -31,4 +31,15 @@ for (const mode of Object.keys(bankPairings)) {
 }
 for (const level of [-1, 10, 1.5, NaN]) assert.deepEqual(getBankActivities('fisico', level, 'en'), []);
 assert.deepEqual(getBankActivities('missing', 0, 'en'), []);
+// Direction must change at the transition points, not keep a person at the
+// current clarity stage. These anchors supplement the full localized deck checks.
+for (const mode of Object.keys(bankPairings)) {
+  for (const activity of getBankActivities(mode, 5, 'en')) assert.match(activity.description, /goal beyond your comfort zone/);
+  for (const activity of getBankActivities(mode, 6, 'en')) assert.match(activity.description, /Measure one result, review it weekly/);
+  for (const activity of getBankActivities(mode, 7, 'en')) assert.match(activity.description, /automation or agreed delegation/);
+  for (const activity of getBankActivities(mode, 8, 'en')) assert.match(activity.description, /Support someone who wants to learn/);
+  for (const activity of getBankActivities(mode, 5, 'es')) assert.match(activity.description, /meta concreta fuera de tu zona de confort/);
+  for (const activity of getBankActivities(mode, 8, 'es')) assert.match(activity.description, /Acompaña a alguien que quiera aprender/);
+}
 console.log(`[activity-bank] ${checked} localized recommendations checked; 12 modes, 10 levels, 10 choices; provenance, uniqueness, duration and invalid-input checks passed`);
+console.log('[activity-bank] Next-clarity direction, measured growth, optimization/delegation and teaching transition anchors passed');

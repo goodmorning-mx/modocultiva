@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import './mode-ai-studio.css';
 
 function StudioMark({ quiet = false }: { quiet?: boolean }) {
@@ -12,6 +12,7 @@ function StudioMark({ quiet = false }: { quiet?: boolean }) {
 
 type Props = {
   language: string; brand: string; title: string; description: string; modeIcon: string;
+  clarityGoal?: ReactNode;
   level: number; levelLabel: string; stage: string; considerLabel: string; effort: string; effortDescription: string;
   question: string; contextLabel: string; placeholder: string; activityLabel: string; readyLabel: string; waiting: string;
   askLabel: string; useLabel: string; consultingLabel: string;
@@ -32,6 +33,7 @@ export function ModeAiStudio(props: Props) {
   }, [ready]);
   return <div className="mode-ai-studio" dir={props.language === 'ar' ? 'rtl' : undefined}>
     <div className="mode-ai-hero"><div className="mode-ai-hero-copy"><span className="mode-ai-signature"><span aria-hidden="true">✧</span>{props.brand}</span><h2 id="activity-agent-title">{props.title}</h2><p className="journey-description">{props.description}</p></div><StudioMark /></div>
+    {props.clarityGoal}
     <div className="mode-ai-workspace" aria-labelledby={titleId}>
       <div className="mode-ai-workspace-heading"><span className="mode-ai-stage" id={titleId}><span aria-hidden="true">{props.modeIcon}</span>{props.stage}</span><span className="mode-ai-level">{props.levelLabel}<b>{props.level.toLocaleString(props.language)}</b></span></div>
       <div className="mode-ai-columns">

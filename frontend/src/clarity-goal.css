@@ -1,0 +1,12 @@
+/* The activity's destination is not another self-assessment control. */
+.clarity-goal { margin: 20px 0 24px; padding: 18px 20px; min-width: 0; border: 1px solid color-mix(in srgb, var(--mode-color, #76dbaa) 26%, #254443); border-radius: 16px; background: linear-gradient(115deg, color-mix(in srgb, var(--mode-color, #76dbaa) 6%, #0c242b), #0a202780); text-align: start; overflow-wrap: anywhere; }
+.clarity-goal > header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; color: #b7d9c7; font: .57rem/1.7 'DM Mono', monospace; letter-spacing: .055em; text-transform: uppercase; }
+.clarity-goal-transition { display: inline-flex; align-items: center; gap: 9px; color: var(--mode-color, #76dbaa); white-space: nowrap; }
+.clarity-goal-transition b { font-size: .78rem; font-weight: 500; }
+.clarity-goal-transition i { font-style: normal; opacity: .65; }
+.clarity-goal h4 { margin: 10px 0 6px; color: #e2efe5; font: 600 .93rem/1.5 'Manrope', sans-serif; letter-spacing: -.015em; }
+.clarity-goal .clarity-goal-definition { margin: 0; color: #a9c1b8; font-size: .73rem; line-height: 1.8; }
+.clarity-goal .clarity-goal-rule { padding-top: 12px; margin: 12px 0 8px; border-top: 1px solid #b6dcc21c; color: #d4e6d9; font-size: .72rem; line-height: 1.8; }
+.clarity-goal > small { display: block; color: #94b6a6; font-size: .64rem; line-height: 1.8; }
+.mode-ai-studio > .clarity-goal { margin-top: -4px; }
+@media (max-width: 480px) { .clarity-goal { padding: 16px; } }

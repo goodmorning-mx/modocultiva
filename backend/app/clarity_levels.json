@@ -1,0 +1,577 @@
+{
+  "version": "2026-10-29-v1",
+  "languages": {
+    "es": [
+      {
+        "level": 0,
+        "name": "Ignorancia activa",
+        "description": "Ignorancia Activa - El área está totalmente descuidada o negada. Es cuando conscientemente decides dejar esta área en pausa por un tiempo para ahorrar energía."
+      },
+      {
+        "level": 1,
+        "name": "Reacción pasiva",
+        "description": "Reacción Pasiva - Enfoque sólo en la crisis. Esfuerzo reactivo, no preventivo. Hasta que sucede algo negativo comienzas a actuar. Ya decidiste comenzar a hacer algo."
+      },
+      {
+        "level": 2,
+        "name": "Conciencia confusa",
+        "description": "Conciencia Confusa - Se reconoce el problema, pero la parálisis impide crear un plan. Aún hay algo que te detiene, puede ser una situación personal, económica, creencia limitante o falta de ideas."
+      },
+      {
+        "level": 3,
+        "name": "Intención sin hábito",
+        "description": "Intención sin Hábito - Se intenta actuar, pero las acciones son inconsistentes y esporádicas. Aún hay interrupciones en el actuar o existe procrastinación."
+      },
+      {
+        "level": 4,
+        "name": "Bases establecidas",
+        "description": "Bases Establecidas - Se ha implementado un sistema mínimo que se sigue de forma consciente. Eres constante en lo que hayas decidido para este modo. Incluso recibes comentarios positivos sobre tu progreso."
+      },
+      {
+        "level": 5,
+        "name": "Mantenimiento básico",
+        "description": "Mantenimiento Básico - Estabilidad. El área está controlada, pero no hay crecimiento activo. Zona de confort. No estás en crisis pero has decidido no invertir en energía o nuevas posibilidades."
+      },
+      {
+        "level": 6,
+        "name": "Rumbo definido",
+        "description": "Rumbo Definido - Se han establecido metas claras y se asignan recursos estratégicamente. Se ha pasado la barrera de la zona del confort y se aspira a algo más, ya se hizo algo de investigación sobre nuevas estrategias transformadoras."
+      },
+      {
+        "level": 7,
+        "name": "Crecimiento consistente",
+        "description": "Crecimiento Consistente - El sistema funciona. Se miden los resultados y se hacen ajustes constantes. Buscas superar tus propios límites. Ya estás en modo pro. Dominas el área y buscas la perfección."
+      },
+      {
+        "level": 8,
+        "name": "Optimización y disciplina",
+        "description": "Optimización y Disciplina - El sistema es automático. Se utiliza delegación o tecnología para multiplicar resultados. Reconoces que para este punto tal vez necesites la ayuda de alguien mucho más experto por lo que te abres a delegar esta área de tu vida a recibir consejería o coaching."
+      },
+      {
+        "level": 9,
+        "name": "Maestría e influencia",
+        "description": "Maestría e Influencia - Enfoque Total. El sistema es un motor de resultados y se usa para enseñar y asesorar a otros. Te has convertido en tu mejor versión, ya tienes expertíz e incluso hasta podrías enseñar, aconsejar o mostrar nuevas formas de vida a tu círculo cercano o a tu comunidad."
+      }
+    ],
+    "en": [
+      {
+        "level": 0,
+        "name": "Active ignorance",
+        "description": "Active ignorance — The area is neglected or consciously paused to save energy."
+      },
+      {
+        "level": 1,
+        "name": "Passive reaction",
+        "description": "Passive reaction — You act only when a crisis appears; the first intention has begun."
+      },
+      {
+        "level": 2,
+        "name": "Confused awareness",
+        "description": "Confused awareness — You recognize the issue, but a plan is still blocked by uncertainty."
+      },
+      {
+        "level": 3,
+        "name": "Intention without habit",
+        "description": "Intention without habit — You try to act, but the practice remains inconsistent."
+      },
+      {
+        "level": 4,
+        "name": "Established foundations",
+        "description": "Established foundations — A minimum system is followed consciously and consistently."
+      },
+      {
+        "level": 5,
+        "name": "Basic maintenance",
+        "description": "Basic maintenance — The area is stable and controlled, but not actively growing."
+      },
+      {
+        "level": 6,
+        "name": "Defined direction",
+        "description": "Defined direction — Clear goals and strategic resources move you beyond comfort."
+      },
+      {
+        "level": 7,
+        "name": "Consistent growth",
+        "description": "Consistent growth — The system works, measures results and keeps improving."
+      },
+      {
+        "level": 8,
+        "name": "Optimization and discipline",
+        "description": "Optimization and discipline — Systems, delegation or technology multiply your results."
+      },
+      {
+        "level": 9,
+        "name": "Mastery and influence",
+        "description": "Mastery and influence — Your results become a source of teaching and guidance for others."
+      }
+    ],
+    "zh": [
+      {
+        "level": 0,
+        "name": "主动无知",
+        "description": "主动忽视——这个领域被忽略，或被暂时搁置以保存能量。"
+      },
+      {
+        "level": 1,
+        "name": "被动反应",
+        "description": "被动反应——只在危机出现时行动，但已经开始尝试改变。"
+      },
+      {
+        "level": 2,
+        "name": "模糊意识",
+        "description": "混乱觉察——你看见问题，却仍被不确定性挡在计划之外。"
+      },
+      {
+        "level": 3,
+        "name": "没有习惯的意图",
+        "description": "没有习惯的意图——你想行动，但实践还不稳定。"
+      },
+      {
+        "level": 4,
+        "name": "基础建立",
+        "description": "基础建立——你有意识且持续地执行一个最低限度的系统。"
+      },
+      {
+        "level": 5,
+        "name": "基本维护",
+        "description": "基础维护——领域稳定可控，但还没有主动成长。"
+      },
+      {
+        "level": 6,
+        "name": "方向明确",
+        "description": "方向明确——目标清晰，资源被有策略地投入。"
+      },
+      {
+        "level": 7,
+        "name": "持续成长",
+        "description": "持续成长——系统有效，你会测量结果并不断调整。"
+      },
+      {
+        "level": 8,
+        "name": "优化与自律",
+        "description": "优化与纪律——系统、授权或技术正在放大你的成果。"
+      },
+      {
+        "level": 9,
+        "name": "精通与影响力",
+        "description": "精通与影响——你的成果已经可以帮助和指导他人。"
+      }
+    ],
+    "hi": [
+      {
+        "level": 0,
+        "name": "सक्रिय अज्ञान",
+        "description": "सक्रिय उपेक्षा — यह क्षेत्र उपेक्षित है या ऊर्जा बचाने के लिए रोक दिया गया है।"
+      },
+      {
+        "level": 1,
+        "name": "निष्क्रिय प्रतिक्रिया",
+        "description": "निष्क्रिय प्रतिक्रिया — आप संकट आने पर ही कार्य करते हैं, पर शुरुआत हो चुकी है।"
+      },
+      {
+        "level": 2,
+        "name": "भ्रमित जागरूकता",
+        "description": "भ्रमित जागरूकता — समस्या दिखती है, लेकिन योजना अभी अनिश्चितता से रुकी है।"
+      },
+      {
+        "level": 3,
+        "name": "आदत के बिना इरादा",
+        "description": "आदत के बिना इरादा — आप प्रयास करते हैं, पर अभ्यास स्थिर नहीं है।"
+      },
+      {
+        "level": 4,
+        "name": "स्थापित आधार",
+        "description": "स्थापित आधार — एक न्यूनतम प्रणाली को जागरूकता और निरंतरता से निभाया जाता है।"
+      },
+      {
+        "level": 5,
+        "name": "बुनियादी रखरखाव",
+        "description": "बुनियादी रखरखाव — क्षेत्र स्थिर है, लेकिन सक्रिय रूप से बढ़ नहीं रहा।"
+      },
+      {
+        "level": 6,
+        "name": "निर्धारित दिशा",
+        "description": "स्पष्ट दिशा — लक्ष्य और संसाधन आपको आराम क्षेत्र से आगे ले जाते हैं।"
+      },
+      {
+        "level": 7,
+        "name": "निरंतर विकास",
+        "description": "निरंतर विकास — प्रणाली काम करती है और परिणामों के अनुसार सुधरती है।"
+      },
+      {
+        "level": 8,
+        "name": "अनुकूलन और अनुशासन",
+        "description": "अनुकूलन और अनुशासन — प्रणाली, प्रतिनिधि या तकनीक परिणाम बढ़ाते हैं।"
+      },
+      {
+        "level": 9,
+        "name": "महारत और प्रभाव",
+        "description": "महारत और प्रभाव — आपके परिणाम दूसरों को सिखाने और सहारा देने लगते हैं।"
+      }
+    ],
+    "ar": [
+      {
+        "level": 0,
+        "name": "جهل نشط",
+        "description": "تجاهل نشط — المجال مهمل أو متوقف مؤقتاً للحفاظ على الطاقة."
+      },
+      {
+        "level": 1,
+        "name": "رد فعل سلبي",
+        "description": "استجابة سلبية — تتحرك عند ظهور الأزمة، لكن نية التغيير بدأت."
+      },
+      {
+        "level": 2,
+        "name": "وعي مرتبك",
+        "description": "وعي مرتبك — ترى المشكلة، لكن عدم اليقين يمنع الخطة."
+      },
+      {
+        "level": 3,
+        "name": "نية بلا عادة",
+        "description": "نية بلا عادة — تحاول التصرف، لكن الممارسة غير مستقرة."
+      },
+      {
+        "level": 4,
+        "name": "أسس راسخة",
+        "description": "أسس ثابتة — تتبع نظاماً أساسياً بوعي واستمرارية."
+      },
+      {
+        "level": 5,
+        "name": "صيانة أساسية",
+        "description": "صيانة أساسية — المجال مستقر ومسيطر عليه دون نمو نشط."
+      },
+      {
+        "level": 6,
+        "name": "اتجاه محدد",
+        "description": "اتجاه محدد — أهداف واضحة وموارد موزعة باستراتيجية."
+      },
+      {
+        "level": 7,
+        "name": "نمو مستمر",
+        "description": "نمو مستمر — النظام يعمل وتُقاس النتائج ويجري التحسين."
+      },
+      {
+        "level": 8,
+        "name": "تحسين وانضباط",
+        "description": "تحسين وانضباط — الأنظمة أو التفويض أو التقنية تضاعف النتائج."
+      },
+      {
+        "level": 9,
+        "name": "إتقان وتأثير",
+        "description": "إتقان وتأثير — تصبح نتائجك مصدراً للتعليم والإرشاد للآخرين."
+      }
+    ],
+    "it": [
+      {
+        "level": 0,
+        "name": "Ignoranza attiva",
+        "description": "Ignoranza attiva — l’area è trascurata o messa in pausa per risparmiare energia."
+      },
+      {
+        "level": 1,
+        "name": "Reazione passiva",
+        "description": "Reazione passiva — agisci solo nella crisi, ma l’intenzione è iniziata."
+      },
+      {
+        "level": 2,
+        "name": "Consapevolezza confusa",
+        "description": "Consapevolezza confusa — riconosci il problema, ma il piano è ancora bloccato."
+      },
+      {
+        "level": 3,
+        "name": "Intenzione senza abitudine",
+        "description": "Intenzione senza abitudine — provi ad agire, ma la pratica è incostante."
+      },
+      {
+        "level": 4,
+        "name": "Basi consolidate",
+        "description": "Basi stabilite — segui con consapevolezza un sistema minimo e costante."
+      },
+      {
+        "level": 5,
+        "name": "Mantenimento di base",
+        "description": "Mantenimento di base — l’area è stabile, ma non cresce attivamente."
+      },
+      {
+        "level": 6,
+        "name": "Direzione definita",
+        "description": "Direzione definita — obiettivi chiari e risorse assegnate con strategia."
+      },
+      {
+        "level": 7,
+        "name": "Crescita costante",
+        "description": "Crescita costante — il sistema funziona, misura e corregge i risultati."
+      },
+      {
+        "level": 8,
+        "name": "Ottimizzazione e disciplina",
+        "description": "Ottimizzazione e disciplina — sistemi, delega e tecnologia moltiplicano i risultati."
+      },
+      {
+        "level": 9,
+        "name": "Padronanza e influenza",
+        "description": "Maestria e influenza — i tuoi risultati diventano guida e insegnamento per altri."
+      }
+    ],
+    "pt": [
+      {
+        "level": 0,
+        "name": "Ignorância ativa",
+        "description": "Ignorância ativa — a área é negligenciada ou pausada para economizar energia."
+      },
+      {
+        "level": 1,
+        "name": "Reação passiva",
+        "description": "Reação passiva — você age apenas na crise, mas a intenção já começou."
+      },
+      {
+        "level": 2,
+        "name": "Consciência confusa",
+        "description": "Consciência confusa — reconhece o problema, mas o plano ainda está bloqueado."
+      },
+      {
+        "level": 3,
+        "name": "Intenção sem hábito",
+        "description": "Intenção sem hábito — tenta agir, porém a prática é inconsistente."
+      },
+      {
+        "level": 4,
+        "name": "Bases estabelecidas",
+        "description": "Bases estabelecidas — um sistema mínimo é seguido com consciência e constância."
+      },
+      {
+        "level": 5,
+        "name": "Manutenção básica",
+        "description": "Manutenção básica — a área está estável, mas não cresce ativamente."
+      },
+      {
+        "level": 6,
+        "name": "Rumo definido",
+        "description": "Rumo definido — metas claras e recursos estratégicos levam além da zona de conforto."
+      },
+      {
+        "level": 7,
+        "name": "Crescimento consistente",
+        "description": "Crescimento consistente — o sistema funciona, mede e ajusta resultados."
+      },
+      {
+        "level": 8,
+        "name": "Otimização e disciplina",
+        "description": "Otimização e disciplina — sistemas, delegação e tecnologia ampliam resultados."
+      },
+      {
+        "level": 9,
+        "name": "Maestria e influência",
+        "description": "Maestria e influência — seus resultados passam a ensinar e orientar outras pessoas."
+      }
+    ],
+    "ru": [
+      {
+        "level": 0,
+        "name": "Активное неведение",
+        "description": "Активное игнорирование — область заброшена или поставлена на паузу ради энергии."
+      },
+      {
+        "level": 1,
+        "name": "Пассивная реакция",
+        "description": "Пассивная реакция — вы действуете только во время кризиса, но намерение уже появилось."
+      },
+      {
+        "level": 2,
+        "name": "Смутное осознание",
+        "description": "Спутанное осознание — проблема видна, но неопределённость мешает плану."
+      },
+      {
+        "level": 3,
+        "name": "Намерение без привычки",
+        "description": "Намерение без привычки — вы пытаетесь действовать, но практика нестабильна."
+      },
+      {
+        "level": 4,
+        "name": "Заложенные основы",
+        "description": "Созданные основы — минимальная система выполняется осознанно и регулярно."
+      },
+      {
+        "level": 5,
+        "name": "Базовое поддержание",
+        "description": "Базовое поддержание — область стабильна, но активного роста нет."
+      },
+      {
+        "level": 6,
+        "name": "Определённое направление",
+        "description": "Определённое направление — ясные цели и стратегические ресурсы выводят за пределы комфорта."
+      },
+      {
+        "level": 7,
+        "name": "Стабильный рост",
+        "description": "Постоянный рост — система работает, результаты измеряются и улучшаются."
+      },
+      {
+        "level": 8,
+        "name": "Оптимизация и дисциплина",
+        "description": "Оптимизация и дисциплина — системы, делегирование и технологии умножают результаты."
+      },
+      {
+        "level": 9,
+        "name": "Мастерство и влияние",
+        "description": "Мастерство и влияние — ваши результаты становятся поддержкой и примером для других."
+      }
+    ],
+    "de": [
+      {
+        "level": 0,
+        "name": "Aktive Unwissenheit",
+        "description": "Aktive Unwissenheit — der Bereich wird vernachlässigt oder zum Energiesparen pausiert."
+      },
+      {
+        "level": 1,
+        "name": "Passive Reaktion",
+        "description": "Passive Reaktion — du handelst erst in der Krise, aber die Absicht ist geweckt."
+      },
+      {
+        "level": 2,
+        "name": "Verwirrtes Bewusstsein",
+        "description": "Verwirrtes Bewusstsein — das Problem ist sichtbar, doch Unsicherheit blockiert den Plan."
+      },
+      {
+        "level": 3,
+        "name": "Absicht ohne Gewohnheit",
+        "description": "Absicht ohne Gewohnheit — du versuchst zu handeln, aber die Praxis bleibt unbeständig."
+      },
+      {
+        "level": 4,
+        "name": "Etablierte Grundlagen",
+        "description": "Etablierte Grundlagen — ein Mindest-System wird bewusst und konstant befolgt."
+      },
+      {
+        "level": 5,
+        "name": "Grundlegende Pflege",
+        "description": "Grundlegende Pflege — der Bereich ist stabil, wächst aber nicht aktiv."
+      },
+      {
+        "level": 6,
+        "name": "Klare Richtung",
+        "description": "Klare Richtung — Ziele und strategische Ressourcen führen über die Komfortzone hinaus."
+      },
+      {
+        "level": 7,
+        "name": "Beständiges Wachstum",
+        "description": "Konstantes Wachstum — das System funktioniert, misst und verbessert Ergebnisse."
+      },
+      {
+        "level": 8,
+        "name": "Optimierung und Disziplin",
+        "description": "Optimierung und Disziplin — Systeme, Delegation und Technik vervielfachen Ergebnisse."
+      },
+      {
+        "level": 9,
+        "name": "Meisterschaft und Einfluss",
+        "description": "Meisterschaft und Einfluss — deine Ergebnisse werden zu Orientierung für andere."
+      }
+    ],
+    "fr": [
+      {
+        "level": 0,
+        "name": "Ignorance active",
+        "description": "Ignorance active — le domaine est négligé ou mis en pause pour préserver votre énergie."
+      },
+      {
+        "level": 1,
+        "name": "Réaction passive",
+        "description": "Réaction passive — vous agissez dans la crise, mais l’intention est née."
+      },
+      {
+        "level": 2,
+        "name": "Conscience confuse",
+        "description": "Conscience confuse — le problème est reconnu, mais l’incertitude bloque le plan."
+      },
+      {
+        "level": 3,
+        "name": "Intention sans habitude",
+        "description": "Intention sans habitude — vous essayez d’agir, mais la pratique reste irrégulière."
+      },
+      {
+        "level": 4,
+        "name": "Bases établies",
+        "description": "Bases établies — un système minimum est suivi avec conscience et constance."
+      },
+      {
+        "level": 5,
+        "name": "Maintenance de base",
+        "description": "Maintenance de base — le domaine est stable sans croissance active."
+      },
+      {
+        "level": 6,
+        "name": "Direction définie",
+        "description": "Direction définie — des objectifs clairs et des ressources stratégiques dépassent le confort."
+      },
+      {
+        "level": 7,
+        "name": "Croissance constante",
+        "description": "Croissance constante — le système fonctionne, mesure et ajuste les résultats."
+      },
+      {
+        "level": 8,
+        "name": "Optimisation et discipline",
+        "description": "Optimisation et discipline — systèmes, délégation et technologie amplifient les résultats."
+      },
+      {
+        "level": 9,
+        "name": "Maîtrise et influence",
+        "description": "Maîtrise et influence — vos résultats deviennent une source de transmission pour les autres."
+      }
+    ],
+    "da": [
+      {
+        "level": 0,
+        "name": "Aktiv uvidenhed",
+        "description": "Aktiv uvidenhed — området forsømmes eller sættes på pause for at spare energi."
+      },
+      {
+        "level": 1,
+        "name": "Passiv reaktion",
+        "description": "Passiv reaktion — du handler først i krisen, men intentionen er begyndt."
+      },
+      {
+        "level": 2,
+        "name": "Forvirret bevidsthed",
+        "description": "Forvirret bevidsthed — problemet ses, men usikkerhed blokerer planen."
+      },
+      {
+        "level": 3,
+        "name": "Intention uden vane",
+        "description": "Intention uden vane — du prøver at handle, men praksis er ustabil."
+      },
+      {
+        "level": 4,
+        "name": "Etablerede grundlag",
+        "description": "Etablerede grundlag — et minimumssystem følges bevidst og konsekvent."
+      },
+      {
+        "level": 5,
+        "name": "Grundlæggende vedligeholdelse",
+        "description": "Grundlæggende vedligehold — området er stabilt uden aktiv vækst."
+      },
+      {
+        "level": 6,
+        "name": "Defineret retning",
+        "description": "Defineret retning — klare mål og strategiske ressourcer fører videre."
+      },
+      {
+        "level": 7,
+        "name": "Konsekvent vækst",
+        "description": "Konstant vækst — systemet fungerer, måler og forbedrer resultater."
+      },
+      {
+        "level": 8,
+        "name": "Optimering og disciplin",
+        "description": "Optimering og disciplin — systemer, delegering og teknologi forstærker resultater."
+      },
+      {
+        "level": 9,
+        "name": "Mesterskab og indflydelse",
+        "description": "Mesterskab og indflydelse — dine resultater kan vejlede og lære andre noget."
+      }
+    ]
+  }
+}

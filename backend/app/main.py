@@ -1,6 +1,7 @@
 from functools import lru_cache
 from types import SimpleNamespace
 from uuid import uuid4
+from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +16,7 @@ from gm_billing import BillingService, PricingRule
 from gm_mcp import RequestContext, ToolRegistry
 
 from app.billing import PostgresBillingStore, UserStateStore
+from app.clarity import activity_alignment_instruction
 from app.config import get_runtime_openai_api_key, get_settings
 from app.database import create_database_engine
 
@@ -52,6 +54,7 @@ class RegisterInput(BaseModel):
 
 
 class ModeAIRequest(BaseModel):
+    language: Literal["es", "en", "zh", "hi", "ar", "it", "pt", "ru", "de", "fr", "da"] = "es"
     mode_name: str = Field(min_length=1, max_length=120)
     level: int = Field(ge=0, le=8)
     level_name: str = Field(min_length=1, max_length=120)
@@ -194,11 +197,12 @@ async def public_agent_chat(payload: AgentChatInput) -> dict[str, str]:
 @app.post("/ai/mode", response_model=ModeAIResponse)
 async def consult_mode_ai(request: ModeAIRequest, identity: AuthIdentity = Depends(identity_required)) -> ModeAIResponse:
     prompt = (
-        "Eres Modo IA, el acompañante de desarrollo humano de Modo Cultiva. Responde en español, con calidez "
+        f"Eres Modo IA, el acompañante de desarrollo humano de Modo Cultiva. Responde en el idioma {request.language}, con calidez "
         "y sin prometer resultados. Propón una sola actividad concreta, observable y realista para avanzar un nivel "
         "en el modo indicado. Incluye duración o frecuencia, señal de finalización y una forma breve de registrar el "
         "aprendizaje. No diagnostiques ni sustituyas apoyo profesional. Niveles 0–2 sólo requieren tiempo; 3–5 "
         "requieren tiempo y energía; 6–8 requieren tiempo, energía e inversión.\n\n"
+        f"{activity_alignment_instruction(request.level, request.language)}\n"
         f"Modo: {request.mode_name}\nNivel actual: {request.level} · {request.level_name}\n"
         f"Descripción: {request.level_description}\nEsfuerzo: {request.effort}\n"
         f"Persona: {request.user_name or identity.name or 'Persona usuaria'}\nContexto o pregunta: {request.context}"
@@ -217,11 +221,12 @@ async def public_consult_mode_ai(request: ModeAIRequest) -> ModeAIResponse:
 
 async def _public_mode_ai(request: ModeAIRequest) -> ModeAIResponse:
     prompt = (
-        "Eres Modo IA, el acompañante de desarrollo humano de Modo Cultiva. Responde en español, con calidez "
+        f"Eres Modo IA, el acompañante de desarrollo humano de Modo Cultiva. Responde en el idioma {request.language}, con calidez "
         "y sin prometer resultados. Propón una sola actividad concreta, observable y realista para avanzar un nivel "
         "en el modo indicado. Incluye duración o frecuencia, señal de finalización y una forma breve de registrar el "
         "aprendizaje. No diagnostiques ni sustituyas apoyo profesional. Niveles 0–2 sólo requieren tiempo; 3–5 "
         "requieren tiempo y energía; 6–8 requieren tiempo, energía e inversión.\n\n"
+        f"{activity_alignment_instruction(request.level, request.language)}\n"
         f"Modo: {request.mode_name}\nNivel actual: {request.level} · {request.level_name}\n"
         f"Descripción: {request.level_description}\nEsfuerzo: {request.effort}\n"
         f"Persona: {request.user_name or guest_identity.name}\nContexto o pregunta: {request.context}"

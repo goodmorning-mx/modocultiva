@@ -63,19 +63,143 @@ export const bankPairings: Record<string, Pair[]> = {
 };
 
 // Exact levels, not the slide index, determine duration and cadence for ALL ten
-// choices. Advanced levels add review/measurement, rather than compulsory spend.
+// choices. Each practice now leads toward the NEXT clarity description: response,
+// awareness, first action, minimum routine, stability, direction, measured growth,
+// optimization/delegation and teaching. Completion never guarantees progression.
+// The existing level-9 catalog entry is retained for compatibility; its UI is image-only.
 const levelSteps: Record<BankLanguage, string[]> = {
-  es: ['Dedica 2 minutos hoy a observar este tema: {topic}. Escribe una señal que notes; no necesitas cambiar nada todavía.', 'Dedica 3 minutos hoy a identificar una necesidad concreta relacionada con {topic}. Anota una respuesta posible.', 'Dedica 5 minutos hoy a explorar {topic}. Elige un primer paso pequeño y sin costo.', 'Reserva 10 minutos, dos veces esta semana, para poner en práctica {topic}. Marca cada sesión realizada.', 'Reserva 15 minutos, tres veces esta semana, para practicar {topic}. Registra qué te ayuda a mantener la constancia.', 'Mantén una sesión de 15 minutos esta semana dedicada a {topic}. Conserva lo que funciona y elimina una dificultad.', 'Diseña un plan de cuatro semanas para {topic}, con una sesión semanal de 30 minutos. Define una meta y recursos dentro de tus posibilidades.', 'Dedica 45 minutos semanales durante cuatro semanas a {topic}. Registra un resultado, revísalo cada semana y ajusta una variable.', 'Dedica 45 minutos esta semana a mejorar tu sistema para {topic}. Prueba una herramienta o apoyo opcional dentro de tus recursos y compara el resultado.', 'Documenta lo que has aprendido sobre {topic}. Comparte una guía breve con alguien que la quiera recibir y revísala en un mes.'],
-  en: ['Take 2 minutes today to notice this topic: {topic}. Write down one signal; you do not need to change anything yet.', 'Take 3 minutes today to identify one concrete need related to {topic}. Note one possible response.', 'Take 5 minutes today to explore {topic}. Choose one small, free first step.', 'Schedule 10 minutes twice this week to put {topic} into practice. Mark each completed session.', 'Schedule 15 minutes three times this week to practice {topic}. Record what helps you stay consistent.', 'Keep one 15-minute session this week for {topic}. Preserve what works and remove one obstacle.', 'Design a four-week plan for {topic}, with one 30-minute session per week. Define a goal and resources within your means.', 'Spend 45 minutes weekly for four weeks on {topic}. Track one result, review it each week and adjust one variable.', 'Spend 45 minutes this week improving your system for {topic}. Try an optional tool or support within your resources and compare the result.', 'Document what you have learned about {topic}. Share a short guide with someone who wants it and review it in a month.'],
-  zh: ['今天用2分钟观察：{topic}。记录一个信号，暂时不必改变。','今天用3分钟找出与{topic}有关的一个具体需求，并记录一种回应。','今天用5分钟探索{topic}，选择一个免费的小步骤。','本周安排两次10分钟来实践{topic}，记录完成情况。','本周安排三次15分钟来实践{topic}，记录保持持续性的原因。','本周保留一次15分钟用于{topic}，保持有效做法并减少一个障碍。','为{topic}制定四周计划，每周30分钟。确定目标和能力范围内的资源。','连续四周，每周用45分钟实践{topic}。记录一项结果，每周回顾并调整一个变量。','本周用45分钟改进{topic}的方法。按自己的资源选择工具或支持，并比较效果。','记录你对{topic}的所学，向愿意了解的人分享简短指南，一个月后回顾。'],
-  hi: ['आज 2 मिनट इस विषय पर ध्यान दें: {topic}। एक संकेत लिखें; अभी बदलाव ज़रूरी नहीं।','आज 3 मिनट में {topic} से जुड़ी एक ज़रूरत और संभावित जवाब लिखें।','आज 5 मिनट {topic} को समझें। एक छोटा, मुफ़्त पहला कदम चुनें।','इस सप्ताह दो बार 10 मिनट {topic} का अभ्यास करें और पूरा होने पर दर्ज करें।','इस सप्ताह तीन बार 15 मिनट {topic} का अभ्यास करें। निरंतरता में मदद करने वाली बात लिखें।','इस सप्ताह 15 मिनट {topic} के लिए रखें। उपयोगी अभ्यास बनाए रखें और एक बाधा हटाएँ।','{topic} के लिए चार सप्ताह का लक्ष्य और उपलब्ध संसाधन तय करें; हर सप्ताह 30 मिनट रखें।','चार सप्ताह तक हर सप्ताह 45 मिनट {topic} पर काम करें। एक परिणाम मापें और साप्ताहिक एक बदलाव करें।','इस सप्ताह 45 मिनट में {topic} की प्रणाली सुधारें। अपने संसाधनों में वैकल्पिक साधन या सहायता आज़माएँ और तुलना करें।','{topic} से मिली सीख लिखें। इच्छुक व्यक्ति को छोटी मार्गदर्शिका दें और एक महीने बाद समीक्षा करें।'],
-  ar: ['خصّص دقيقتين اليوم لملاحظة: {topic}. دوّن إشارة واحدة؛ لا حاجة إلى تغيير الآن.','خصّص 3 دقائق اليوم لتحديد حاجة تخص {topic} واستجابة ممكنة.','استكشف {topic} لمدة 5 دقائق اليوم واختر خطوة صغيرة مجانية.','خصّص 10 دقائق مرتين هذا الأسبوع لممارسة {topic} وسجّل كل جلسة.','خصّص 15 دقيقة ثلاث مرات هذا الأسبوع لممارسة {topic} وسجّل ما يساعدك على الاستمرار.','حافظ على جلسة مدتها 15 دقيقة هذا الأسبوع لـ {topic}. احتفظ بما يفيدك وأزل عائقاً واحداً.','ضع خطة لأربعة أسابيع لـ {topic}، بواقع 30 دقيقة أسبوعياً. حدّد هدفاً وموارد ضمن إمكاناتك.','خصّص 45 دقيقة أسبوعياً لأربعة أسابيع لـ {topic}. تابع نتيجة وراجعها أسبوعياً وعدّل متغيراً واحداً.','حسّن طريقتك في {topic} خلال 45 دقيقة هذا الأسبوع. جرّب أداة أو دعماً اختيارياً ضمن مواردك وقارن النتيجة.','وثّق ما تعلّمته عن {topic}. شارك دليلاً قصيراً مع شخص يرغب فيه وراجعه بعد شهر.'],
-  it: ['Dedica 2 minuti oggi a osservare: {topic}. Annota un segnale; non serve cambiare nulla subito.','Dedica 3 minuti oggi a individuare un bisogno legato a {topic} e una possibile risposta.','Esplora {topic} per 5 minuti oggi. Scegli un primo passo piccolo e gratuito.','Dedica 10 minuti due volte questa settimana a praticare {topic}. Segna ogni sessione.','Dedica 15 minuti tre volte questa settimana a praticare {topic}. Annota cosa favorisce la costanza.','Mantieni una sessione di 15 minuti questa settimana per {topic}. Conserva ciò che funziona ed elimina un ostacolo.','Crea un piano di quattro settimane per {topic}, con 30 minuti a settimana. Definisci un obiettivo e risorse sostenibili.','Dedica 45 minuti a settimana per quattro settimane a {topic}. Misura un risultato e modifica una variabile ogni settimana.','Dedica 45 minuti questa settimana a migliorare il tuo sistema per {topic}. Prova un supporto facoltativo sostenibile e confronta il risultato.','Documenta ciò che hai imparato su {topic}. Condividi una breve guida con chi la desidera e rivedila tra un mese.'],
-  pt: ['Dedique 2 minutos hoje a observar: {topic}. Anote um sinal; ainda não precisa mudar nada.','Dedique 3 minutos hoje a identificar uma necessidade sobre {topic} e uma resposta possível.','Explore {topic} por 5 minutos hoje. Escolha um primeiro passo pequeno e gratuito.','Reserve 10 minutos duas vezes nesta semana para praticar {topic}. Registre cada sessão.','Reserve 15 minutos três vezes nesta semana para praticar {topic}. Registre o que ajuda a manter a constância.','Mantenha uma sessão de 15 minutos nesta semana para {topic}. Preserve o que funciona e remova um obstáculo.','Crie um plano de quatro semanas para {topic}, com 30 minutos semanais. Defina uma meta e recursos dentro das suas possibilidades.','Dedique 45 minutos semanais por quatro semanas a {topic}. Registre um resultado e ajuste uma variável a cada semana.','Dedique 45 minutos nesta semana a melhorar seu sistema para {topic}. Teste apoio ou ferramenta opcional dentro dos seus recursos e compare o resultado.','Documente o que aprendeu sobre {topic}. Compartilhe um guia breve com quem desejar e revise em um mês.'],
-  ru: ['Уделите сегодня 2 минуты наблюдению: {topic}. Запишите один сигнал; менять ничего пока не нужно.','За 3 минуты определите одну потребность по теме {topic} и возможный ответ.','Уделите сегодня 5 минут теме {topic}. Выберите небольшой бесплатный первый шаг.','Запланируйте два занятия по 10 минут на этой неделе по теме {topic}. Отмечайте выполнение.','Запланируйте три занятия по 15 минут на этой неделе по теме {topic}. Записывайте, что помогает регулярности.','Сохраните одно занятие на 15 минут на этой неделе по теме {topic}. Уберите одно препятствие.','Составьте план на четыре недели по теме {topic}: 30 минут в неделю, цель и доступные ресурсы.','Уделяйте 45 минут в неделю четыре недели теме {topic}. Измеряйте результат и еженедельно меняйте одну переменную.','За 45 минут на этой неделе улучшите систему по теме {topic}. Попробуйте доступный инструмент или поддержку и сравните результат.','Запишите опыт по теме {topic}. Поделитесь кратким руководством с желающим и пересмотрите его через месяц.'],
-  de: ['Beobachte heute 2 Minuten lang: {topic}. Notiere ein Signal; ändere zunächst nichts.','Bestimme heute in 3 Minuten einen Bedarf zu {topic} und eine mögliche Antwort.','Erkunde heute 5 Minuten lang {topic}. Wähle einen kleinen, kostenlosen ersten Schritt.','Plane diese Woche zweimal 10 Minuten für {topic}. Markiere jede abgeschlossene Einheit.','Plane diese Woche dreimal 15 Minuten für {topic}. Notiere, was dir bei der Regelmäßigkeit hilft.','Behalte diese Woche eine 15-minütige Einheit für {topic} bei. Bewahre Bewährtes und entferne ein Hindernis.','Erstelle einen Vierwochenplan für {topic}: 30 Minuten pro Woche, ein Ziel und verfügbare Ressourcen.','Widme {topic} vier Wochen lang wöchentlich 45 Minuten. Erfasse ein Ergebnis und passe jede Woche eine Variable an.','Verbessere diese Woche in 45 Minuten dein System für {topic}. Teste ein optionales Hilfsmittel innerhalb deiner Mittel und vergleiche das Ergebnis.','Dokumentiere deine Erfahrungen zu {topic}. Teile eine kurze Anleitung mit Interessierten und prüfe sie nach einem Monat.'],
-  fr: ['Consacrez 2 minutes aujourd’hui à observer : {topic}. Notez un signe, sans devoir changer quoi que ce soit.','Prenez 3 minutes pour identifier un besoin lié à {topic} et une réponse possible.','Explorez {topic} pendant 5 minutes aujourd’hui. Choisissez un petit premier pas gratuit.','Prévoyez deux séances de 10 minutes cette semaine pour pratiquer : {topic}. Notez chaque séance réalisée.','Prévoyez trois séances de 15 minutes cette semaine pour pratiquer : {topic}. Notez ce qui favorise la régularité.','Gardez une séance de 15 minutes cette semaine pour {topic}. Préservez ce qui fonctionne et retirez un obstacle.','Créez un plan de quatre semaines pour {topic}, avec 30 minutes par semaine, un objectif et des ressources accessibles.','Consacrez 45 minutes par semaine pendant quatre semaines à {topic}. Mesurez un résultat et ajustez une variable chaque semaine.','Améliorez votre méthode pour {topic} en 45 minutes cette semaine. Testez une aide facultative adaptée à vos moyens et comparez le résultat.','Documentez vos acquis sur {topic}. Partagez un bref guide avec une personne intéressée et révisez-le dans un mois.'],
-  da: ['Brug 2 minutter i dag på at bemærke: {topic}. Skriv ét tegn ned; du behøver ikke ændre noget endnu.','Brug 3 minutter i dag på at finde ét behov om {topic} og et muligt svar.','Udforsk {topic} i 5 minutter i dag. Vælg et lille, gratis første skridt.','Planlæg 10 minutter to gange denne uge til {topic}. Markér hver gennemført session.','Planlæg 15 minutter tre gange denne uge til {topic}. Notér hvad der hjælper dig med at være vedholdende.','Behold én session på 15 minutter denne uge til {topic}. Bevar det, der virker, og fjern én hindring.','Lav en fireugers plan for {topic} med 30 minutter om ugen, et mål og ressourcer inden for dine muligheder.','Brug 45 minutter ugentligt i fire uger på {topic}. Mål ét resultat, og justér én variabel hver uge.','Brug 45 minutter denne uge på at forbedre dit system for {topic}. Afprøv valgfri støtte inden for dine ressourcer og sammenlign resultatet.','Dokumentér hvad du har lært om {topic}. Del en kort guide med en interesseret person, og gennemgå den om en måned.'],
+  "es": [
+    "Dedica 2 minutos hoy a reconocer una necesidad relacionada con {topic}. Escribe una respuesta pequeña que darías cuando aparezca esa necesidad.",
+    "Dedica 3 minutos hoy a nombrar el problema que notas en {topic} y la barrera que todavía te impide hacer un plan. Registra lo que ahora comprendes.",
+    "Dedica 5 minutos hoy a probar un primer paso pequeño y sin costo para {topic}. Anota qué hiciste y qué te ayudaría a intentarlo de nuevo.",
+    "Reserva 10 minutos, dos veces esta semana, para practicar {topic} en un horario fijo. Registra ambas sesiones y la señal que te ayuda a repetirlas.",
+    "Mantén tres sesiones de 15 minutos esta semana para {topic}. Comprueba que tu rutina mínima se sostiene y registra cómo conservarás esa estabilidad.",
+    "Dedica 15 minutos a investigar una mejora para {topic}. Define una meta concreta fuera de tu zona de confort y asigna tiempo y energía para dar el primer paso.",
+    "Practica {topic} durante 30 minutos semanales por cuatro semanas. Mide un resultado, revísalo cada semana y ajusta una variable a partir de lo observado.",
+    "Dedica 45 minutos esta semana a optimizar {topic}. Prueba una automatización o delegación acordada, con recursos a tu alcance; compara dos ejecuciones y documenta qué mejora.",
+    "Dedica 45 minutos a convertir tu experiencia en {topic} en una guía práctica. Acompaña a alguien que quiera aprender, recoge su retroalimentación y mejora la guía.",
+    "Documenta lo que has aprendido sobre {topic}. Comparte una guía breve con alguien que la quiera recibir y revísala en un mes."
+  ],
+  "en": [
+    "Take 2 minutes today to recognize one need related to {topic}. Write one small response you could make when that need appears.",
+    "Take 3 minutes today to name the problem you notice in {topic} and the barrier still preventing a plan. Record what you now understand.",
+    "Take 5 minutes today to try one small, free first step for {topic}. Note what you did and what would help you try again.",
+    "Schedule 10 minutes twice this week to practice {topic} at a fixed time. Record both sessions and the cue that helps you repeat them.",
+    "Keep three 15-minute sessions this week for {topic}. Check that your minimum routine holds and record how you will preserve that stability.",
+    "Spend 15 minutes researching an improvement for {topic}. Set one concrete goal beyond your comfort zone and allocate time and energy for its first step.",
+    "Practice {topic} for 30 minutes weekly for four weeks. Measure one result, review it weekly and adjust one variable based on what you observe.",
+    "Spend 45 minutes this week optimizing {topic}. Try an automation or agreed delegation within your means; compare two runs and document what improves.",
+    "Spend 45 minutes turning your experience with {topic} into a practical guide. Support someone who wants to learn, gather their feedback and improve the guide.",
+    "Document what you have learned about {topic}. Share a short guide with someone who wants it and review it in a month."
+  ],
+  "zh": [
+    "今天用2分钟识别与{topic}有关的一个需求。写下当这个需求出现时，你能做出的一个小回应。",
+    "今天用3分钟说清你在{topic}中发现的问题，以及仍然阻碍你制定计划的因素。记录你现在的理解。",
+    "今天用5分钟为{topic}尝试一个免费的小步骤。记录做了什么，以及什么能帮助你再次尝试。",
+    "本周在固定时间安排两次10分钟来实践{topic}。记录两次实践，以及帮助你重复它的提示。",
+    "本周为{topic}保持三次15分钟的实践。确认最小日常安排能够持续，并记录如何保持稳定。",
+    "用15分钟研究如何改进{topic}。设定一个超出舒适区的具体目标，为第一步安排时间和精力。",
+    "连续四周，每周用30分钟实践{topic}。衡量一项结果，每周回顾，并根据观察调整一个变量。",
+    "本周用45分钟优化{topic}。在能力范围内试用自动化或协商好的委托；比较两次执行并记录改进。",
+    "用45分钟把你在{topic}方面的经验整理成实用指南。指导一位愿意学习的人，收集反馈并改进指南。",
+    "记录你对{topic}的所学，向愿意了解的人分享简短指南，一个月后回顾。"
+  ],
+  "hi": [
+    "आज 2 मिनट में {topic} से जुड़ी एक ज़रूरत पहचानें। उस ज़रूरत के आने पर आप क्या छोटा जवाब दे सकते हैं, लिखें।",
+    "आज 3 मिनट में {topic} की समस्या और योजना बनाने से रोक रही बाधा को नाम दें। अब आप क्या समझते हैं, दर्ज करें।",
+    "आज 5 मिनट में {topic} के लिए एक छोटा, मुफ़्त पहला कदम आज़माएँ। क्या किया और फिर कोशिश करने में क्या मदद करेगा, लिखें।",
+    "इस सप्ताह तय समय पर दो बार 10 मिनट {topic} का अभ्यास करें। दोनों सत्र और दोहराने में मदद करने वाला संकेत दर्ज करें।",
+    "इस सप्ताह {topic} के तीन 15 मिनट के सत्र बनाए रखें। जाँचें कि न्यूनतम दिनचर्या टिकती है और स्थिरता बनाए रखने का तरीका लिखें।",
+    "15 मिनट में {topic} सुधारने की खोज करें। सहज दायरे से बाहर एक ठोस लक्ष्य और पहले कदम के लिए समय व ऊर्जा तय करें।",
+    "चार सप्ताह तक हर सप्ताह 30 मिनट {topic} का अभ्यास करें। एक परिणाम मापें, साप्ताहिक समीक्षा करें और अवलोकन के अनुसार एक बदलाव करें।",
+    "इस सप्ताह 45 मिनट में {topic} बेहतर करें। उपलब्ध संसाधनों में स्वचालन या सहमति से काम सौंपना आज़माएँ; दो बार के परिणाम की तुलना और सुधार दर्ज करें।",
+    "45 मिनट में {topic} का अनुभव एक व्यावहारिक मार्गदर्शिका में बदलें। सीखने के इच्छुक व्यक्ति की मदद करें, प्रतिक्रिया लें और मार्गदर्शिका सुधारें।",
+    "{topic} से मिली सीख लिखें। इच्छुक व्यक्ति को छोटी मार्गदर्शिका दें और एक महीने बाद समीक्षा करें।"
+  ],
+  "ar": [
+    "خصّص دقيقتين اليوم للتعرّف على حاجة تخص {topic}. اكتب استجابة صغيرة يمكنك تقديمها عند ظهور تلك الحاجة.",
+    "خصّص 3 دقائق اليوم لتسمية المشكلة التي تلاحظها في {topic} والعائق الذي ما زال يمنعك من وضع خطة. سجّل ما فهمته الآن.",
+    "جرّب اليوم خطوة أولى صغيرة ومجانية لـ {topic} لمدة 5 دقائق. دوّن ما فعلته وما قد يساعدك على المحاولة مجدداً.",
+    "خصّص 10 دقائق مرتين هذا الأسبوع في موعد ثابت لممارسة {topic}. سجّل الجلستين والإشارة التي تساعدك على التكرار.",
+    "حافظ على ثلاث جلسات من 15 دقيقة هذا الأسبوع لـ {topic}. تأكّد من ثبات روتينك الأدنى وسجّل كيف ستحافظ على استقراره.",
+    "خصّص 15 دقيقة لبحث تحسين في {topic}. حدّد هدفاً ملموساً خارج منطقة راحتك وخصّص وقتاً وطاقة للخطوة الأولى.",
+    "مارس {topic} لمدة 30 دقيقة أسبوعياً لأربعة أسابيع. قِس نتيجة وراجعها أسبوعياً وعدّل متغيراً بناءً على ملاحظاتك.",
+    "خصّص 45 دقيقة هذا الأسبوع لتحسين {topic}. جرّب أتمتة أو تفويضاً متفقاً عليه ضمن إمكاناتك؛ قارن تنفيذين ووثّق التحسّن.",
+    "حوّل خبرتك في {topic} إلى دليل عملي خلال 45 دقيقة. رافق شخصاً يرغب في التعلّم واجمع ملاحظاته وحسّن الدليل.",
+    "وثّق ما تعلّمته عن {topic}. شارك دليلاً قصيراً مع شخص يرغب فيه وراجعه بعد شهر."
+  ],
+  "it": [
+    "Dedica 2 minuti oggi a riconoscere un bisogno legato a {topic}. Scrivi una piccola risposta da dare quando compare.",
+    "Dedica 3 minuti oggi a nominare il problema che noti in {topic} e l’ostacolo che impedisce ancora un piano. Annota ciò che ora comprendi.",
+    "Dedica 5 minuti oggi a provare un primo passo piccolo e gratuito per {topic}. Annota cosa hai fatto e cosa ti aiuterebbe a riprovare.",
+    "Dedica 10 minuti due volte questa settimana a praticare {topic} a un orario fisso. Registra entrambe le sessioni e il segnale che aiuta a ripeterle.",
+    "Mantieni tre sessioni di 15 minuti questa settimana per {topic}. Verifica che la routine minima regga e annota come preservarne la stabilità.",
+    "Dedica 15 minuti a cercare un miglioramento per {topic}. Definisci un obiettivo concreto oltre la tua zona di comfort e assegna tempo ed energia al primo passo.",
+    "Pratica {topic} per 30 minuti a settimana per quattro settimane. Misura un risultato, rivedilo ogni settimana e modifica una variabile in base alle osservazioni.",
+    "Dedica 45 minuti questa settimana a ottimizzare {topic}. Prova un’automazione o una delega concordata sostenibile; confronta due esecuzioni e documenta i miglioramenti.",
+    "Dedica 45 minuti a trasformare la tua esperienza con {topic} in una guida pratica. Affianca chi desidera imparare, raccogli il suo riscontro e migliora la guida.",
+    "Documenta ciò che hai imparato su {topic}. Condividi una breve guida con chi la desidera e rivedila tra un mese."
+  ],
+  "pt": [
+    "Dedique 2 minutos hoje a reconhecer uma necessidade ligada a {topic}. Escreva uma pequena resposta para quando essa necessidade surgir.",
+    "Dedique 3 minutos hoje a nomear o problema em {topic} e a barreira que ainda impede um plano. Registre o que você compreende agora.",
+    "Dedique 5 minutos hoje a experimentar um primeiro passo pequeno e gratuito para {topic}. Anote o que fez e o que ajudaria a tentar de novo.",
+    "Reserve 10 minutos duas vezes nesta semana para praticar {topic} em horário fixo. Registre as duas sessões e o sinal que ajuda a repeti-las.",
+    "Mantenha três sessões de 15 minutos nesta semana para {topic}. Verifique se a rotina mínima se sustenta e registre como preservar essa estabilidade.",
+    "Dedique 15 minutos a pesquisar uma melhoria para {topic}. Defina uma meta concreta além da zona de conforto e reserve tempo e energia para o primeiro passo.",
+    "Pratique {topic} por 30 minutos semanais durante quatro semanas. Meça um resultado, reveja-o semanalmente e ajuste uma variável com base no observado.",
+    "Dedique 45 minutos nesta semana a otimizar {topic}. Teste automação ou delegação combinada dentro das suas possibilidades; compare duas execuções e documente a melhoria.",
+    "Dedique 45 minutos a transformar sua experiência em {topic} em um guia prático. Acompanhe alguém que queira aprender, recolha sua avaliação e melhore o guia.",
+    "Documente o que aprendeu sobre {topic}. Compartilhe um guia breve com quem desejar e revise em um mês."
+  ],
+  "ru": [
+    "Уделите сегодня 2 минуты распознаванию одной потребности по теме {topic}. Запишите небольшой ответ на её появление.",
+    "За 3 минуты назовите проблему, которую видите в теме {topic}, и барьер, мешающий составить план. Запишите, что теперь понимаете.",
+    "Уделите сегодня 5 минут небольшому бесплатному первому шагу по теме {topic}. Запишите, что сделали и что поможет попробовать снова.",
+    "Запланируйте два занятия по 10 минут в фиксированное время на этой неделе по теме {topic}. Отметьте оба занятия и сигнал для повторения.",
+    "Сохраните три занятия по 15 минут на этой неделе по теме {topic}. Проверьте устойчивость минимальной рутины и запишите, как её поддержать.",
+    "За 15 минут изучите улучшение для {topic}. Поставьте конкретную цель за пределами зоны комфорта и выделите время и силы на первый шаг.",
+    "Практикуйте {topic} по 30 минут в неделю четыре недели. Измеряйте результат, еженедельно проверяйте его и корректируйте одну переменную.",
+    "За 45 минут на этой неделе оптимизируйте {topic}. Попробуйте доступную автоматизацию или согласованное делегирование; сравните два выполнения и опишите улучшения.",
+    "За 45 минут превратите опыт по теме {topic} в практическое руководство. Помогите желающему учиться, соберите обратную связь и улучшите руководство.",
+    "Запишите опыт по теме {topic}. Поделитесь кратким руководством с желающим и пересмотрите его через месяц."
+  ],
+  "de": [
+    "Nimm dir heute 2 Minuten, um einen Bedarf zu {topic} zu erkennen. Notiere eine kleine Reaktion, wenn dieser Bedarf auftritt.",
+    "Benenne heute in 3 Minuten das Problem bei {topic} und die Hürde, die einen Plan noch verhindert. Halte fest, was du nun verstehst.",
+    "Probiere heute 5 Minuten lang einen kleinen, kostenlosen ersten Schritt für {topic}. Notiere, was du getan hast und was einen neuen Versuch erleichtert.",
+    "Übe {topic} diese Woche zweimal 10 Minuten zu festen Zeiten. Notiere beide Einheiten und den Auslöser, der dir beim Wiederholen hilft.",
+    "Behalte diese Woche drei Einheiten von 15 Minuten für {topic} bei. Prüfe, ob deine Mindestroutine hält, und notiere, wie du sie stabil hältst.",
+    "Recherchiere 15 Minuten lang eine Verbesserung für {topic}. Setze ein konkretes Ziel außerhalb deiner Komfortzone und plane Zeit und Energie für den ersten Schritt.",
+    "Übe {topic} vier Wochen lang wöchentlich 30 Minuten. Miss ein Ergebnis, prüfe es jede Woche und passe eine Variable anhand deiner Beobachtung an.",
+    "Optimiere {topic} diese Woche 45 Minuten lang. Erprobe eine machbare Automatisierung oder vereinbarte Delegation; vergleiche zwei Durchläufe und dokumentiere Verbesserungen.",
+    "Mache deine Erfahrung mit {topic} in 45 Minuten zu einer praktischen Anleitung. Begleite jemanden, der lernen möchte, hole Rückmeldung ein und verbessere die Anleitung.",
+    "Dokumentiere deine Erfahrungen zu {topic}. Teile eine kurze Anleitung mit Interessierten und prüfe sie nach einem Monat."
+  ],
+  "fr": [
+    "Prenez 2 minutes aujourd’hui pour reconnaître un besoin lié à {topic}. Notez une petite réponse à apporter quand ce besoin apparaît.",
+    "Prenez 3 minutes aujourd’hui pour nommer le problème dans {topic} et l’obstacle qui empêche encore un plan. Notez ce que vous comprenez désormais.",
+    "Essayez aujourd’hui un premier pas petit et gratuit pour {topic} pendant 5 minutes. Notez ce que vous avez fait et ce qui aiderait à recommencer.",
+    "Pratiquez {topic} deux fois 10 minutes cette semaine à heure fixe. Notez les deux séances et le repère qui aide à les répéter.",
+    "Maintenez trois séances de 15 minutes cette semaine pour {topic}. Vérifiez que la routine minimale tient et notez comment préserver cette stabilité.",
+    "Cherchez pendant 15 minutes une amélioration pour {topic}. Fixez un objectif concret hors de votre zone de confort et prévoyez temps et énergie pour le premier pas.",
+    "Pratiquez {topic} pendant 30 minutes par semaine durant quatre semaines. Mesurez un résultat, revoyez-le chaque semaine et ajustez une variable selon vos observations.",
+    "Optimisez {topic} pendant 45 minutes cette semaine. Essayez une automatisation ou une délégation convenue selon vos moyens ; comparez deux exécutions et documentez l’amélioration.",
+    "Transformez votre expérience de {topic} en guide pratique pendant 45 minutes. Accompagnez une personne volontaire, recueillez son retour et améliorez le guide.",
+    "Documentez vos acquis sur {topic}. Partagez un bref guide avec une personne intéressée et révisez-le dans un mois."
+  ],
+  "da": [
+    "Brug 2 minutter i dag på at genkende ét behov om {topic}. Skriv en lille reaktion, du kan give, når behovet opstår.",
+    "Brug 3 minutter i dag på at navngive problemet ved {topic} og den hindring, der endnu stopper en plan. Notér, hvad du nu forstår.",
+    "Prøv i dag et lille, gratis første skridt for {topic} i 5 minutter. Notér, hvad du gjorde, og hvad der kan hjælpe dig med at prøve igen.",
+    "Øv {topic} to gange 10 minutter denne uge på faste tidspunkter. Notér begge sessioner og det tegn, der hjælper med at gentage dem.",
+    "Behold tre sessioner på 15 minutter denne uge for {topic}. Tjek, at din minimumsrutine holder, og notér, hvordan du bevarer stabiliteten.",
+    "Undersøg i 15 minutter en forbedring for {topic}. Sæt et konkret mål uden for din komfortzone, og afsæt tid og energi til første skridt.",
+    "Øv {topic} i 30 minutter ugentligt i fire uger. Mål ét resultat, gennemgå det ugentligt, og justér én variabel ud fra dine observationer.",
+    "Optimer {topic} i 45 minutter denne uge. Prøv en overkommelig automatisering eller aftalt uddelegering; sammenlign to forløb, og dokumentér forbedringen.",
+    "Brug 45 minutter på at gøre din erfaring med {topic} til en praktisk guide. Hjælp en person, der vil lære, indhent feedback, og forbedr guiden.",
+    "Dokumentér hvad du har lært om {topic}. Del en kort guide med en interesseret person, og gennemgå den om en måned."
+  ]
 };
 
 // Same ten topics, in the same curated order, for the other supported languages.
