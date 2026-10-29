@@ -280,7 +280,17 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
     if (step === 'nextClarity') assert.ok((await page.locator('.guided-tour-clarity').innerText()).trim());
     if (step === 'methods') { assert.equal(await page.locator('.guided-tour-methods li[data-visited="true"]').count(), 4); if (regress) await methodRegression(page, configuration.timeout); }
     if (['activityCard', 'evidence', 'audience'].includes(step)) assert.equal(await page.locator('.activity-flow-stages > li').count(), 3, 'No fourth activity stage');
-    if (step === 'audience') { assert.equal(await page.locator('.activity-flow-audience input[value="network"]').isChecked(), true); assert.equal(await page.locator('.activity-flow-audience input[type="checkbox"]').count(), 0); }
+    if (step === 'audience') {
+      assert.equal(await page.locator('.activity-flow-audience input[value="network"]').isChecked(), true);
+      assert.equal(await page.locator('.activity-flow-audience input[type="checkbox"]').count(), 0);
+      await eventually(async () => page.evaluate(() => {
+        const options = document.querySelector('.activity-flow-audience .card-audience-options').getBoundingClientRect();
+        const hole = document.querySelector('.guided-tour-outline').getBoundingClientRect();
+        const panel = document.querySelector('.guided-tour-card').getBoundingClientRect();
+        return options.top >= hole.top - 2 && options.bottom <= hole.bottom + 2 && options.left >= hole.left - 2 && options.right <= hole.right + 2
+          && !(panel.left < options.right && panel.right > options.left && panel.top < options.bottom && panel.bottom > options.top);
+      }), 'Both actual audience choices must be completely illuminated and not blocked by navigation', configuration.timeout);
+    }
     if (step === 'vision') { assert.equal(await page.locator('.activity-flow-stages').count(), 0, 'Level9 stays separate'); assert.equal(await page.locator('.journey-level-card--vision input[type="file"]').count(), 1); }
     if (step === 'globalIdeas') assert.ok((await page.locator('.cult-embedded-content').innerText()).includes(onboardingIntegrationCopy(configuration.language).demoDetail), 'Static global ideas carry the localized demonstration disclaimer');
     if (step === 'specialists') {
