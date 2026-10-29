@@ -38,7 +38,7 @@ def png(width=1, height=1, *, corrupt=False, animated=False, extra_pixels=0):
 
 def submission_payload(**changes):
     return {"mode": "fisico", "level": 3, "expected_activity_hash": activity_hash("A saved activity"),
-            "evidence": {"reflection": "Synthetic account of doing the saved practice."},
+            "evidence": {"reflection": "Synthetic account of doing the saved practice.", "image": png()},
             "target_alignment": "I can now sustain the minimum routine described by the next level.", **changes}
 
 
@@ -48,9 +48,14 @@ def test_quorum_is_three_and_completion_token_matches_client_codepoints():
     # non-cryptographic display token, binds authenticated review revisions.
     assert completion_token("hello") == "4f9f2cab0a9cede7"
     assert completion_token("  hello  ") == completion_token("hello")
-    assert len(completion_token("Cultivar 🌱 中文")) == 16
+    assert completion_token("Cultivar 🌱 中文") == "c815d042b3d1b43c"
+    assert completion_token("أزرع الجذور") == "251d809ae8bcf7da"
+    assert completion_token("हिंदी अभ्यास") == "7008c63dddb273ab"
     assert activity_hash("A") != activity_hash("a")
     assert activity_hash(" A ") == activity_hash("A")
+    assert activity_hash("\ufeffhello\ufeff") == activity_hash("hello")
+    assert completion_token("\ufeffhello\ufeff") == "4f9f2cab0a9cede7"
+    assert activity_hash("\u0085hello\u0085") != activity_hash("hello")
 
 
 @pytest.mark.parametrize("level", range(9))
@@ -92,13 +97,25 @@ def test_changes_requested_needs_actionable_feedback():
 @pytest.mark.parametrize("link", ["http://example.test/proof", "javascript:alert(1)", "file:///proof", "https://user:password@example.test/proof"])
 def test_evidence_links_are_explicit_https_without_credentials(link):
     with pytest.raises(ValidationError):
-        EvidenceInput(reflection="Synthetic evidence explanation long enough.", link=link)
+        EvidenceInput(reflection="Synthetic evidence explanation long enough.", image=png(), link=link)
 
 
 def test_still_normalized_png_and_explicit_links_are_accepted_without_network():
     value = EvidenceInput(reflection="Synthetic evidence explanation long enough.", image=png(), link="https://example.test/proof")
     assert value.image == png()
     assert str(value.link) == "https://example.test/proof"
+
+
+def test_visual_proof_is_mandatory_text_or_links_are_not_a_substitute():
+    reflection = "Synthetic evidence explanation long enough."
+    for payload in [{"reflection": reflection}, {"reflection": reflection, "link": "https://example.test/proof"}]:
+        with pytest.raises(ValidationError, match="visual proof"):
+            EvidenceInput(**payload)
+    # The transaction service must separately check this asset is an actual
+    # immutable uploaded video owned by the submitting authenticated member.
+    assert EvidenceInput(reflection=reflection, video_asset_id="00000000-0000-4000-8000-000000000001")
+    with pytest.raises(ValidationError, match="visual proof"):
+        EvidenceInput(reflection=reflection, image=png(), video_asset_id="00000000-0000-4000-8000-000000000001")
 
 
 @pytest.mark.parametrize("image", [
@@ -193,16 +210,24 @@ def test_migration_refuses_production_and_destructive_downgrade(monkeypatch):
 def test_frozen_postgres_migration_matches_v1_models():
     from sqlalchemy.schema import CreateIndex, CreateTable
     from sqlalchemy.dialects import postgresql
-    from app.community_schema import COMMUNITY_TABLES
+    from app.community_schema import COMMUNITY_V1_TABLES
     path = Path(__file__).parents[1] / "alembic" / "versions" / "202610290001_community_evidence.py"
     spec = importlib.util.spec_from_file_location("synthetic_community_frozen_schema", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     dialect = postgresql.dialect()
-    expected = [str(CreateTable(table).compile(dialect=dialect)).strip() for table in COMMUNITY_TABLES]
-    expected += [str(CreateIndex(index).compile(dialect=dialect)).strip() for table in COMMUNITY_TABLES for index in sorted(table.indexes, key=lambda item: item.name)]
-    assert tuple(expected) == module.SCHEMA_V1
-    assert len(COMMUNITY_TABLES) == 13
+    expected = [str(CreateTable(table).compile(dialect=dialect)).strip() for table in COMMUNITY_V1_TABLES]
+    expected += [str(CreateIndex(index).compile(dialect=dialect)).strip() for table in COMMUNITY_V1_TABLES for index in sorted(table.indexes, key=lambda item: item.name)]
+    # Projection copies may reorder constraints; compare every SQL clause,
+    # including names/types/keys, rather than relying on set iteration order.
+    def clauses(statement):
+        return sorted(line.strip().rstrip(",") for line in statement.splitlines() if line.strip())
+    assert [clauses(statement) for statement in expected] == [clauses(statement) for statement in module.SCHEMA_V1]
+    from app.community_schema import feed_cards
+    projected_card = next(table for table in COMMUNITY_V1_TABLES if table.name == feed_cards.name)
+    assert {"audience", "submission_id"}.isdisjoint(projected_card.c.keys())
+    assert {"audience", "submission_id"}.issubset(feed_cards.c.keys())
+    assert len(COMMUNITY_V1_TABLES) == 13
     assert all(statement.startswith(("CREATE TABLE modocultiva_", "CREATE INDEX ix_community_")) for statement in module.SCHEMA_V1)
 
 
@@ -218,14 +243,56 @@ def test_migration_check_refuses_implicit_or_nonlocal_databases(monkeypatch, val
         main()
 
 
-def test_storage_readiness_is_not_feature_enablement(database, monkeypatch):
+@pytest.mark.parametrize("ready", [False, True])
+def test_integrated_features_require_complete_storage(database, monkeypatch, ready):
     from fastapi.testclient import TestClient
     from app import main
     from app.community_status import community_storage_ready
     assert community_storage_ready(database)
-    monkeypatch.setattr(main, "community_storage_ready", lambda _: True)
+    monkeypatch.setattr(main, "community_storage_ready", lambda _: ready)
     with TestClient(main.app) as client:
         assert client.get("/community/capabilities").json() == {
-            "storage_ready": True, "features_enabled": False, "review_quorum": 3,
-            "schema_version": "202610290001",
+            "storage_ready": ready, "features_enabled": ready, "review_quorum": 3,
+            "schema_version": "202610290003",
         }
+
+
+@pytest.mark.parametrize("value", [
+    "sqlite:///:memory:",
+    "mysql://synthetic_migration_user:synthetic@127.0.0.1:5432/modocultiva_community_migration_test",
+    "postgresql://synthetic_migration_user:synthetic@127.0.0.1:5433/modocultiva_community_migration_test",
+    "postgresql://other_user:synthetic@127.0.0.1:5432/modocultiva_community_migration_test",
+])
+def test_pg_concurrency_target_guard_rejects_wrong_driver_role_or_port(value):
+    from scripts.verify_community_migration import validate_test_target
+    with pytest.raises(RuntimeError):
+        validate_test_target(value)
+
+
+def test_pg_concurrency_entry_points_are_guarded_before_any_database_work(monkeypatch):
+    from scripts import verify_community_migration as module
+    engine = SimpleNamespace(url="postgresql://synthetic_migration_user:synthetic@127.0.0.1:5432/modocultiva_community_migration_test", dialect=SimpleNamespace(name="postgresql"))
+    monkeypatch.setenv("APP_ENV", "production")
+    for function in (module.verify_concurrent_quorum, module.verify_invitation_lock_order, module.verify_reconnected_unicode_quorum, module.verify_evidence_capacity_races):
+        with pytest.raises(RuntimeError, match="APP_ENV=test"):
+            function(engine)
+
+
+@pytest.mark.parametrize("version", [150000, 170000])
+def test_pg_concurrency_guard_requires_actual_postgres16_without_writing(monkeypatch, version):
+    from contextlib import contextmanager
+    from scripts.verify_community_migration import guard_test_engine
+    statements = []
+    class Engine:
+        url = "postgresql://synthetic_migration_user:synthetic@127.0.0.1:5432/modocultiva_community_migration_test"
+        dialect = SimpleNamespace(name="postgresql")
+        @contextmanager
+        def connect(self):
+            yield self
+        def exec_driver_sql(self, statement):
+            statements.append(statement)
+            return SimpleNamespace(scalar_one=lambda: version)
+    monkeypatch.setenv("APP_ENV", "test")
+    with pytest.raises(RuntimeError, match="PostgreSQL16"):
+        guard_test_engine(Engine())
+    assert statements == ["SHOW server_version_num"]

@@ -1,0 +1,12 @@
+/* Integration controls only. Never alters Holista map geometry. */
+/* MC stays reachable from an open journey, so replay can preserve unsaved
+   editor context. Native dialogs and higher-priority overlays stay above it. */
+.app-shell:has(> .journey-backdrop) > .topbar .profile-menu { z-index: 11; }
+.journey-community-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 18px 0; padding: 18px; border: 1px solid #a8ddbd29; border-radius: 16px; background: #08252b88; text-align: start; }
+.journey-community-actions p { flex: 1 1 100%; margin: 0; color: #b5ccc2; font: .86rem/1.7 'Manrope', sans-serif; overflow-wrap: anywhere; }
+.journey-community-actions button { min-height: 44px; max-width: 100%; padding: 10px 15px; border: 1px solid #a4dfb84d; border-radius: 10px; background: #173d36; color: #ddf3df; font: .82rem/1.5 'Manrope', sans-serif; text-align: start; cursor: pointer; }
+.journey-community-actions button:focus-visible { outline: 2px solid #b1f2c5; outline-offset: 3px; }
+.demo-profile-notice { margin: 15px 0; padding: 12px 15px; border-inline-start: 2px solid #c3d7ca; color: #c5d6cc; background: #091f2680; font: .85rem/1.7 'Manrope', sans-serif; overflow-wrap: anywhere; }
+.demo-profile-notice strong { display: block; color: #e6ece5; font-weight: 600; }
+.demo-profile-label { display: inline-flex; margin: 8px 0; padding: 5px 9px; border: 1px solid #b8d0c239; border-radius: 99px; color: #b9c9c2; font: .68rem/1.5 'Manrope', sans-serif; }
+@media (max-width: 480px) { .journey-community-actions { padding: 15px; } .journey-community-actions button { width: 100%; } }

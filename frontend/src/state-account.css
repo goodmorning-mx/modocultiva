@@ -1,0 +1,18 @@
+.state-account-boundary { position: fixed; inset: 0; z-index: 30000; display: grid; place-items: center; padding: max(20px, env(safe-area-inset-top)) 20px; overflow: auto; overscroll-behavior: contain; background: radial-gradient(ellipse at 20% 10%, #173d30, transparent 65%), #071d1c; color: #edf8ee; font: 400 1rem/1.6 'Manrope', system-ui, sans-serif; }
+.state-account-boundary:focus { outline: none; }
+.state-account-card { width: min(100%, 540px); margin: auto; padding: clamp(24px, 5vw, 48px); border: 1px solid #91d2b32b; border-radius: 26px; background: #0d2925; box-shadow: 0 24px 90px #0004; text-align: center; }
+.state-account-card h1 { max-width: none; margin: 18px 0 14px; font: 600 clamp(1.5rem, 4vw, 2rem)/1.3 'Manrope', system-ui, sans-serif; letter-spacing: -.03em; color: #edf8ee; }
+.state-account-card p { margin: 12px 0; color: #bad4c9; font-size: .9rem; }
+.state-account-leaf { display: grid; place-items: center; width: 68px; height: 68px; margin: auto; border: 1px solid #b2e4ba32; border-radius: 50%; background: #184535; }
+.state-account-leaf svg { width: 48px; height: 48px; }
+.state-account-card .state-account-identity { padding: 8px 12px; border-radius: 10px; background: #061d18; color: #dbefdf; overflow-wrap: anywhere; }
+.state-account-card .state-account-note { font-size: .78rem; color: #a8c4b8; }
+.state-account-card button { display: block; width: 100%; min-height: 44px; margin-top: 12px; padding: 12px 16px; border: 1px solid #a7e5bb; border-radius: 12px; background: #b2e5bf; color: #09241b; font: 600 .88rem/1.5 'Manrope', system-ui, sans-serif; cursor: pointer; }
+.state-account-card button.state-account-secondary { background: transparent; border-color: #91d2b33b; color: #cde5d6; }
+.state-account-card button:disabled { opacity: .45; cursor: default; }
+.state-account-card button:focus-visible, .state-account-card input:focus-visible { outline: 2px solid #bdffd4; outline-offset: 4px; }
+.state-account-ownership { display: flex; gap: 10px; align-items: start; margin-block: 22px; text-align: start; font-size: .82rem; color: #d2e7d9; }
+.state-account-ownership input { flex: 0 0 auto; width: 20px; height: 20px; margin: 2px 0 0; accent-color: #a6e6bb; }
+@media (prefers-reduced-motion: no-preference) { .state-account-card { animation: state-account-enter 240ms ease-out both; } @keyframes state-account-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } } }
+@media (max-width: 380px) { .state-account-boundary { padding-inline: 12px; } .state-account-card { padding: 24px 18px; } }
+@media (forced-colors: active) { .state-account-boundary, .state-account-card { background: Canvas; color: CanvasText; border-color: CanvasText; } }
