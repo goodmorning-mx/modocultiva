@@ -14,6 +14,8 @@ Implementation goal, source: the user's `Redacciones.pdf` (three pages), with di
 
 ## Validation contract confirmed by the user
 
+The initial next-clarity guidance is implemented in the journey, custom editor, bank and AI studio in all eleven languages. The bank's practice templates point toward the next description; both AI routes use the server-owned versioned target. Existing level descriptions and saved activities are unchanged. The tutorial and authenticated member-review enforcement below are still pending; guidance is not a substitute for that system.
+
 1. A person defines an activity at the current level **aligned with the next level's clarity description**. Completing an arbitrary current-level task is not sufficient: doing this activity must plausibly help the person recognize themselves in the description of the next level.
 2. Show that next-level description while defining the activity, in the tutorial and during review. Separate initial self-assessment from verified progression; do not reset existing people's levels or erase historical completions.
 3. A submission must bind its evidence to the exact activity, mode, source level, target level/clarity description and effort tier. Changes invalidate approvals for the superseded revision.
