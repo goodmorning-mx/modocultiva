@@ -1,19 +1,43 @@
-import { useId } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
+
+// Fixed positions keep artwork stable across renders, hydration and exports.
+const sparks = [
+  [-70, 18, 2.1, 0, 6.8], [-52, 53, 1.3, -3.4, 8.2], [-31, 73, 1.7, -1.8, 7.6],
+  [5, 61, 1.1, -5.2, 9], [34, 68, 1.8, -4.6, 7.2], [61, 34, 1.3, -2.1, 8.6],
+  [76, 8, 2, -5.8, 7.8], [57, -31, 1.1, -3.8, 9.2], [-62, -27, 1.5, -2.8, 8.4],
+  [-14, 82, 1, -6.4, 9.6], [24, -58, 1.3, -1, 8], [-42, -49, 1, -4.2, 7.4],
+];
 
 export function BadgeMedal({ badgeKey, icon, small = false }: { badgeKey: string; icon: string; small?: boolean }) {
   const id = useId().replace(/:/g, '');
+  const artwork = useRef<SVGSVGElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const element = artwork.current;
+    if (!element || small || typeof IntersectionObserver === 'undefined') return;
+    let inViewport = false;
+    const update = () => setVisible(inViewport && !document.hidden);
+    const observer = new IntersectionObserver(([entry]) => { inViewport = entry.isIntersecting; update(); });
+    observer.observe(element);
+    document.addEventListener('visibilitychange', update);
+    return () => { observer.disconnect(); document.removeEventListener('visibilitychange', update); };
+  }, [badgeKey, small]);
   if (badgeKey !== 'completionist' && badgeKey !== 'maxed') return <span className="achievement-medal achievement-medal--regular" aria-hidden="true">{icon}</span>;
   const maxed = badgeKey === 'maxed';
-  return <svg className={`achievement-medal achievement-medal--premium${small ? ' achievement-medal--small' : ''}`} viewBox="0 0 160 160" fill="none" aria-hidden="true">
+  return <svg ref={artwork} className={`achievement-medal achievement-medal--premium achievement-medal--${badgeKey}${small ? ' achievement-medal--small' : ''}`} data-motion={visible ? 'active' : 'paused'} viewBox="0 0 160 160" fill="none" aria-hidden="true" focusable="false">
     <defs>
       <linearGradient id={`${id}-metal`} x1="30" y1="15" x2="122" y2="145" gradientUnits="userSpaceOnUse">
-        <stop stopColor={maxed ? '#e9dcff' : '#fff0b9'} /><stop offset=".28" stopColor={maxed ? '#b3a0ec' : '#d9b765'} /><stop offset=".49" stopColor={maxed ? '#fff0ff' : '#fff1ba'} /><stop offset=".7" stopColor={maxed ? '#7461a4' : '#88662c'} /><stop offset="1" stopColor={maxed ? '#b9dfd6' : '#e2c879'} />
+        <stop stopColor={maxed ? '#ffffff' : '#fff0b9'} /><stop offset=".28" stopColor={maxed ? '#aebfcd' : '#d9b765'} /><stop offset=".49" stopColor={maxed ? '#f5fcff' : '#fff1ba'} /><stop offset=".7" stopColor={maxed ? '#6489a9' : '#88662c'} /><stop offset="1" stopColor={maxed ? '#cceaff' : '#e2c879'} />
       </linearGradient>
-      <radialGradient id={`${id}-face`}><stop stopColor={maxed ? '#39334e' : '#384432'} /><stop offset="1" stopColor="#0c2029" /></radialGradient>
+      <radialGradient id={`${id}-face`}><stop stopColor={maxed ? '#3a586e' : '#384432'} /><stop offset="1" stopColor="#0c2029" /></radialGradient>
     </defs>
+    {!small && <g className="achievement-sparks" fill={maxed ? '#e9f8ff' : '#ffe6a0'}>
+      {sparks.map(([x, y, radius, delay, duration], i) => <g key={i} className="achievement-spark" style={{ '--spark-x': `${x}px`, '--spark-y': `${y}px`, '--spark-drift': `${x * .16}px`, '--spark-delay': `${delay}s`, '--spark-duration': `${duration}s` } as CSSProperties}><circle cx="80" cy="80" r={radius} /></g>)}
+    </g>}
+    {!small && <g className="achievement-energy" stroke={maxed ? '#aadfff' : '#f0cc76'} strokeWidth=".7" opacity=".45"><ellipse cx="80" cy="80" rx="78" ry="70" /><ellipse cx="80" cy="80" rx="73" ry="78" strokeDasharray="14 36 3 47" /></g>}
     {maxed ? <>
       <path d="M80 7 125 28 151 80 125 132 80 153 35 132 9 80 35 28Z" fill={`url(#${id}-metal)`} />
-      <path d="M80 15 120 34 142 80 120 126 80 145 40 126 18 80 40 34Z" fill={`url(#${id}-face)`} stroke="#e6d6ff" strokeOpacity=".6" />
+      <path d="M80 15 120 34 142 80 120 126 80 145 40 126 18 80 40 34Z" fill={`url(#${id}-face)`} stroke="#e9f7ff" strokeOpacity=".8" />
       <path d="m80 24 33 17 19 39-19 39-33 17-33-17-19-39 19-39Z" stroke={`url(#${id}-metal)`} strokeWidth=".7" />
       <path d="m61 48 5 10h28l5-10-12 6-7-14-7 14Z" fill={`url(#${id}-metal)`} />
       <path d="m80 117 4 8-4 8-4-8Z" fill={`url(#${id}-metal)`} />
