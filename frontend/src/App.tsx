@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
 import { VisionImage } from './VisionImage';
@@ -6,15 +6,34 @@ import { JourneyActivityCard } from './JourneyActivityCard';
 import { ModeAiStudio } from './ModeAiStudio';
 import { ClarityGoal } from './ClarityGoal';
 import clarityLevels from './clarity-levels.json';
+import { createStateSyncQueue, type StateSnapshot, type StateSyncQueue } from './stateSyncQueue';
+import { cloneStateValue, reconcileState, type StateObject } from './stateReconcile';
+import { accountStateKey, accountRecoveryKey, captureLegacyArchive, hasLegacyConsent, legacyConsentKey, legacyImportDocument, pendingAccountRecord, readPendingAccount, recoverAccountState, scopedPersonalStorage, stageCommittedUi, writeStoredJson, type AccountStateScope, type PendingAccountState, type RecoveryStorage } from './stateRecovery';
+import { StateAccountBoundary, type StateAccountPhase } from './StateAccountBoundary';
+import { stateAccountCopy } from './stateAccountMessages';
+import { activitySha256, createCommunityClient, isCommunityCardId, type CardAudience, type CommunitySubmission } from './communityClient';
+import { PublicActivityCard } from './PublicActivityCard';
+import { adaptActivityFlow } from './activityFlowAdapter';
+import type { ActivityJourneyFlowProps } from './ActivityJourneyFlow';
+import type { EvidenceDraft } from './visualEvidence';
+import { onboardingIntegrationCopy } from './onboardingIntegrationMessages';
+import { WelcomeIntro } from './WelcomeIntro';
+import { decideWelcomeIntro, markWelcomeIntroComplete, readWelcomeIntroCompletion, welcomeIntroStorageKey, type WelcomeIntroScope } from './welcomeIntroState';
+import { GuidedTour } from './GuidedTour';
+import { getGuidedTourCopy, guidedTourStepCopy, type TourStageId } from './guidedTourMessages';
+import type { GuidedTourStep, TourMethod } from './guidedTourCore';
+import { clarityTransition } from './clarityRubric';
+import { CommunityPanel, type CommunityShareCandidate, type CommunityTab } from './CommunityPanel';
+import './onboarding-integration.css';
 import { modeAiMessage, readModeAiProposal } from './modeAiMessages';
 import { CultivaLeaf, CULTIVA_LEAF_SHAPE } from './CultivaLeaf';
 import { activityReactionKey, cleanReactions, type ActivityReactions, type Reaction } from './journeySocial';
 import { calculateCultivaLevel, CULTIVA_MAX_LEVEL } from './cultivaLevel';
 import { lifeMapLabel } from './lifeMapLabel';
-import { BadgesGallery, ActivityCompletion } from './BadgesGallery';
+import { BadgesGallery } from './BadgesGallery';
 import { BadgeMedal } from './BadgeMedal';
 import { badgeCopy } from './badgeMessages';
-import { badgeProgress, cleanCompletions, isActivityCompleted, hasVisionImage, toggleActivityCompletion, eligibleFeaturedBadges, type ActivityCompletions } from './badgeProgress';
+import { badgeProgress, cleanCompletions, hasVisionImage, eligibleFeaturedBadges, type ActivityCompletions } from './badgeProgress';
 import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
@@ -53,6 +72,8 @@ type Skin = 'holista' | 'dj' | 'nocturna' | 'lucid' | 'zen' | 'mission' | 'rpg' 
 type PaletteFilter = 'none' | 'nocturna' | 'lucid';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
 type PoolActivity = { title: string; description: string };
+type TourTopic = TourStageId | 'controlStrongest' | 'controlLeast' | 'controlFocus' | 'controlTrivia';
+const tourTopics: readonly TourTopic[] = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
 type AccessRequest = { feature: string; plan: 'Cuenta' | 'Entry' | 'Gold' | 'Ultimate Mode'; returnView: View };
 type PendingActivity = { level: number; entry: ActivityEntry };
 type PlanKey = 'basic' | 'gold' | 'ultimate';
@@ -619,8 +640,9 @@ const detectBrowserLanguage = (): Language => {
 };
 const detectLanguage = (): Language => {
   if (typeof window === 'undefined') return 'es';
-  const saved = window.localStorage.getItem('modoCultiva_language') as Language | null;
-  const savedSource = window.localStorage.getItem('modoCultiva_language_source');
+  const storage = scopedPersonalStorage(deviceStateStorage(), null);
+  const saved = storage.getItem('modoCultiva_language') as Language | null;
+  const savedSource = storage.getItem('modoCultiva_language_source');
   // Only an explicit choice in the selector should override the browser locale.
   // Older releases did not store the source, so their value is treated as stale.
   if (savedSource === 'manual' && saved && supportedLanguages.includes(saved)) return saved;
@@ -636,7 +658,7 @@ const authClient = {
   async logout(refresh_token: string): Promise<void> { await fetch(`${apiUrl}/auth/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token }) }); },
 };
 
-const legacyDeviceStateKey = 'modoCultiva_deviceStateMigrated';
+const deviceStateStorage = (): RecoveryStorage | null => { try { return window.localStorage; } catch { return null; } };
 const readLegacyDeviceState = (): Record<string, unknown> => {
   const readJson = (key: string, fallback: unknown) => {
     try { return JSON.parse(window.localStorage.getItem(key) ?? JSON.stringify(fallback)); }
@@ -646,6 +668,7 @@ const readLegacyDeviceState = (): Record<string, unknown> => {
     levels: { ...defaultLevels, ...readJson('modoCultiva_lastState', {}) },
     presets: readJson('modoCultiva_presets', {}),
     activityDrafts: readJson('modoCultiva_activityDrafts', {}),
+    activityAlignments: readJson('modoCultiva_activityAlignments', {}),
     activityCompletions: cleanCompletions(readJson('modoCultiva_activityCompletions', {})),
     activityReactions: cleanReactions(readJson('modoCultiva_activityReactions', {})),
     insightRequests: readJson('modoCultiva_insightRequests', {}),
@@ -679,9 +702,13 @@ const hasLegacyDeviceConfiguration = (state: Record<string, unknown>): boolean =
 };
 
 function App() {
+  const [legacyArchive] = useState<StateObject>(() => {
+    try { return captureLegacyArchive(deviceStateStorage(), readLegacyDeviceState()); } catch { return {}; }
+  });
+  const personalStorageRef = useRef(scopedPersonalStorage(deviceStateStorage(), null));
   const [language, setLanguage] = useState<Language>(detectLanguage);
   const handleLanguageChange = (nextLanguage: Language) => {
-    window.localStorage.setItem('modoCultiva_language_source', 'manual');
+    try { personalStorageRef.current.setItem('modoCultiva_language_source', 'manual'); } catch { /* Session language still works. */ }
     setLanguage(nextLanguage);
   };
   const tr = (key: string) => extraTranslations[key]?.[language] ?? translations[language][key] ?? translations.es[key] ?? key;
@@ -748,7 +775,7 @@ function App() {
   const poolActivities = (modeKey: string, level: number) => getBankActivities(modeKey, level, language);
   const [profileName, setProfileName] = useState(() => {
     try {
-      const saved = window.localStorage.getItem('modoCultiva_profileName');
+      const saved = personalStorageRef.current.getItem('modoCultiva_profileName');
       return saved === defaultUserProfile.name ? '' : (saved ?? '');
     } catch {
       return '';
@@ -756,7 +783,7 @@ function App() {
   });
   const [levels, setLevels] = useState<Record<string, number>>(() => {
     try {
-      const saved = window.localStorage.getItem('modoCultiva_lastState');
+      const saved = personalStorageRef.current.getItem('modoCultiva_lastState');
       return saved ? { ...defaultLevels, ...JSON.parse(saved) } : defaultLevels;
     } catch {
       return defaultLevels;
@@ -785,25 +812,33 @@ function App() {
   }, [selectedMode?.key, activeActivity, activityEntry, language]);
   const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>(() => {
     try {
-      return JSON.parse(window.localStorage.getItem('modoCultiva_activityDrafts') ?? '{}');
+      return JSON.parse(personalStorageRef.current.getItem('modoCultiva_activityDrafts') ?? '{}');
     } catch {
       return {};
     }
   });
   const [activityCompletions, setActivityCompletions] = useState<ActivityCompletions>(() => {
-    try { return cleanCompletions(JSON.parse(window.localStorage.getItem('modoCultiva_activityCompletions') ?? '{}')); }
+    try { return cleanCompletions(JSON.parse(personalStorageRef.current.getItem('modoCultiva_activityCompletions') ?? '{}')); }
     catch { return {}; }
   });
-  const confirmActivity = (modeKey: string, level: number) => {
-    if (level === 9) return;
-    const slot = `${modeKey}-${level}`;
-    const next = toggleActivityCompletion(slot, activityDrafts[slot] ?? '', activityCompletions);
-    // Persist before acknowledging success. A full cache must not fake a completion.
-    window.localStorage.setItem('modoCultiva_activityCompletions', JSON.stringify(next));
-    setActivityCompletions(next);
-  };
+  const [activityAlignments, setActivityAlignments] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(personalStorageRef.current.getItem('modoCultiva_activityAlignments') ?? '{}'); }
+    catch { return {}; }
+  });
+  const [communitySubmissions, setCommunitySubmissions] = useState<CommunitySubmission[]>([]);
+  // Visual draft proof stays in this session's memory, never in localStorage,
+  // the public state document, profile projections or social share payloads.
+  const [evidenceDrafts, setEvidenceDrafts] = useState<Record<string, { activity: string; draft: EvidenceDraft }>>({});
+  const [cardAudienceDrafts, setCardAudienceDrafts] = useState<Record<string, CardAudience>>({});
+  const [publicCardId, setPublicCardId] = useState<string | null>(() => {
+    const id = new URLSearchParams(window.location.search).get('community-card');
+    return id && isCommunityCardId(id) ? id : null;
+  });
+  const [communityShareCandidates, setCommunityShareCandidates] = useState<CommunityShareCandidate[]>([]);
+  const [communityOpen, setCommunityOpen] = useState(false);
+  const [communityTab, setCommunityTab] = useState<CommunityTab>('network');
   const [activityReactions, setActivityReactions] = useState<ActivityReactions>(() => {
-    try { return cleanReactions(JSON.parse(window.localStorage.getItem('modoCultiva_activityReactions') ?? '{}')); }
+    try { return cleanReactions(JSON.parse(personalStorageRef.current.getItem('modoCultiva_activityReactions') ?? '{}')); }
     catch { return {}; }
   });
   const reactToActivity = (modeKey: string, level: number, reaction: Reaction) => {
@@ -812,12 +847,12 @@ function App() {
     if (next[key] === reaction) delete next[key];
     else next[key] = reaction;
     // Persist first: quota errors must not look like a successfully saved reaction.
-    window.localStorage.setItem('modoCultiva_activityReactions', JSON.stringify(next));
+    personalStorageRef.current.setItem('modoCultiva_activityReactions', JSON.stringify(next));
     setActivityReactions(next);
   };
   const [insightRequests, setInsightRequests] = useState<Record<string, boolean>>(() => {
     try {
-      return JSON.parse(window.localStorage.getItem('modoCultiva_insightRequests') ?? '{}');
+      return JSON.parse(personalStorageRef.current.getItem('modoCultiva_insightRequests') ?? '{}');
     } catch {
       return {};
     }
@@ -834,18 +869,28 @@ function App() {
     }
   });
   const isAuthenticated = Boolean(authTokens?.access_token);
-  const isOwnerAccount = authTokens?.identity.email?.trim().toLowerCase() === ownerEmail;
+  const [verifiedIdentity, setVerifiedIdentity] = useState<AuthTokens['identity'] | null>(null);
+  const isOwnerAccount = verifiedIdentity?.email?.trim().toLowerCase() === ownerEmail;
   const displayedProfileName = isOwnerAccount
     ? (profileName.trim() || defaultUserProfile.name)
     : (profileName.trim() === defaultUserProfile.name ? '' : profileName);
   const displayedProfileRole = isOwnerAccount ? defaultUserProfile.role : '';
   const [stateHydrated, setStateHydrated] = useState(false);
+  const [hydrationAttempt, setHydrationAttempt] = useState(0);
+  const [accountPhase, setAccountPhase] = useState<StateAccountPhase>('loading');
+  const [signingOut, setSigningOut] = useState(false);
+  const activeSessionRef = useRef(authTokens?.access_token ?? null);
+  const hydrationGenerationRef = useRef(0);
+  const accountScopeRef = useRef<AccountStateScope | null>(null);
+  const recoveryMemoryRef = useRef(new Map<string, PendingAccountState>());
+  const consentMemoryRef = useRef(new Set<string>());
+  const consentChoiceRef = useRef<((choice: 'import' | 'cloud-only' | 'cancel') => void) | null>(null);
   const [stateSyncStatus, setStateSyncStatus] = useState<'syncing' | 'synced' | 'error'>('syncing');
   const [authError, setAuthError] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
   const [activePlan, setActivePlan] = useState<PlanKey>(() => {
     try {
-      const saved = window.localStorage.getItem('modoCultiva_plan') as PlanKey | null;
+      const saved = personalStorageRef.current.getItem('modoCultiva_plan') as PlanKey | null;
       return saved === 'basic' || saved === 'gold' || saved === 'ultimate' ? saved : 'ultimate';
     } catch {
       return 'ultimate';
@@ -871,7 +916,7 @@ function App() {
   const [labFlippedCard, setLabFlippedCard] = useState<string | null>(null);
   const [featuredBadges, setFeaturedBadges] = useState<string[]>(() => {
     try {
-      const saved = JSON.parse(window.localStorage.getItem('modoCultiva_featuredBadges') ?? '[]');
+      const saved = JSON.parse(personalStorageRef.current.getItem('modoCultiva_featuredBadges') ?? '[]');
       return Array.isArray(saved) ? saved.slice(0, 3) : [];
     } catch {
       return [];
@@ -879,8 +924,8 @@ function App() {
   });
   const [skin, setSkin] = useState<Skin>(() => {
     try {
-      const savedSkin = window.localStorage.getItem('modoCultiva_skin');
-      if (savedSkin !== 'holista') window.localStorage.setItem('modoCultiva_skin', 'holista');
+      const savedSkin = personalStorageRef.current.getItem('modoCultiva_skin');
+      if (savedSkin !== 'holista') personalStorageRef.current.setItem('modoCultiva_skin', 'holista');
       return 'holista';
     } catch {
       return 'holista';
@@ -888,7 +933,7 @@ function App() {
   });
   const [paletteFilter, setPaletteFilter] = useState<PaletteFilter>(() => {
     try {
-      window.localStorage.removeItem('modoCultiva_palette_filter');
+      personalStorageRef.current.removeItem('modoCultiva_palette_filter');
       return 'none';
     } catch {
       return 'none';
@@ -898,7 +943,7 @@ function App() {
     if (skin !== 'holista' || paletteFilter === 'none') return;
     setPaletteFilter('none');
     try {
-      window.localStorage.removeItem('modoCultiva_palette_filter');
+      personalStorageRef.current.removeItem('modoCultiva_palette_filter');
     } catch {
       // Holista remains on its original palette for the current session.
     }
@@ -907,7 +952,7 @@ function App() {
   const [djFocusedMode, setDjFocusedMode] = useState(modes[0].key);
   const [profileImage, setProfileImage] = useState<string | null>(() => {
     try {
-      return window.localStorage.getItem('modoCultiva_profileImage');
+      return personalStorageRef.current.getItem('modoCultiva_profileImage');
     } catch {
       return null;
     }
@@ -915,20 +960,20 @@ function App() {
   const [customizingAvatar, setCustomizingAvatar] = useState(false);
   const [visionImages, setVisionImages] = useState<Record<string, string>>(() => {
     try {
-      return JSON.parse(window.localStorage.getItem('modoCultiva_visionImages') ?? '{}');
+      return JSON.parse(personalStorageRef.current.getItem('modoCultiva_visionImages') ?? '{}');
     } catch {
       return {};
     }
   });
   const [presets, setPresets] = useState<Record<string, Preset>>(() => {
     try {
-      return JSON.parse(window.localStorage.getItem('modoCultiva_presets') ?? '{}');
+      return JSON.parse(personalStorageRef.current.getItem('modoCultiva_presets') ?? '{}');
     } catch {
       return {};
     }
   });
   const [presetName, setPresetName] = useState('');
-  const [selectedPreset, setSelectedPreset] = useState(() => window.localStorage.getItem('modoCultiva_selectedPreset') ?? '');
+  const [selectedPreset, setSelectedPreset] = useState(() => personalStorageRef.current.getItem('modoCultiva_selectedPreset') ?? '');
   const [presetNotice, setPresetNotice] = useState<string | null>(null);
   const [renamingPreset, setRenamingPreset] = useState(false);
   const [presetRenameName, setPresetRenameName] = useState('');
@@ -941,6 +986,145 @@ function App() {
   const journeyPanelRef = useRef<HTMLElement | null>(null);
   const journeyReturnScrollTop = useRef(0);
   const cultEmbeddedRef = useRef<HTMLElement | null>(null);
+  const stateQueueRef = useRef<StateSyncQueue | null>(null);
+  const stateQueueSessionRef = useRef<string | null>(null);
+  const [onboardingWelcomeCompleted, setOnboardingWelcomeCompleted] = useState(false);
+  const [welcomeScope, setWelcomeScope] = useState<WelcomeIntroScope | null>(null);
+  const welcomeChecked = useRef(new Set<string>());
+  const [guestWelcomeAudience] = useState(() => {
+    try {
+      const key = 'modoCultiva_welcomeVisitorId';
+      const visitorId = window.localStorage.getItem(key) || crypto.randomUUID();
+      const established = hasLegacyDeviceConfiguration(readLegacyDeviceState());
+      window.localStorage.setItem(key, visitorId);
+      return { visitorId, established };
+    } catch { return { visitorId: crypto.randomUUID(), established: true }; }
+  });
+  const [tourIndex, setTourIndex] = useState<number | null>(null);
+  const [tourModeKey, setTourModeKey] = useState<string | null>(null);
+  const [tourVisitedMethods, setTourVisitedMethods] = useState<TourMethod[]>([]);
+  const [validationReceipts, setValidationReceipts] = useState<Record<string, unknown>>({});
+  const [legacyCompletionSlots, setLegacyCompletionSlots] = useState<readonly string[]>([]);
+  const communityClient = useMemo(() => authTokens?.access_token && stateHydrated
+    ? createCommunityClient(apiUrl, authTokens.access_token) : null, [authTokens?.access_token, stateHydrated]);
+  const persistedDocument: StateObject = { profileName, profileImage, levels, activityDrafts, activityAlignments, activityCompletions, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language, onboardingWelcomeCompleted };
+  const persistedDocumentRef = useRef(persistedDocument);
+  const committedDocumentRef = useRef<StateObject | null>(null);
+  const guestDocumentRef = useRef(cloneStateValue(persistedDocument));
+
+  const sessionIsCurrent = (token: string | null | undefined, queue?: StateSyncQueue) => Boolean(token)
+    && activeSessionRef.current === token && stateQueueSessionRef.current === token
+    && (!queue || stateQueueRef.current === queue);
+
+  const retainPendingState = (queue = stateQueueRef.current, scope = accountScopeRef.current): boolean => {
+    if (!queue || !scope) return true;
+    const record = pendingAccountRecord(scope, queue.getSnapshot(), queue.getDesired());
+    recoveryMemoryRef.current.set(accountStateKey(scope), record);
+    return writeStoredJson(deviceStateStorage(), accountRecoveryKey(scope), record);
+  };
+
+  // Only committed UI deltas enter canonical staging; renders cannot overwrite it.
+  useLayoutEffect(() => {
+    const token = authTokens?.access_token;
+    const queue = stateQueueRef.current;
+    if (!token) {
+      if (!signingOut) {
+        persistedDocumentRef.current = cloneStateValue(persistedDocument);
+        guestDocumentRef.current = cloneStateValue(persistedDocument);
+      }
+      return;
+    }
+    if (!stateHydrated || !queue || !sessionIsCurrent(token, queue)) return;
+    const base = committedDocumentRef.current;
+    if (base) {
+      persistedDocumentRef.current = stageCommittedUi(base, persistedDocument, persistedDocumentRef.current);
+      queue.stage(current => stageCommittedUi(base, persistedDocument, current));
+    } else queue.stage(persistedDocumentRef.current);
+    committedDocumentRef.current = cloneStateValue(persistedDocument);
+    retainPendingState(queue);
+  });
+
+  const reconcileCanonicalState = (base: StateObject, remote: StateObject, snapshot: StateSnapshot) => {
+    // Close the canonical-ack / pending React-commit window synchronously.
+    persistedDocumentRef.current = reconcileState(base, persistedDocumentRef.current, remote);
+    const field = <T,>(key: string, current: T): T => reconcileState({ value: base[key] }, { value: current }, { value: remote[key] }).value as T;
+    if ('profileName' in remote) setProfileName(current => field('profileName', current));
+    if ('profileImage' in remote) setProfileImage(current => field('profileImage', current));
+    if ('levels' in remote) setLevels(current => field('levels', current));
+    if ('activityDrafts' in remote) setActivityDrafts(current => field('activityDrafts', current));
+    if ('activityAlignments' in remote) setActivityAlignments(current => field('activityAlignments', current));
+    setActivityCompletions(cleanCompletions(remote.activityCompletions));
+    if ('activityReactions' in remote) setActivityReactions(current => field('activityReactions', current));
+    if ('insightRequests' in remote) setInsightRequests(current => field('insightRequests', current));
+    if ('presets' in remote) setPresets(current => field('presets', current));
+    if ('visionImages' in remote) setVisionImages(current => field('visionImages', current));
+    if ('skin' in remote) setSkin(current => field('skin', current));
+    if ('paletteFilter' in remote) setPaletteFilter(current => field('paletteFilter', current));
+    if ('activePlan' in remote) setActivePlan(current => field('activePlan', current));
+    if ('featuredBadges' in remote) setFeaturedBadges(current => field('featuredBadges', current));
+    if ('selectedPreset' in remote) setSelectedPreset(current => field('selectedPreset', current));
+    if ('language' in remote) setLanguage(current => field('language', current));
+    if ('onboardingWelcomeCompleted' in remote) setOnboardingWelcomeCompleted(current => field('onboardingWelcomeCompleted', current));
+    setValidationReceipts(snapshot.validationReceipts && typeof snapshot.validationReceipts === 'object' ? snapshot.validationReceipts as Record<string, unknown> : {});
+    setLegacyCompletionSlots(snapshot.legacyCompletionSlots ?? []);
+    retainPendingState();
+  };
+
+  const flushPersonalState = async () => {
+    const token = authTokens?.access_token;
+    const queue = stateQueueRef.current;
+    if (!queue || !stateHydrated || !sessionIsCurrent(token, queue)) throw new Error(stateAccountCopy(language).needsSession);
+    queue.stage(persistedDocumentRef.current);
+    retainPendingState(queue);
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const result = await queue.flush();
+      if (!sessionIsCurrent(token, queue)) throw new DOMException('Session changed', 'AbortError');
+      retainPendingState(queue);
+      if (result.status !== 'synced') { setStateSyncStatus('error'); throw new Error(stateAccountCopy(language).saveFailed); }
+      if (!queue.isDirty()) { setStateSyncStatus('synced'); return; }
+    }
+    throw new Error(stateAccountCopy(language).saveFailed);
+  };
+
+  const refreshPersonalState = async () => {
+    const token = authTokens?.access_token;
+    const queue = stateQueueRef.current;
+    if (!token || !queue || !sessionIsCurrent(token, queue)) return;
+    await queue.refreshFrom(async signal => {
+      if (!sessionIsCurrent(token, queue)) throw new DOMException('Session changed', 'AbortError');
+      const response = await fetch(`${apiUrl}/state`, { signal, cache: 'no-store', headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error(stateAccountCopy(language).errorHint);
+      const snapshot = await response.json() as StateSnapshot;
+      if (!sessionIsCurrent(token, queue)) throw new DOMException('Session changed', 'AbortError');
+      return snapshot;
+    });
+  };
+
+  useEffect(() => {
+    try { personalStorageRef.current.setItem('modoCultiva_activityAlignments', JSON.stringify(activityAlignments)); }
+    catch { /* The live definition remains available if the device cache is full. */ }
+  }, [activityAlignments]);
+
+  const refreshCommunity = async (signal?: AbortSignal) => {
+    if (!communityClient) return;
+    const client = communityClient;
+    const token = authTokens?.access_token;
+    const result = await client.submissions(signal);
+    if (signal?.aborted || stateQueueSessionRef.current !== token) return;
+    setCommunitySubmissions(result.submissions);
+    await refreshPersonalState();
+  };
+
+  useEffect(() => {
+    setCommunitySubmissions([]); setEvidenceDrafts({}); setCardAudienceDrafts({}); setCommunityShareCandidates([]);
+    if (!communityClient) return;
+    const controller = new AbortController();
+    const refresh = () => { if (!document.hidden) void refreshCommunity(controller.signal).catch(() => { /* No simulated reviews on network failure. */ }); };
+    refresh();
+    const interval = window.setInterval(refresh, 20_000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { controller.abort(); window.clearInterval(interval); document.removeEventListener('visibilitychange', refresh); };
+  }, [communityClient]);
 
   useEffect(() => {
     window.history.scrollRestoration = 'manual';
@@ -952,10 +1136,10 @@ function App() {
   }, [view]);
 
   useEffect(() => {
-    window.localStorage.setItem('modoCultiva_language', language);
-    if (window.localStorage.getItem('modoCultiva_language_source') !== 'manual') {
-      window.localStorage.setItem('modoCultiva_language_source', 'auto');
-    }
+    try {
+      personalStorageRef.current.setItem('modoCultiva_language', language);
+      if (personalStorageRef.current.getItem('modoCultiva_language_source') !== 'manual') personalStorageRef.current.setItem('modoCultiva_language_source', 'auto');
+    } catch { /* Cloud state and the current language remain available. */ }
     document.documentElement.lang = language === 'zh' ? 'zh-CN' : language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
   }, [language]);
@@ -1044,7 +1228,7 @@ function App() {
       // These labels are already localized by React; preserve the complete mode word.
       if (parent.closest('.overview-mode-name')) return;
       if (parent.closest('.profile-cultiva-level')) return;
-      if (parent.closest('.badges-gallery, .activity-completion, .journey-vision-completion, .clarity-goal')) return;
+      if (parent.closest('.badges-gallery, .activity-journey-flow, .community-panel, .public-activity-card, .state-account-boundary, .journey-social-card, .mc-welcome, .guided-tour-layer, .demo-profile-notice, .demo-profile-label, .journey-vision-completion, .clarity-goal')) return;
       let next = node.nodeValue ?? '';
       replacements.forEach((value, source) => {
         if (source && next.includes(source)) next = next.split(source).join(value);
@@ -1059,8 +1243,50 @@ function App() {
     });
   };
 
+  const normalizePersonalDocument = (state: StateObject): StateObject => ({
+    ...state,
+    profileName: typeof state.profileName === 'string' ? state.profileName : '',
+    profileImage: typeof state.profileImage === 'string' ? state.profileImage : null,
+    levels: { ...defaultLevels, ...(state.levels && typeof state.levels === 'object' ? state.levels as Record<string, number> : {}) },
+    activityDrafts: state.activityDrafts && typeof state.activityDrafts === 'object' ? state.activityDrafts : {},
+    activityAlignments: state.activityAlignments && typeof state.activityAlignments === 'object' ? state.activityAlignments : {},
+    activityCompletions: cleanCompletions(state.activityCompletions),
+    activityReactions: cleanReactions(state.activityReactions),
+    insightRequests: state.insightRequests && typeof state.insightRequests === 'object' ? state.insightRequests : {},
+    presets: state.presets && typeof state.presets === 'object' ? state.presets : {},
+    visionImages: state.visionImages && typeof state.visionImages === 'object' ? state.visionImages : {},
+    featuredBadges: Array.isArray(state.featuredBadges) ? state.featuredBadges : [],
+    selectedPreset: typeof state.selectedPreset === 'string' && state.presets && typeof state.presets === 'object' && Object.prototype.hasOwnProperty.call(state.presets, state.selectedPreset) ? state.selectedPreset : '',
+    language: typeof state.language === 'string' && supportedLanguages.includes(state.language as Language) ? state.language : detectBrowserLanguage(),
+    skin: typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin) ? state.skin : 'holista',
+    paletteFilter: state.paletteFilter === 'nocturna' || state.paletteFilter === 'lucid' ? state.paletteFilter : 'none',
+    activePlan: state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate' ? state.activePlan : 'ultimate',
+    onboardingWelcomeCompleted: state.onboardingWelcomeCompleted === true,
+  });
+
+  const applyPersonalDocument = (state: StateObject) => {
+    setProfileName(state.profileName as string); setProfileImage(state.profileImage as string | null);
+    setLevels(state.levels as Record<string, number>);
+    setActivityDrafts(state.activityDrafts as Record<string, string>); setActivityAlignments(state.activityAlignments as Record<string, string>);
+    const remoteCompletions = cleanCompletions(state.activityCompletions);
+    setActivityCompletions(remoteCompletions);
+    setActivityReactions(cleanReactions(state.activityReactions)); setInsightRequests(state.insightRequests as Record<string, boolean>);
+    setPresets(state.presets as Record<string, Preset>); setVisionImages(state.visionImages as Record<string, string>);
+    setFeaturedBadges(state.featuredBadges as string[]); setSelectedPreset(state.selectedPreset as string);
+    setLanguage(state.language as Language); setSkin(state.skin as Skin); setPaletteFilter(state.paletteFilter as PaletteFilter);
+    setActivePlan(state.activePlan as PlanKey); setOnboardingWelcomeCompleted(state.onboardingWelcomeCompleted === true);
+  };
+
   const completeLogin = (tokens: AuthTokens, destination: View, nextActivity: PendingActivity | null) => {
-    window.sessionStorage.setItem('gm-auth-tokens', JSON.stringify(tokens));
+    const previous = stateQueueRef.current;
+    if (previous?.isDirty() && !retainPendingState(previous)) throw new Error(stateAccountCopy(language).saveFailed);
+    if (!activeSessionRef.current) guestDocumentRef.current = cloneStateValue(persistedDocumentRef.current);
+    // Invalidate old continuations synchronously, before React's auth effect.
+    activeSessionRef.current = tokens.access_token;
+    previous?.dispose(); stateQueueRef.current = null; stateQueueSessionRef.current = null;
+    setStateHydrated(false); setVerifiedIdentity(null); setAccountPhase('loading');
+    consentChoiceRef.current?.('cancel'); consentChoiceRef.current = null;
+    try { window.sessionStorage.setItem('gm-auth-tokens', JSON.stringify(tokens)); } catch { /* Keep the explicitly authenticated in-memory session. */ }
     setAuthTokens(tokens);
     setAuthError(null);
     setPendingAccess(null);
@@ -1075,19 +1301,55 @@ function App() {
   };
 
   const logout = async () => {
+    const token = activeSessionRef.current;
+    const queue = stateQueueRef.current;
+    if (signingOut && accountPhase !== 'logout-error') return;
+    setSigningOut(true); setAccountPhase('signing-out');
+    consentChoiceRef.current?.('cancel'); consentChoiceRef.current = null;
+    let timeout: number | undefined;
     try {
-      if (authTokens?.refresh_token) await authClient.logout(authTokens.refresh_token);
+      if (queue && sessionIsCurrent(token, queue)) {
+        queue.stage(persistedDocumentRef.current);
+        retainPendingState(queue);
+        try {
+          await Promise.race([flushPersonalState(), new Promise<never>((_, reject) => {
+            timeout = window.setTimeout(() => reject(new Error('Save timed out')), 8000);
+          })]);
+        } catch { /* An account-scoped durable recovery copy is the offline fallback. */ }
+        finally { if (timeout !== undefined) window.clearTimeout(timeout); }
+        if (activeSessionRef.current !== token) return;
+        if (queue.isDirty() && !retainPendingState(queue)) {
+          setAccountPhase('logout-error'); return;
+        }
+      }
+      if (activeSessionRef.current !== token) return;
+      activeSessionRef.current = null;
+      queue?.dispose(); stateQueueRef.current = null; stateQueueSessionRef.current = null;
+      hydrationGenerationRef.current += 1;
+      if (authTokens?.refresh_token) {
+        await Promise.race([authClient.logout(authTokens.refresh_token), new Promise<void>(resolve => {
+          timeout = window.setTimeout(resolve, 3000);
+        })]);
+      }
     } catch {
       // The local session is still cleared if the server is temporarily unavailable.
-    }
-    window.sessionStorage.removeItem('gm-auth-tokens');
+    } finally { if (timeout !== undefined) window.clearTimeout(timeout); }
+    if (activeSessionRef.current !== null) return;
+    try { window.sessionStorage.removeItem('gm-auth-tokens'); } catch { /* In-memory logout still works. */ }
+    personalStorageRef.current = scopedPersonalStorage(deviceStateStorage(), null);
+    accountScopeRef.current = null; committedDocumentRef.current = null;
+    applyPersonalDocument(normalizePersonalDocument(guestDocumentRef.current));
+    persistedDocumentRef.current = cloneStateValue(guestDocumentRef.current);
     setAuthTokens(null);
     setStateHydrated(false);
+    setVerifiedIdentity(null);
+    setWelcomeScope(null); setTourIndex(null);
     setSelectedMode(null);
     setCultOpen(false);
     setActiveActivity(null);
     setPendingAccess(null);
     loginSkinChoice.current = null;
+    setSigningOut(false);
     setView('welcome');
   };
 
@@ -1114,88 +1376,118 @@ function App() {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem('modoCultiva_lastState', JSON.stringify(levels));
+      personalStorageRef.current.setItem('modoCultiva_lastState', JSON.stringify(levels));
     } catch {
       // Local persistence is optional for the prototype.
     }
   }, [levels]);
 
   useEffect(() => {
+    retainPendingState();
+    stateQueueRef.current?.dispose();
+    stateQueueRef.current = null;
+    stateQueueSessionRef.current = null;
+    committedDocumentRef.current = null;
+    setStateHydrated(false);
+    setVerifiedIdentity(null);
+    setAccountPhase('loading');
+    setValidationReceipts({});
+    setLegacyCompletionSlots([]);
+    setCommunityOpen(false);
     if (!authTokens?.access_token) {
-      setStateHydrated(false);
       return;
     }
     const accessToken = authTokens.access_token;
     const controller = new AbortController();
+    const generation = ++hydrationGenerationRef.current;
+    let ownedQueue: StateSyncQueue | null = null;
+    const current = () => !controller.signal.aborted && generation === hydrationGenerationRef.current && activeSessionRef.current === accessToken;
     async function hydrateUserState() {
       try {
         setStateSyncStatus('syncing');
-        const response = await fetch(`${apiUrl}/state`, {
-          signal: controller.signal,
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        if (!response.ok) throw new Error('No fue posible cargar tu mapa personal.');
-        const payload = await response.json() as { state?: Record<string, unknown> };
-        let state = payload.state ?? {};
-        if (window.localStorage.getItem(legacyDeviceStateKey) !== 'true') {
-          const localState = readLegacyDeviceState();
-          if (hasLegacyDeviceConfiguration(localState)) {
+        const [response, identityResponse] = await Promise.all([
+          fetch(`${apiUrl}/state`, { signal: controller.signal, cache: 'no-store', headers: { Authorization: `Bearer ${accessToken}` } }),
+          fetch(`${apiUrl}/auth/me`, { signal: controller.signal, cache: 'no-store', headers: { Authorization: `Bearer ${accessToken}` } }),
+        ]);
+        if (!response.ok || !identityResponse.ok) throw new Error(stateAccountCopy(language).errorHint);
+        const identity = await identityResponse.json() as AuthTokens['identity'];
+        let payload = await response.json() as StateSnapshot;
+        if (!current()) return;
+        const scope = { organizationId: identity.organization_id, accountId: identity.user_id };
+        const scopeKey = accountStateKey(scope);
+        setVerifiedIdentity(identity);
+        accountScopeRef.current = scope;
+        personalStorageRef.current = scopedPersonalStorage(deviceStateStorage(), scope);
+        if (hasLegacyDeviceConfiguration({ levels: {}, ...legacyArchive }) && !consentMemoryRef.current.has(scopeKey) && !hasLegacyConsent(deviceStateStorage(), scope)) {
+          setAccountPhase('consent');
+          const choice = await new Promise<'import' | 'cloud-only' | 'cancel'>(resolve => { consentChoiceRef.current = resolve; });
+          consentChoiceRef.current = null;
+          if (!current() || choice === 'cancel') return;
+          setAccountPhase('loading');
+          if (choice === 'import') {
             const migrationResponse = await fetch(`${apiUrl}/state/merge`, {
               method: 'POST',
               signal: controller.signal,
               headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-              body: JSON.stringify({ state: localState }),
+              body: JSON.stringify({ state: legacyImportDocument(legacyArchive) }),
             });
-            if (!migrationResponse.ok) throw new Error('No fue posible sincronizar la configuración de este dispositivo. Tus datos locales siguen guardados.');
-            const syncedResponse = await fetch(`${apiUrl}/state`, {
-              signal: controller.signal,
-              headers: { Authorization: `Bearer ${accessToken}` },
-            });
-            if (!syncedResponse.ok) throw new Error('No fue posible confirmar la sincronización de tu mapa. Tus datos locales siguen guardados.');
-            state = ((await syncedResponse.json()) as { state?: Record<string, unknown> }).state ?? {};
+            if (!migrationResponse.ok) throw new Error(stateAccountCopy(language).errorHint);
+            payload = await migrationResponse.json() as StateSnapshot;
           }
-          window.localStorage.setItem(legacyDeviceStateKey, 'true');
+          if (!current()) return;
+          consentMemoryRef.current.add(scopeKey);
+          writeStoredJson(deviceStateStorage(), legacyConsentKey(scope), { version: 1, choice });
         }
-        setProfileName(typeof state.profileName === 'string' ? state.profileName : '');
-        setProfileImage(typeof state.profileImage === 'string' ? state.profileImage : null);
-        setLevels({ ...defaultLevels, ...(state.levels && typeof state.levels === 'object' ? state.levels as Record<string, number> : {}) });
-        setActivityDrafts(state.activityDrafts && typeof state.activityDrafts === 'object' ? state.activityDrafts as Record<string, string> : {});
-        const remoteCompletions = cleanCompletions(state.activityCompletions);
-        setActivityCompletions(remoteCompletions);
-        try { window.localStorage.setItem('modoCultiva_activityCompletions', JSON.stringify(remoteCompletions)); }
-        catch { /* Account hydration remains available even when the device cache is full. */ }
-        const remoteReactions = cleanReactions(state.activityReactions);
-        setActivityReactions(remoteReactions);
-        try { window.localStorage.setItem('modoCultiva_activityReactions', JSON.stringify(remoteReactions)); }
-        catch { /* A full device cache must not prevent loading the account's map. */ }
-        setInsightRequests(state.insightRequests && typeof state.insightRequests === 'object' ? state.insightRequests as Record<string, boolean> : {});
-        setPresets(state.presets && typeof state.presets === 'object' ? state.presets as Record<string, Preset> : {});
-        setVisionImages(state.visionImages && typeof state.visionImages === 'object' ? state.visionImages as Record<string, string> : {});
-        setFeaturedBadges(Array.isArray(state.featuredBadges) ? state.featuredBadges as string[] : []);
-        const remotePreset = typeof state.selectedPreset === 'string' && state.presets && typeof state.presets === 'object' && state.selectedPreset in state.presets
-          ? state.selectedPreset : '';
-        setSelectedPreset(remotePreset);
-        window.localStorage.setItem('modoCultiva_selectedPreset', remotePreset);
-        setLanguage(typeof state.language === 'string' && supportedLanguages.includes(state.language as Language) ? state.language as Language : detectBrowserLanguage());
-        const remoteSkin = typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin) ? state.skin as Skin : null;
-        if (loginSkinChoice.current) {
-          setSkin('holista');
-          window.localStorage.setItem('modoCultiva_skin', 'holista');
-        } else setSkin(remoteSkin ?? 'holista');
-        setPaletteFilter('none');
-        setActivePlan(state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate' ? state.activePlan : 'ultimate');
+        if (!current()) return;
+        if (!payload.revision || !payload.state || typeof payload.state !== 'object') throw new Error(stateAccountCopy(language).errorHint);
+        const stored = recoveryMemoryRef.current.get(scopeKey) ?? readPendingAccount(deviceStateStorage(), scope);
+        const state = normalizePersonalDocument(recoverAccountState(stored ?? null, payload));
+        ownedQueue = createStateSyncQueue({
+          initial: payload,
+          serializeBody: (document, revision) => JSON.stringify({ state: document, expected_revision: revision }),
+          transport: async (document, revision, signal, keepalive) => {
+            const saved = await fetch(`${apiUrl}/state`, { method: 'PUT', signal, cache: 'no-store', keepalive,
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+              body: JSON.stringify({ state: document, expected_revision: revision }),
+            });
+            const canonical = await saved.json() as StateSnapshot;
+            if (saved.status === 409 && canonical.revision) return { conflict: canonical };
+            if (!saved.ok || !canonical.revision) throw new Error(stateAccountCopy(language).saveFailed);
+            return canonical;
+          },
+          onReconcile: (base, remote, snapshot) => {
+            if (current() && sessionIsCurrent(accessToken, ownedQueue ?? undefined)) reconcileCanonicalState(base, remote, snapshot);
+          },
+        });
+        if (!current()) { ownedQueue.dispose(); return; }
+        stateQueueRef.current = ownedQueue;
+        stateQueueSessionRef.current = accessToken;
+        ownedQueue.stage(state);
+        persistedDocumentRef.current = cloneStateValue(state);
+        retainPendingState(ownedQueue, scope);
+        setValidationReceipts(payload.validationReceipts && typeof payload.validationReceipts === 'object' ? payload.validationReceipts as Record<string, unknown> : {});
+        setLegacyCompletionSlots(payload.legacyCompletionSlots ?? []);
+        applyPersonalDocument(state);
         setStateHydrated(true);
         setStateSyncStatus('synced');
       } catch (error) {
-        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        if (current() && !(error instanceof DOMException && error.name === 'AbortError')) {
+          setAccountPhase('error');
           setStateSyncStatus('error');
-          setAuthError(error instanceof Error ? error.message : 'No fue posible cargar tu mapa.');
+          setAuthError(stateAccountCopy(language).errorHint);
         }
       }
     }
     void hydrateUserState();
-    return () => controller.abort();
-  }, [authTokens?.access_token]);
+    return () => {
+      controller.abort();
+      consentChoiceRef.current?.('cancel'); consentChoiceRef.current = null;
+      if (ownedQueue && stateQueueRef.current === ownedQueue) {
+        retainPendingState(ownedQueue);
+        ownedQueue.dispose(); stateQueueRef.current = null; stateQueueSessionRef.current = null;
+      }
+    };
+  }, [authTokens?.access_token, hydrationAttempt]);
 
   useEffect(() => {
     if (authTokens && !isOwnerAccount && profileName.trim() === defaultUserProfile.name) setProfileName('');
@@ -1203,26 +1495,31 @@ function App() {
 
   useEffect(() => {
     if (!authTokens?.access_token || !stateHydrated) return;
-    const persistState = () => {
+    const queue = stateQueueRef.current;
+    if (!queue || stateQueueSessionRef.current !== authTokens.access_token) return;
+    // Staging already happened in the commit layout effect; debounce only I/O.
+    const persistState = (keepalive = false) => {
       setStateSyncStatus('syncing');
-      void fetch(`${apiUrl}/state`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authTokens.access_token}` },
-        keepalive: true,
-        body: JSON.stringify({ state: { profileName, profileImage, levels, activityDrafts, activityCompletions, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language } }),
-      }).then((response) => setStateSyncStatus(response.ok ? 'synced' : 'error')).catch(() => setStateSyncStatus('error'));
+      void queue.flush({ keepalive }).then(result => {
+        if (sessionIsCurrent(authTokens.access_token, queue)) {
+          retainPendingState(queue);
+          setStateSyncStatus(result.status === 'synced' && !queue.isDirty() ? 'synced' : 'error');
+        }
+      });
     };
-    window.addEventListener('pagehide', persistState);
-    window.addEventListener('online', persistState);
+    const pagehide = () => persistState(true);
+    const online = () => persistState();
+    window.addEventListener('pagehide', pagehide);
+    window.addEventListener('online', online);
     const timer = window.setTimeout(() => {
       persistState();
     }, 350);
     return () => {
       window.clearTimeout(timer);
-      window.removeEventListener('pagehide', persistState);
-      window.removeEventListener('online', persistState);
+      window.removeEventListener('pagehide', pagehide);
+      window.removeEventListener('online', online);
     };
-  }, [activePlan, activityDrafts, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, insightRequests, language, levels, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
+  }, [activePlan, activityDrafts, activityAlignments, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, insightRequests, language, levels, onboardingWelcomeCompleted, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1264,7 +1561,7 @@ function App() {
     };
   }, [configurationsOpen, language]);
 
-  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyReturnView, cultOpen, cultTab, profileMenuOpen, configurationsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview };
+  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyReturnView, cultOpen, cultTab, profileMenuOpen, configurationsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
   const navigationSnapshotKey = JSON.stringify(navigationSnapshot);
   const navigationSnapshotRef = useRef(navigationSnapshot);
   navigationSnapshotRef.current = navigationSnapshot;
@@ -1277,8 +1574,98 @@ function App() {
     setCustomizingAvatar(snapshot.customizingAvatar); setProfilePreviewMode(snapshot.profilePreviewMode);
     setSelectedPlan(snapshot.selectedPlan); setInsightPreview(snapshot.insightPreview);
     setCultInsightPreview(snapshot.cultInsightPreview); setSpecialistPreview(snapshot.specialistPreview);
+    setCommunityOpen(snapshot.communityOpen); setCommunityTab(snapshot.communityTab);
+    setPublicCardId(snapshot.publicCardId);
     if (snapshot.selectedMode && snapshot.activeActivity === null) restoreJourneyPosition();
   };
+  const tourReturnRef = useRef<{ navigation: typeof navigationSnapshot; activityPrompt: string; aiProposal: string; aiHasConsulted: boolean; aiNotice: string | null; poolSelection: number; pageScroll: number; journeyScroll: number } | null>(null);
+  const startTour = () => {
+    if (aiLoading) return;
+    if (tourIndex === null) tourReturnRef.current = { navigation: navigationSnapshotRef.current, activityPrompt, aiProposal, aiHasConsulted, aiNotice, poolSelection, pageScroll: window.scrollY, journeyScroll: journeyPanelRef.current?.scrollTop ?? 0 };
+    setTourModeKey(null); setTourVisitedMethods([]); setTourIndex(0);
+  };
+  const closeTour = () => {
+    setTourIndex(null);
+    const restore = tourReturnRef.current; tourReturnRef.current = null;
+    if (!restore) return;
+    restoreNavigationRef.current(restore.navigation);
+    // Restore form drafts AFTER the existing editor's navigation-reset effect.
+    window.requestAnimationFrame(() => {
+      setActivityPrompt(restore.activityPrompt); setAiProposal(restore.aiProposal); setAiHasConsulted(restore.aiHasConsulted); setAiNotice(restore.aiNotice); setPoolSelection(restore.poolSelection);
+      window.scrollTo({ top: restore.pageScroll, behavior: 'instant' });
+      journeyPanelRef.current?.scrollTo({ top: restore.journeyScroll, behavior: 'instant' });
+    });
+  };
+  const tourTopic = tourIndex === null ? null : tourTopics[tourIndex];
+  const tourMode = modes.find(mode => mode.key === tourModeKey) ?? selectedMode ?? modes[0];
+  const tourSource = Math.min(8, Math.max(0, levels[tourMode.key] ?? 0));
+  const tourStep: GuidedTourStep | null = tourTopic ? (() => {
+    const controlTopic = tourTopic.startsWith('control');
+    const copy = guidedTourStepCopy(language, controlTopic ? 'controlCenter' : tourTopic as TourStageId);
+    const targets: Record<TourTopic, string | readonly string[]> = {
+      modes: '.welcome-view .overview-mode', modeDescription: '.journey-intro-compact', selfAssessment: ['.level-definition--compact', '#journey-slider'], activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder > .clarity-goal .clarity-goal-definition',
+      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.community-header h2', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.activity-flow-stages', evidence: '.activity-flow-stages > li:nth-child(2)', audience: '.activity-flow-audience', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
+      reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading', specialists: '.cult-embedded-content .cult-section-heading', community: '.community-header h2', profile: '.profile-preview-identity', badges: '.achievement-heading', configurations: '#presets-title',
+      controlCenter: '.crm-card--score .crm-card-heading', controlStrongest: '.crm-metric-card:nth-of-type(1)', controlLeast: '.crm-metric-card:nth-of-type(2)', controlFocus: '.crm-focus-card .crm-card-heading', controlTrivia: '.crm-trivia-card h2', replay: '[data-tour="replay"]',
+    };
+    const selection = targets[tourTopic];
+    return { id: tourTopic, ...copy,
+      ...(tourTopic === 'modes' ? { targets: [{ selector: selection as string, minMatches: 12 }], nextDisabled: !tourModeKey }
+        : tourTopic === 'methods' ? { methodChecklist: true, targets: [
+          { selector: '.journey-fixed-actions > button:first-child', method: 'custom' as const }, { selector: '.activity-pool-button', method: 'bank' as const },
+          { selector: '.activity-ai-button', method: 'ai' as const }, { selector: '.journey-fixed-actions > .insight-button', method: 'localContacts' as const },
+        ] }
+        : Array.isArray(selection) ? { targets: selection } : { target: selection as string }),
+      ...(tourTopic === 'nextClarity' ? { clarityTarget: clarityTransition(tourSource, language)!.target } : {}),
+      onEnter: ({ signal }) => {
+        if (signal.aborted) return;
+        setCommunityOpen(false); setConfigurationsOpen(false); setProfilePreviewMode(false); setCustomizingAvatar(false);
+        setCultInsightPreview(null); setSpecialistPreview(null); setInsightPreview(null); setSelectedPlan(null); setProfileMenuOpen(false);
+        setActiveActivity(null); setSelectedMode(null); setCultOpen(false); setView('welcome');
+        if (tourTopic === 'modes') return;
+        if (tourTopic === 'replay') { setProfileMenuOpen(true); return; }
+        if (controlTopic) { setView('dashboard'); return; }
+        if (tourTopic === 'configurations') { setConfigurationsOpen(true); return; }
+        if (tourTopic === 'profile') { setProfilePreviewMode(true); return; }
+        if (['localContacts', 'reviews', 'community'].includes(tourTopic)) {
+          setCommunityTab(tourTopic === 'localContacts' ? 'ideas' : tourTopic === 'reviews' ? 'reviews' : 'network'); setCommunityOpen(true); return;
+        }
+        setSelectedMode(tourMode); setJourneyReturnView('welcome'); setJourneySlide(tourTopic === 'vision' ? 9 : tourSource);
+        if (['globalIdeas', 'specialists', 'badges'].includes(tourTopic)) {
+          setCultTab(tourTopic === 'specialists' ? 'network' : tourTopic === 'badges' ? 'badges' : 'insights'); return;
+        }
+        if (tourTopic === 'custom' || tourTopic === 'bank' || tourTopic === 'ai') {
+          setActivityEntry(tourTopic === 'bank' ? 'pool' : tourTopic); setActiveActivity(tourSource); setPoolSelection(0);
+          setActivityPrompt(tourTopic === 'custom' ? activityDrafts[`${tourMode.key}-${tourSource}`] ?? '' : '');
+        }
+      },
+    };
+  })() : null;
+
+  useEffect(() => {
+    if (!tourTopic) return;
+    const method = tourTopic === 'custom' ? 'custom' : tourTopic === 'bank' ? 'bank' : tourTopic === 'ai' ? 'ai' : tourTopic === 'localContacts' ? 'localContacts' : null;
+    if (!method) return;
+    const mounted = method === 'localContacts' ? communityOpen && communityTab === 'ideas' && Boolean(document.querySelector('.community-panel'))
+      : activeActivity !== null && activityEntry === (method === 'bank' ? 'pool' : method) && Boolean(document.querySelector(`.activity-agent--${activityEntry}`));
+    if (mounted) setTourVisitedMethods(current => current.includes(method) ? current : [...current, method]);
+  }, [tourTopic, communityOpen, communityTab, activeActivity, activityEntry]);
+
+  useEffect(() => {
+    if (publicCardId) return; // Shared cards open directly, without a welcome covering their content.
+    if (authTokens && (!stateHydrated || !verifiedIdentity)) return;
+    const scope: WelcomeIntroScope = verifiedIdentity ? { kind: 'account', organizationId: verifiedIdentity.organization_id, accountId: verifiedIdentity.user_id } : { kind: 'guest', visitorId: guestWelcomeAudience.visitorId };
+    const key = welcomeIntroStorageKey(scope);
+    if (!key || welcomeChecked.current.has(key)) return;
+    const state = stateQueueRef.current?.getSnapshot().state;
+    const established = scope.kind === 'guest' ? guestWelcomeAudience.established
+      : state ? hasLegacyDeviceConfiguration({ ...state, levels: { ...defaultLevels, ...(state.levels as Record<string, number> ?? {}) } }) : true;
+    let completion: ReturnType<typeof readWelcomeIntroCompletion> = 'unavailable';
+    try { completion = readWelcomeIntroCompletion(window.localStorage, scope); } catch { /* Session memory still prevents looping. */ }
+    const decision = decideWelcomeIntro({ status: 'ready', scope, savedPerson: established ? 'established' : 'new' }, onboardingWelcomeCompleted ? 'complete' : completion);
+    if (decision !== 'wait') welcomeChecked.current.add(key);
+    if (decision === 'show') setWelcomeScope(scope);
+  }, [authTokens?.access_token, stateHydrated, verifiedIdentity, onboardingWelcomeCompleted, guestWelcomeAudience, publicCardId]);
   const navigationHistoryRef = useRef<ReturnType<typeof createNavigationHistory<typeof navigationSnapshot>> | null>(null);
   useEffect(() => {
     const navigation = createNavigationHistory(window.history, navigationSnapshotRef.current, (snapshot) => {
@@ -1286,7 +1673,7 @@ function App() {
       return base + Number(Boolean(snapshot.selectedMode)) + Number(snapshot.activeActivity !== null)
         + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
         + Number(snapshot.customizingAvatar) + Number(snapshot.profilePreviewMode) + Number(Boolean(snapshot.selectedPlan))
-        + Number(Boolean(snapshot.insightPreview)) + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview));
+        + Number(Boolean(snapshot.insightPreview)) + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview)) + Number(snapshot.communityOpen) + Number(Boolean(snapshot.publicCardId));
     }, (snapshot) => restoreNavigationRef.current(snapshot), (left, right) => {
       // Ignore details belonging to hidden layers when matching an old parent.
       const location = (snapshot: typeof navigationSnapshot) => [
@@ -1294,7 +1681,7 @@ function App() {
         snapshot.selectedMode || snapshot.view === 'cult' ? [snapshot.cultOpen, snapshot.cultTab] : null,
         snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.configurationsOpen && snapshot.renamingPreset,
         snapshot.customizingAvatar, snapshot.profilePreviewMode, snapshot.selectedPlan,
-        snapshot.insightPreview, snapshot.cultInsightPreview, snapshot.specialistPreview,
+        snapshot.insightPreview, snapshot.cultInsightPreview, snapshot.specialistPreview, snapshot.communityOpen, snapshot.communityTab, snapshot.publicCardId,
       ];
       return JSON.stringify(location(left)) === JSON.stringify(location(right));
     });
@@ -1303,11 +1690,11 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     return () => { window.removeEventListener('popstate', handlePopState); navigationHistoryRef.current = null; };
   }, []);
-  useEffect(() => { navigationHistoryRef.current?.sync(navigationSnapshotRef.current); }, [navigationSnapshotKey]);
+  useEffect(() => { if (tourIndex === null && !welcomeScope) navigationHistoryRef.current?.sync(navigationSnapshotRef.current); }, [navigationSnapshotKey, tourIndex, welcomeScope]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
+      if (event.key !== 'Escape' || tourIndex !== null || welcomeScope) return;
       event.preventDefault();
       navigationHistoryRef.current?.back();
     };
@@ -1315,7 +1702,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [tourIndex, welcomeScope]);
 
   const cultivaLevel = useMemo(() => calculateCultivaLevel(modes.map(mode => levels[mode.key])), [levels]);
   const cultivaLevelLabel = new Intl.NumberFormat(language, { maximumFractionDigits: 1 }).format(cultivaLevel);
@@ -1396,7 +1783,7 @@ function App() {
         ? eligible.filter((key) => key !== badgeKey)
         : eligible.length < 3 ? [...eligible, badgeKey] : eligible;
       try {
-        window.localStorage.setItem('modoCultiva_featuredBadges', JSON.stringify(next));
+        personalStorageRef.current.setItem('modoCultiva_featuredBadges', JSON.stringify(next));
       } catch {
         // The selection remains available for the current session.
       }
@@ -1428,7 +1815,7 @@ function App() {
     if (view === 'login') loginSkinChoice.current = nextSkin;
     setSkin(nextSkin);
     try {
-      window.localStorage.setItem('modoCultiva_skin', nextSkin);
+      personalStorageRef.current.setItem('modoCultiva_skin', nextSkin);
     } catch {
       // The selected skin remains available for the current session.
     }
@@ -1452,7 +1839,7 @@ function App() {
       if (!image) return;
       setProfileImage(image);
       try {
-        window.localStorage.setItem('modoCultiva_profileImage', image);
+        personalStorageRef.current.setItem('modoCultiva_profileImage', image);
       } catch {
         // The profile image remains available for the current session.
       }
@@ -1463,7 +1850,7 @@ function App() {
   const handleProfileName = (name: string) => {
     setProfileName(name);
     try {
-      window.localStorage.setItem('modoCultiva_profileName', name);
+      personalStorageRef.current.setItem('modoCultiva_profileName', name);
     } catch {
       // The profile name remains available for the current session.
     }
@@ -1606,44 +1993,102 @@ function App() {
   };
 
   const requestInsight = (modeKey: string, level: number) => {
-    const key = insightRequestKey(modeKey, level);
-    if (insightRequests[key]) {
-      const next = { ...insightRequests };
-      delete next[key];
-      setInsightRequests(next);
-      setInsightNotice(tr('localIdeaCancelled'));
-      try {
-        window.localStorage.setItem('modoCultiva_insightRequests', JSON.stringify(next));
-      } catch {
-        // The cancellation remains available for the current session.
-      }
-      return;
-    }
-    if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
-      setInsightPreview({ modeKey, level });
-      return;
-    }
-    const next = { ...insightRequests, [key]: true };
-    setInsightRequests(next);
-    setInsightNotice(`Solicitud enviada a usuarios de nivel ${level + 1}.`);
-    try {
-      window.localStorage.setItem('modoCultiva_insightRequests', JSON.stringify(next));
-    } catch {
-      // The request remains available for the current session.
-    }
+    // Opening an explanatory/list view is not a sent request. The person must
+    // explicitly choose Send in the real authenticated community panel.
+    void modeKey; void level;
+    setCommunityTab('ideas'); setCommunityOpen(true);
   };
 
   const saveActivity = (modeKey: string, level: number, activity: string) => {
     const key = `${modeKey}-${level}`;
     const next = { ...activityDrafts, [key]: activity };
     setActivityDrafts(next);
+    if (activityDrafts[key]?.trim() !== activity.trim()) {
+      setActivityAlignments(current => { const result = { ...current }; delete result[key]; return result; });
+      setEvidenceDrafts(current => { const result = { ...current }; delete result[key]; return result; });
+    }
     try {
-      window.localStorage.setItem('modoCultiva_activityDrafts', JSON.stringify(next));
+      personalStorageRef.current.setItem('modoCultiva_activityDrafts', JSON.stringify(next));
     } catch {
       // The activity remains available for the current session.
     }
     setActiveActivity(null);
     restoreJourneyPosition();
+  };
+
+  const activityFlow = (modeKey: string, level: number): Omit<ActivityJourneyFlowProps, 'sourceLevel' | 'language'> => {
+    const key = `${modeKey}-${level}`;
+    const activity = activityDrafts[key] ?? '';
+    const matching = communitySubmissions.filter(item => item.mode === modeKey && item.source_level === level && item.activity.trim() === activity.trim()).sort((a, b) => b.revision_number - a.revision_number)[0];
+    return {
+      activityKey: `${verifiedIdentity?.user_id ?? 'guest'}:${key}`,
+      state: adaptActivityFlow({ activity, alignment: activityAlignments[key] ?? '', mode: modeKey, level, actor: verifiedIdentity?.user_id, submissions: communitySubmissions, evidenceDraft: evidenceDrafts[key], historical: legacyCompletionSlots.includes(key) || (!isAuthenticated && Boolean(activityCompletions[key])) }),
+      targetSnapshot: matching && ['pending', 'changes_requested', 'approved'].includes(matching.status) ? { ...matching.rubric_snapshot.target, version: matching.rubric_version } : undefined,
+      audience: cardAudienceDrafts[key] ?? matching?.audience ?? 'network',
+      publishedAudience: matching?.audience ?? 'network',
+      sharedCardId: matching?.shared_card_id ?? null,
+      onAudienceChange: audience => setCardAudienceDrafts(current => ({ ...current, [key]: audience })),
+      onSetAudience: communityClient && matching?.shared_card_id ? async (audience, publicConfirmed, signal) => {
+        await flushPersonalState();
+        if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+        await communityClient.setAudience(matching.shared_card_id!, audience, publicConfirmed, signal);
+        if (!signal.aborted) await refreshCommunity(signal);
+      } : undefined,
+      onUnshare: communityClient && matching?.shared_card_id ? async signal => {
+        await communityClient.unshare(matching.shared_card_id!, signal);
+        if (!signal.aborted) await refreshCommunity(signal);
+      } : undefined,
+      onDefine: async (definition, signal) => {
+        if (communityClient && matching && ['pending', 'changes_requested'].includes(matching.status)
+          && (definition.activity.trim() !== matching.activity.trim() || definition.target_alignment.trim() !== matching.target_alignment.trim())) {
+          // Definition changes retire the old immutable review, including an
+          // alignment-only correction after community feedback. Votes never move.
+          await communityClient.withdraw(matching.id, signal);
+          if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+        }
+        const drafts = { ...activityDrafts, [key]: definition.activity };
+        const alignments = { ...activityAlignments, [key]: definition.target_alignment };
+        setActivityDrafts(drafts); setActivityAlignments(alignments);
+        persistedDocumentRef.current = { ...persistedDocumentRef.current, activityDrafts: drafts, activityAlignments: alignments };
+        setEvidenceDrafts(current => { const next = { ...current }; delete next[key]; return next; });
+        try { personalStorageRef.current.setItem('modoCultiva_activityDrafts', JSON.stringify(drafts)); personalStorageRef.current.setItem('modoCultiva_activityAlignments', JSON.stringify(alignments)); }
+        catch { /* The session retains the definition; cloud save is independently confirmed. */ }
+        if (communityClient) { await flushPersonalState(); if (!signal.aborted) await refreshCommunity(signal); }
+      },
+      onDraftChange: draft => setEvidenceDrafts(current => ({ ...current, [key]: { activity, draft } })),
+      onSubmit: communityClient ? async (draft, signal) => {
+        await flushPersonalState();
+        if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+        const expected_activity_hash = await activitySha256(draft.activity);
+        await communityClient.submit({ mode: modeKey, level, language, expected_activity_hash, evidence: draft.evidence, target_alignment: draft.target_alignment, audience: draft.audience, public_confirmed: draft.public_confirmed }, signal);
+        if (!signal.aborted) await refreshCommunity(signal);
+      } : undefined,
+      onUploadVideo: communityClient ? async (file, signal) => {
+        await flushPersonalState();
+        if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+        return communityClient.uploadVideo(file, signal);
+      } : undefined,
+      onLoadVideo: communityClient?.loadVideo,
+      disabled: isAuthenticated && !stateHydrated,
+    };
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!communityOpen || communityTab !== 'feed' || !communityClient) { setCommunityShareCandidates([]); return; }
+    void Promise.all(Object.entries(activityDrafts).flatMap(([key, activity]) => {
+      const split = key.lastIndexOf('-'); const mode = key.slice(0, split); const level = Number(key.slice(split + 1));
+      if (!modes.some(item => item.key === mode) || !Number.isInteger(level) || level < 0 || level > 8 || !activity.trim()) return [];
+      const submission = communitySubmissions.filter(item => item.mode === mode && item.source_level === level && item.activity.trim() === activity.trim() && ['pending', 'changes_requested', 'approved'].includes(item.status)).sort((a, b) => b.revision_number - a.revision_number)[0];
+      return [activitySha256(activity).then(expected_activity_hash => ({ mode, level, activity, expected_activity_hash, ...(submission ? { submission_id: submission.id } : {}) }))];
+    })).then(candidates => { if (!cancelled) setCommunityShareCandidates(candidates); }).catch(() => { if (!cancelled) setCommunityShareCandidates([]); });
+    return () => { cancelled = true; };
+  }, [communityOpen, communityTab, communityClient, activityDrafts, communitySubmissions]);
+
+  const closePublicCard = () => {
+    setPublicCardId(null);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('community-card')) { url.searchParams.delete('community-card'); window.history.replaceState(window.history.state, '', url); }
   };
 
   const savePreset = () => {
@@ -1655,11 +2100,11 @@ function App() {
     const next = { ...presets, [name]: { ...levels } };
     setPresets(next);
     setSelectedPreset(name);
-    window.localStorage.setItem('modoCultiva_selectedPreset', name);
+    personalStorageRef.current.setItem('modoCultiva_selectedPreset', name);
     setPresetName('');
     setPresetNotice(trf('presetSaved', { name }));
     try {
-      window.localStorage.setItem('modoCultiva_presets', JSON.stringify(next));
+      personalStorageRef.current.setItem('modoCultiva_presets', JSON.stringify(next));
     } catch {
       // The preset remains available for the current session.
     }
@@ -1687,7 +2132,7 @@ function App() {
       return;
     }
     try {
-      persistRenamedConfiguration(window.localStorage, result.configurations, result.selectedName);
+      persistRenamedConfiguration(personalStorageRef.current, result.configurations, result.selectedName);
     } catch {
       setPresetNotice(tr('presetRenameFailed'));
       return;
@@ -1710,10 +2155,10 @@ function App() {
     delete next[selectedPreset];
     setPresets(next);
     setSelectedPreset('');
-    window.localStorage.removeItem('modoCultiva_selectedPreset');
+    personalStorageRef.current.removeItem('modoCultiva_selectedPreset');
     setPresetNotice(tr('presetDeleted'));
     try {
-      window.localStorage.setItem('modoCultiva_presets', JSON.stringify(next));
+      personalStorageRef.current.setItem('modoCultiva_presets', JSON.stringify(next));
     } catch {
       // The preset list remains available for the current session.
     }
@@ -1723,7 +2168,7 @@ function App() {
     const next = { ...visionImages, [modeKey]: image };
     // Commit storage first: if full/unavailable, keep the previous image visible
     // and let the upload control explain that the replacement was not saved.
-    window.localStorage.setItem('modoCultiva_visionImages', JSON.stringify(next));
+    personalStorageRef.current.setItem('modoCultiva_visionImages', JSON.stringify(next));
     setVisionImages(next);
   };
 
@@ -1778,7 +2223,7 @@ function App() {
     </div></div><div className="cult-embedded-divider" aria-hidden="true"><span /><i>{tr('globalEyebrowLine')}</i><span /></div>
      <nav className="cult-nav cult-nav--embedded" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['badges', tr('badges')], ] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => selectCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
     <div className="cult-embedded-content">
-      {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">{tr('globalActivitiesEyebrow')}</p><h4>{tr('globalInsights')}</h4></div></div><p className="cult-section-copy">{tr('globalRecommendationsCopy')}</p>{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art">
+      {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">{tr('globalActivitiesEyebrow')}</p><h4>{tr('globalInsights')}</h4></div></div><p className="cult-section-copy">{tr('globalRecommendationsCopy')}</p><p className="demo-profile-notice">{onboardingIntegrationCopy(language).demoDetail}</p>{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art">
         <span className="cult-insight-orbit" aria-hidden="true">
           <svg viewBox="0 0 120 120" fill="none" focusable="false">
             <circle className="cult-insight-orbit-ring" cx="60" cy="60" r="41" />
@@ -1794,12 +2239,11 @@ function App() {
         </span>
         <small>{modeName(promotedMode)}</small>
       </div><div className="cult-insight-spotlight-copy"><div className="cult-insight-activity-top"><span>{modeName(promotedMode)} · {tr('level')} {promotedInsight.level} → {promotedInsight.level + 1}</span><small>{effortLabel(promotedInsight.level)}</small></div><h3>{promotedInsight.activity}</h3><p>{tr('globalSharedBy')} <strong>{promotedInsight.author}</strong> · {promotedInsight.location}</p><div className="cult-insight-actions"><button type="button" onClick={() => setCultInsightPreview(promotedInsight)}>{tr('globalAnalyzeSave')} <span>↗</span></button><button className="cult-insight-regenerate-button" type="button" onClick={() => regenerateGlobalInsight(promotedInsight.modeKey, promotedInsight.level)}><span aria-hidden="true">↻</span></button></div></div>{personalizedInsights.length > 1 && <div className="cult-insight-controls" aria-label={tr('globalInsights')}><button type="button" onClick={() => setInsightSlide((current) => (current - 1 + personalizedInsights.length) % personalizedInsights.length)} aria-label={tr('previous')}>←</button><div className="cult-insight-dots" aria-label={tr('globalInsights')}><span className="cult-insight-dot-list">{personalizedInsights.map((insight, index) => <button className={index === insightSlide ? 'is-active' : ''} key={`${insight.modeKey}-${insight.level}-${index}`} type="button" onClick={() => setInsightSlide(index)} aria-label={`${tr('globalInsights')} ${index + 1}`} />)}</span></div><button type="button" onClick={() => setInsightSlide((current) => (current + 1) % personalizedInsights.length)} aria-label={tr('next')}>→</button></div>}</article>}</>}
-      {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">{tr('specialistNetwork')}</p><h4>{tr('findYourNextGuide')}</h4></div><span className="cult-live-pill cult-live-pill--gold"><i /> {tr('verifiedProfiles')}</span></div><div className="cult-filter-row"><select aria-label={tr('filterByMode')} value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">{tr('allModes')}</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{modeName(mode)}</option>)}</select><select aria-label={tr('filterByLanguage')} value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">{tr('anyLanguage')}</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label={tr('filterByLocation')} value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">{tr('anyContinent')}</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continentLabel(continent)}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name} <span>✓</span></strong><small>{modeName(mode)} · {specialist.specialty}</small><p>{tr('availableForGuidance')} · {specialistLocation(specialist.location)}</p></div><div className="cult-match"><span>{specialist.match} {tr('matchLabel')}</span><small>{specialist.language} · {continentLabel(specialist.continent)}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>{tr('viewSpecialistProfile')} ↗</button></article>; }) : <div className="cult-empty-state">{tr('noSpecialistsMatch')}</div>}</div></>}
+      {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">{tr('specialistNetwork')}</p><h4>{tr('findYourNextGuide')}</h4></div><span className="cult-live-pill cult-live-pill--gold"><i /> {onboardingIntegrationCopy(language).demo}</span></div><div className="cult-filter-row"><select aria-label={tr('filterByMode')} value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">{tr('allModes')}</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{modeName(mode)}</option>)}</select><select aria-label={tr('filterByLanguage')} value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">{tr('anyLanguage')}</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label={tr('filterByLocation')} value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">{tr('anyContinent')}</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continentLabel(continent)}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name}</strong><small>{modeName(mode)} · {specialist.specialty}</small><p>{onboardingIntegrationCopy(language).demo} · {specialistLocation(specialist.location)}</p></div><div className="cult-match"><span>{specialist.match} {tr('matchLabel')}</span><small>{specialist.language} · {continentLabel(specialist.continent)}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>{tr('viewSpecialistProfile')} ↗</button></article>; }) : <div className="cult-empty-state">{tr('noSpecialistsMatch')}</div>}</div></>}
             {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h4>Cambia la paleta de tu cultivo.</h4></div><span className="cult-live-pill"><i /> EXPERIENCIAS</span></div><section className="cult-skin-category" aria-labelledby="cult-filters-title"><div className="cult-skin-category-heading"><div><p className="kicker">Paletas de atmósfera</p><h5 id="cult-filters-title">Filtros</h5></div><span>2 EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--filters"><article className={`cult-skin-card${paletteFilter === 'nocturna' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--nocturna"><span className="skin-card-glyph skin-card-glyph--owl" aria-hidden="true">🦉</span></div><div><strong>Night Owl</strong><p>{tr('nightOwlDescription')}</p><button type="button" onClick={() => activatePaletteFilter('nocturna')}>{paletteFilter === 'nocturna' ? tr('activeNow') : tr('activateFilter')}</button></div></article><article className={`cult-skin-card cult-skin-card--lucid${paletteFilter === 'lucid' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--lucid"><span className="skin-card-glyph skin-card-glyph--dream" aria-hidden="true">◌</span></div><div><strong>Lucid</strong><p>{tr('lucidDescription')}</p><button type="button" onClick={() => activatePaletteFilter('lucid')}>{paletteFilter === 'lucid' ? tr('activeNow') : tr('activateFilter')}</button></div></article></div></section><section className="cult-skin-category" aria-labelledby="cult-skins-title"><div className="cult-skin-category-heading"><div><p className="kicker">Interfaces completas</p><h5 id="cult-skins-title">Skins</h5></div><span>{skinCatalog.length + 2} EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--skins"><article className={`cult-skin-card${skin === 'holista' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button" onClick={() => activateCultSkin('holista')}>{skin === 'holista' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'dj' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--dj"><span className="skin-card-glyph skin-card-glyph--faders" aria-hidden="true"><i /><i /><i /></span></div><div><strong>Consola DJ</strong><p>La mezcla perfecta para ecualizar la canción de tu vida.</p><button type="button" onClick={() => activateCultSkin('dj')}>{skin === 'dj' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>{skinCatalog.map((item) => <article className={`cult-skin-card cult-skin-card--${item.key}${skin === item.key ? ' cult-skin-card--active' : ''}`} key={item.key}><div className={`cult-skin-visual cult-skin-visual--${item.key}`}><span>{item.icon}</span></div><div><strong>{item.name}</strong><p>{item.description}</p><button type="button" onClick={() => activateCultSkin(item.key)}>{skin === item.key ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>)}</div></section></>}
       {cultTab === 'badges' && <BadgesGallery language={language} tr={tr} progress={achievementProgress} featuredKeys={visibleFeaturedBadges}
         badges={cultBadgeCatalog.map(badge => ({ ...badge, title: badgeTitle(badge.key), description: badgeDescription(badge.key), earned: earnedBadges.some(item => item.key === badge.key), featured: visibleFeaturedBadges.includes(badge.key) }))}
-        modes={modes.map(mode => ({ ...mode, name: lifeMapLabel(modeName(mode)) }))} onFeature={toggleFeaturedBadge} onProfile={() => setProfilePreviewMode(true)}
-        onLevel={(modeKey, level) => { const mode = modes.find(item => item.key === modeKey); if (!mode) return; openMode(mode); setJourneySlide(level); window.requestAnimationFrame(() => document.querySelector('.journey-builder')?.scrollIntoView({ block: 'start', behavior: 'smooth' })); }} />}
+        onFeature={toggleFeaturedBadge} onProfile={() => setProfilePreviewMode(true)} />}
     </div>
   </section>;
   };
@@ -1816,6 +2260,8 @@ function App() {
     return { strongest, leastCultivated, low, medium, high, definedActivities, score, presetCount: Object.keys(presets).length };
   }, [activityDrafts, levels, presets]);
 
+  const accountBlocked = signingOut || (isAuthenticated && (!stateHydrated || !verifiedIdentity || activeSessionRef.current !== authTokens?.access_token));
+
   return (
     <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
       <header className="topbar">
@@ -1827,7 +2273,10 @@ function App() {
         <div className="topbar-actions">
           <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select><svg viewBox="0 0 12 12" width="10" height="10" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg></label>
           <PwaControls language={language} />
-          <div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">{isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div>
+          <div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">
+            <button type="button" role="menuitem" data-tour="replay" disabled={aiLoading} onClick={startTour}>{onboardingIntegrationCopy(language).replay} <span aria-hidden="true">↗</span></button>
+            <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setCommunityTab('network'); setCommunityOpen(true); }}>{onboardingIntegrationCopy(language).network} <span aria-hidden="true">↗</span></button>
+            {isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div>
         </div>
         {isAuthenticated && <span className={`state-sync-state state-sync-state--${stateSyncStatus}`} role="status">{tr(stateSyncStatus === 'syncing' ? 'syncState' : stateSyncStatus === 'synced' ? 'syncReady' : 'syncFailed')}</span>}
       </header>
@@ -1853,7 +2302,7 @@ function App() {
       ) : view === 'plans' ? (
         <section className="plans-view" data-layer="plans" aria-labelledby="plans-title">
           <div className="plans-header"><p className="kicker">Tu siguiente nivel comienza aquí</p><h1 id="plans-title">Haz de tu crecimiento una forma de vida.</h1><p>Elige el ritmo, la profundidad y la comunidad que quieres llevar contigo en Modo Cultiva.</p></div>
-          <div className="plans-grid" aria-label="Modos Premium de Modo Cultiva">{(Object.keys(planDetails) as PlanKey[]).map((plan) => <button className={plan === 'gold' ? 'plan-card plan-card--featured' : 'plan-card'} type="button" key={plan} onClick={() => { setActivePlan(plan); window.localStorage.setItem('modoCultiva_plan', plan); setSelectedPlan(plan); }}><span className="plan-card-name">{planDetails[plan].name}</span><strong>{planDetails[plan].price}</strong><p>{planDetails[plan].promise}</p><span className="plan-card-link">Ver beneficios completos ↗</span></button>)}</div>
+          <div className="plans-grid" aria-label="Modos Premium de Modo Cultiva">{(Object.keys(planDetails) as PlanKey[]).map((plan) => <button className={plan === 'gold' ? 'plan-card plan-card--featured' : 'plan-card'} type="button" key={plan} onClick={() => { setActivePlan(plan); personalStorageRef.current.setItem('modoCultiva_plan', plan); setSelectedPlan(plan); }}><span className="plan-card-name">{planDetails[plan].name}</span><strong>{planDetails[plan].price}</strong><p>{planDetails[plan].promise}</p><span className="plan-card-link">Ver beneficios completos ↗</span></button>)}</div>
           <button className="plans-signup" type="button" onClick={() => { setPendingAccess(null); setSelectedPlan(null); setView('login'); }}>Crea tu cuenta <span>→</span></button>
         </section>
       ) : view === 'lab' ? (
@@ -1871,7 +2320,7 @@ function App() {
           <div className="cult-layout"><main className="cult-main">
             {cultTab === 'home' && <><div className="cult-section-heading"><div><p className="kicker">Panel ULTIMATE MODE</p><h2>Todo tu potencial, en un solo nodo.</h2></div><span className="cult-live-pill"><i /> LIVE NETWORK</span></div><div className="cult-metric-grid"><article className="cult-metric cult-metric--wide"><span className="cult-metric-icon">✦</span><div><small>MODO IA · USO JUSTO</small><strong>Sin límites artificiales</strong><p>Contextualiza, consulta y establece actividades con una inteligencia que entiende tus 12 modos.</p></div><b>∞</b></article><article className="cult-metric"><small>INSIGHTS</small><strong>Global</strong><p>Conecta con estrategias de cultivo más allá de tu círculo.</p><span className="cult-metric-line" /></article><article className="cult-metric"><small>PROFESSIONAL</small><strong>Verified</strong><p>Encuentra orientación de especialistas por modo.</p><span className="cult-metric-line cult-metric-line--gold" /></article></div><div className="cult-feature-grid"><article><span>01 · TU RED</span><h3>Cultiva acompañado.</h3><p>Descubre recomendaciones comunitarias y comparte presets con tu red de apoyo.</p><button type="button" onClick={() => setCultTab('insights')}>Explorar Insights <span>→</span></button></article><article><span>02 · TU PRÓXIMO NIVEL</span><h3>Habla con experiencia.</h3><p>Solicita orientación privada y sigue el progreso de las recomendaciones profesionales.</p><button type="button" onClick={() => setCultTab('network')}>Encontrar especialistas <span>→</span></button></article></div></>}
              {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">Actividades compartidas por la comunidad</p><h2>Insights Globales.</h2></div><span className="cult-live-pill"><i /> {globalInsightActivities.length} ACTIVIDADES</span></div><p className="cult-section-copy">Descubre las prácticas que otras personas han realizado para avanzar de un nivel al siguiente en cada Modo. Abre una tarjeta para analizarla y guardarla en tu journey.</p>{insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}<div className="cult-insight-grid">{globalInsightActivities.map((insight) => { const displayedInsight = localizeGlobalInsight(globalInsightVariantsByKey[`${insight.modeKey}-${insight.level}`]?.[insightVariants[`${insight.modeKey}-${insight.level}`] ?? 0] ?? insight); const mode = modes.find((item) => item.key === displayedInsight.modeKey)!; return <article className="cult-insight-activity" key={`${displayedInsight.modeKey}-${displayedInsight.level}`} style={{ '--insight-color': mode.color } as CSSProperties}><div className="cult-insight-activity-top"><span>{mode.icon} {mode.name}</span><small>NIVEL {displayedInsight.level} → {displayedInsight.level + 1}</small></div><h3>{displayedInsight.activity}</h3><div className="cult-insight-actions"><button type="button" onClick={() => setCultInsightPreview(displayedInsight)}>Analizar actividad <span>↗</span></button><button className="cult-insight-regenerate-button" type="button" onClick={() => regenerateGlobalInsight(displayedInsight.modeKey, displayedInsight.level)} aria-label={tr('regenerateInsight')} title={tr('regenerateInsight')}><span aria-hidden="true">↻</span></button></div></article>; })}</div></>}
-            {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">{tr('specialistNetwork')}</p><h2>{tr('findYourNextGuide')}</h2></div><span className="cult-live-pill cult-live-pill--gold"><i /> {tr('verifiedProfiles')}</span></div><div className="cult-filter-row"><select aria-label={tr('filterByMode')} value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">{tr('allModes')}</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{modeName(mode)}</option>)}</select><select aria-label={tr('filterByLanguage')} value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">{tr('anyLanguage')}</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label={tr('filterByLocation')} value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">{tr('anyContinent')}</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continentLabel(continent)}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name} <span>✓</span></strong><small>{modeName(mode)} · {specialist.specialty}</small><p>{tr('availableForGuidance')} · {specialistLocation(specialist.location)}</p></div><div className="cult-match"><span>{specialist.match} {tr('matchLabel')}</span><small>{specialist.language} · {continentLabel(specialist.continent)}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>{tr('viewSpecialistProfile')} ↗</button></article>; }) : <div className="cult-empty-state">{tr('noSpecialistsMatch')}</div>}</div></>}
+            {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">{tr('specialistNetwork')}</p><h2>{tr('findYourNextGuide')}</h2></div><span className="cult-live-pill cult-live-pill--gold"><i /> {onboardingIntegrationCopy(language).demo}</span></div><div className="cult-filter-row"><select aria-label={tr('filterByMode')} value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">{tr('allModes')}</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{modeName(mode)}</option>)}</select><select aria-label={tr('filterByLanguage')} value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">{tr('anyLanguage')}</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label={tr('filterByLocation')} value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">{tr('anyContinent')}</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continentLabel(continent)}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name}</strong><small>{modeName(mode)} · {specialist.specialty}</small><p>{onboardingIntegrationCopy(language).demo} · {specialistLocation(specialist.location)}</p></div><div className="cult-match"><span>{specialist.match} {tr('matchLabel')}</span><small>{specialist.language} · {continentLabel(specialist.continent)}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>{tr('viewSpecialistProfile')} ↗</button></article>; }) : <div className="cult-empty-state">{tr('noSpecialistsMatch')}</div>}</div></>}
             {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h2>Cambia la paleta de tu cultivo.</h2></div><span className="cult-live-pill"><i /> {skinCatalog.length + 4} DISPONIBLES</span></div><section className="cult-skin-category" aria-labelledby="cult-filters-title"><div className="cult-skin-category-heading"><div><p className="kicker">Paletas de atmósfera</p><h3 id="cult-filters-title">Filtros</h3></div><span>2 EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--filters"><article className={`cult-skin-card${paletteFilter === 'nocturna' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--nocturna"><span className="skin-card-glyph skin-card-glyph--owl" aria-hidden="true">🦉</span></div><div><strong>Night Owl</strong><p>{tr('nightOwlDescription')}</p><button type="button" onClick={() => activatePaletteFilter('nocturna')}>{paletteFilter === 'nocturna' ? tr('activeNow') : tr('activateFilter')}</button></div></article><article className={`cult-skin-card cult-skin-card--lucid${paletteFilter === 'lucid' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--lucid"><span className="skin-card-glyph skin-card-glyph--dream" aria-hidden="true">◌</span></div><div><strong>Lucid</strong><p>{tr('lucidDescription')}</p><button type="button" onClick={() => activatePaletteFilter('lucid')}>{paletteFilter === 'lucid' ? tr('activeNow') : tr('activateFilter')}</button></div></article></div></section><section className="cult-skin-category" aria-labelledby="cult-skins-title"><div className="cult-skin-category-heading"><div><p className="kicker">Interfaces completas</p><h3 id="cult-skins-title">Skins</h3></div><span>{skinCatalog.length + 2} EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--skins"><article className={`cult-skin-card${skin === 'holista' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button" onClick={() => activateCultSkin('holista')}>{skin === 'holista' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'dj' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--dj"><span className="skin-card-glyph skin-card-glyph--faders" aria-hidden="true"><i /><i /><i /></span></div><div><strong>Consola DJ</strong><p>La mezcla perfecta para ecualizar la canción de tu vida.</p><button type="button" onClick={() => activateCultSkin('dj')}>{skin === 'dj' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>{skinCatalog.map((item) => <article className={`cult-skin-card cult-skin-card--${item.key}${skin === item.key ? ' cult-skin-card--active' : ''}`} key={item.key}><div className={`cult-skin-visual cult-skin-visual--${item.key}`}><span>{item.icon}</span></div><div><strong>{item.name}</strong><p>{item.description}</p><button type="button" onClick={() => activateCultSkin(item.key)}>{skin === item.key ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>)}</div></section></>}
           </main><aside className="cult-rail"><div className="cult-status-card"><span className="cult-status-label">TU ESTATUS</span><div className="cult-badge">U</div><h3>ULTIMATE MODE</h3><p>{tr('globalTitle')}</p><div className="cult-status-rule" /><span className="cult-status-label">TU RED</span><strong>24 conexiones</strong><small>+6 esta semana</small></div><div className="cult-rail-card"><span className="cult-status-label">PRÓXIMO EN TU RUTA</span><strong>{modeName(modes[11])}</strong><p>3 recomendaciones esperan tu revisión.</p><button type="button" onClick={() => setCultTab('insights')}>{tr('recommendations')} →</button></div><div className="cult-quote">“No cultivas una sola versión de ti.<br /><strong>Cultivas todas.</strong>”</div></aside></div>
         </section>
@@ -1898,7 +2347,7 @@ function App() {
             <svg className="overview-map-guides" viewBox="0 0 640 640" fill="none" aria-hidden="true" focusable="false">{modes.map((mode, index) => <g key={mode.key} className="overview-map-guide" style={{ '--mode-angle': `${index * 30}deg` } as CSSProperties}><path d="M320 166V98" stroke={mode.color} strokeOpacity=".18" /><circle cx="320" cy="114" r="1.7" fill={mode.color} fillOpacity=".5" /></g>)}</svg>
               <span className="overview-light-sweep" aria-hidden="true" />
             {modes.map((mode, index) => (
-              <button className="overview-mode" key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${modeName(mode)}, ${tr('level')} ${levels[mode.key]}`}>
+              <button className="overview-mode" data-tour-mode={mode.key} key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent, '--mode-angle': `${index * 30}deg` } as CSSProperties} aria-label={`${modeName(mode)}, ${tr('level')} ${levels[mode.key]}`}>
                 <span className="overview-mode-icon" aria-hidden="true">{mode.icon}</span><span className="overview-mode-name">{lifeMapLabel(modeName(mode))}</span><strong>{levels[mode.key]}</strong><span className="overview-mode-meter" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < levels[mode.key] ? 'is-active' : undefined} />)}</span><span className="overview-mode-description">{modeDescription(mode)}</span>
               </button>
             ))}
@@ -2003,7 +2452,7 @@ function App() {
             </div>
             <div className="configuration-library-group">
               <label htmlFor="preset-select"><span className="configuration-step" aria-hidden="true">02</span>{tr('savedPresets')}</label>
-              <div className="configuration-select-wrap"><select id="preset-select" value={selectedPreset} onChange={(event) => { setRenamingPreset(false); setPresetNotice(null); setSelectedPreset(event.target.value); window.localStorage.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select><span aria-hidden="true">⌄</span></div>
+              <div className="configuration-select-wrap"><select id="preset-select" value={selectedPreset} onChange={(event) => { setRenamingPreset(false); setPresetNotice(null); setSelectedPreset(event.target.value); personalStorageRef.current.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select><span aria-hidden="true">⌄</span></div>
               <div className="configuration-library-actions"><button className="configuration-load-action" type="button" onClick={loadPreset}>{tr('load')} <span aria-hidden="true">↗</span></button><button className="configuration-rename-action" type="button" onClick={beginPresetRename} disabled={!selectedPreset || !presets[selectedPreset]}>{tr('renameConfiguration')}</button><button className="configuration-delete-action" type="button" onClick={deletePreset}>{tr('remove')}</button></div>
               {renamingPreset && <form className="configuration-rename-editor" onSubmit={(event) => { event.preventDefault(); commitPresetRename(); }}><label htmlFor="preset-rename-name">{tr('configurationNewName')}</label><div className="configuration-name-entry"><input ref={presetRenameInputRef} id="preset-rename-name" value={presetRenameName} onChange={(event) => setPresetRenameName(event.target.value)} /><button className="configuration-save-action" type="submit">{tr('saveConfigurationName')}</button></div><button className="configuration-cancel-rename" type="button" onClick={() => setRenamingPreset(false)}>{tr('cancelRename')}</button></form>}
             </div>
@@ -2016,9 +2465,9 @@ function App() {
 
       {insightPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setInsightPreview(null)}><section className="feature-preview" role="dialog" aria-modal="true" aria-labelledby="insight-preview-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setInsightPreview(null)} aria-label="Cerrar vista previa">×</button><p className="kicker">Vista previa · Layer de Insights</p><h2 id="insight-preview-title">Pedir Insights</h2><p className="journey-description">Comparte una duda con personas que ya recorrieron este nivel y recibe una estrategia desde la experiencia de la comunidad.</p><div className="insight-preview-card"><span>INSIGHT DE NIVEL {insightPreview.level}</span><strong>{modes.find((mode) => mode.key === insightPreview.modeKey)?.name}</strong><p>“¿Qué práctica te ayudó a avanzar de este nivel al siguiente?”</p><small>La solicitud se habilita al crear una cuenta Gold.</small></div><button className="feature-preview-cta" type="button" onClick={() => { setInsightPreview(null); openPlan('gold', 'Insights locales'); }}>Ver acceso Gold <span>→</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setInsightPreview(null)}>Seguir explorando como invitado</button></section></div>}
 
-      {cultInsightPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setCultInsightPreview(null)}><section className="feature-preview cult-insight-modal" style={{ '--insight-color': modes.find((mode) => mode.key === cultInsightPreview.modeKey)?.color ?? '#70ed9c' } as CSSProperties} role="dialog" aria-modal="true" aria-labelledby="cult-insight-modal-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setCultInsightPreview(null)} aria-label={tr('close')}>×</button><h2 id="cult-insight-modal-title">{cultInsightPreview.activity.split(' · ')[0]}</h2><div className="insight-modal-meta"><span>{tr('level')} {cultInsightPreview.level} → {cultInsightPreview.level + 1}</span><span>{effortLabel(cultInsightPreview.level)}</span></div><div className="insight-preset-card"><span>{tr('presetOf')} {cultInsightPreview.author.toUpperCase()}</span><strong>{cultInsightPreview.presetName}</strong><p>{tr('insightPresetDescription')}</p><blockquote className="insight-author-bio">“{cultInsightPreview.bio}”</blockquote><div className="insight-profile-badges"><span>{tr('featuredBadges')}</span><div>{cultInsightPreview.badges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key); return badge ? <b key={key} title={badgeTitle(key)}>{badge.icon} {badgeTitle(key)}</b> : null; })}</div></div><div className="insight-preset-levels">{modes.map((mode) => <span key={mode.key}>{modeShortName(mode)} <b>{cultInsightPreview.preset[mode.key]}</b></span>)}</div></div><button className="feature-preview-cta" type="button" onClick={saveGlobalInsightActivity}>{tr('useInMap')} <span>＋</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setCultInsightPreview(null)}>{tr('exploreInsights')}</button></section></div>}
+      {cultInsightPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setCultInsightPreview(null)}><section className="feature-preview cult-insight-modal" style={{ '--insight-color': modes.find((mode) => mode.key === cultInsightPreview.modeKey)?.color ?? '#70ed9c' } as CSSProperties} role="dialog" aria-modal="true" aria-labelledby="cult-insight-modal-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setCultInsightPreview(null)} aria-label={tr('close')}>×</button><p className="demo-profile-notice">{onboardingIntegrationCopy(language).demoDetail}</p><h2 id="cult-insight-modal-title">{cultInsightPreview.activity.split(' · ')[0]}</h2><div className="insight-modal-meta"><span>{tr('level')} {cultInsightPreview.level} → {cultInsightPreview.level + 1}</span><span>{effortLabel(cultInsightPreview.level)}</span></div><div className="insight-preset-card"><span>{tr('presetOf')} {cultInsightPreview.author.toUpperCase()}</span><strong>{cultInsightPreview.presetName}</strong><p>{tr('insightPresetDescription')}</p><blockquote className="insight-author-bio">“{cultInsightPreview.bio}”</blockquote><div className="insight-profile-badges"><span>{tr('featuredBadges')}</span><div>{cultInsightPreview.badges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key); return badge ? <b key={key} title={badgeTitle(key)}>{badge.icon} {badgeTitle(key)}</b> : null; })}</div></div><div className="insight-preset-levels">{modes.map((mode) => <span key={mode.key}>{modeShortName(mode)} <b>{cultInsightPreview.preset[mode.key]}</b></span>)}</div></div><button className="feature-preview-cta" type="button" onClick={saveGlobalInsightActivity}>{tr('useInMap')} <span>＋</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setCultInsightPreview(null)}>{tr('exploreInsights')}</button></section></div>}
 
-      {specialistPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setSpecialistPreview(null)}><section className="feature-preview specialist-profile-modal" role="dialog" aria-modal="true" aria-labelledby="specialist-profile-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setSpecialistPreview(null)} aria-label={tr('closeProfile')}>×</button><p className="kicker">{tr('verifiedProfile')} · {tr('specialistNetwork')}</p><div className="specialist-profile-heading"><div className="cult-specialist-avatar">{specialistPreview.name.slice(0, 1)}</div><div><h2 id="specialist-profile-title">{specialistPreview.name}</h2><p>{specialistPreview.specialty} · {specialistLocation(specialistPreview.location)}</p></div><span>{specialistPreview.match} {tr('matchLabel')}</span></div><div className="specialist-profile-meta"><span>{specialistPreview.language}</span><span>{continentLabel(specialistPreview.continent)}</span><span>{modeName(modes.find((mode) => mode.key === specialistPreview.modeKey)!)}</span></div><div className="specialist-profile-copy"><span className="crm-eyebrow">{tr('trajectory')}</span><p>{specialistPreview.trajectory}</p><blockquote>“{specialistPreview.message}”</blockquote></div><div className="specialist-preset"><div><span className="crm-eyebrow">{tr('specialistPreset')}</span><h3>{specialistPreview.presetName}</h3></div><span className="crm-card-caption">{tr('twelveModesLevels')}</span></div><div className="specialist-level-grid">{modes.map((mode) => <div key={mode.key} style={{ '--mode-color': mode.color } as CSSProperties}><span>{mode.icon}</span><strong>{modeShortName(mode)}</strong><b>{specialistPreview.modeLevels[mode.key]}</b></div>)}</div><button className="feature-preview-cta" type="button" onClick={() => setSpecialistPreview(null)}>{tr('closeProfile')} <span>×</span></button></section></div>}
+      {specialistPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setSpecialistPreview(null)}><section className="feature-preview specialist-profile-modal" role="dialog" aria-modal="true" aria-labelledby="specialist-profile-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setSpecialistPreview(null)} aria-label={tr('closeProfile')}>×</button><p className="kicker">{onboardingIntegrationCopy(language).demo} · {tr('specialistNetwork')}</p><div className="specialist-profile-heading"><div className="cult-specialist-avatar">{specialistPreview.name.slice(0, 1)}</div><div><h2 id="specialist-profile-title">{specialistPreview.name}</h2><p>{specialistPreview.specialty} · {specialistLocation(specialistPreview.location)}</p></div><span>{specialistPreview.match} {tr('matchLabel')}</span></div><p className="demo-profile-notice">{onboardingIntegrationCopy(language).demoDetail} {onboardingIntegrationCopy(language).serviceUnavailable}</p><div className="specialist-profile-meta"><span>{specialistPreview.language}</span><span>{continentLabel(specialistPreview.continent)}</span><span>{modeName(modes.find((mode) => mode.key === specialistPreview.modeKey)!)}</span></div><div className="specialist-profile-copy"><span className="crm-eyebrow">{tr('trajectory')}</span><p>{specialistPreview.trajectory}</p><blockquote>“{specialistPreview.message}”</blockquote></div><div className="specialist-preset"><div><span className="crm-eyebrow">{tr('specialistPreset')}</span><h3>{specialistPreview.presetName}</h3></div><span className="crm-card-caption">{tr('twelveModesLevels')}</span></div><div className="specialist-level-grid">{modes.map((mode) => <div key={mode.key} style={{ '--mode-color': mode.color } as CSSProperties}><span>{mode.icon}</span><strong>{modeShortName(mode)}</strong><b>{specialistPreview.modeLevels[mode.key]}</b></div>)}</div><button className="feature-preview-cta" type="button" onClick={() => setSpecialistPreview(null)}>{tr('closeProfile')} <span>×</span></button></section></div>}
 
       {profilePreviewMode && <div className="feature-preview-backdrop" role="presentation" onClick={() => setProfilePreviewMode(false)}><section className="feature-preview profile-preview-modal" role="dialog" aria-modal="true" aria-labelledby="profile-preview-title" onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setProfilePreviewMode(false)} aria-label={tr('closeProfile')}>×</button>
@@ -2083,6 +2532,8 @@ function App() {
                 {journeyLevels.filter((level) => level === journeySlide).map((level) => level < 9 ? <JourneyActivityCard key={`${selectedMode.key}-${level}`} current={level === levels[selectedMode.key]} defined={Boolean(activityDrafts[`${selectedMode.key}-${level}`])}
                   card={{ mode: modeName(selectedMode), level, levelLabel: tr('level'), stage: localizedLevelNames[language][level], effort: effortLabel(level), activity: activityDrafts[`${selectedMode.key}-${level}`] ?? tr('activityUndefined'), color: selectedMode.color, icon: selectedMode.icon, language }}
                   reaction={activityReactions[activityReactionKey(selectedMode.key, level, activityDrafts[`${selectedMode.key}-${level}`] ?? '')]}
+                  flow={activityFlow(selectedMode.key, level)}
+                  sharePreviewScope={tourTopic ?? 'closed'}
                   onReact={reaction => reactToActivity(selectedMode.key, level, reaction)} /> : <article className={`journey-level-card journey-level-card--active journey-level-card--vision${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}`} key={level}>
                   <div className="journey-level-card-top"><div className="journey-level-card-index"><span>{tr('level')}</span><strong>{level}</strong></div><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span><em>{tr('finalVision')}</em></div>
                   <VisionImage key={selectedMode.key} value={visionImages[selectedMode.key]} onChange={image => saveVisionImage(selectedMode.key, image)} language={language} title={tr('finalVision')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} />
@@ -2092,12 +2543,57 @@ function App() {
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.min(9, current + 1))} disabled={journeySlide === 9} aria-label={tr('nextLevel')}>→</button>
           </div>
           <div className="journey-carousel-footer"><div className="journey-carousel-dots" aria-label={tr('selectLevel')}>{journeyLevels.map((level) => <button className={level === journeySlide ? 'is-active' : ''} type="button" key={level} onClick={() => setJourneySlide(level)} aria-label={`${tr('levels')} ${level}`}>{level}</button>)}</div></div>
-          {journeySlide < 9 && <ActivityCompletion key={`${selectedMode.key}-${journeySlide}`} language={language} activity={activityDrafts[`${selectedMode.key}-${journeySlide}`] ?? ''} completed={isActivityCompleted(`${selectedMode.key}-${journeySlide}`, activityDrafts[`${selectedMode.key}-${journeySlide}`], activityCompletions)} onToggle={() => confirmActivity(selectedMode.key, journeySlide)} />}
+          {journeySlide < 9 && <div className="journey-community-actions"><p>{onboardingIntegrationCopy(language)[isAuthenticated ? 'profileRequired' : 'accountRequired']}</p><button type="button" onClick={() => { setCommunityTab('network'); setCommunityOpen(true); }}>{onboardingIntegrationCopy(language).network} ↗</button>
+            {activityDrafts[`${selectedMode.key}-${journeySlide}`]?.trim() && <button type="button" onClick={() => {
+              setCommunityTab('feed'); setCommunityOpen(true);
+            }}>{onboardingIntegrationCopy(language).share} ↗</button>}
+          </div>}
           {journeySlide < 9 ? <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}><button type="button" onClick={() => openActivity(journeySlide, 'custom')}>{activityDrafts[`${selectedMode.key}-${journeySlide}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(journeySlide, 'pool')}>▦ {tr('activityPool')}</button><button className="activity-ai-button" type="button" onClick={() => openActivity(journeySlide, 'ai')}>✦ {tr('modeAI')}</button><button className={insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" aria-pressed={Boolean(insightRequests[insightRequestKey(selectedMode.key, journeySlide)])} onClick={() => requestInsight(selectedMode.key, journeySlide)}>{insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button></div> : <div className="journey-vision-note"><span className="journey-vision-completion" role="status"><strong>{hasVisionImage(visionImages[selectedMode.key]) ? `✓ ${badgeCopy(language).visionDone}` : badgeCopy(language).visionPending}</strong><span>{badgeCopy(language).visionHint}</span></span></div>}
           </section>
           {renderCultSection()}
         </>}
       </section></div>}
+      {communityOpen && <CommunityPanel key={`${verifiedIdentity?.user_id ?? 'guest'}:${communityTab}`} client={communityClient} language={language} profileName={displayedProfileName} modeNames={Object.fromEntries(modes.map(mode => [mode.key, modeName(mode)]))}
+        initialTab={communityTab} activityContext={selectedMode && journeySlide < 9 ? { mode: selectedMode.key, level: journeySlide } : undefined}
+        shareCandidates={communityShareCandidates} onViewCard={setPublicCardId}
+        onClose={() => setCommunityOpen(false)} onLogin={() => { closeTour(); setCommunityOpen(false); setSelectedMode(null); setView('login'); }}
+        onStateChanged={refreshCommunity} onBeforeShare={async signal => { await flushPersonalState(); if (signal.aborted) throw new DOMException('Cancelled', 'AbortError'); }}
+        destinationActivity={(mode, level) => activityDrafts[`${mode}-${level}`] ?? ''}
+        onImportActivity={communityClient ? async (kind, id, mode, level, confirmedDestinationActivity) => {
+          await flushPersonalState();
+          const current = stateQueueRef.current?.getDesired().activityDrafts as Record<string, string> | undefined;
+          const destination = current?.[`${mode}-${level}`] ?? '';
+          if (confirmedDestinationActivity === undefined || destination !== confirmedDestinationActivity) throw new Error('La actividad de destino cambió. Confirma su nueva versión antes de importar.');
+          const expectedHash = await activitySha256(destination);
+          if (kind === 'reuse') await communityClient.importReuse(id, expectedHash); else await communityClient.importIdea(id, expectedHash);
+          await refreshCommunity();
+        } : undefined} />}
+      {!accountBlocked && !publicCardId && <GuidedTour step={tourStep} language={language} visitedMethods={tourVisitedMethods} onPrevious={() => setTourIndex(current => current === null ? null : Math.max(0, current - 1))}
+        onNext={() => { if (tourIndex === tourTopics.length - 1) closeTour(); else setTourIndex(current => current === null ? null : current + 1); }} onClose={closeTour}
+        canGoBack={tourIndex !== null && tourIndex > 0} isLastStep={tourIndex === tourTopics.length - 1} showCounter={isAuthenticated && stateHydrated && isOwnerAccount} counter={tourIndex === null ? undefined : { current: tourIndex + 1, total: tourTopics.length }}
+        onTargetInteraction={({ stepId, element, method }) => {
+          if (stepId === 'methods' && method) { setTourIndex(tourTopics.indexOf(method === 'localContacts' ? 'localContacts' : method === 'bank' ? 'bank' : method)); return; }
+          if (stepId !== 'modes') return;
+          const key = (element.closest('[data-tour-mode]') as HTMLElement | null)?.dataset.tourMode;
+          if (key && modes.some(mode => mode.key === key)) { setTourModeKey(key); setTourIndex(1); }
+        }} />}
+      {!accountBlocked && !publicCardId && welcomeScope && <WelcomeIntro key={welcomeIntroStorageKey(welcomeScope)} language={language} onComplete={() => {
+        try { markWelcomeIntroComplete(window.localStorage, welcomeScope); } catch { /* The in-memory scope guard prevents a replay loop. */ }
+        if (welcomeScope.kind === 'account') {
+          setOnboardingWelcomeCompleted(true);
+          persistedDocumentRef.current = { ...persistedDocumentRef.current, onboardingWelcomeCompleted: true };
+          stateQueueRef.current?.stage(current => ({ ...current, onboardingWelcomeCompleted: true }));
+        }
+        setWelcomeScope(null); startTour();
+      }} />}
+      {publicCardId && <PublicActivityCard key={publicCardId} apiUrl={apiUrl} cardId={publicCardId} client={accountBlocked ? null : communityClient} language={language} modeNames={Object.fromEntries(modes.map(mode => [mode.key, modeName(mode)]))} onClose={closePublicCard} />}
+      {accountBlocked && !publicCardId && <StateAccountBoundary key={`${hydrationAttempt}:${verifiedIdentity?.user_id ?? 'pending'}`} language={language}
+        phase={signingOut ? accountPhase : accountPhase === 'signing-out' || accountPhase === 'logout-error' ? 'loading' : accountPhase}
+        accountLabel={verifiedIdentity?.email || verifiedIdentity?.name || undefined}
+        onRetry={() => { if (accountPhase === 'logout-error') void logout(); else { setAccountPhase('loading'); setHydrationAttempt(value => value + 1); } }}
+        onSignOut={() => { void logout(); }}
+        onStay={() => { setSigningOut(false); setAccountPhase(stateHydrated ? 'loading' : 'error'); }}
+        onChoice={choice => { consentChoiceRef.current?.(choice); consentChoiceRef.current = null; }} />}
     </main>
   );
 }

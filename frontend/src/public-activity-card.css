@@ -1,0 +1,22 @@
+.public-activity-card { box-sizing: border-box; width: min(850px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: clamp(20px, 4vw, 42px); border: 1px solid #b9d9c860; border-radius: 28px; color: #ebf4ed; background: radial-gradient(ellipse at 100% 0, #33714c33, transparent 50%), linear-gradient(145deg, #153c36, #0b2029 70%); font: 1rem/1.75 'Manrope', sans-serif; text-align: start; overflow: auto; scrollbar-width: thin; }
+.public-activity-card::backdrop { background: #030e17eb; backdrop-filter: blur(10px); }
+.public-activity-card *, .public-activity-card *::before { box-sizing: border-box; }
+.public-activity-card > header { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.public-card-brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+.public-card-brand svg { width: 42px; height: 42px; }
+.public-activity-card button { min-height: 44px; max-width: 100%; border: 1px solid #bad8c84d; border-radius: 12px; padding: 9px 15px; color: #ddf0e3; background: #1f423c; font: inherit; cursor: pointer; }
+.public-activity-card > header button { min-width: 44px; font-size: 1.4rem; }
+.public-activity-card :is(button,a):focus-visible { outline: 2px solid #aeefc5; outline-offset: 3px; }
+.public-card-audience { display: inline-flex; padding: 5px 10px; border: 1px solid #bfe3cb42; border-radius: 99px; color: #c2dec9; font-size: .8rem; }
+.public-card-mode { margin: 20px 0 8px; color: #a1d7bf; font-size: .9rem; }
+.public-activity-card h2 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.5rem); line-height: 1.35; letter-spacing: -.03em; font-weight: 500; overflow-wrap: anywhere; }
+.public-card-author { margin: 16px 0 24px; color: #c2d6ca; }
+.public-card-photo, .public-card-video video { display: block; width: 100%; height: auto; max-height: 65dvh; border: 1px solid #bcd6c836; border-radius: 18px; background: #061a20; object-fit: contain; }
+.public-card-reflection { white-space: pre-wrap; overflow-wrap: anywhere; }
+.public-activity-card a { color: #b8e6ca; overflow-wrap: anywhere; }
+.public-card-goal { margin: 24px 0; padding: 18px; border-inline-start: 2px solid #add6bc; background: #08242b88; border-radius: 0 12px 12px 0; overflow-wrap: anywhere; }
+.public-card-goal > span, .public-card-goal > strong { display: block; }
+.public-card-goal > span { color: #acc9b9; font-size: .85rem; }.public-card-goal p { margin-bottom: 0; }
+.public-card-validation, .public-card-note { color: #b7ccc1; font-size: .9rem; }.public-card-validation.is-validated { color: #a9e6bb; }
+.public-card-return { margin-top: 24px; width: 100%; text-align: start; }.public-card-empty { padding: 35px 0; }.public-card-empty button { margin-top: 18px; }
+@media (max-width: 480px) { .public-activity-card { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); border-radius: 20px; padding: 20px; } }

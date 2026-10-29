@@ -5,7 +5,7 @@ schema writer. Auth reference definitions are copied, not mutated or recreated.
 """
 from sqlalchemy import (
     Boolean, CheckConstraint, Column, DateTime, ForeignKeyConstraint, Index,
-    Integer, JSON, MetaData, String, Table, Text, UniqueConstraint, func,
+    Integer, JSON, LargeBinary, MetaData, String, Table, Text, UniqueConstraint, func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from gm_auth.models import memberships, organizations, users
@@ -220,4 +220,37 @@ idea_offers = Table(
     CheckConstraint("responder_id <> requester_id", name="ck_community_idea_other"),
 )
 
-COMMUNITY_TABLES = [progress_controls, profiles, connections, submissions, reviews, receipts, advance_claims, notifications, feed_cards, reactions, reuse_requests, idea_requests, idea_offers]
+COMMUNITY_V1_TABLES = [progress_controls, profiles, connections, submissions, reviews, receipts, advance_claims, notifications, feed_cards, reactions, reuse_requests, idea_requests, idea_offers]
+# Project the pre-003 models before adding columns, for the frozen001 golden
+# comparison. Historical DDL remains literal in the migration, never regenerated.
+_v1_projection = MetaData()
+for _table in metadata.sorted_tables:
+    _table.to_metadata(_v1_projection)
+COMMUNITY_V1_TABLES = [_v1_projection.tables[table.name] for table in COMMUNITY_V1_TABLES]
+
+feed_cards.append_column(Column("audience", String(16), nullable=False, server_default="network"))
+feed_cards.append_column(Column("submission_id", String(36), nullable=True))
+feed_cards.append_constraint(CheckConstraint("audience IN ('network','public')", name="ck_community_card_audience"))
+feed_cards.append_constraint(ForeignKeyConstraint(
+    ["submission_id", "organization_id", "author_id"],
+    ["modocultiva_evidence_submissions.id", "modocultiva_evidence_submissions.organization_id", "modocultiva_evidence_submissions.author_id"],
+    name="fk_community_card_submission",
+))
+Index("ix_community_cards_audience", feed_cards.c.organization_id, feed_cards.c.audience, feed_cards.c.visible, feed_cards.c.created_at)
+Index("ix_community_cards_submission", feed_cards.c.submission_id, feed_cards.c.organization_id, feed_cards.c.author_id)
+
+media_assets = Table(
+    "modocultiva_private_evidence_media", metadata,
+    Column("id", String(36), primary_key=True),
+    Column("organization_id", String(128), nullable=False),
+    Column("author_id", String(36), nullable=False),
+    Column("mime_type", String(32), nullable=False),
+    Column("byte_size", Integer, nullable=False),
+    Column("sha256", String(64), nullable=False),
+    Column("content", LargeBinary, nullable=False), created(),
+    member_reference("author_id"),
+    CheckConstraint("mime_type IN ('video/mp4','video/webm')", name="ck_community_private_video_type"),
+    CheckConstraint("byte_size > 0 AND byte_size <= 20971520", name="ck_community_private_video_size"),
+)
+Index("ix_community_private_media_author", media_assets.c.organization_id, media_assets.c.author_id, media_assets.c.created_at)
+COMMUNITY_TABLES = [metadata.tables[table.name] for table in COMMUNITY_V1_TABLES] + [media_assets]

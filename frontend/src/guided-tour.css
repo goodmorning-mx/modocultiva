@@ -1,0 +1,105 @@
+/* Isolated layer: no Holista layout, page, dialog, or existing component selectors. */
+.guided-tour-layer {
+  position: fixed;
+  inset: auto;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: #f4f8ee;
+  pointer-events: none;
+  z-index: 2147483647;
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color-scheme: dark;
+  isolation: isolate;
+}
+.guided-tour-layer::backdrop { background: transparent; pointer-events: none; }
+.guided-tour-shade { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.guided-tour-shade path { fill: #020706; pointer-events: fill; }
+.guided-tour-outline {
+  position: absolute;
+  box-sizing: border-box;
+  outline: 1px solid #cbdaa0;
+  outline-offset: 2px;
+  border-radius: 7px;
+  box-shadow: 0 0 18px 1px #c7d79130;
+  pointer-events: none;
+}
+.guided-tour-card {
+  position: absolute;
+  inset: auto;
+  left: 8px;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(384px, calc(100vw - 16px));
+  min-width: 0;
+  max-height: calc(100dvh - 16px);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #bdcea242;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #1a2b25f5, #0a1513fa);
+  box-shadow: 0 14px 50px #0009, inset 0 1px #ffffff0c;
+  color: #f4f8ee;
+  pointer-events: auto;
+  text-align: start;
+  animation: guided-tour-arrive 180ms ease-out both;
+}
+.guided-tour-content { flex: 1 1 auto; min-height: 0; padding: 18px 18px 12px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; overflow-wrap: anywhere; }
+.guided-tour-card h2 { margin: 0 0 10px; color: #eff3db; font: 500 20px/1.25 'Manrope', system-ui, sans-serif; letter-spacing: -.025em; }
+.guided-tour-card h3 { margin: 12px 0 8px; color: #e3edcf; font-size: 13px; font-weight: 600; }
+.guided-tour-card p { margin: 0 0 10px; color: #dce5dc; font-size: 14px; line-height: 1.55; }
+.guided-tour-counter { display: block; margin-bottom: 10px; color: #b7c8b9; font-size: 11px; }
+.guided-tour-card .guided-tour-instructions { color: #cedcb2; font-size: 12px; }
+.guided-tour-clarity { margin: 12px 0; padding: 10px 12px; border-inline-start: 2px solid #cfdda5; background: #bdcea20d; }
+.guided-tour-clarity small { display: block; margin-bottom: 7px; color: #c6d3ab; font-size: 11px; }
+.guided-tour-clarity p { margin: 0; }
+.guided-tour-methods ul { display: flex; flex-direction: column; gap: 6px; margin: 0 0 10px; padding: 0; list-style: none; }
+.guided-tour-methods li { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border: 1px solid #bfd0b025; border-radius: 10px; color: #dce5dc; font-size: 12px; }
+.guided-tour-methods li[data-visited="true"] { border-color: #c3d59364; color: #eff5dc; background: #c3d5930b; }
+.guided-tour-methods li > span:first-child { flex: 0 0 14px; color: #d0dfa6; }
+.guided-tour-methods small { display: block; color: #aebfb1; font-size: 10px; }
+.guided-tour-rail { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; border-top: 1px solid #dae5c21a; background: #d8e8ca0a; backdrop-filter: blur(16px); }
+.guided-tour-rail button, .guided-tour-retry {
+  display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  min-width: 44px; min-height: 44px; margin: 0; padding: 4px 12px;
+  border: 1px solid #d2dfbd3d; border-radius: 999px; background: #cfe2ba0a;
+  color: #ecf5dc; font: inherit; cursor: pointer; touch-action: manipulation;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.guided-tour-rail button { font-size: 24px; line-height: 1; }
+.guided-tour-rail .guided-tour-close { border-color: transparent; color: #c2d1c3; font-size: 23px; }
+.guided-tour-rail button:hover:not(:disabled), .guided-tour-retry:hover { background: #d7e9ba20; border-color: #e1eec780; }
+.guided-tour-rail button:disabled { opacity: .38; cursor: not-allowed; }
+.guided-tour-card:focus { outline: none; }
+.guided-tour-card:focus-visible, .guided-tour-card button:focus-visible { outline: 2px solid #eef4cf; outline-offset: -3px; }
+.guided-tour-retry { min-height: 44px; font-size: 12px; }
+@keyframes guided-tour-arrive { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 360px) {
+  .guided-tour-content { padding: 13px 13px 9px; }
+  .guided-tour-card { border-radius: 16px; }
+  .guided-tour-card h2 { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guided-tour-card { animation: none; }
+  .guided-tour-rail button, .guided-tour-retry { transition: none; }
+}
+@media (forced-colors: active) {
+  .guided-tour-shade path { fill: Canvas; forced-color-adjust: none; }
+  .guided-tour-card { border: 1px solid ButtonText; background: Canvas; }
+  .guided-tour-card p, .guided-tour-card h2 { color: CanvasText; }
+  .guided-tour-outline { outline: 2px solid Highlight; }
+}

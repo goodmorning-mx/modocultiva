@@ -32,6 +32,14 @@ jobs:
       - run: npm run verify:clarity
       - run: npm run verify:map
       - run: npm run verify:badges
+      - run: npm run verify:welcome
+      - run: npm run verify:state-sync
+      - run: npm run verify:app-state
+      - run: npm run verify:tutorial
+      - run: npm run verify:activity-flow
+      - run: npm run verify:community
+      - run: npm run verify:audiences
+      - run: npm run verify:onboarding
       - run: npm run build
 
   backend:

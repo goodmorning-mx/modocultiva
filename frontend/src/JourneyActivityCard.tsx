@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { CultivaLeaf } from './CultivaLeaf';
+import { ActivityJourneyFlow, type ActivityJourneyFlowProps } from './ActivityJourneyFlow';
 import { createActivityImage } from './activityShareImage';
 import { REACTIONS, SHARE_PLATFORMS, platformName, shareCaption, socialCopy, type ActivityShare, type Reaction, type SharePlatform } from './journeySocial';
 import './journey-social.css';
@@ -73,22 +74,27 @@ function SharePreview({ card, platform, onClose }: { card: ActivityShare; platfo
   </dialog>;
 }
 
-type Props = { card: ActivityShare; current: boolean; defined: boolean; reaction?: Reaction; onReact: (reaction: Reaction) => void };
-export function JourneyActivityCard({ card, current, defined, reaction, onReact }: Props) {
+type Props = { card: ActivityShare; current: boolean; defined: boolean; reaction?: Reaction; onReact: (reaction: Reaction) => void; flow?: Omit<ActivityJourneyFlowProps, 'sourceLevel' | 'language'>; sharePreviewScope?: string };
+export function JourneyActivityCard({ card, current, defined, reaction, onReact, flow, sharePreviewScope }: Props) {
   const copy = socialCopy(card.language);
   const [platform, setPlatform] = useState<SharePlatform | null>(null);
+  // Tutorial navigation can keep this activity mounted. Retire its transient
+  // native preview through React, rather than leaving a hidden modal on top.
+  useEffect(() => { setPlatform(null); }, [sharePreviewScope]);
   const [notice, setNotice] = useState('');
   const headingId = useId();
-  return <article className={`journey-level-card journey-level-card--active journey-social-card${current ? ' journey-level-card--current' : ''}${defined ? '' : ' journey-social-card--empty'}`} style={{ '--mode-color': card.color } as CSSProperties} aria-labelledby={headingId}>
+  // A strict public allowlist: flow state/private proof must never reach exporters.
+  const publicCard: ActivityShare = { mode: card.mode, level: card.level, levelLabel: card.levelLabel, stage: card.stage, effort: card.effort, activity: card.activity, color: card.color, icon: card.icon, language: card.language };
+  return <article className={`journey-level-card journey-level-card--active journey-social-card${current ? ' journey-level-card--current' : ''}${defined ? '' : ' journey-social-card--empty'}`} style={{ '--mode-color': card.color } as CSSProperties} aria-labelledby={headingId} dir={card.language === 'ar' ? 'rtl' : 'ltr'}>
     <div className="journey-social-art" aria-hidden="true"><span>{card.icon}</span><svg viewBox="0 0 440 220" fill="none"><path d="M440 12C310 28 346 132 182 220M440 45C323 49 352 145 222 220M440 80C356 83 365 163 267 220M440 116C391 113 392 170 312 220" stroke="currentColor" /></svg></div>
     <header className="journey-social-heading"><div className="journey-social-mode"><span aria-hidden="true">{card.icon}</span><span>{card.mode}</span></div><div className="journey-social-level"><span>{card.levelLabel}</span><strong>{card.level.toLocaleString(card.language)}</strong></div></header>
     <div className="journey-social-body"><span className="journey-social-stage">{card.stage}</span><h4 id={headingId} dir="auto" tabIndex={card.activity.length > 100 ? 0 : undefined} className={`journey-social-title${card.activity.length > 100 ? ' journey-social-title--long' : ''}`}>{card.activity}</h4><div className="journey-social-effort"><i aria-hidden="true" />{card.effort}</div></div>
-    <div className="journey-social-track" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} className={i < card.level ? 'is-filled' : ''} />)}</div>
+    {flow && card.level < 9 ? <ActivityJourneyFlow {...flow} sourceLevel={card.level} language={card.language} /> : <div className="journey-social-track" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} className={i < card.level ? 'is-filled' : ''} />)}</div>}
     <footer className="journey-social-footer">
       <div className="journey-reactions"><span className="journey-social-label">{copy.reaction}</span><div role="group" aria-label={copy.reaction}>{REACTIONS.map((key, i) => <button key={key} type="button" className={`journey-reaction journey-reaction--${key}`} aria-label={copy.reactions[i]} title={copy.reactions[i]} aria-pressed={reaction === key} onClick={() => { try { onReact(key); setNotice(''); } catch { setNotice(copy.storageError); } }}><ReactionIcon reaction={key} /></button>)}</div></div>
       <div className="journey-share"><span className="journey-social-label">{copy.share}</span><div role="group" aria-label={copy.share}>{SHARE_PLATFORMS.map(key => <button key={key} type="button" onClick={() => setPlatform(key)} aria-label={`${copy.share} · ${platformName(key, card.language)}`} title={platformName(key, card.language)}><PlatformIcon platform={key} /><span>{platformName(key, card.language)}</span></button>)}</div></div>
     </footer>
     {notice && <p className="journey-reaction-notice" role="status">{notice}</p>}
-    {platform && <SharePreview card={card} platform={platform} onClose={() => setPlatform(null)} />}
+    {platform && <SharePreview card={publicCard} platform={platform} onClose={() => setPlatform(null)} />}
   </article>;
 }

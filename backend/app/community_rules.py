@@ -7,8 +7,10 @@ import base64
 import binascii
 from hashlib import sha256
 import struct
+import re
 import zlib
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, StrictBool, StrictInt, field_validator, model_validator
 
@@ -17,6 +19,7 @@ from app.clarity import clarity_transition
 ModeKey = Literal["fisico", "intelectual", "emocional", "arquetipico", "espiritual", "romantico", "familiar", "social", "financiero", "profesional", "ludico", "visionario"]
 Language = Literal["es", "en", "zh", "hi", "ar", "it", "pt", "ru", "de", "fr", "da"]
 Reaction = Literal["leaf", "soil", "water", "sun", "roots"]
+CardAudience = Literal["network", "public"]
 REVIEW_QUORUM = 3
 
 
@@ -24,8 +27,27 @@ class StrictPayload(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
+class AudienceInput(StrictPayload):
+    audience: CardAudience = "network"
+    public_confirmed: StrictBool = False
+
+    @model_validator(mode="after")
+    def explicit_public_consent(self):
+        if self.audience == "public" and not self.public_confirmed:
+            raise ValueError("Explicitly confirm public sharing of this card and its uploaded evidence.")
+        return self
+
+
+def normalize_activity(activity: str) -> str:
+    # Match ECMAScript String.trim exactly (Python strip also removes U+0085
+    # and U+001C–001F, but does not remove BOM). Keep cross-language hashes and
+    # historical client completion tokens consistent for every Unicode input.
+    whitespace = "\\u0009-\\u000d\\u0020\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff"
+    return re.sub(f"^[{whitespace}]+|[{whitespace}]+$", "", activity)
+
+
 def activity_hash(activity: str) -> str:
-    return sha256(activity.strip().encode("utf-8")).hexdigest()
+    return sha256(normalize_activity(activity).encode("utf-8")).hexdigest()
 
 
 def completion_token(activity: str) -> str:
@@ -34,7 +56,7 @@ def completion_token(activity: str) -> str:
     Security binds the full activity snapshot/SHA256/revision on the server.
     """
     a, b = 2166136261, 5381
-    for char in activity.strip():
+    for char in normalize_activity(activity):
         a = ((a ^ ord(char)) * 16777619) & 0xFFFFFFFF
         b = ((b * 33) ^ ord(char)) & 0xFFFFFFFF
     return f"{a:08x}{b:08x}"
@@ -92,6 +114,13 @@ class EvidenceInput(StrictPayload):
     reflection: str = Field(min_length=20, max_length=6000)
     link: HttpUrl | None = None
     image: str | None = Field(default=None, max_length=400_000)
+    video_asset_id: UUID | None = None
+
+    @model_validator(mode="after")
+    def visual_proof_required(self):
+        if bool(self.image) == bool(self.video_asset_id):
+            raise ValueError("Attach one visual proof: a photo or an uploaded video. Text and links cannot substitute for it.")
+        return self
 
     @field_validator("link")
     @classmethod
@@ -106,7 +135,7 @@ class EvidenceInput(StrictPayload):
         return validate_evidence_png(value) if value else None
 
 
-class SubmissionInput(StrictPayload):
+class SubmissionInput(AudienceInput):
     mode: ModeKey
     level: StrictInt = Field(ge=0, le=8)
     language: Language = "es"
@@ -133,3 +162,41 @@ class ReviewInput(StrictPayload):
         if self.decision == "changes_requested" and len(self.feedback.strip()) < 20:
             raise ValueError("Explain what needs to change in at least20 characters.")
         return self
+
+
+class ProfileInput(StrictPayload):
+    display_name: str = Field(min_length=1, max_length=120)
+    bio: str = Field(default="", max_length=500)
+    discoverable: StrictBool
+
+
+class ConnectionInput(StrictPayload):
+    member_id: str = Field(min_length=1, max_length=36)
+
+
+class ConnectionAction(StrictPayload):
+    action: Literal["accept", "decline", "disconnect"]
+
+
+class ActivityShareInput(AudienceInput):
+    mode: ModeKey
+    level: StrictInt = Field(ge=0, le=8)
+    expected_activity_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    submission_id: UUID | None = None
+
+
+class ReactionInput(StrictPayload):
+    reaction: Reaction | None
+
+
+class PermissionAction(StrictPayload):
+    action: Literal["accept", "decline"]
+
+
+class ImportActivityInput(StrictPayload):
+    expected_destination_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class IdeaRequestInput(StrictPayload):
+    mode: ModeKey
+    level: StrictInt = Field(ge=0, le=8)
