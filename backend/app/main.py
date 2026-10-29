@@ -17,6 +17,8 @@ from gm_mcp import RequestContext, ToolRegistry
 
 from app.billing import PostgresBillingStore, UserStateStore
 from app.clarity import activity_alignment_instruction
+from app.community_rules import REVIEW_QUORUM
+from app.community_status import community_storage_ready
 from app.config import get_runtime_openai_api_key, get_settings
 from app.database import create_database_engine
 
@@ -146,6 +148,14 @@ def agent_status() -> dict[str, str | bool]:
         "model": settings.openai_model,
         "runtime_secret": "available" if configured else "missing",
     }
+
+
+@app.get("/community/capabilities")
+def community_capabilities() -> dict:
+    # This foundation slice intentionally does not expose review mutations yet.
+    # Storage readiness is not a claim that connections/validation UI are live.
+    return {"storage_ready": community_storage_ready(engine), "features_enabled": False,
+            "review_quorum": REVIEW_QUORUM, "schema_version": "202610290001"}
 
 
 @app.post("/auth/register")
