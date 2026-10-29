@@ -235,7 +235,11 @@ def test_private_media_migration_is_frozen_additive_and_development_only(monkeyp
     spec.loader.exec_module(module)
     dialect = postgresql.dialect()
     expected = [str(CreateTable(media_assets).compile(dialect=dialect)).strip()] + [str(CreateIndex(index).compile(dialect=dialect)).strip() for index in media_assets.indexes]
-    assert tuple(expected) == module.SCHEMA_V2
+    # SQLAlchemy emits trailing line spaces; the frozen source intentionally
+    # omits them. Compare all SQL tokens/order without requiring whitespace lint
+    # violations or changing the migration's actual schema semantics.
+    canonical_lines = lambda statement: "\n".join(line.rstrip() for line in statement.strip().splitlines())
+    assert tuple(map(canonical_lines, expected)) == tuple(map(canonical_lines, module.SCHEMA_V2))
     assert module.down_revision == "202610290001"
     monkeypatch.setattr("app.config.get_settings", lambda: SimpleNamespace(app_env="production"))
     with pytest.raises(RuntimeError, match="only for development"):
