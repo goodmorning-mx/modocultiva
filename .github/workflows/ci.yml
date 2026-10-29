@@ -37,6 +37,20 @@ jobs:
   backend:
     name: Backend checks
     runs-on: ubuntu-latest
+    services:
+      migration-postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: modocultiva_community_migration_test
+          POSTGRES_USER: synthetic_migration_user
+          POSTGRES_PASSWORD: synthetic_ci_only_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U synthetic_migration_user -d modocultiva_community_migration_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     defaults:
       run:
         working-directory: backend
@@ -50,6 +64,9 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m pytest
       - run: alembic history --verbose
+      - run: python -m scripts.verify_community_migration
+        env:
+          COMMUNITY_MIGRATION_TEST_URL: postgresql+psycopg://synthetic_migration_user:synthetic_ci_only_password@127.0.0.1:5432/modocultiva_community_migration_test
 
   docker:
     name: Docker build validation
