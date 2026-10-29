@@ -5,7 +5,7 @@ export type WelcomeIntroScope =
 
 export type WelcomeIntroAudience =
   | { status: 'pending' | 'unavailable' }
-  | { status: 'ready'; scope: WelcomeIntroScope; savedPerson: 'new' | 'established' | 'unknown' };
+  | { status: 'ready'; scope: WelcomeIntroScope };
 
 export type WelcomeIntroStorage = {
   getItem(key: string): string | null;
@@ -51,11 +51,11 @@ export function readWelcomeIntroCompletion(
   }
 }
 
-/** An unavailable flag never establishes that someone is new. Hydration does. */
+/** A saved map is not proof of seeing the introduction. Wait for identity hydration,
+ * then skip only an explicitly completed welcome in that visitor/account scope. */
 export function decideWelcomeIntro(audience: WelcomeIntroAudience, completion: WelcomeCompletion): WelcomeIntroDecision {
   if (audience.status !== 'ready') return 'wait';
-  if (audience.savedPerson === 'established') return 'skip';
-  if (audience.savedPerson !== 'new' || !welcomeIntroStorageKey(audience.scope)) return 'wait';
+  if (!welcomeIntroStorageKey(audience.scope)) return 'wait';
   return completion === 'complete' ? 'skip' : 'show';
 }
 

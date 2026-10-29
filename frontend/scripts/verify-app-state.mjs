@@ -17,6 +17,7 @@ const recovery = (await pure('stateRecovery')).module;
 const { createStateSyncQueue } = (await pure('stateSyncQueue')).module;
 const { reconcileState, cloneStateValue: clone } = (await pure('stateReconcile')).module;
 const { stateAccountCopy, stateAccountMessageValues } = (await pure('stateAccountMessages')).module;
+const { resolveLanguagePreference, restoreLanguagePreference, normalizeLanguageState } = (await pure('languagePreference')).module;
 const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('App.tsx', app, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 function expression(name) {
@@ -40,10 +41,68 @@ const entries = new Map();
 const storage = { getItem: key => entries.get(key) ?? null, setItem: (key, value) => entries.set(key, value), removeItem: key => entries.delete(key) };
 const failedStorage = { getItem() { throw Error('blocked'); }, setItem() { throw Error('full'); }, removeItem() { throw Error('blocked'); } };
 
+// Actual App language handler/canonical ingress + queue, not a copied reducer.
+function preferenceFixture(preference, browser) {
+  const ui = { ...clone(state), ...preference }, ref = { current: clone(ui) };
+  const normalizeLanguageDocument = value => normalizeLanguageState(value, browser);
+  const normalize = actual('normalizeCanonicalSnapshot', { normalizeLanguageDocument });
+  const bindings = { persistedDocumentRef: ref, reconcileState, normalizeLanguageDocument, resolveLanguagePreference, detectBrowserLanguage: () => browser, cleanCompletions: value => value ?? {}, retainPendingState() {} };
+  for (const setter of new Set(expression('reconcileCanonicalState').match(/\bset[A-Z]\w*/g))) {
+    const key = setter[3].toLowerCase() + setter.slice(4);
+    bindings[setter] = value => { ui[key] = typeof value === 'function' ? value(ui[key]) : value; };
+  }
+  const q = createStateSyncQueue({ initial: normalize(snapshot(ui, 'pref-initial')), transport: async document => normalize(snapshot(document, 'pref-saved')), onReconcile: actual('reconcileCanonicalState', bindings) });
+  const choose = actual('handleLanguageChange', { ...bindings, personalStorageRef: { current: { setItem() {} } }, stateQueueRef: { current: q } });
+  const assertPreference = expected => {
+    for (const value of [ui, ref.current, q.getDesired()]) assert.deepEqual({ language: value.language, languageSource: value.languageSource }, expected);
+    assert.deepEqual(ref.current.levels, state.levels); assert.deepEqual(q.getDesired().presets, state.presets);
+  };
+  return { ui, ref, q, normalize, choose, assertPreference };
+}
+{
+  const f = preferenceFixture({ language: 'es', languageSource: 'manual' }, 'en');
+  f.choose('fr');
+  const legacy = { ...clone(state), language: 'es' }; // No languageSource in an old response.
+  f.q.refresh(f.normalize(snapshot(legacy, 'legacy-response')));
+  f.assertPreference({ language: 'fr', languageSource: 'manual' });
+  await f.q.flush(); f.assertPreference({ language: 'fr', languageSource: 'manual' }); f.q.dispose();
+}
+{
+  const f = preferenceFixture({ language: 'fr', languageSource: 'manual' }, 'en');
+  f.q.refresh(f.normalize(snapshot({...clone(state),language:'de'},'old-default')));
+  f.assertPreference({language:'fr',languageSource:'manual'});
+  assert.equal(f.q.isDirty(),true,'Acknowledged manual choice becomes a real repair write when old canonical data loses provenance');
+  await f.q.flush(); f.assertPreference({language:'fr',languageSource:'manual'});
+  assert.equal(f.q.getSnapshot().state.languageSource,'manual'); f.q.dispose();
+}
+{
+  const cloud = snapshot({...clone(state),language:'en',languageSource:'auto'},'owned-record-initial');
+  const normalizeLanguageDocument = value => normalizeLanguageState(value,'es');
+  const normalizeSnapshot = actual('normalizeCanonicalSnapshot',{normalizeLanguageDocument});
+  const desired = actual('normalizePersonalDocument', { normalizeLanguageDocument, restoreLanguagePreference,
+    personalStorageRef:{current:{getItem:()=>JSON.stringify({version:1,source:'manual',language:'fr'})}},detectBrowserLanguage:()=> 'es',
+    defaultLevels:levels,cleanCompletions:value=>value??{},cleanReactions:value=>value??{},allSkinKeys:new Set(['holista']) })(normalizeSnapshot(cloud).state);
+  const sent=[];
+  const q=createStateSyncQueue({initial:normalizeSnapshot(cloud),transport:async document=>{sent.push(clone(document));return snapshot(document,'owned-record-saved');}});
+  q.stage(desired); assert.equal(q.isDirty(),true,'Restored value-bound manual provenance must be genuinely staged, not falsely acknowledged');
+  await q.flush(); assert.equal(sent.length,1); assert.equal(sent[0].language,'fr'); assert.equal(sent[0].languageSource,'manual');
+  assert.deepEqual(sent[0].levels,levels); assert.deepEqual(sent[0].presets,state.presets); q.dispose();
+}
+{
+  const f = preferenceFixture({ language: 'fr', languageSource: 'auto' }, 'fr');
+  f.q.refresh(f.normalize(snapshot({ ...clone(state), language: 'en', languageSource: 'auto' }, 'automatic-response')));
+  f.assertPreference({ language: 'fr', languageSource: 'auto' });
+  const previousUi = clone(f.ui);
+  f.q.refresh(f.normalize(snapshot({ ...clone(state), language: 'de', languageSource: 'manual' }, 'manual-response')));
+  f.assertPreference({ language: 'de', languageSource: 'manual' });
+  f.q.stage(current => recovery.stageCommittedUi(previousUi, f.ui, current));
+  f.assertPreference({ language: 'de', languageSource: 'manual' }); f.q.dispose();
+}
+
 // Synchronous canonical reconciliation + committed UI deltas close 4 -> 3 regression.
 {
   const ref = { current: clone(state) }, statuses = [], sent = [];
-  const bindings = { persistedDocumentRef: ref, reconcileState, cleanCompletions: value => value ?? {}, retainPendingState() {} };
+  const bindings = { persistedDocumentRef: ref, reconcileState, normalizeLanguageDocument: state => normalizeLanguageState(state, 'es'), resolveLanguagePreference, detectBrowserLanguage: () => 'es', cleanCompletions: value => value ?? {}, retainPendingState() {} };
   for (const name of new Set(expression('reconcileCanonicalState').match(/\bset[A-Z]\w*/g))) bindings[name] = () => {}; // React updates remain uncommitted.
   const reconcile = actual('reconcileCanonicalState', bindings);
   const q = createStateSyncQueue({ initial, transport: async document => { sent.push(clone(document)); return snapshot(document, 'C'); }, onReconcile: reconcile });
@@ -66,7 +125,7 @@ const failedStorage = { getItem() { throw Error('blocked'); }, setItem() { throw
 {
   const ui = { ...clone(state), profileName: 'New React name', levels: { ...levels, fisico: 2 }, activityDrafts: {}, presets: { ...state.presets, New: clone(levels) } };
   const ref = { current: clone(ui) }, metadata = {};
-  const bindings = { persistedDocumentRef: ref, reconcileState, cleanCompletions: value => value ?? {}, retainPendingState() {} };
+  const bindings = { persistedDocumentRef: ref, reconcileState, normalizeLanguageDocument: state => normalizeLanguageState(state, 'es'), resolveLanguagePreference, detectBrowserLanguage: () => 'es', cleanCompletions: value => value ?? {}, retainPendingState() {} };
   for (const setter of new Set(expression('reconcileCanonicalState').match(/\bset[A-Z]\w*/g))) {
     const key = setter[3].toLowerCase() + setter.slice(4);
     bindings[setter] = value => {

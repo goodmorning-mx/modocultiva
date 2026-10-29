@@ -6,14 +6,20 @@ The component starts automatically. Entry → readable hold → exit repeats for
 
 `onComplete` fires once per mounted sequence, after the final exit, including React StrictMode effect replay. The latest callback is used without restarting timing. Completion removes the portal, clears timers/listeners and restores prior inert flags, body overflow, focus (if still connected) and scroll. Early unmount cleans up without reporting completion. The app must unmount/remount (or key) the component when the visitor/account scope changes. Replay is a caller decision, never a data reset.
 
+The welcome header uses the unmodified user-supplied neon logo (`assets/modo-cultiva-logo-official.png`, SHA256 `74b3793b31bd1de21cf688e5d5e4ff2a6bc1163e44a7e1457ccc8ae2b1ee54d0`). The large cultivation leaf next to the questions remains unchanged.
+
+## Language preference
+
+`languagePreference.ts` applies one policy to all11 languages, including regional browser tags: an explicit supported manual selection wins; otherwise the first supported browser language wins, with Spanish as the unsupported-language fallback. Old independent language/source cache keys are ambiguous (previous writers could retain `manual` while changing the value); they are not proof of a selection. New manual choices are stored as one scoped `modoCultiva_manualLanguage_v1` record binding version/source/language, and as `languageSource: 'manual'` in verified cloud state. Unmarked/automatic cloud defaults cannot erase a known manual choice, whether pending or acknowledged. Only another explicit manual cloud choice can replace a settled manual preference. Canonical snapshots normalize before queue ingress; the language/source pair merges atomically, keeping UI/ref/queue consistent and staging lost provenance as a genuine repair write. On hydration an own-scope value-bound record is restored into desired state AFTER canonical acknowledgement, so it is saved rather than falsely acknowledged. Guest/account/organization scopes remain isolated. Welcome, interface and the automatically following tutorial share the resolved language; no separate English default is introduced for either overlay.
+
 ## First-visit eligibility API
 
 `welcomeIntroState.ts` has no ambient browser/storage/account access:
 
 - `WelcomeIntroScope`: `{ kind: 'guest', visitorId }` or `{ kind: 'account', organizationId, accountId }`. Use stable opaque IDs, not display names/emails. Guest/account/organization scopes do not share flags.
-- `WelcomeIntroAudience`: `{ status: 'pending' | 'unavailable' }` or `{ status: 'ready', scope, savedPerson: 'new' | 'established' | 'unknown' }`.
+- `WelcomeIntroAudience`: `{ status: 'pending' | 'unavailable' }` or `{ status: 'ready', scope }`.
 - `readWelcomeIntroCompletion(storage, scope)` → `'complete' | 'incomplete' | 'unavailable'`.
-- `decideWelcomeIntro(audience, completion)` → `'wait' | 'show' | 'skip'`. Pending/failed/unknown hydration waits. Established saved people skip even without a welcome flag. Only an explicitly new guest/account may show. A missing/failed welcome flag does **not** mean a person is new; zero levels do not prove this either.
+- `decideWelcomeIntro(audience, completion)` → `'wait' | 'show' | 'skip'`. Pending/failed identity hydration waits. After hydration, only an actual completed welcome flag skips the introduction. Existing levels, presets, activities or images never imply that someone has already seen it. Returning users without a completion flag receive the seven messages once, followed automatically by the tutorial, without altering saved map data. A completed account flag from hydrated cloud state also prevents repeats on another browser; guest completion never marks an account complete.
 - `markWelcomeIntroComplete(storage, scope)` writes only the versioned, scoped welcome flag and returns whether persistence succeeded. Call from `onComplete`, not on mount/pause/unmount. Keep a per-scope in-memory completed guard even if storage fails. Catch access to `window.localStorage` itself in the caller, passing `null` on failure. Helpers catch get/set failures and malformed flags; they never delete or clear storage.
 - Pure `createWelcomeTimeline(messages, nowMs, options)`, `reduceWelcomeTimeline(state, event)` and `welcomeNextDelayMs(state)` own timing, with an injected monotonic time and no timers/global effects.
 

@@ -73,7 +73,7 @@
   margin-inline: auto;
 }
 .mc-welcome__brand { display: flex; align-items: center; gap: 9px; color: #d2e9d9; font-weight: 700; font-size: .86rem; letter-spacing: -.025em; }
-.mc-welcome__brand svg { display: block; flex: 0 0 auto; inline-size: 29px; block-size: 29px; }
+.mc-welcome__brand img { display: block; flex: 0 0 auto; inline-size: 40px; block-size: 40px; object-fit: contain; border-radius: 10px; }
 .mc-welcome__pause {
   display: inline-flex;
   flex: 0 0 auto;

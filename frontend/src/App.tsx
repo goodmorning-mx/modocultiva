@@ -18,6 +18,7 @@ import type { ActivityJourneyFlowProps } from './ActivityJourneyFlow';
 import type { EvidenceDraft } from './visualEvidence';
 import { onboardingIntegrationCopy } from './onboardingIntegrationMessages';
 import { WelcomeIntro } from './WelcomeIntro';
+import { browserLanguage, readManualLanguage, resolveLanguagePreference, restoreLanguagePreference, normalizeLanguageState, type AppLanguage, type LanguageSource } from './languagePreference';
 import { decideWelcomeIntro, markWelcomeIntroComplete, readWelcomeIntroCompletion, welcomeIntroStorageKey, type WelcomeIntroScope } from './welcomeIntroState';
 import { GuidedTour } from './GuidedTour';
 import { getGuidedTourCopy, guidedTourStepCopy, type TourStageId } from './guidedTourMessages';
@@ -298,7 +299,7 @@ const generatedSpecialists: Specialist[] = modes.flatMap((mode, modeIndex) => sp
 })));
 const specialistDirectory = [...specialists, ...generatedSpecialists];
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-type Language = 'es' | 'en' | 'zh' | 'hi' | 'ar' | 'it' | 'pt' | 'ru' | 'de' | 'fr' | 'da';
+type Language = AppLanguage;
 const languageNames: Record<Language, string> = {
   es: 'Español', en: 'English', zh: '中文', hi: 'हिन्दी', ar: 'العربية',
   it: 'Italiano', pt: 'Português', ru: 'Русский', de: 'Deutsch', fr: 'Français', da: 'Dansk',
@@ -629,25 +630,15 @@ const activityStageDescriptions: Record<Language, string[]> = {
   da: ['Observer uden krav om resultater; det første skridt er at lægge mærke til, hvad der sker.', 'Skriv en kort note og bemærk, hvornår trangen til at handle opstår.', 'Vælg et konkret signal og gør det til en lille beslutning.', 'Gentag en enkel handling, indtil den finder en rytme.', 'Hold fast i en synlig praksis og se, hvad der hjælper dig videre.', 'Beskyt det, der virker, med let og stabil vedligeholdelse.', 'Sæt et målbart mål og giv det målrettet energi.', 'Juster systemet med data, disciplin og regelmæssig gennemgang.', 'Optimer, deleger eller søg ekspertvejledning for at øge effekten.', 'Saml det lærte og gør det til en reference for andre.'],
 };
 const supportedLanguages = Object.keys(languageNames) as Language[];
-const languageFromLocale = (locale: string | undefined): Language | null => {
-  const prefix = locale?.trim().toLowerCase().split(/[-_]/)[0];
-  return prefix && supportedLanguages.includes(prefix as Language) ? prefix as Language : null;
-};
 const detectBrowserLanguage = (): Language => {
   if (typeof navigator === 'undefined') return 'es';
-  const browserLocales = [...(navigator.languages ?? []), navigator.language];
-  return browserLocales.map(languageFromLocale).find((value): value is Language => value !== null) ?? 'es';
+  return browserLanguage(navigator.languages ?? [], navigator.language);
 };
-const detectLanguage = (): Language => {
-  if (typeof window === 'undefined') return 'es';
+const detectLanguagePreference = () => {
   const storage = scopedPersonalStorage(deviceStateStorage(), null);
-  const saved = storage.getItem('modoCultiva_language') as Language | null;
-  const savedSource = storage.getItem('modoCultiva_language_source');
-  // Only an explicit choice in the selector should override the browser locale.
-  // Older releases did not store the source, so their value is treated as stale.
-  if (savedSource === 'manual' && saved && supportedLanguages.includes(saved)) return saved;
-  return detectBrowserLanguage();
+  return restoreLanguagePreference(null, 'auto', detectBrowserLanguage(), storage.getItem('modoCultiva_manualLanguage_v1'));
 };
+const detectLanguage = (): Language => detectLanguagePreference().language;
 const authClient = {
   async login(email: string, password: string): Promise<AuthTokens> {
     const response = await fetch(`${apiUrl}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
@@ -682,10 +673,8 @@ const readLegacyDeviceState = (): Record<string, unknown> => {
   };
   const savedPlan = window.localStorage.getItem('modoCultiva_plan');
   if (savedPlan === 'basic' || savedPlan === 'gold' || savedPlan === 'ultimate') state.activePlan = savedPlan;
-  if (window.localStorage.getItem('modoCultiva_language_source') === 'manual') {
-    const savedLanguage = window.localStorage.getItem('modoCultiva_language');
-    if (savedLanguage && supportedLanguages.includes(savedLanguage as Language)) state.language = savedLanguage;
-  }
+  const manualLanguage = readManualLanguage(window.localStorage.getItem('modoCultiva_manualLanguage_v1'));
+  if (manualLanguage) { state.language = manualLanguage; state.languageSource = 'manual'; }
   return state;
 };
 const hasLegacyDeviceConfiguration = (state: Record<string, unknown>): boolean => {
@@ -707,9 +696,13 @@ function App() {
   });
   const personalStorageRef = useRef(scopedPersonalStorage(deviceStateStorage(), null));
   const [language, setLanguage] = useState<Language>(detectLanguage);
+  const [languageSource, setLanguageSource] = useState<LanguageSource>(() => detectLanguagePreference().languageSource);
   const handleLanguageChange = (nextLanguage: Language) => {
-    try { personalStorageRef.current.setItem('modoCultiva_language_source', 'manual'); } catch { /* Session language still works. */ }
-    setLanguage(nextLanguage);
+    try { personalStorageRef.current.setItem('modoCultiva_manualLanguage_v1', JSON.stringify({ version: 1, source: 'manual', language: nextLanguage })); } catch { /* Session/cloud language still works. */ }
+    setLanguage(nextLanguage); setLanguageSource('manual');
+    // Retain an explicit choice before any pending canonical response can run.
+    persistedDocumentRef.current = { ...persistedDocumentRef.current, language: nextLanguage, languageSource: 'manual' };
+    stateQueueRef.current?.stage(current => ({ ...current, language: nextLanguage, languageSource: 'manual' }));
   };
   const tr = (key: string) => extraTranslations[key]?.[language] ?? translations[language][key] ?? translations.es[key] ?? key;
   const trf = (key: string, values: Record<string, string>) => Object.entries(values).reduce((copy, [token, value]) => copy.replace(`{${token}}`, value), tr(key));
@@ -991,14 +984,15 @@ function App() {
   const [onboardingWelcomeCompleted, setOnboardingWelcomeCompleted] = useState(false);
   const [welcomeScope, setWelcomeScope] = useState<WelcomeIntroScope | null>(null);
   const welcomeChecked = useRef(new Set<string>());
-  const [guestWelcomeAudience] = useState(() => {
+  const [guestWelcomeVisitorId] = useState(() => {
+    const fallbackId = crypto.randomUUID();
     try {
       const key = 'modoCultiva_welcomeVisitorId';
-      const visitorId = window.localStorage.getItem(key) || crypto.randomUUID();
-      const established = hasLegacyDeviceConfiguration(readLegacyDeviceState());
-      window.localStorage.setItem(key, visitorId);
-      return { visitorId, established };
-    } catch { return { visitorId: crypto.randomUUID(), established: true }; }
+      const visitorId = window.localStorage.getItem(key);
+      if (visitorId) return visitorId; // Read-only storage/quota must not change a known scope.
+      window.localStorage.setItem(key, fallbackId);
+      return fallbackId;
+    } catch { return fallbackId; } // Session guard works even if storage is denied.
   });
   const [tourIndex, setTourIndex] = useState<number | null>(null);
   const [tourModeKey, setTourModeKey] = useState<string | null>(null);
@@ -1007,7 +1001,7 @@ function App() {
   const [legacyCompletionSlots, setLegacyCompletionSlots] = useState<readonly string[]>([]);
   const communityClient = useMemo(() => authTokens?.access_token && stateHydrated
     ? createCommunityClient(apiUrl, authTokens.access_token) : null, [authTokens?.access_token, stateHydrated]);
-  const persistedDocument: StateObject = { profileName, profileImage, levels, activityDrafts, activityAlignments, activityCompletions, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language, onboardingWelcomeCompleted };
+  const persistedDocument: StateObject = { profileName, profileImage, levels, activityDrafts, activityAlignments, activityCompletions, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language, languageSource, onboardingWelcomeCompleted };
   const persistedDocumentRef = useRef(persistedDocument);
   const committedDocumentRef = useRef<StateObject | null>(null);
   const guestDocumentRef = useRef(cloneStateValue(persistedDocument));
@@ -1044,9 +1038,13 @@ function App() {
     retainPendingState(queue);
   });
 
+  const normalizeLanguageDocument = (state: StateObject): StateObject => normalizeLanguageState(state, detectBrowserLanguage());
+  const normalizeCanonicalSnapshot = (snapshot: StateSnapshot): StateSnapshot => snapshot.state && typeof snapshot.state === 'object' && !Array.isArray(snapshot.state)
+    ? { ...snapshot, state: normalizeLanguageDocument(snapshot.state) } : snapshot;
+
   const reconcileCanonicalState = (base: StateObject, remote: StateObject, snapshot: StateSnapshot) => {
     // Close the canonical-ack / pending React-commit window synchronously.
-    persistedDocumentRef.current = reconcileState(base, persistedDocumentRef.current, remote);
+    persistedDocumentRef.current = normalizeLanguageDocument(reconcileState(base, persistedDocumentRef.current, remote));
     const field = <T,>(key: string, current: T): T => reconcileState({ value: base[key] }, { value: current }, { value: remote[key] }).value as T;
     if ('profileName' in remote) setProfileName(current => field('profileName', current));
     if ('profileImage' in remote) setProfileImage(current => field('profileImage', current));
@@ -1063,7 +1061,11 @@ function App() {
     if ('activePlan' in remote) setActivePlan(current => field('activePlan', current));
     if ('featuredBadges' in remote) setFeaturedBadges(current => field('featuredBadges', current));
     if ('selectedPreset' in remote) setSelectedPreset(current => field('selectedPreset', current));
-    if ('language' in remote) setLanguage(current => field('language', current));
+    if ('language' in remote || 'languageSource' in remote) {
+      const preference = resolveLanguagePreference(persistedDocumentRef.current.language, persistedDocumentRef.current.languageSource, detectBrowserLanguage());
+      setLanguage(preference.language);
+      setLanguageSource(preference.languageSource);
+    }
     if ('onboardingWelcomeCompleted' in remote) setOnboardingWelcomeCompleted(current => field('onboardingWelcomeCompleted', current));
     setValidationReceipts(snapshot.validationReceipts && typeof snapshot.validationReceipts === 'object' ? snapshot.validationReceipts as Record<string, unknown> : {});
     setLegacyCompletionSlots(snapshot.legacyCompletionSlots ?? []);
@@ -1096,7 +1098,7 @@ function App() {
       if (!response.ok) throw new Error(stateAccountCopy(language).errorHint);
       const snapshot = await response.json() as StateSnapshot;
       if (!sessionIsCurrent(token, queue)) throw new DOMException('Session changed', 'AbortError');
-      return snapshot;
+      return normalizeCanonicalSnapshot(snapshot);
     });
   };
 
@@ -1138,11 +1140,12 @@ function App() {
   useEffect(() => {
     try {
       personalStorageRef.current.setItem('modoCultiva_language', language);
-      if (personalStorageRef.current.getItem('modoCultiva_language_source') !== 'manual') personalStorageRef.current.setItem('modoCultiva_language_source', 'auto');
+      personalStorageRef.current.setItem('modoCultiva_language_source', languageSource);
+      if (languageSource === 'manual') personalStorageRef.current.setItem('modoCultiva_manualLanguage_v1', JSON.stringify({ version: 1, source: 'manual', language }));
     } catch { /* Cloud state and the current language remain available. */ }
     document.documentElement.lang = language === 'zh' ? 'zh-CN' : language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-  }, [language]);
+  }, [language, languageSource]);
 
   // The product content is intentionally kept in one component for this prototype.
   // Translate the remaining editorial labels after each language change so that
@@ -1244,7 +1247,7 @@ function App() {
   };
 
   const normalizePersonalDocument = (state: StateObject): StateObject => ({
-    ...state,
+    ...normalizeLanguageDocument(state),
     profileName: typeof state.profileName === 'string' ? state.profileName : '',
     profileImage: typeof state.profileImage === 'string' ? state.profileImage : null,
     levels: { ...defaultLevels, ...(state.levels && typeof state.levels === 'object' ? state.levels as Record<string, number> : {}) },
@@ -1257,7 +1260,7 @@ function App() {
     visionImages: state.visionImages && typeof state.visionImages === 'object' ? state.visionImages : {},
     featuredBadges: Array.isArray(state.featuredBadges) ? state.featuredBadges : [],
     selectedPreset: typeof state.selectedPreset === 'string' && state.presets && typeof state.presets === 'object' && Object.prototype.hasOwnProperty.call(state.presets, state.selectedPreset) ? state.selectedPreset : '',
-    language: typeof state.language === 'string' && supportedLanguages.includes(state.language as Language) ? state.language : detectBrowserLanguage(),
+    ...restoreLanguagePreference(state.language, state.languageSource, detectBrowserLanguage(), personalStorageRef.current.getItem('modoCultiva_manualLanguage_v1')),
     skin: typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin) ? state.skin : 'holista',
     paletteFilter: state.paletteFilter === 'nocturna' || state.paletteFilter === 'lucid' ? state.paletteFilter : 'none',
     activePlan: state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate' ? state.activePlan : 'ultimate',
@@ -1273,7 +1276,7 @@ function App() {
     setActivityReactions(cleanReactions(state.activityReactions)); setInsightRequests(state.insightRequests as Record<string, boolean>);
     setPresets(state.presets as Record<string, Preset>); setVisionImages(state.visionImages as Record<string, string>);
     setFeaturedBadges(state.featuredBadges as string[]); setSelectedPreset(state.selectedPreset as string);
-    setLanguage(state.language as Language); setSkin(state.skin as Skin); setPaletteFilter(state.paletteFilter as PaletteFilter);
+    setLanguage(state.language as Language); setLanguageSource(state.languageSource === 'manual' ? 'manual' : 'auto'); setSkin(state.skin as Skin); setPaletteFilter(state.paletteFilter as PaletteFilter);
     setActivePlan(state.activePlan as PlanKey); setOnboardingWelcomeCompleted(state.onboardingWelcomeCompleted === true);
   };
 
@@ -1440,6 +1443,7 @@ function App() {
         }
         if (!current()) return;
         if (!payload.revision || !payload.state || typeof payload.state !== 'object') throw new Error(stateAccountCopy(language).errorHint);
+        payload = normalizeCanonicalSnapshot(payload);
         const stored = recoveryMemoryRef.current.get(scopeKey) ?? readPendingAccount(deviceStateStorage(), scope);
         const state = normalizePersonalDocument(recoverAccountState(stored ?? null, payload));
         ownedQueue = createStateSyncQueue({
@@ -1450,7 +1454,7 @@ function App() {
               headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
               body: JSON.stringify({ state: document, expected_revision: revision }),
             });
-            const canonical = await saved.json() as StateSnapshot;
+            const canonical = normalizeCanonicalSnapshot(await saved.json() as StateSnapshot);
             if (saved.status === 409 && canonical.revision) return { conflict: canonical };
             if (!saved.ok || !canonical.revision) throw new Error(stateAccountCopy(language).saveFailed);
             return canonical;
@@ -1519,7 +1523,7 @@ function App() {
       window.removeEventListener('pagehide', pagehide);
       window.removeEventListener('online', online);
     };
-  }, [activePlan, activityDrafts, activityAlignments, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, insightRequests, language, levels, onboardingWelcomeCompleted, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
+  }, [activePlan, activityDrafts, activityAlignments, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, insightRequests, language, languageSource, levels, onboardingWelcomeCompleted, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1654,18 +1658,15 @@ function App() {
   useEffect(() => {
     if (publicCardId) return; // Shared cards open directly, without a welcome covering their content.
     if (authTokens && (!stateHydrated || !verifiedIdentity)) return;
-    const scope: WelcomeIntroScope = verifiedIdentity ? { kind: 'account', organizationId: verifiedIdentity.organization_id, accountId: verifiedIdentity.user_id } : { kind: 'guest', visitorId: guestWelcomeAudience.visitorId };
+    const scope: WelcomeIntroScope = verifiedIdentity ? { kind: 'account', organizationId: verifiedIdentity.organization_id, accountId: verifiedIdentity.user_id } : { kind: 'guest', visitorId: guestWelcomeVisitorId };
     const key = welcomeIntroStorageKey(scope);
     if (!key || welcomeChecked.current.has(key)) return;
-    const state = stateQueueRef.current?.getSnapshot().state;
-    const established = scope.kind === 'guest' ? guestWelcomeAudience.established
-      : state ? hasLegacyDeviceConfiguration({ ...state, levels: { ...defaultLevels, ...(state.levels as Record<string, number> ?? {}) } }) : true;
     let completion: ReturnType<typeof readWelcomeIntroCompletion> = 'unavailable';
     try { completion = readWelcomeIntroCompletion(window.localStorage, scope); } catch { /* Session memory still prevents looping. */ }
-    const decision = decideWelcomeIntro({ status: 'ready', scope, savedPerson: established ? 'established' : 'new' }, onboardingWelcomeCompleted ? 'complete' : completion);
+    const decision = decideWelcomeIntro({ status: 'ready', scope }, scope.kind === 'account' && onboardingWelcomeCompleted ? 'complete' : completion);
     if (decision !== 'wait') welcomeChecked.current.add(key);
     if (decision === 'show') setWelcomeScope(scope);
-  }, [authTokens?.access_token, stateHydrated, verifiedIdentity, onboardingWelcomeCompleted, guestWelcomeAudience, publicCardId]);
+  }, [authTokens?.access_token, stateHydrated, verifiedIdentity, onboardingWelcomeCompleted, guestWelcomeVisitorId, publicCardId]);
   const navigationHistoryRef = useRef<ReturnType<typeof createNavigationHistory<typeof navigationSnapshot>> | null>(null);
   useEffect(() => {
     const navigation = createNavigationHistory(window.history, navigationSnapshotRef.current, (snapshot) => {

@@ -56,6 +56,18 @@ function mergeValue(base: unknown, local: unknown, remote: unknown): unknown {
  */
 export function reconcileState<T extends StateObject>(base: T, local: T, remote: T): T {
   const merged = mergeValue(base, local, remote) as T;
+  // Language and its provenance are ONE preference, not two independently
+  // mergeable values. A legacy response must not strip a newer manual choice.
+  const preferenceFields = ['language', 'languageSource'];
+  if ([base, local, remote].some(state => preferenceFields.some(key => own(state, key) !== MISSING))) {
+    const pair = (state: StateObject) => preferenceFields.map(key => own(state, key));
+    const preference = own(local, 'languageSource') === 'manual' && own(remote, 'languageSource') !== 'manual'
+      ? pair(local) : mergeValue(pair(base), pair(local), pair(remote)) as unknown[];
+    preferenceFields.forEach((key, index) => {
+      if (preference[index] === MISSING) delete merged[key];
+      else Object.defineProperty(merged, key, { value: cloneStateValue(preference[index]), writable: true, enumerable: true, configurable: true });
+    });
+  }
   for (const field of ['activityCompletions', 'validationReceipts', 'legacyCompletionSlots']) {
     if (Object.prototype.hasOwnProperty.call(remote, field)) {
       Object.defineProperty(merged, field, { value: cloneStateValue(remote[field]), writable: true, enumerable: true, configurable: true });
