@@ -112,7 +112,7 @@ assert.equal((newCard.match(/journey-reaction--/g) ?? []).length, 5);
 assert.ok(!renderToStaticMarkup(React.createElement(JourneyActivityCard, { card: { ...card, level: 9 }, current: true, defined: true, onReact() {}, flow: { state: approved } })).includes('activity-journey-flow'));
 const inputHTML = renderToStaticMarkup(React.createElement(VisualEvidenceInput, { value: videoDraft.visual, onChange() {}, language: 'en' }));
 assert.ok(inputHTML.includes(messages.activityFlowCopy('en').videoStored));
-assert.ok(renderToStaticMarkup(React.createElement(VisualEvidenceInput, { onChange() {}, language: 'en' })).includes(messages.activityFlowCopy('en').errors.videoUnavailable));
+assert.ok(!renderToStaticMarkup(React.createElement(VisualEvidenceInput, { onChange() {}, language: 'en' })).includes(messages.activityFlowCopy('en').errors.videoUnavailable), 'Do not show a video failure before anyone selects a file');
 assert.ok(!inputHTML.includes('autoplay'));
 
 assert.deepEqual(evidence.fitEvidenceDimensions(4000, 2000), { width: 1600, height: 800 });
@@ -297,7 +297,7 @@ check(testElement.querySelectorAll('li').length === 3 && !testElement.querySelec
 await act(async () => testRoot.render(h(ActivityJourneyFlow, { sourceLevel:3, state:{ status:'approved', definition, evidence, submission:{...submission,approvalCount:3} } })));
 check(testElement.querySelectorAll('li').length === 3 && testElement.querySelector('li:last-child').textContent.includes('Validated'), 'third stage becomes Validated without a fourth');
 await act(async () => testRoot.render(h(ActivityJourneyFlow, { sourceLevel:3, state:{ status:'changesRequested', definition, evidence, submission, feedback:'Include the full activity.' } })));
-check(testElement.querySelector('li[aria-current=step]').textContent.includes('Attach') && testElement.textContent.includes('Include the full activity.'), 'changes requested returns to evidence with feedback');
+check(testElement.querySelector('li[aria-current=step]').textContent.includes('Evidence') && testElement.textContent.includes('Include the full activity.'), 'changes requested returns to evidence with feedback');
 check(livePreviewURLs.size === 0, 'preview blob URLs are revoked when replaced/unmounted');
 URL.createObjectURL = createPreviewURL; URL.revokeObjectURL = revokePreviewURL;
 await act(async () => testRoot.unmount()); globalThis.IS_REACT_ACT_ENVIRONMENT = false;

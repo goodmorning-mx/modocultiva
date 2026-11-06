@@ -128,6 +128,37 @@ def test_local_idea_cancellation_and_optout_revoke_future_access(sharing):
         sharing.import_idea(AUTHOR, ORG, offer["id"], activity_hash(ACTIVITY))
 
 
+def test_local_idea_alerts_only_next_level_accepted_connections_once(sharing):
+    original = sharing.states.load(AUTHOR, ORG)
+    for actor, level in zip(VOTERS, [4, 3, 5]):
+        state = sharing.states.load(actor, ORG)
+        sharing.states.save(actor, ORG, {"levels": {"fisico": level, "intelectual": 4}}, state.revision)
+    requested = sharing.create_idea(AUTHOR, ORG, IdeaRequestInput(mode="fisico", level=3))
+    assert requested["eligible_count"] == 1
+    for actor in [AUTHOR, *VOTERS]:
+        alerts = [n for n in sharing.notices(actor, ORG)["notifications"] if n["kind"] == "local_idea_requested"]
+        assert len(alerts) == (1 if actor == VOTERS[0] else 0)
+    sharing.create_idea(AUTHOR, ORG, IdeaRequestInput(mode="fisico", level=3))
+    assert len([n for n in sharing.notices(VOTERS[0], ORG)["notifications"] if n["kind"] == "local_idea_requested"]) == 1
+    assert sharing.states.load(AUTHOR, ORG).state == original.state
+    # Public discoverability never replaces an accepted connection.
+    current = sharing.states.load(VOTERS[1], ORG)
+    sharing.states.save(VOTERS[1], ORG, {"levels": {"fisico": 4}}, current.revision)
+    invitations = sharing.directory(VOTERS[1], ORG)["members"]
+    author = next(member for member in invitations if member["user_id"] == AUTHOR)
+    sharing.change_connection(VOTERS[1], ORG, author["connection"]["id"], "disconnect")
+    sharing.create_idea(AUTHOR, ORG, IdeaRequestInput(mode="fisico", level=3))
+    assert not [n for n in sharing.notices(VOTERS[1], ORG)["notifications"] if n["kind"] == "local_idea_requested"]
+
+
+@pytest.mark.parametrize("source", [0, 2, 4, 8])
+def test_local_idea_cannot_notify_from_a_stale_or_browsed_level(sharing, source):
+    before = [sharing.notices(actor, ORG) for actor in VOTERS]
+    with pytest.raises(CommunityError, match="current mode level"):
+        sharing.create_idea(AUTHOR, ORG, IdeaRequestInput(mode="fisico", level=source))
+    assert [sharing.notices(actor, ORG) for actor in VOTERS] == before
+
+
 @pytest.mark.parametrize("empty", ["\ufeff", " \ufeff\u3000"])
 def test_normalization_empty_share_and_idea_offer_are_rejected(sharing, empty):
     current = sharing.states.load(AUTHOR, ORG)

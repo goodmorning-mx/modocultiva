@@ -11,7 +11,9 @@ import { cloneStateValue, reconcileState, type StateObject } from './stateReconc
 import { accountStateKey, accountRecoveryKey, captureLegacyArchive, hasLegacyConsent, legacyConsentKey, legacyImportDocument, pendingAccountRecord, readPendingAccount, recoverAccountState, scopedPersonalStorage, stageCommittedUi, writeStoredJson, type AccountStateScope, type PendingAccountState, type RecoveryStorage } from './stateRecovery';
 import { StateAccountBoundary, type StateAccountPhase } from './StateAccountBoundary';
 import { stateAccountCopy } from './stateAccountMessages';
-import { activitySha256, createCommunityClient, isCommunityCardId, type CardAudience, type CommunitySubmission } from './communityClient';
+import { activitySha256, createCommunityClient, isCommunityCardId, CommunityApiError, type CardAudience, type CommunitySubmission, type CommunityIdeaRequest } from './communityClient';
+import { communityCopy } from './communityMessages';
+import { activityFlowCopy } from './activityJourneyFlowMessages';
 import { PublicActivityCard } from './PublicActivityCard';
 import { adaptActivityFlow } from './activityFlowAdapter';
 import type { ActivityJourneyFlowProps } from './ActivityJourneyFlow';
@@ -819,6 +821,11 @@ function App() {
     catch { return {}; }
   });
   const [communitySubmissions, setCommunitySubmissions] = useState<CommunitySubmission[]>([]);
+  const [localIdeaRequests, setLocalIdeaRequests] = useState<Record<string, CommunityIdeaRequest>>({});
+  const [localIdeaBusy, setLocalIdeaBusy] = useState(false);
+  const [localIdeaNotice, setLocalIdeaNotice] = useState<{ key: string; kind: 'login' | 'profile' | 'failed' | 'result'; count?: number } | null>(null);
+  const localIdeaOperation = useRef<AbortController | null>(null);
+  const localIdeaVersion = useRef(0);
   // Visual draft proof stays in this session's memory, never in localStorage,
   // the public state document, profile projections or social share payloads.
   const [evidenceDrafts, setEvidenceDrafts] = useState<Record<string, { activity: string; draft: EvidenceDraft }>>({});
@@ -1001,6 +1008,7 @@ function App() {
   const [legacyCompletionSlots, setLegacyCompletionSlots] = useState<readonly string[]>([]);
   const communityClient = useMemo(() => authTokens?.access_token && stateHydrated
     ? createCommunityClient(apiUrl, authTokens.access_token) : null, [authTokens?.access_token, stateHydrated]);
+  const localIdeaSession = useRef(communityClient); localIdeaSession.current = communityClient;
   const persistedDocument: StateObject = { profileName, profileImage, levels, activityDrafts, activityAlignments, activityCompletions, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language, languageSource, onboardingWelcomeCompleted };
   const persistedDocumentRef = useRef(persistedDocument);
   const committedDocumentRef = useRef<StateObject | null>(null);
@@ -1119,13 +1127,23 @@ function App() {
 
   useEffect(() => {
     setCommunitySubmissions([]); setEvidenceDrafts({}); setCardAudienceDrafts({}); setCommunityShareCandidates([]);
+    localIdeaOperation.current?.abort(); localIdeaOperation.current = null; localIdeaVersion.current++;
+    setLocalIdeaRequests({}); setLocalIdeaBusy(false); setLocalIdeaNotice(null);
     if (!communityClient) return;
     const controller = new AbortController();
-    const refresh = () => { if (!document.hidden) void refreshCommunity(controller.signal).catch(() => { /* No simulated reviews on network failure. */ }); };
+    const client = communityClient;
+    const refresh = () => { if (!document.hidden) {
+      void refreshCommunity(controller.signal).catch(() => { /* No simulated reviews on network failure. */ });
+      const version = localIdeaVersion.current;
+      void client.ideas(controller.signal).then(result => {
+        if (controller.signal.aborted || localIdeaSession.current !== client || localIdeaVersion.current !== version) return;
+        setLocalIdeaRequests(Object.fromEntries(result.requests.filter(item => item.author_id === verifiedIdentity?.user_id && item.status === 'pending').map(item => [insightRequestKey(item.mode, item.source_level), item])));
+      }).catch(() => { /* Never substitute cached delivery claims for server state. */ });
+    } };
     refresh();
     const interval = window.setInterval(refresh, 20_000);
     document.addEventListener('visibilitychange', refresh);
-    return () => { controller.abort(); window.clearInterval(interval); document.removeEventListener('visibilitychange', refresh); };
+    return () => { controller.abort(); localIdeaOperation.current?.abort(); window.clearInterval(interval); document.removeEventListener('visibilitychange', refresh); };
   }, [communityClient]);
 
   useEffect(() => {
@@ -1607,8 +1625,8 @@ function App() {
     const controlTopic = tourTopic.startsWith('control');
     const copy = guidedTourStepCopy(language, controlTopic ? 'controlCenter' : tourTopic as TourStageId);
     const targets: Record<TourTopic, string | readonly string[]> = {
-      modes: '.welcome-view .overview-mode', modeDescription: '.journey-intro-compact', selfAssessment: ['.level-definition--compact', '#journey-slider'], activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target > p:first-of-type',
-      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.community-header h2', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.activity-flow-stages', evidence: '.activity-flow-stages > li:nth-child(2)', audience: '.activity-flow-audience .card-audience-options', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
+      modes: '.welcome-view .overview-mode', modeDescription: '.journey-intro-compact', selfAssessment: ['.level-definition--compact', '#journey-slider'], activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target summary',
+      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions > .insight-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.activity-flow-stages', evidence: '.activity-flow-stages > li:nth-child(2)', audience: '.activity-flow-audience .card-audience-options', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
       reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading', specialists: '.cult-embedded-content .cult-section-heading', community: '.community-header h2', profile: '.profile-preview-identity', badges: '.achievement-heading', configurations: '#presets-title',
       controlCenter: '.crm-card--score .crm-card-heading', controlStrongest: '.crm-metric-card:nth-of-type(1)', controlLeast: '.crm-metric-card:nth-of-type(2)', controlFocus: '.crm-focus-card .crm-card-heading', controlTrivia: '.crm-trivia-card h2', replay: '[data-tour="replay"]',
     };
@@ -1631,8 +1649,8 @@ function App() {
         if (controlTopic) { setView('dashboard'); return; }
         if (tourTopic === 'configurations') { setConfigurationsOpen(true); return; }
         if (tourTopic === 'profile') { setProfilePreviewMode(true); return; }
-        if (['localContacts', 'reviews', 'community'].includes(tourTopic)) {
-          setCommunityTab(tourTopic === 'localContacts' ? 'ideas' : tourTopic === 'reviews' ? 'reviews' : 'network'); setCommunityOpen(true); return;
+        if (['reviews', 'community'].includes(tourTopic)) {
+          setCommunityTab(tourTopic === 'reviews' ? 'reviews' : 'network'); setCommunityOpen(true); return;
         }
         setSelectedMode(tourMode); setJourneyReturnView('welcome'); setJourneySlide(tourTopic === 'vision' ? 9 : tourSource);
         if (['globalIdeas', 'specialists', 'badges'].includes(tourTopic)) {
@@ -1646,14 +1664,22 @@ function App() {
     };
   })() : null;
 
+  useLayoutEffect(() => {
+    if (tourTopic !== 'audience' || !selectedMode) return;
+    const settings = document.querySelector<HTMLDetailsElement>('.activity-flow-published-audience');
+    if (!settings) return;
+    const wasOpen = settings.open; settings.open = true;
+    return () => { settings.open = wasOpen; };
+  }, [tourTopic, selectedMode, journeySlide]);
+
   useEffect(() => {
     if (!tourTopic) return;
     const method = tourTopic === 'custom' ? 'custom' : tourTopic === 'bank' ? 'bank' : tourTopic === 'ai' ? 'ai' : tourTopic === 'localContacts' ? 'localContacts' : null;
     if (!method) return;
-    const mounted = method === 'localContacts' ? communityOpen && communityTab === 'ideas' && Boolean(document.querySelector('.community-panel'))
+    const mounted = method === 'localContacts' ? Boolean(selectedMode && document.querySelector('.journey-fixed-actions > .insight-button'))
       : activeActivity !== null && activityEntry === (method === 'bank' ? 'pool' : method) && Boolean(document.querySelector(`.activity-agent--${activityEntry}`));
     if (mounted) setTourVisitedMethods(current => current.includes(method) ? current : [...current, method]);
-  }, [tourTopic, communityOpen, communityTab, activeActivity, activityEntry]);
+  }, [tourTopic, communityOpen, communityTab, activeActivity, activityEntry, selectedMode]);
 
   useEffect(() => {
     if (publicCardId) return; // Shared cards open directly, without a welcome covering their content.
@@ -1994,10 +2020,28 @@ function App() {
   };
 
   const requestInsight = (modeKey: string, level: number) => {
-    // Opening an explanatory/list view is not a sent request. The person must
-    // explicitly choose Send in the real authenticated community panel.
-    void modeKey; void level;
-    setCommunityTab('ideas'); setCommunityOpen(true);
+    // The tutorial highlights this action but must never send a real alert.
+    if (tourTopic || localIdeaOperation.current || level < 0 || level > 8 || level !== levels[modeKey]) return;
+    const key = insightRequestKey(modeKey, level);
+    const client = communityClient;
+    if (!client) { setLocalIdeaNotice({ key, kind: 'login' }); return; }
+    const controller = new AbortController(); localIdeaOperation.current = controller;
+    localIdeaVersion.current++; setLocalIdeaBusy(true); setLocalIdeaNotice(null);
+    void flushPersonalState().then(() => {
+      if (controller.signal.aborted || localIdeaSession.current !== client) throw new DOMException('Session changed', 'AbortError');
+      return client.requestIdea({ mode: modeKey, level }, controller.signal);
+    }).then(result => {
+      if (controller.signal.aborted || localIdeaSession.current !== client) return;
+      localIdeaVersion.current++;
+      setLocalIdeaRequests(current => ({ ...current, [key]: result }));
+      const count = result.eligible_count ?? 0;
+      setLocalIdeaNotice({ key, kind: 'result', count });
+      if (count > 0) setInsightRequests(current => ({ ...current, [key]: true }));
+    }).catch(error => {
+      if (!controller.signal.aborted && localIdeaSession.current === client) setLocalIdeaNotice({ key, kind: error instanceof CommunityApiError && error.code === 'profile_private' ? 'profile' : 'failed' });
+    }).finally(() => {
+      if (localIdeaOperation.current === controller) { localIdeaOperation.current = null; setLocalIdeaBusy(false); }
+    });
   };
 
   const saveActivity = (modeKey: string, level: number, activity: string) => {
@@ -2076,7 +2120,9 @@ function App() {
 
   useEffect(() => {
     let cancelled = false;
-    if (!communityOpen || communityTab !== 'feed' || !communityClient) { setCommunityShareCandidates([]); return; }
+    // The MC entry opens Network first; the panel can then switch internally to
+    // Activities. Preparing saved candidates is read-only, never publication.
+    if (!communityOpen || !communityClient) { setCommunityShareCandidates([]); return; }
     void Promise.all(Object.entries(activityDrafts).flatMap(([key, activity]) => {
       const split = key.lastIndexOf('-'); const mode = key.slice(0, split); const level = Number(key.slice(split + 1));
       if (!modes.some(item => item.key === mode) || !Number.isInteger(level) || level < 0 || level > 8 || !activity.trim()) return [];
@@ -2543,12 +2589,17 @@ function App() {
             <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.min(9, current + 1))} disabled={journeySlide === 9} aria-label={tr('nextLevel')}>→</button>
           </div>
           <div className="journey-carousel-footer"><div className="journey-carousel-dots" aria-label={tr('selectLevel')}>{journeyLevels.map((level) => <button className={level === journeySlide ? 'is-active' : ''} type="button" key={level} onClick={() => setJourneySlide(level)} aria-label={`${tr('levels')} ${level}`}>{level}</button>)}</div></div>
-          {journeySlide < 9 && <div className="journey-community-actions"><p>{onboardingIntegrationCopy(language)[isAuthenticated ? 'profileRequired' : 'accountRequired']}</p><button type="button" onClick={() => { setCommunityTab('network'); setCommunityOpen(true); }}>{onboardingIntegrationCopy(language).network} ↗</button>
-            {activityDrafts[`${selectedMode.key}-${journeySlide}`]?.trim() && <button type="button" onClick={() => {
-              setCommunityTab('feed'); setCommunityOpen(true);
-            }}>{onboardingIntegrationCopy(language).share} ↗</button>}
-          </div>}
-          {journeySlide < 9 ? <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}><button type="button" onClick={() => openActivity(journeySlide, 'custom')}>{activityDrafts[`${selectedMode.key}-${journeySlide}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button><button className="activity-pool-button" type="button" onClick={() => openActivity(journeySlide, 'pool')}>▦ {tr('activityPool')}</button><button className="activity-ai-button" type="button" onClick={() => openActivity(journeySlide, 'ai')}>✦ {tr('modeAI')}</button><button className={insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? 'insight-button insight-button--requested' : 'insight-button'} type="button" aria-pressed={Boolean(insightRequests[insightRequestKey(selectedMode.key, journeySlide)])} onClick={() => requestInsight(selectedMode.key, journeySlide)}>{insightRequests[insightRequestKey(selectedMode.key, journeySlide)] ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button></div> : <div className="journey-vision-note"><span className="journey-vision-completion" role="status"><strong>{hasVisionImage(visionImages[selectedMode.key]) ? `✓ ${badgeCopy(language).visionDone}` : badgeCopy(language).visionPending}</strong><span>{badgeCopy(language).visionHint}</span></span></div>}
+          {journeySlide < 9 ? <>
+            <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}>
+              <button type="button" onClick={() => openActivity(journeySlide, 'custom')}>{activityDrafts[`${selectedMode.key}-${journeySlide}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button>
+              <button className="activity-pool-button" type="button" onClick={() => openActivity(journeySlide, 'pool')}>▦ {tr('activityPool')}</button>
+              <button className="activity-ai-button" type="button" onClick={() => openActivity(journeySlide, 'ai')}>✦ {tr('modeAI')}</button>
+              <button className="insight-button" type="button" disabled={!tourTopic && (localIdeaBusy || journeySlide !== levels[selectedMode.key] || (localIdeaRequests[insightRequestKey(selectedMode.key, journeySlide)]?.eligible_count ?? 0) > 0)}
+                aria-pressed={(localIdeaRequests[insightRequestKey(selectedMode.key, journeySlide)]?.eligible_count ?? 0) > 0} aria-busy={localIdeaBusy}
+                onClick={() => requestInsight(selectedMode.key, journeySlide)}>{localIdeaBusy ? activityFlowCopy(language).working : (localIdeaRequests[insightRequestKey(selectedMode.key, journeySlide)]?.eligible_count ?? 0) > 0 ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button>
+            </div>
+            {localIdeaNotice?.key === insightRequestKey(selectedMode.key, journeySlide) && <p className="journey-local-idea-status" role="status">{localIdeaNotice.kind === 'login' ? communityCopy(language).login : localIdeaNotice.kind === 'profile' ? onboardingIntegrationCopy(language).profileRequired : localIdeaNotice.kind === 'failed' ? communityCopy(language).unavailable : localIdeaNotice.count ? `${tr('insightRequested')} · ${communityCopy(language).eligible.replace('{count}', String(localIdeaNotice.count))}` : communityCopy(language).zero}</p>}
+          </> : <div className="journey-vision-note"><span className="journey-vision-completion" role="status"><strong>{hasVisionImage(visionImages[selectedMode.key]) ? `✓ ${badgeCopy(language).visionDone}` : badgeCopy(language).visionPending}</strong><span>{badgeCopy(language).visionHint}</span></span></div>}
           </section>
           {renderCultSection()}
         </>}

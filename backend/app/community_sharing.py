@@ -286,7 +286,9 @@ class CommunitySharingService(CommunityService):
         with self.engine.begin() as connection:
             self.active(connection, actor, org)
             self.profile(connection, actor, org, require_visible=True)
-            self.states.locked(connection, actor, org)
+            locked = self.states.locked(connection, actor, org)
+            if mapping(locked.state.get("levels")).get(payload.mode) != payload.level:
+                fail("idea_level_changed", "Request an idea from your current mode level. Refresh your progress first.", 409)
             row = connection.execute(select(idea_requests).where(idea_requests.c.author_id == actor, idea_requests.c.organization_id == org, idea_requests.c.mode == payload.mode, idea_requests.c.source_level == payload.level, idea_requests.c.status == "pending")).mappings().first()
             if not row:
                 identifier = str(uuid4())

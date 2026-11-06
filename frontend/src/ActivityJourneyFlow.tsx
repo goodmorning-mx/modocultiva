@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { clarityMessages, clarityTransition } from './clarityRubric';
 import { activityFlowCopy, cardAudienceCopy } from './activityJourneyFlowMessages';
 import { VisualEvidenceInput } from './VisualEvidenceInput';
+import { compactActivityCopy } from './compactActivityMessages';
 import { cardPublicationFields, normalizeCardAudience, evidenceDraftProblem, evidenceInputFromDraft, isEvidenceAbort, type CardAudience, type EvidenceDraft, type EvidenceInput, type LoadVideo, type UploadVideo } from './visualEvidence';
 import './activity-journey-flow.css';
 
@@ -52,13 +53,13 @@ export function CardAudienceControl({ language = 'en', value, confirmed, onChang
 }) {
   const copy = cardAudienceCopy(language); const id = useId();
   return <fieldset className="card-audience-control activity-flow-audience" disabled={disabled} aria-describedby={`${id}-help`}>
-    <legend>{copy.heading}</legend>
+    <legend>{compactActivityCopy(language).visibility}</legend>
     <div className="card-audience-options">{(['network', 'public'] as const).map(audience => <label key={audience} data-selected={value === audience}>
       <input type="radio" name={`${id}-audience`} value={audience} checked={value === audience} onChange={() => onChange(audience)} />
-      <span><strong>{copy[audience]}</strong><span>{audience === 'network' ? copy.networkDetail : copy.publicDetail}</span></span>
+      <span><strong>{copy[audience]}</strong></span>
     </label>)}</div>
-    <p id={`${id}-help`} className="card-audience-note">{copy.selectionOnly}</p>
-    {draft && <p className="card-audience-note">{copy.draftOwnerOnly}</p>}
+    <p id={`${id}-help`} className="card-audience-note">{value === 'network' ? copy.networkDetail : copy.publicDetail}</p>
+    <details className="activity-flow-help"><summary>{compactActivityCopy(language).details}</summary><p>{copy.selectionOnly}</p>{draft && <p>{copy.draftOwnerOnly}</p>}</details>
     {value === 'public' && <div className="card-audience-public-warning">
       <p id={`${id}-warning`}>{copy.publicWarning}</p>
       <label className="card-audience-confirm"><input type="checkbox" checked={confirmed} aria-describedby={`${id}-warning`} onChange={event => onConfirm(event.target.checked)} /><span>{copy.publicConfirm}</span></label>
@@ -101,6 +102,7 @@ export function ActivityJourneyFlow(props: ActivityJourneyFlowProps) {
 
 function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDefine, onSubmit, onDraftChange, onUploadVideo, onLoadVideo, audience = 'network', onAudienceChange, publishedAudience, sharedCardId, onSetAudience, onUnshare, disabled = false, targetSnapshot }: ActivityJourneyFlowProps) {
   const copy = activityFlowCopy(language);
+  const compact = compactActivityCopy(language);
   const audienceCopy = cardAudienceCopy(language);
   const clarity = clarityMessages[language as keyof typeof clarityMessages] ?? clarityMessages.en;
   const transition = clarityTransition(sourceLevel, language)!;
@@ -178,15 +180,11 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
     <ol className="activity-flow-stages" aria-label={copy.heading}>
       {copy.stages.map((label, index) => <li key={index} aria-current={stage === index + 1 ? 'step' : undefined} data-complete={stage > index + 1 || (index === 2 && validated)}>
         <span className="activity-flow-stage-number" aria-hidden="true">{index + 1}</span>
-        <span>{index === 2 && validated ? copy.validated : label}</span>
+        <span title={label}>{index === 2 && validated ? copy.validated : compact.stages[index]}</span>
       </li>)}
     </ol>
-    <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked || unshared && stage === 3}
-      draft={stage !== 3} onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />
     <aside className="activity-flow-target" aria-labelledby={`${id}-target`}>
-      <h6 id={`${id}-target`}>{clarity.heading} · {clarity.level} {target.level}</h6>
-      <strong>{target.name}</strong><p dir="auto">{target.description}</p>
-      <p>{clarity.rule}</p><p>{clarity.review}</p>
+      <details><summary id={`${id}-target`}>{clarity.level} {sourceLevel} ↗ {target.level} · <strong>{target.name}</strong></summary><p className="activity-flow-description" dir="auto">{target.description}</p><p>{clarity.rule}</p></details>
     </aside>
     {state.status === 'legacyHistorical' && <p className="activity-flow-legacy">{copy.legacy}</p>}
     {stage === 1 ? <form className="activity-flow-form" onSubmit={event => {
@@ -194,40 +192,40 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
       if (!validActivityDefinition(definition)) { setError(copy.minimum); return; }
       if (onDefine && targetMatches) void perform(signal => onDefine({ activity: definition.activity.trim(), target_alignment: definition.target_alignment.trim() }, signal));
     }}>
-      <p id={`${id}-minimum`} className="activity-flow-note">{copy.minimum}</p>
       <label htmlFor={`${id}-activity`}>{copy.activity}</label>
       <textarea id={`${id}-activity`} dir="auto" value={definition.activity} disabled={locked} required aria-describedby={`${id}-minimum`} onChange={event => setDefinition(previous => ({ ...previous, activity: event.target.value }))} />
       <label htmlFor={`${id}-alignment`}>{copy.alignment}</label>
       <textarea id={`${id}-alignment`} dir="auto" value={definition.target_alignment} disabled={locked} required aria-describedby={`${id}-minimum ${id}-target`} onChange={event => setDefinition(previous => ({ ...previous, target_alignment: event.target.value }))} />
-      <p className="activity-flow-note">{copy.revision}</p>
+      <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />
       <div className="activity-flow-actions">
         <button type="submit" disabled={locked || !onDefine || !targetMatches || !validActivityDefinition(definition) || !definitionChanged}>{copy.save}</button>
         {editing && <button type="button" disabled={busy} onClick={() => { setDefinition(state.definition!); setEditing(false); setError(''); }}>{copy.cancel}</button>}
       </div>
       {!onDefine && <p className="activity-flow-note">{copy.unavailable}</p>}
     </form> : <>
-      <div className="activity-flow-alignment"><strong>{copy.alignment}</strong><p dir="auto">{state.definition?.target_alignment}</p>
+      <details className="activity-flow-alignment"><summary>{copy.alignment}</summary><p dir="auto">{state.definition?.target_alignment}</p>
         <button type="button" disabled={locked || !onDefine} onClick={() => { setEditing(true); setError(''); }}>{copy.edit}</button>
-      </div>
+      </details>
       {stage === 2 ? <form className="activity-flow-form" onSubmit={event => { event.preventDefault(); submit(); }}>
         {state.status === 'changesRequested' && <aside className="activity-flow-feedback" role="status"><strong>{copy.feedback}</strong><p dir="auto">{state.feedback}</p></aside>}
         <VisualEvidenceInput language={language} value={draft.visual} disabled={locked} onBusyChange={setVisualBusy} onChange={visual => changeDraft({ ...draft, visual })} onUploadVideo={onUploadVideo} onLoadVideo={onLoadVideo} />
         <label htmlFor={`${id}-reflection`}>{copy.reflection}</label>
         <textarea id={`${id}-reflection`} dir="auto" value={draft.reflection} disabled={locked} required onChange={event => changeDraft({ ...draft, reflection: event.target.value })} />
         <p className="activity-flow-note">{copy.reflectionShort}</p>
-        <label htmlFor={`${id}-link`}>{copy.link}</label>
+        <details className="activity-flow-reference" open={draft.link ? true : undefined}><summary>{compact.reference}</summary><label htmlFor={`${id}-link`}>{copy.link}</label>
         <input id={`${id}-link`} dir="ltr" type="url" inputMode="url" value={draft.link ?? ''} disabled={locked} onChange={event => changeDraft({ ...draft, link: event.target.value })} />
-        <p className="activity-flow-note">{copy.review}</p><p className="activity-flow-note">{copy.revision}</p>
-        <button type="submit" disabled={locked || visualBusy || !onSubmit || !targetMatches || !publishReady || evidenceDraftProblem(draft) !== null}>{copy.submit}</button>
+        </details>
+        <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />
+        <button type="submit" disabled={locked || visualBusy || !onSubmit || !targetMatches || !publishReady || evidenceDraftProblem(draft) !== null}>{compact.send}</button>
         {!onSubmit && <p className="activity-flow-note">{copy.unavailable}</p>}
       </form> : <div className="activity-flow-review" role="status" aria-live="polite" aria-atomic="true">
         <h6>{validated ? copy.validated : copy.stages[2]}</h6>
         <p className="activity-flow-approval-count">{copy.approvals.replace('{count}', String(activityApprovalCount(state)))}</p>
         <progress max={3} value={activityApprovalCount(state)} aria-label={copy.approvals.replace('{count}', String(activityApprovalCount(state)))} />
-        <p>{copy.review}</p><p className="activity-flow-note">{copy.serverOnly}</p>
       </div>}
-      {stage === 3 && <section className="activity-flow-published-audience" aria-label={audienceCopy.current}>
-        <p>{unshared ? audienceCopy.notShared : <>{audienceCopy.current}: <strong>{audienceCopy[savedAudience]}</strong></>}</p>
+      {stage === 3 && <details className="activity-flow-published-audience">
+        <summary>{unshared ? audienceCopy.notShared : <>{compact.visibility}: <strong>{audienceCopy[savedAudience]}</strong></>}</summary>
+        <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked || unshared} onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />
         <div className="activity-flow-actions">
           {onSetAudience && !unshared && <button type="button" disabled={locked || !publishReady} onClick={() => {
             const publication = cardPublicationFields(selectedAudience, publicConfirmed);
@@ -235,8 +233,9 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
           }}>{audienceCopy.save}</button>}
           {onUnshare && !unshared && <button type="button" disabled={locked} onClick={() => void perform(async signal => { await onUnshare(signal); if (!signal.aborted) { setUnshared(true); setPublicConfirmed(false); } })}>{audienceCopy.unshare}</button>}
         </div>
-      </section>}
+      </details>}
     </>}
+    <details className="activity-flow-help"><summary>{compact.help}</summary><p id={`${id}-minimum`}>{copy.minimum}</p><p>{copy.visual}</p><p>{copy.review}</p><p>{copy.revision}</p><p>{copy.serverOnly}</p></details>
     {busy && <p role="status">{copy.working}</p>}
     {error && <p className="activity-flow-error" role="alert">{error}</p>}
     {!targetMatches && <p className="activity-flow-error" role="alert">{copy.actionFailed}</p>}
