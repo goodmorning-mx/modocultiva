@@ -20,8 +20,9 @@ const LANGUAGES = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', '
 const WIDTHS = [320, 390, 870, 1440];
 const MODES = ['fisico', 'intelectual', 'emocional', 'arquetipico', 'espiritual', 'romantico', 'familiar', 'social', 'financiero', 'profesional', 'ludico', 'visionario'];
 const STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
-const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-ambiguous-cache-welcome', 'tour', 'identity', 'drafts'];
+const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-ambiguous-cache-welcome', 'tour', 'identity', 'drafts', 'local-idea', 'account-local-idea', 'account-local-zero', 'account-local-failure'];
 const ACCESS = 'synthetic-qa-token-not-a-credential';
+CASES.push('account-pending-tour');
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -101,7 +102,8 @@ function serverIdentity(owner = false) {
 function deferred() { let resolvePromise; const promise = new Promise(resolve => { resolvePromise = resolve; }); return { promise, resolve: resolvePromise }; }
 function sameProtected(actual, expected) { for (const field of protectedFields) assert.deepEqual(actual[field], expected[field], `Preserve ${field}`); }
 
-async function installTransport(context, origin, state, { identity = serverIdentity(), hold = false, syntheticAi = false } = {}) {
+async function installTransport(context, origin, state, { identity = serverIdentity(), hold = false, syntheticAi = false, localIdeaCase = '', pendingTour = false } = {}) {
+  const ideaWrites = []; let idea = null;
   const reads = [], writes = [], violations = [], blocked = []; let aiCalls = 0; let revision = 1; let document = clone(state);
   const identityGate = deferred(), stateGate = deferred();
   if (!hold) { identityGate.resolve(); stateGate.resolve(); }
@@ -126,6 +128,18 @@ async function installTransport(context, origin, state, { identity = serverIdent
       if (apiPath === '/health' && method === 'GET') return reply(route, { status: 'ok', app_env: 'synthetic-test', version: 'qa-only' });
       if (apiPath === '/community/capabilities' && method === 'GET') return reply(route, { enabled: true, storage_ready: true });
       if (apiPath === '/community/profile' && method === 'GET') return reply(route, { user_id: USER, display_name: 'Synthetic QA person', bio: '', discoverable: true });
+      if (apiPath === '/community/submissions' && method === 'GET' && pendingTour) {
+        const rubric = JSON.parse(readFileSync(resolve(frontend, 'src/clarity-levels.json'), 'utf8'));
+        return reply(route, { submissions: [{ id: 'synthetic-pending', author_id: USER, mode: 'fisico', source_level: 3, target_level: 4, revision_number: 1, activity: ACTIVITY, target_alignment: ALIGNMENT, status: 'pending', review_count: 1, review_quorum: 3, reviews: [], evidence: { reflection: 'Synthetic visual evidence context for the saved practice.', image: PNG }, rubric_snapshot: { version: rubric.version, source: rubric.languages[state.language][3], target: rubric.languages[state.language][4], effort: 'time_energy' }, audience: 'network', shared_card_id: '00000000-0000-4000-8000-000000000222' }] });
+      }
+      if (apiPath === '/community/ideas' && method === 'POST' && localIdeaCase && authenticated) {
+        const body = request.postDataJSON(); ideaWrites.push(body); assert.deepEqual(body, { mode: 'fisico', level: 3 });
+        await delay(150);
+        if (localIdeaCase === 'account-local-failure') return reply(route, { detail: { code: 'request_failed' } }, 503);
+        idea = { id: 'synthetic-idea-request', author_id: USER, mode: 'fisico', source_level: 3, status: 'pending', eligible_count: localIdeaCase === 'account-local-zero' ? 0 : 2, offers: [] };
+        return reply(route, idea);
+      }
+      if (apiPath === '/community/ideas' && method === 'GET') return reply(route, { requests: idea ? [idea] : [] });
       const empty = { '/community/submissions': { submissions: [] }, '/community/review-inbox': { submissions: [] }, '/community/members': { members: [], limit: 50 }, '/community/feed': { cards: [] }, '/community/ideas': { requests: [] }, '/community/notifications': { notifications: [] }, '/community/reuse-requests': { requests: [] } };
       if (method === 'GET' && Object.hasOwn(empty, apiPath)) return reply(route, empty[apiPath]);
       if (syntheticAi && method === 'POST' && ['/ai/mode', '/ai/mode/public'].includes(apiPath)) { aiCalls++; return reply(route, { proposal: PROPOSAL }); }
@@ -138,7 +152,7 @@ async function installTransport(context, origin, state, { identity = serverIdent
     if (['fetch', 'xhr'].includes(request.resourceType()) || method !== 'GET') violations.push(`${method} unexpected external request`);
     blocked.push(request.resourceType()); return route.abort('blockedbyclient');
   });
-  return { reads, writes, violations, blocked, identityGate, stateGate, snapshot, get aiCalls() { return aiCalls; } };
+  return { reads, writes, ideaWrites, violations, blocked, identityGate, stateGate, snapshot, get aiCalls() { return aiCalls; } };
 }
 
 async function seed(context, state, { account = false, cachedOwner = false, guestCompleted = false, languageSource = 'manual', cachedManual = false, manualRecord = true } = {}) {
@@ -266,7 +280,7 @@ async function advance(page, current, timeout) {
 async function methodRegression(page, timeout) {
   for (const [method, selector] of Object.entries(methodSelectors)) {
     await page.locator(selector).click(); await ready(page, method, timeout);
-    const surface = method === 'localContacts' ? '.community-panel' : `.activity-agent--${method === 'bank' ? 'pool' : method}`;
+    const surface = method === 'localContacts' ? '.journey-fixed-actions > .insight-button' : `.activity-agent--${method === 'bank' ? 'pool' : method}`;
     assert.equal(await page.locator(surface).isVisible(), true, `Summary button actually opens ${method}, not just a local checklist toggle`);
     for (let index = STOPS.indexOf(method); STOPS[index] !== 'methods'; index++) await advance(page, STOPS[index], timeout);
     assert.equal(await page.locator('.guided-tour-methods li[data-visited="true"]').count(), 4);
@@ -286,7 +300,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
       assert.ok((await page.locator('.guided-tour-clarity').innerText()).trim());
       assert.equal(await page.locator('.journey-builder > .clarity-goal').count(), 0, 'Duplicate target above the card is removed');
       assert.equal(await page.locator('.journey-builder .activity-flow-target').count(), 1, 'Canonical next-clarity guidance remains inside the activity');
-      assert.ok((await page.locator('.journey-builder .activity-flow-target > p:first-of-type').innerText()).trim());
+      assert.ok((await page.locator('.journey-builder .activity-flow-target summary').innerText()).trim());
     }
     if (step === 'methods') { assert.equal(await page.locator('.guided-tour-methods li[data-visited="true"]').count(), 4); if (regress) await methodRegression(page, configuration.timeout); }
     if (['activityCard', 'evidence', 'audience'].includes(step)) assert.equal(await page.locator('.activity-flow-stages > li').count(), 3, 'No fourth activity stage');
@@ -374,6 +388,7 @@ async function runCase(browser, config, task) {
   if (localeTask) { state.language = 'en'; if (!task.name.includes('legacy-locale') && !task.name.includes('ambiguous-cache')) state.languageSource = 'auto'; }
   if (manualTask) { state.language = expectedLanguage; if (!task.name.includes('cached-manual')) state.languageSource = 'manual'; }
   const account = task.name.includes('account') || task.name === 'identity'; const reduced = task.width === 320 || task.width === 870;
+  if (task.name.includes('local-')) state.insightRequests = { 'fisico-3': true }; // Old cache is not authoritative delivery.
   // Other test cases represent a genuinely completed introduction, not merely
   // saved map data. account-completed deliberately has no browser account flag.
   if (account && !welcomeTask) state.onboardingWelcomeCompleted = true;
@@ -382,7 +397,7 @@ async function runCase(browser, config, task) {
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
-  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' });
+  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts', localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: task.name === 'account-pending-tour' });
   await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: 'manual', manualRecord: !localeTask, cachedManual: task.name.includes('ambiguous-cache') });
   const configuration = { ...config, ...task, language: expectedLanguage, reduced }; let result;
   try {
@@ -407,7 +422,7 @@ async function runCase(browser, config, task) {
       if (task.name === 'account-completed') {
         assert.equal(await page.locator('.guided-tour-layer').count(), 0, 'Cloud completion does not restart tutorial on another browser');
         result = { cloudCompletionWithoutBrowserFlag: true, noRepeat: true, preserved: true };
-      } else if (task.name === 'tour') {
+      } else if (task.name === 'tour' || task.name === 'account-pending-tour') {
         const tours = [];
         for (let replay = 0; replay < config.replays; replay++) {
           await openReplay(page, config.timeout);
@@ -423,13 +438,34 @@ async function runCase(browser, config, task) {
         if (await page.locator('[data-tour="replay"]').isVisible()) await page.locator('.profile-button').click();
         await page.locator('.overview-mode[data-tour-mode="fisico"]').click();
         await page.locator('.journey-panel').waitFor();
-        await page.locator('.journey-community-actions button').filter({ hasText: onboardingIntegrationCopy(task.language).share }).click();
+        assert.equal(await page.locator('.journey-community-actions').count(), 0, 'No redundant community callout under the activity');
+        await page.locator('.profile-button').click();
+        await page.locator('[role="menuitem"]').filter({ hasText: onboardingIntegrationCopy(task.language).network }).click();
+        await page.locator('.community-tabs button').nth(2).click();
         await page.locator('[data-tour="community-feed"] .community-inline-form').waitFor();
         const chooser = page.locator('[data-tour="community-feed"] .community-inline-form');
         assert.ok((await chooser.locator('select').innerText()).includes(ACTIVITY), 'App supplies actual saved share candidate');
         assert.equal(await chooser.locator('input[value="network"]').isChecked(), true); assert.equal(await chooser.locator('input[type="checkbox"]').count(), 0);
         await page.locator('.community-close').click(); await assertPreserved(page, state, true);
         result = { identity: task.identity, counter: task.identity === 'owner', verifiedAndHydrated: true, consentSeen, shareCtaOpensFeedChooser: true, guestArchivePreserved: true };
+      } else if (task.name.includes('local-')) {
+        await page.locator('.overview-mode[data-tour-mode="fisico"]').click();
+        const flow = page.locator('.activity-journey-flow'); await flow.waitFor();
+        assert.equal(await page.locator('.journey-community-actions').count(), 0);
+        assert.equal(await flow.locator('.activity-flow-stages > li').count(), 3);
+        assert.equal(await flow.locator('.activity-flow-help[open]').count(), 0);
+        assert.equal(await flow.locator('.card-audience-options > label').count(), 2);
+        for (const label of await flow.locator('.card-audience-options > label').all()) assert.ok((await label.boundingBox()).height <= 80, 'Compact audience targets, including mobile');
+        const height = (await flow.boundingBox()).height; assert.ok(height < 1350, `Compact default flow height: ${height}`);
+        const trigger = page.locator('.journey-fixed-actions > .insight-button');
+        await trigger.click(); await page.locator('.journey-local-idea-status').waitFor();
+        assert.equal(await page.locator('.community-panel').count(), 0, 'Direct action never opens another section');
+        assert.equal(transport.ideaWrites.length, account ? 1 : 0, 'One synthetic transport call, no anonymous sends');
+        assert.equal(await trigger.getAttribute('aria-pressed'), task.name === 'account-local-idea' ? 'true' : 'false');
+        assert.equal(await trigger.isDisabled(), task.name === 'account-local-idea');
+        if (process.env.ACTIVITY_QA_SCREENSHOTS) { await flow.scrollIntoViewIfNeeded(); await page.screenshot({ path: resolve(process.env.ACTIVITY_QA_SCREENSHOTS, `compact-${task.name}-${task.width}-${task.language}.png`) }); }
+        await assertPreserved(page, state, account);
+        result = { directRequest: true, compactHeight: height, ideaCalls: transport.ideaWrites.length, dataPreserved: true };
       } else if (task.name === 'drafts') {
         const drafts = [];
         for (const entry of ['custom', 'ai']) {
@@ -491,7 +527,7 @@ async function main() {
   catch { playwright = require(resolve(dirname(process.execPath), '..', 'node_modules', 'playwright')); }
   const tasks = [];
   for (const name of config.cases) {
-    if (name.endsWith('welcome') || name === 'tour') for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
+    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-')) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
     else for (const [index, width] of config.widths.entries()) {
       const language = config.languages[index % config.languages.length];
       if (name === 'identity') for (const identity of ['normal', 'forged', 'owner']) tasks.push({ name, width, language, identity });

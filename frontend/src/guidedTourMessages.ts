@@ -389,5 +389,19 @@ export function getGuidedTourCopy(language: string): TourMessages {
 }
 export function guidedTourStepCopy(language: string, id: TourStageId): { title: string; body: string } {
   const [title, body] = getGuidedTourCopy(language).stages[id];
+  if (id === 'localContacts') return { title, body: localIdeaTutorial[language] ?? localIdeaTutorial.es };
   return { title, body };
 }
+const localIdeaTutorial: Record<string, string> = {
+  es: 'Fuera del tutorial, un toque en Pedir Idea Local envía la alerta sin abrir otra sección. Sólo llega a miembros aceptados de tu red que estén exactamente en el siguiente nivel del mismo modo. Si no hay contactos elegibles, te lo indicamos. Explorar este tutorial no envía alertas.',
+  en: 'Outside the tour, tap Request a local idea to send an alert without opening another section. Only accepted network members exactly at the next level in the same mode receive it. If none qualify, we tell you. Exploring this tour sends no alerts.',
+  zh: '教程之外，点击请求本地想法即可发送通知，无需打开其他页面。只有你的已接受联系人中在同一模式恰好高一级的成员会收到通知。没有符合条件的人时会提示。教程不会发送通知。',
+  hi: 'ट्यूटोरियल के बाहर, स्थानीय विचार माँगें पर टैप करने से बिना दूसरा अनुभाग खोले सूचना जाती है। केवल उसी मोड में ठीक अगले स्तर के स्वीकृत नेटवर्क सदस्यों को सूचना मिलेगी। कोई योग्य न हो तो बताएँगे। ट्यूटोरियल सूचनाएँ नहीं भेजता।',
+  ar: 'خارج الجولة، اضغط طلب فكرة محلية لإرسال تنبيه دون فتح قسم آخر. يصل فقط إلى أعضاء شبكتك المقبولين في المستوى التالي تماماً من الوضع نفسه. نخبرك إن لم يوجد مؤهلون. الجولة لا ترسل تنبيهات.',
+  it: 'Fuori dal tutorial, un tocco su Richiedi un’idea locale invia un avviso senza aprire altre sezioni. Lo ricevono solo i contatti accettati esattamente al livello successivo dello stesso modo. Ti avvisiamo se non ce ne sono. Il tutorial non invia avvisi.',
+  pt: 'Fora do tutorial, toque em Pedir ideia local para enviar um alerta sem abrir outra seção. Só recebem membros aceitos da sua rede exatamente no próximo nível do mesmo modo. Avisamos se não houver elegíveis. O tutorial não envia alertas.',
+  ru: 'Вне обучения нажмите запрос местной идеи: уведомление отправится без перехода в другой раздел. Его получат только принятые участники вашей сети ровно на следующем уровне того же режима. Если подходящих нет, мы сообщим. Обучение не отправляет уведомления.',
+  de: 'Außerhalb der Tour sendet ein Tippen auf Lokale Idee anfragen eine Mitteilung, ohne einen anderen Bereich zu öffnen. Nur bestätigte Kontakte genau auf der nächsten Stufe desselben Modus erhalten sie. Gibt es niemanden, zeigen wir das an. Die Tour sendet keine Mitteilungen.',
+  fr: 'Hors du tutoriel, touchez Demander une idée locale pour envoyer une alerte sans ouvrir une autre section. Seuls les contacts acceptés exactement au niveau suivant du même mode la reçoivent. Nous signalons si personne ne convient. Le tutoriel n’envoie aucune alerte.',
+  da: 'Uden for rundvisningen sender ét tryk på Bed om en lokal idé en besked uden at åbne en anden sektion. Kun accepterede kontakter præcis på næste niveau i samme modus modtager den. Vi viser, hvis ingen er egnede. Rundvisningen sender ingen beskeder.',
+};

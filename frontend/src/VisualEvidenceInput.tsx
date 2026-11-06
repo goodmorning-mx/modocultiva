@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { activityFlowCopy, cardAudienceCopy } from './activityJourneyFlowMessages';
+import { compactActivityCopy } from './compactActivityMessages';
 import {
   checkEvidenceAbort, isEvidenceAbort, normalizeEvidenceImage, uploadVideoEvidence, validateEvidenceVideo,
   VisualEvidenceError, type LoadVideo, type UploadVideo, type VisualAttachment,
@@ -85,9 +86,8 @@ export function VisualEvidenceInput({ language = 'en', value, onChange, onUpload
 
   return <fieldset className="visual-evidence-input" dir={language === 'ar' ? 'rtl' : 'ltr'} aria-describedby={`${id}-rule ${id}-privacy`}>
     <legend>{copy.stages[1]}</legend>
-    <p id={`${id}-rule`} className="activity-flow-note">{copy.visual}</p>
-    <label className="visual-evidence-picker" htmlFor={`${id}-file`}>{copy.choose}</label>
-    <input id={`${id}-file`} className="visual-evidence-file" type="file" accept="image/*,video/mp4,video/webm" disabled={disabled} onChange={event => {
+    <label className="visual-evidence-picker" htmlFor={`${id}-file`}><span aria-hidden="true">＋ </span>{compactActivityCopy(language).attach}<small>MP4 / WebM · 20 MiB</small></label>
+    <input id={`${id}-file`} aria-label={copy.choose} className="visual-evidence-file" type="file" accept="image/*,video/mp4,video/webm" disabled={disabled} onChange={event => {
       const file = event.currentTarget.files?.[0]; event.currentTarget.value = '';
       if (file) void select(file);
     }} />
@@ -104,8 +104,6 @@ export function VisualEvidenceInput({ language = 'en', value, onChange, onUpload
     </div>
     <div role="status" aria-live="polite" aria-atomic="true">{busy ? copy.working : ''}</div>
     {error && <p className="activity-flow-error" role="alert">{error}</p>}
-    {!onUploadVideo && value?.kind !== 'video' && <p className="activity-flow-note">{copy.errors.videoUnavailable}</p>}
-    <p className="activity-flow-note">{cardAudienceCopy(language).draftOwnerOnly}</p>
-    <p id={`${id}-privacy`} className="activity-flow-note">{copy.privacy}</p>
+    <details className="activity-flow-help"><summary>{compactActivityCopy(language).details}</summary><p id={`${id}-rule`}>{copy.visual}</p><p>{cardAudienceCopy(language).draftOwnerOnly}</p><p id={`${id}-privacy`}>{copy.privacy}</p></details>
   </fieldset>;
 }

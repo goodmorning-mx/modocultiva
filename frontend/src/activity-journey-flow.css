@@ -78,3 +78,48 @@
 @media (prefers-reduced-motion: reduce) {
   .activity-journey-flow *, .visual-evidence-input * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* Progressive disclosure: one task at a time; safety consent stays visible. */
+.activity-journey-flow { padding: 20px clamp(16px, 3vw, 26px); font-size: .88rem; line-height: 1.5; }
+.activity-journey-flow h5 { font-size: 1.12rem; }
+.activity-flow-stages { flex-direction: row; gap: 8px; margin: 14px 0 18px; }
+.activity-flow-stages li { flex: 1 1 0; min-width: 0; flex-direction: row; align-items: center; gap: 7px; min-height: 44px; padding: 5px 0 10px; font-size: .75rem; line-height: 1.35; }
+.activity-flow-stage-number { width: 25px; height: 25px; flex-basis: 25px; font-size: .75rem; }
+.activity-journey-flow summary, .visual-evidence-input summary { cursor: pointer; color: #bcd5cd; font-size: .8rem; line-height: 1.5; }
+.activity-journey-flow summary:focus-visible, .visual-evidence-input summary:focus-visible { outline: 2px solid var(--flow-accent, #a9e5ba); outline-offset: 4px; }
+.activity-flow-target { padding: 10px 12px; border-radius: 10px; }
+.activity-flow-target summary { color: var(--flow-accent); }
+.activity-flow-form { gap: 9px; margin-top: 16px; }
+.activity-flow-form label { font-size: .85rem; }
+.activity-flow-form textarea { min-height: 88px; font-size: .9rem; }
+.activity-flow-alignment { margin-top: 12px; }
+.activity-flow-help, .activity-flow-reference { margin: 8px 0; }
+.activity-flow-help p { color: #b4d0bf; font-size: .8rem; }
+.activity-flow-reference[open] > label { display: block; margin-top: 10px; }
+.activity-flow-review { margin-top: 12px; padding-top: 12px; }
+.activity-flow-published-audience { margin-top: 12px; padding-top: 12px; }
+.card-audience-control { margin: 12px 0; padding: 0; border: 0; border-radius: 0; background: none; }
+.card-audience-control legend { padding: 0 0 6px; font-size: .78rem; color: #b4d0bf; }
+.card-audience-options { gap: 6px; }
+.card-audience-options > label { flex: 1 1 0; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border-radius: 10px; }
+.card-audience-options strong { font-size: .8rem; line-height: 1.35; }
+.card-audience-control input:is([type='radio'], [type='checkbox']) { flex-basis: 16px; width: 16px; min-width: 16px; height: 16px; min-height: 16px; }
+.card-audience-control .card-audience-note { margin: 6px 0; font-size: .76rem; line-height: 1.5; }
+.card-audience-public-warning { margin-top: 10px; padding: 10px 12px; }
+.card-audience-public-warning > p, .card-audience-confirm { font-size: .8rem; line-height: 1.5; }
+.visual-evidence-input { position: relative; margin: 0; padding: 12px; background: #0a242a; }
+.visual-evidence-input legend { font-size: .83rem; }
+.visual-evidence-picker { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 64px; padding: 12px; border: 1px dashed #98c4a96b; border-radius: 10px; cursor: pointer; }
+.visual-evidence-picker small { font-size: .7rem; color: #a3bfb7; margin-inline-start: auto; }
+.visual-evidence-file { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.visual-evidence-input:focus-within .visual-evidence-picker { outline: 2px solid #c5f4d5; outline-offset: 2px; }
+.visual-evidence-input:has(input:disabled) .visual-evidence-picker { opacity: .5; cursor: not-allowed; }
+.visual-evidence-preview { margin: 10px 0; }
+.visual-evidence-preview :is(img, video) { max-height: 240px; }
+.activity-flow-actions:empty { display: none; }
+.journey-local-idea-status { margin: 8px 0 0; color: #aacdc2; font-size: .78rem; }
+@media (max-width: 400px) {
+  .activity-flow-stages li { flex-direction: column; align-items: start; }
+  .card-audience-options > label { flex-basis: 0; padding: 8px; }
+  .activity-flow-stages li > span:last-child { overflow-wrap: anywhere; }
+}
