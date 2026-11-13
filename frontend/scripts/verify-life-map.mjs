@@ -32,6 +32,8 @@ assert.match(css, /\.home-mode-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,
 assert.match(css, /\.home-mode-card\s*\{[^}]*grid-template-columns:\s*56px minmax\(0, 1fr\) 92px 20px/, 'Mode cards use a larger horizontal tile layout');
 assert.match(css, /\.home-mode-card\s*\{[^}]*min-height:\s*152px[^}]*padding:\s*20px 22px/, 'Mode tiles are tall and have generous padding');
 assert.match(css, /\.home-mode-card\s*\{[^}]*box-shadow:/, 'Cards retain elevation and shade');
+assert.match(css, /\.home-mode-description\s*\{[^}]*color:\s*#f4fff7[^}]*font-weight:\s*650/, 'Mode introductions are bold and white');
+assert.match(css, /\.home-mode-summary b\s*\{[^}]*border:\s*1px solid[^}]*box-shadow:/, 'Mode level indicators are visually emphasized');
 assert.match(css, /\.topbar--material-home\s*\{[^}]*border:\s*0[^}]*border-bottom:\s*1px/, 'Silver bar has only a bottom border');
 assert.match(css, /\.home-greeting\s*\{[^}]*min-height:\s*244px/, 'Greeting header reserves room for quick actions');
 assert.match(css, /\.home-greeting h1 span\s*\{[^}]*margin-bottom:\s*14px[^}]*font-size:\s*\.82em/, 'Welcome word has extra space and distinct typography from the user name');
