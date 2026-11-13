@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 100016)
-Total output lines: 2639
-
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
@@ -411,7 +408,1308 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   profileModalEyebrow: { es: 'TU IDENTIDAD EN MODO CULTIVA', en: 'YOUR IDENTITY IN MODO CULTIVA', zh: '你在 Modo Cultiva 的身份', hi: 'Modo Cultiva में आपकी पहचान', ar: 'هويتك في Modo Cultiva', it: 'LA TUA IDENTITÀ IN MODO CULTIVA', pt: 'SUA IDENTIDADE NO MODO CULTIVA', ru: 'ВАША ИДЕНТИЧНОСТЬ В MODO CULTIVA', de: 'DEINE IDENTITÄT IN MODO CULTIVA', fr: 'VOTRE IDENTITÉ DANS MODO CULTIVA', da: 'DIN IDENTITET I MODO CULTIVA' },
   customizerEyebrow: { es: 'TU IDENTIDAD EN EL MAPA', en: 'YOUR IDENTITY ON THE MAP', zh: '你在地图上的身份', hi: 'मानचित्र पर आपकी पहचान', ar: 'هويتك على الخريطة', it: 'LA TUA IDENTITÀ SULLA MAPPA', pt: 'SUA IDENTIDADE NO MAPA', ru: 'ВАША ИДЕНТИЧНОСТЬ НА КАРТЕ', de: 'DEINE IDENTITÄT AUF DER KARTE', fr: 'VOTRE IDENTITÉ SUR LA CARTE', da: 'DIN IDENTITET PÅ KORTET' },
   customizerTitle: { es: 'Personaliza tu perfil', en: 'Personalize your profile', zh: '自定义个人资料', hi: 'अपनी प्रोफ़ाइल को अनुकूलित करें', ar: 'خصّص ملفك الشخصي', it: 'Personalizza il tuo profilo', pt: 'Personalize seu perfil', ru: 'Настройте свой профиль', de: 'Personalisiere dein Profil', fr: 'Personnalisez votre profil', da: 'Tilpas din profil' },
-  customizerDescription: { es: 'Edita tu nombre y foto de perfil. Tus cambios se guardan en este navegador.', en: 'Edit your name and profile photo. Your changes are saved in this browser.', zh: '编辑你的姓名和头像。更改会保存在此浏览器中。', hi: 'अपना नाम और प्रोफ़ाइल फ़ोटो बदलें। आपके बदलाव इसी ब्राउज़र में सहेजे जाएँगे।', ar: 'عدّل اسمك وصورة ملفك الشخصي. تُحفظ التغييرات في هذا المتصفح.', it: 'Modifica il nome e la foto del profilo. Le modifiche vengono salvate in questo browser.', pt: 'Edite seu nome e foto de perfil. As alterações ficam salvas neste navegador.', ru: 'Измените имя и фото профиля. Изменения сохраняются в этом браузере.', de: 'Bearbeite deinen Namen und dein Profilfoto. Änderungen werden in diesem Browser gespeichert.', fr: 'Modifiez votre nom et votre photo de profil. Vos changements sont enregistrés dans ce navigateur.', da: 'Redigér dit navn og profilbillede. Dine ændringer gemmes i denne browser.…50016 tokens truncated…= JSON.stringify(location(right));
+  customizerDescription: { es: 'Edita tu nombre y foto de perfil. Tus cambios se guardan en este navegador.', en: 'Edit your name and profile photo. Your changes are saved in this browser.', zh: '编辑你的姓名和头像。更改会保存在此浏览器中。', hi: 'अपना नाम और प्रोफ़ाइल फ़ोटो बदलें। आपके बदलाव इसी ब्राउज़र में सहेजे जाएँगे।', ar: 'عدّل اسمك وصورة ملفك الشخصي. تُحفظ التغييرات في هذا المتصفح.', it: 'Modifica il nome e la foto del profilo. Le modifiche vengono salvate in questo browser.', pt: 'Edite seu nome e foto de perfil. As alterações ficam salvas neste navegador.', ru: 'Измените имя и фото профиля. Изменения сохраняются в этом браузере.', de: 'Bearbeite deinen Namen und dein Profilfoto. Änderungen werden in diesem Browser gespeichert.', fr: 'Modifiez votre nom et votre photo de profil. Vos changements sont enregistrés dans ce navigateur.', da: 'Redigér dit navn og profilbillede. Dine ændringer gemmes i denne browser.' },
+  profileNameLabel: { es: 'Tu nombre', en: 'Your name', zh: '你的姓名', hi: 'आपका नाम', ar: 'اسمك', it: 'Il tuo nome', pt: 'Seu nome', ru: 'Ваше имя', de: 'Dein Name', fr: 'Votre nom', da: 'Dit navn' },
+  profileNamePlaceholder: { es: 'Escribe tu nombre', en: 'Enter your name', zh: '输入你的姓名', hi: 'अपना नाम लिखें', ar: 'اكتب اسمك', it: 'Inserisci il tuo nome', pt: 'Digite seu nome', ru: 'Введите имя', de: 'Gib deinen Namen ein', fr: 'Saisissez votre nom', da: 'Skriv dit navn' },
+  changeProfilePhoto: { es: 'Cambiar foto de perfil', en: 'Change profile photo', zh: '更换头像', hi: 'प्रोफ़ाइल फ़ोटो बदलें', ar: 'تغيير صورة الملف الشخصي', it: 'Cambia foto del profilo', pt: 'Alterar foto de perfil', ru: 'Изменить фото профиля', de: 'Profilfoto ändern', fr: 'Changer la photo de profil', da: 'Skift profilbillede' },
+  addProfilePhoto: { es: 'Agregar foto de perfil', en: 'Add profile photo', zh: '添加头像', hi: 'प्रोफ़ाइल फ़ोटो जोड़ें', ar: 'إضافة صورة للملف الشخصي', it: 'Aggiungi foto del profilo', pt: 'Adicionar foto de perfil', ru: 'Добавить фото профиля', de: 'Profilfoto hinzufügen', fr: 'Ajouter une photo de profil', da: 'Tilføj profilbillede' },
+  customizerDone: { es: 'Listo, este soy yo', en: 'Done, this is me', zh: '完成，这就是我', hi: 'हो गया, यह मैं हूँ', ar: 'تم، هذه هويتي', it: 'Fatto, questo sono io', pt: 'Pronto, este sou eu', ru: 'Готово, это я', de: 'Fertig, das bin ich', fr: 'Terminé, c’est moi', da: 'Færdig, det er mig' },
+  journeyClose: { es: 'Cerrar recorrido', en: 'Close journey', zh: '关闭旅程', hi: 'यात्रा बंद करें', ar: 'إغلاق الرحلة', it: 'Chiudi percorso', pt: 'Fechar jornada', ru: 'Закрыть путь', de: 'Journey schließen', fr: 'Fermer le parcours', da: 'Luk rejse' },
+  previousLevel: { es: 'Nivel anterior', en: 'Previous level', zh: '上一个等级', hi: 'पिछला स्तर', ar: 'المستوى السابق', it: 'Livello precedente', pt: 'Nível anterior', ru: 'Предыдущий уровень', de: 'Vorheriges Level', fr: 'Niveau précédent', da: 'Forrige niveau' },
+  nextLevel: { es: 'Siguiente nivel', en: 'Next level', zh: '下一个等级', hi: 'अगला स्तर', ar: 'المستوى التالي', it: 'Livello successivo', pt: 'Próximo nível', ru: 'Следующий уровень', de: 'Nächstes Level', fr: 'Niveau suivant', da: 'Næste niveau' },
+  selectLevel: { es: 'Seleccionar nivel', en: 'Select level', zh: '选择等级', hi: 'स्तर चुनें', ar: 'اختر المستوى', it: 'Seleziona il livello', pt: 'Selecionar nível', ru: 'Выбрать уровень', de: 'Level auswählen', fr: 'Choisir un niveau', da: 'Vælg niveau' },
+  visibleLevelActions: { es: 'Acciones para el nivel visible', en: 'Actions for the visible level', zh: '当前等级的操作', hi: 'दिखाए गए स्तर के लिए कार्रवाइयाँ', ar: 'إجراءات المستوى المعروض', it: 'Azioni per il livello visualizzato', pt: 'Ações para o nível exibido', ru: 'Действия для текущего уровня', de: 'Aktionen für das angezeigte Level', fr: 'Actions pour le niveau affiché', da: 'Handlinger for det viste niveau' },
+  closeNotice: { es: 'Cerrar aviso', en: 'Close notice', zh: '关闭提示', hi: 'सूचना बंद करें', ar: 'إغلاق التنبيه', it: 'Chiudi avviso', pt: 'Fechar aviso', ru: 'Закрыть уведомление', de: 'Hinweis schließen', fr: 'Fermer le message', da: 'Luk besked' },
+  journeyAiQuestion: { es: 'Para pasar del nivel {level} al siguiente, ¿qué te gustaría cultivar en este modo y cuánto tiempo real tienes disponible?', en: 'To move from level {level} to the next, what would you like to cultivate in this mode, and how much time do you realistically have?', zh: '若要从等级 {level} 迈向下一级，你想在此模式中培养什么？实际可投入多少时间？', hi: 'स्तर {level} से अगले स्तर पर जाने के लिए, आप इस मोड में क्या विकसित करना चाहेंगे और वास्तव में कितना समय दे सकते हैं?', ar: 'للانتقال من المستوى {level} إلى التالي، ما الذي تود تنميته في هذا الوضع وكم من الوقت يتوفر لديك فعلياً؟', it: 'Per passare dal livello {level} al successivo, cosa vorresti coltivare in questa modalità e quanto tempo hai davvero a disposizione?', pt: 'Para avançar do nível {level} ao próximo, o que você gostaria de cultivar neste modo e quanto tempo realmente tem disponível?', ru: 'Чтобы перейти с уровня {level} на следующий, что вы хотите развивать в этом режиме и сколько времени реально можете уделить?', de: 'Was möchtest du in diesem Modus entwickeln, um von Level {level} zum nächsten zu gelangen, und wie viel Zeit hast du tatsächlich?', fr: 'Pour passer du niveau {level} au suivant, que souhaitez-vous cultiver dans ce mode et de combien de temps disposez-vous réellement ?', da: 'Hvad vil du dyrke i denne tilstand for at gå fra niveau {level} til det næste, og hvor meget tid har du reelt?' },
+  modeAiDescription: { es: 'Usa el Modo IA para definir una actividad concreta para {mode} en el nivel {level}.', en: 'Use Mode AI to define a concrete activity for {mode} at level {level}.', zh: '使用模式 AI 为{mode}的等级 {level} 定义一项具体活动。', hi: 'स्तर {level} पर {mode} के लिए एक ठोस गतिविधि तय करने हेतु मोड AI का उपयोग करें।', ar: 'استخدم وضع الذكاء الاصطناعي لتحديد نشاط ملموس لـ {mode} في المستوى {level}.', it: 'Usa Modo IA per definire un’attività concreta per {mode} al livello {level}.', pt: 'Use o Modo IA para definir uma atividade concreta para {mode} no nível {level}.', ru: 'Используйте Mode AI, чтобы определить конкретную активность для режима «{mode}» на уровне {level}.', de: 'Nutze Mode AI, um eine konkrete Aktivität für {mode} auf Stufe {level} zu definieren.', fr: 'Utilisez le Mode IA pour définir une activité concrète pour {mode} au niveau {level}.', da: 'Brug Mode AI til at definere en konkret aktivitet for {mode} på niveau {level}.' },
+  journeyAiWaiting: { es: 'Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.', en: 'Share your context and ask Mode AI for a personalized suggestion.', zh: '分享你的情况并咨询模式 AI，获取个性化建议。', hi: 'अपना संदर्भ साझा करें और व्यक्तिगत सुझाव पाने के लिए मोड AI से पूछें।', ar: 'شارك سياقك واسأل وضع الذكاء الاصطناعي للحصول على اقتراح مخصص.', it: 'Condividi il tuo contesto e consulta il Modo IA per ricevere una proposta personalizzata.', pt: 'Compartilhe seu contexto e consulte o Modo IA para receber uma sugestão personalizada.', ru: 'Расскажите о своей ситуации и обратитесь к Mode AI за персональным предложением.', de: 'Teile deinen Kontext und frage Mode AI nach einem persönlichen Vorschlag.', fr: 'Partagez votre contexte et consultez le Mode IA pour obtenir une proposition personnalisée.', da: 'Del din kontekst, og spørg Mode AI om et personligt forslag.' },
+  profileOwnDescription: { es: 'Sigue mejorando tu perfil y observa cómo toma forma tu crecimiento.', en: 'Keep refining your profile and watch your growth take shape.', zh: '继续完善你的个人资料，见证你的成长逐渐成形。', hi: 'अपनी प्रोफ़ाइल को बेहतर बनाते रहें और अपनी प्रगति को आकार लेते देखें।', ar: 'واصل تحسين ملفك الشخصي وشاهد نموك وهو يتشكل.', it: 'Continua a migliorare il tuo profilo e guarda la tua crescita prendere forma.', pt: 'Continue aprimorando seu perfil e veja seu crescimento ganhar forma.', ru: 'Продолжайте улучшать профиль и наблюдайте, как формируется ваш рост.', de: 'Verfeinere dein Profil weiter und beobachte, wie dein Wachstum Gestalt annimmt.', fr: 'Continuez à améliorer votre profil et voyez votre progression prendre forme.', da: 'Bliv ved med at forfine din profil, og se din udvikling tage form.' },
+  profilePublicDescription: { es: 'Así vería tu perfil otra persona: tus logros destacados y tu Configuración de Vida actual.', en: 'This is how another person would see your profile: featured achievements and your current preset.', zh: '这是其他人看到的你的资料：精选成就和当前生活模式组合。', hi: 'दूसरे व्यक्ति को आपकी प्रोफ़ाइल ऐसे दिखेगी: विशेष उपलब्धियां और आपका वर्तमान जीवन-मोड संयोजन।', ar: 'هكذا سيرى شخص آخر ملفك: إنجازاتك المميزة وتوليفة أنماط حياتك الحالية.', it: 'Così un’altra persona vedrebbe il tuo profilo: traguardi in evidenza e la tua combinazione attuale dei modi di vita.', pt: 'Assim outra pessoa veria seu perfil: conquistas em destaque e sua combinação atual de modos de vida.', ru: 'Так другой человек увидит ваш профиль: избранные достижения и текущее сочетание жизненных сфер.', de: 'So würde eine andere Person dein Profil sehen: hervorgehobene Erfolge und deine aktuelle Kombination der Lebensbereiche.', fr: 'Voici comment une autre personne verrait votre profil : réussites à la une et votre combinaison actuelle des modes de vie.', da: 'Sådan ville en anden se din profil: fremhævede resultater og din aktuelle kombination af livsområder.' },
+  currentPreset: { es: 'CONFIGURACIÓN DE VIDA ACTUAL', en: 'CURRENT PRESET', zh: '当前生活模式组合', hi: 'वर्तमान जीवन-मोड संयोजन', ar: 'توليفة أنماط الحياة الحالية', it: 'COMBINAZIONE ATTUALE DEI MODI DI VITA', pt: 'COMBINAÇÃO ATUAL DE MODOS DE VIDA', ru: 'ТЕКУЩЕЕ СОЧЕТАНИЕ ЖИЗНЕННЫХ СФЕР', de: 'AKTUELLE KOMBINATION DER LEBENSBEREICHE', fr: 'COMBINAISON ACTUELLE DES MODES DE VIE', da: 'AKTUEL AKTIVITETSKOMBINATION' },
+  currentMap: { es: 'Mapa actual', en: 'Current map', zh: '当前地图', hi: 'वर्तमान मानचित्र', ar: 'الخريطة الحالية', it: 'Mappa attuale', pt: 'Mapa atual', ru: 'Текущая карта', de: 'Aktuelle Karte', fr: 'Carte actuelle', da: 'Aktuelt kort' },
+  levelMap: { es: 'NIVELES DE LOS 12 MODOS', en: 'LEVELS ACROSS 12 MODES', zh: '12种模式的等级', hi: '12 मोड के स्तर', ar: 'مستويات الأوضاع الاثني عشر', it: 'LIVELLI DEI 12 MODI', pt: 'NÍVEIS DOS 12 MODOS', ru: 'УРОВНИ 12 РЕЖИМОВ', de: 'LEVEL DER 12 MODI', fr: 'NIVEAUX DES 12 MODES', da: 'NIVEAUER FOR 12 MODES' },
+  closeProfile: { es: 'Cerrar perfil', en: 'Close profile', zh: '关闭资料', hi: 'प्रोफ़ाइल बंद करें', ar: 'إغلاق الملف', it: 'Chiudi profilo', pt: 'Fechar perfil', ru: 'Закрыть профиль', de: 'Profil schließen', fr: 'Fermer le profil', da: 'Luk profil' },
+  badgeDescFirstStep: { es: 'Definiste tu primera actividad.', en: 'You defined your first activity.', zh: '你定义了第一项活动。', hi: 'आपने अपनी पहली गतिविधि तय की।', ar: 'حددت نشاطك الأول.', it: 'Hai definito la tua prima attività.', pt: 'Você definiu sua primeira atividade.', ru: 'Вы определили свою первую активность.', de: 'Du hast deine erste Aktivität definiert.', fr: 'Vous avez défini votre première activité.', da: 'Du definerede din første aktivitet.' },
+  badgeDescThreeMoves: { es: 'Guardaste actividades en tres journeys.', en: 'You saved activities in three journeys.', zh: '你在三个旅程中保存了活动。', hi: 'आपने तीन यात्राओं में गतिविधियां सहेजीं।', ar: 'حفظت أنشطة في ثلاث رحلات.', it: 'Hai salvato attività in tre percorsi.', pt: 'Você salvou atividades em três jornadas.', ru: 'Вы сохранили активности в трёх путях.', de: 'Du hast Aktivitäten in drei Journeys gespeichert.', fr: 'Vous avez enregistré des activités dans trois parcours.', da: 'Du gemte aktiviteter på tre rejser.' },
+  badgeDescLevelUp: { es: 'Llevaste un modo al siguiente nivel.', en: 'You moved a mode to the next level.', zh: '你让一种模式进入了下一个等级。', hi: 'आपने एक मोड को अगले स्तर तक पहुंचाया।', ar: 'رفعت أحد الأوضاع إلى المستوى التالي.', it: 'Hai portato una modalità al livello successivo.', pt: 'Você levou um modo ao próximo nível.', ru: 'Вы подняли один режим на следующий уровень.', de: 'Du hast einen Modus auf die nächste Stufe gebracht.', fr: 'Vous avez fait passer un mode au niveau suivant.', da: 'Du løftede en mode til næste niveau.' },
+  badgeDescFullSpectrum: { es: 'Cultivaste los 12 modos con una actividad.', en: 'You cultivated all 12 modes with an activity.', zh: '你用一项活动培育了全部12种模式。', hi: 'आपने एक गतिविधि के साथ सभी 12 मोड विकसित किए।', ar: 'زرعت الأوضاع الاثني عشر بنشاط واحد.', it: 'Hai coltivato tutti i 12 modi con un’attività.', pt: 'Você cultivou os 12 modos com uma atividade.', ru: 'Вы развивали все 12 режимов с помощью активности.', de: 'Du hast alle 12 Modi mit einer Aktivität kultiviert.', fr: 'Vous avez cultivé les 12 modes avec une activité.', da: 'Du dyrkede alle 12 modes med én aktivitet.' },
+  badgeDescGlobalEye: { es: 'Guardaste una práctica compartida por la comunidad.', en: 'You saved a practice shared by the community.', zh: '你保存了社区分享的实践。', hi: 'आपने समुदाय द्वारा साझा किया गया अभ्यास सहेजा।', ar: 'حفظت ممارسة شاركها المجتمع.', it: 'Hai salvato una pratica condivisa dalla comunità.', pt: 'Você salvou uma prática compartilhada pela comunidade.', ru: 'Вы сохранили практику, которой поделилось сообщество.', de: 'Du hast eine von der Community geteilte Praxis gespeichert.', fr: 'Vous avez enregistré une pratique partagée par la communauté.', da: 'Du gemte en praksis delt af fællesskabet.' },
+  badgeDescVisionary: { es: 'Subiste una imagen para representar tu nivel 9.', en: 'You uploaded an image to represent your level 9.', zh: '你上传了代表等级9的图片。', hi: 'आपने स्तर 9 को दर्शाने वाली छवि अपलोड की।', ar: 'رفعت صورة لتمثيل مستواك التاسع.', it: 'Hai caricato un’immagine per rappresentare il livello 9.', pt: 'Você enviou uma imagem para representar seu nível 9.', ru: 'Вы загрузили изображение, представляющее ваш 9-й уровень.', de: 'Du hast ein Bild für deine Stufe 9 hochgeladen.', fr: 'Vous avez importé une image pour représenter votre niveau 9.', da: 'Du uploadede et billede for at repræsentere niveau 9.' },
+  badgeDescPresetMaker: { es: 'Creaste un preset para explorar otro mapa.', en: 'You created a preset to explore another map.', zh: '你创建了预设来探索另一张地图。', hi: 'आपने दूसरे मानचित्र को देखने के लिए एक प्रीसेट बनाया।', ar: 'أنشأت إعداداً لاستكشاف خريطة أخرى.', it: 'Hai creato un preset per esplorare un’altra mappa.', pt: 'Você criou um preset para explorar outro mapa.', ru: 'Вы создали пресет для изучения другой карты.', de: 'Du hast ein Preset erstellt, um eine andere Karte zu erkunden.', fr: 'Vous avez créé un preset pour explorer une autre carte.', da: 'Du oprettede et preset for at udforske et andet kort.' },
+  badgeDescSkinShift: { es: 'Activaste una nueva identidad visual.', en: 'You activated a new visual identity.', zh: '你启用了新的视觉身份。', hi: 'आपने एक नई दृश्य पहचान सक्रिय की।', ar: 'فعّلت هوية بصرية جديدة.', it: 'Hai attivato una nuova identità visiva.', pt: 'Você ativou uma nova identidade visual.', ru: 'Вы активировали новую визуальную идентичность.', de: 'Du hast eine neue visuelle Identität aktiviert.', fr: 'Vous avez activé une nouvelle identité visuelle.', da: 'Du aktiverede en ny visuel identitet.' },
+  regenerateInsight: { es: 'Ver otra recomendación', en: 'Show another recommendation', zh: '查看另一条推荐', hi: 'दूसरी सिफारिश देखें', ar: 'اعرض توصية أخرى', it: 'Mostra un’altra raccomandazione', pt: 'Ver outra recomendação', ru: 'Показать другую рекомендацию', de: 'Andere Empfehlung anzeigen', fr: 'Voir une autre recommandation', da: 'Vis en anden anbefaling' },
+  lifeModes: { es: '12 MODOS DE VIDA', en: '12 LIFE MODES', zh: '12种生活模式', hi: '12 जीवन मोड', ar: '12 نمطاً للحياة', it: '12 MODALITÀ DI VITA', pt: '12 MODOS DE VIDA', ru: '12 РЕЖИМОВ ЖИЗНИ', de: '12 LEBENSMODI', fr: '12 MODES DE VIE', da: '12 LIVSMODI' },
+  djEyebrow: { es: 'Consola de presencia', en: 'Presence console', zh: '存在感控制台', hi: 'उपस्थिति कंसोल', ar: 'وحدة الحضور', it: 'Console della presenza', pt: 'Console de presença', ru: 'Консоль присутствия', de: 'Präsenzkonsole', fr: 'Console de présence', da: 'Tilstedeværelseskonsol' },
+  djTitle: { es: 'Cultiva todos tus modos.', en: 'Cultivate every mode of your life.', zh: '培育你生命中的每一种模式。', hi: 'अपने जीवन के हर मोड को विकसित करें।', ar: 'ازرع كل نمط من أنماط حياتك.', it: 'Coltiva ogni modalità della tua vita.', pt: 'Cultive cada modo da sua vida.', ru: 'Развивайте каждый режим своей жизни.', de: 'Entwickle jeden Modus deines Lebens.', fr: 'Cultivez chaque mode de votre vie.', da: 'Dyrk alle dine livsmodi.' },
+  djActivated: { es: 'MODO CULTIVA ACTIVADO · 12 CANALES DE VIDA ENERGIZADOS', en: 'MODO CULTIVA ACTIVE · 12 ENERGIZED LIFE CHANNELS', zh: 'MODO CULTIVA 已激活 · 12 个充满能量的生活频道', hi: 'MODO CULTIVA सक्रिय · 12 ऊर्जावान जीवन चैनल', ar: 'MODO CULTIVA نشط · 12 قناة حياة نابضة', it: 'MODO CULTIVA ATTIVO · 12 CANALI DI VITA ENERGIZZATI', pt: 'MODO CULTIVA ATIVO · 12 CANAIS DE VIDA ENERGIZADOS', ru: 'MODO CULTIVA АКТИВЕН · 12 ЗАРЯЖЕННЫХ КАНАЛОВ ЖИЗНИ', de: 'MODO CULTIVA AKTIV · 12 ENERGIEGELADENE LEBENSKANÄLE', fr: 'MODO CULTIVA ACTIF · 12 CANAUX DE VIE ÉNERGISÉS', da: 'MODO CULTIVA AKTIV · 12 ENERGIFYLDE LIVSKANALER' },
+  djPersonalSession: { es: 'SESIÓN PERSONAL', en: 'PERSONAL SESSION', zh: '个人会话', hi: 'व्यक्तिगत सत्र', ar: 'جلسة شخصية', it: 'SESSIONE PERSONALE', pt: 'SESSÃO PESSOAL', ru: 'ЛИЧНАЯ СЕССИЯ', de: 'PERSÖNLICHE SITZUNG', fr: 'SESSION PERSONNELLE', da: 'PERSONLIG SESSION' },
+  djSignalMaster: { es: 'SEÑAL / MASTER', en: 'SIGNAL / MASTER', zh: '信号 / 主控', hi: 'सिग्नल / मास्टर', ar: 'إشارة / رئيسي', it: 'SEGNALE / MASTER', pt: 'SINAL / MASTER', ru: 'СИГНАЛ / МАСТЕР', de: 'SIGNAL / MASTER', fr: 'SIGNAL / MASTER', da: 'SIGNAL / MASTER' },
+  djSync: { es: 'SYNC', en: 'SYNC', zh: '同步', hi: 'सिंक', ar: 'مزامنة', it: 'SYNC', pt: 'SYNC', ru: 'СИНХР', de: 'SYNC', fr: 'SYNC', da: 'SYNC' },
+  djFx: { es: 'FX', en: 'FX', zh: '效果', hi: 'FX', ar: 'مؤثرات', it: 'FX', pt: 'FX', ru: 'FX', de: 'FX', fr: 'FX', da: 'FX' },
+  djMonitor: { es: 'MONITOR', en: 'MONITOR', zh: '监听', hi: 'मॉनिटर', ar: 'مراقبة', it: 'MONITOR', pt: 'MONITOR', ru: 'МОНИТОР', de: 'MONITOR', fr: 'MONITEUR', da: 'MONITOR' },
+  djAir: { es: 'AIR', en: 'AIR', zh: '空气', hi: 'AIR', ar: 'هواء', it: 'AIR', pt: 'AIR', ru: 'AIR', de: 'AIR', fr: 'AIR', da: 'AIR' },
+  djActiveChannel: { es: 'CANAL ACTIVO', en: 'ACTIVE CHANNEL', zh: '当前频道', hi: 'सक्रिय चैनल', ar: 'القناة النشطة', it: 'CANALE ATTIVO', pt: 'CANAL ATIVO', ru: 'АКТИВНЫЙ КАНАЛ', de: 'AKTIVER KANAL', fr: 'CANAL ACTIF', da: 'AKTIV KANAL' },
+  djAccess: { es: 'ACCESO', en: 'ACCESS', zh: '访问', hi: 'पहुंच', ar: 'وصول', it: 'ACCESSO', pt: 'ACESSO', ru: 'ДОСТУП', de: 'ZUGANG', fr: 'ACCÈS', da: 'ADGANG' },
+  nightOwlDescription: { es: 'Paleta nocturna de alto contraste para reducir el brillo y favorecer la lectura en ambientes oscuros.', en: 'A high-contrast night palette that reduces glare and supports reading in dark environments.', zh: '高对比度夜间配色，降低眩光，适合在昏暗环境中阅读。', hi: 'उच्च-कंट्रास्ट रात की पैलेट, जो चमक कम करके अंधेरे वातावरण में पढ़ने को आसान बनाती है।', ar: 'لوحة ليلية عالية التباين تقلل الوهج وتدعم القراءة في البيئات المظلمة.', it: 'Una palette notturna ad alto contrasto che riduce il bagliore e favorisce la lettura negli ambienti bui.', pt: 'Uma paleta noturna de alto contraste que reduz o brilho e facilita a leitura em ambientes escuros.', ru: 'Ночная палитра с высоким контрастом, уменьшающая блики и облегчающая чтение в темноте.', de: 'Eine kontrastreiche Nachtpalette, die Blendung reduziert und das Lesen in dunkler Umgebung erleichtert.', fr: 'Une palette nocturne à contraste élevé qui réduit l’éblouissement et facilite la lecture dans les environnements sombres.', da: 'En nattepalet med høj kontrast, der reducerer blænding og gør læsning i mørke omgivelser lettere.' },
+  lucidDescription: { es: 'Paleta luminosa y etérea para una lectura más clara y una atmósfera visual más abierta.', en: 'A luminous, ethereal palette for clearer reading and a more open visual atmosphere.', zh: '明亮而空灵的配色，让阅读更清晰，视觉氛围更开阔。', hi: 'उजली और हल्की पैलेट, जो अधिक स्पष्ट पढ़ने और खुले दृश्य वातावरण के लिए है।', ar: 'لوحة مشرقة وخفيفة لقراءة أوضح وأجواء بصرية أكثر انفتاحاً.', it: 'Una palette luminosa ed eterea per una lettura più chiara e un’atmosfera visiva più aperta.', pt: 'Uma paleta luminosa e etérea para uma leitura mais clara e uma atmosfera visual mais aberta.', ru: 'Светлая и воздушная палитра для более ясного чтения и открытой визуальной атмосферы.', de: 'Eine leuchtende, ätherische Palette für klareres Lesen und eine offenere visuelle Atmosphäre.', fr: 'Une palette lumineuse et aérienne pour une lecture plus claire et une atmosphère visuelle plus ouverte.', da: 'En lys og luftig palet til tydeligere læsning og en mere åben visuel atmosfære.' },
+  activateFilter: { es: 'Activar filtro ↗', en: 'Activate filter ↗', zh: '启用滤镜 ↗', hi: 'फ़िल्टर सक्रिय करें ↗', ar: 'تفعيل الفلتر ↗', it: 'Attiva filtro ↗', pt: 'Ativar filtro ↗', ru: 'Включить фильтр ↗', de: 'Filter aktivieren ↗', fr: 'Activer le filtre ↗', da: 'Aktivér filter ↗' },
+  activeNow: { es: 'Activo ahora ✓', en: 'Active now ✓', zh: '当前启用 ✓', hi: 'अभी सक्रिय ✓', ar: 'نشط الآن ✓', it: 'Attivo ora ✓', pt: 'Ativo agora ✓', ru: 'Активен сейчас ✓', de: 'Jetzt aktiv ✓', fr: 'Actif maintenant ✓', da: 'Aktiv nu ✓' },
+  triviaTitle: { es: 'Modo Trivia', en: 'Trivia Mode', zh: '问答模式', hi: 'ट्रिविया मोड', ar: 'وضع المعلومات', it: 'Modalità trivia', pt: 'Modo Trivia', ru: 'Режим викторины', de: 'Trivia-Modus', fr: 'Mode trivia', da: 'Trivia-tilstand' },
+  triviaSubtitle: { es: 'Aprende jugando con los 12 modos de vida.', en: 'Learn through play with the 12 life modes.', zh: '通过游戏了解12种生活模式。', hi: '12 जीवन मोड के साथ खेलते हुए सीखें।', ar: 'تعلّم من خلال اللعب مع أنماط الحياة الاثني عشر.', it: 'Impara giocando con le 12 modalità di vita.', pt: 'Aprenda brincando com os 12 modos de vida.', ru: 'Изучайте 12 режимов жизни через игру.', de: 'Lerne spielerisch mit den 12 Lebensmodi.', fr: 'Apprenez en jouant avec les 12 modes de vie.', da: 'Lær gennem leg med de 12 livsmodi.' },
+  triviaCta: { es: 'Explorar Modo Trivia', en: 'Explore Trivia Mode', zh: '探索问答模式', hi: 'ट्रिविया मोड देखें', ar: 'استكشف وضع المعلومات', it: 'Esplora la modalità trivia', pt: 'Explorar o Modo Trivia', ru: 'Открыть режим викторины', de: 'Trivia-Modus öffnen', fr: 'Explorer le mode trivia', da: 'Udforsk trivia-tilstand' },
+  triviaHeroEyebrow: { es: 'Modo Trivia · Aprende jugando', en: 'Trivia Mode · Learn through play', zh: '问答模式 · 寓教于乐', hi: 'ट्रिविया मोड · खेलते हुए सीखें', ar: 'وضع المعلومات · تعلّم باللعب', it: 'Modalità trivia · Impara giocando', pt: 'Modo Trivia · Aprenda brincando', ru: 'Режим викторины · Учитесь играя', de: 'Trivia-Modus · Spielerisch lernen', fr: 'Mode trivia · Apprendre en jouant', da: 'Trivia-tilstand · Lær gennem leg' },
+  triviaHeroTitle: { es: 'Una pregunta puede abrir un modo.', en: 'One question can open a mode.', zh: '一个问题可以打开一种模式。', hi: 'एक सवाल एक मोड खोल सकता है।', ar: 'قد يفتح سؤال واحد نمطاً جديداً.', it: 'Una domanda può aprire una modalità.', pt: 'Uma pergunta pode abrir um modo.', ru: 'Один вопрос может открыть новый режим.', de: 'Eine Frage kann einen Modus öffnen.', fr: 'Une question peut ouvrir un mode.', da: 'Ét spørgsmål kan åbne en tilstand.' },
+  triviaHeroCopy: { es: 'Explora los 12 modos de vida con tarjetas interactivas. Piensa primero, voltea después y descubre qué cultiva cada dimensión de tu vida.', en: 'Explore the 12 life modes with interactive cards. Think first, flip next and discover what each dimension of your life cultivates.', zh: '用互动卡片探索12种生活模式。先思考，再翻转，发现每个生活维度培育的内容。', hi: 'इंटरैक्टिव कार्ड से 12 जीवन मोड खोजें। पहले सोचें, फिर पलटें और जानें कि जीवन का हर आयाम क्या विकसित करता है।', ar: 'استكشف أنماط الحياة الاثني عشر عبر بطاقات تفاعلية. فكّر أولاً ثم اقلب البطاقة واكتشف ما ينميه كل بُعد في حياتك.', it: 'Esplora le 12 modalità di vita con schede interattive. Rifletti, poi gira la scheda e scopri cosa coltiva ogni dimensione della tua vita.', pt: 'Explore os 12 modos de vida com cartões interativos. Pense primeiro, vire depois e descubra o que cada dimensão da sua vida cultiva.', ru: 'Исследуйте 12 режимов жизни с интерактивными карточками. Сначала подумайте, затем переверните карту и узнайте, что развивает каждое измерение жизни.', de: 'Erkunde die 12 Lebensmodi mit interaktiven Karten. Denke zuerst nach, drehe dann um und entdecke, was jede Dimension deines Lebens kultiviert.', fr: 'Explorez les 12 modes de vie avec des cartes interactives. Réfléchissez, retournez la carte et découvrez ce que cultive chaque dimension de votre vie.', da: 'Udforsk de 12 livstilstande med interaktive kort. Tænk først, vend derefter kortet, og opdag hvad hver livsdimension dyrker.' },
+  triviaGuide: { es: 'Lee la pregunta, responde desde tu experiencia y voltea la tarjeta para conocer el modo.', en: 'Read the question, answer from your experience and flip the card to discover the mode.', zh: '阅读问题，从你的经验出发回答，然后翻转卡片了解该模式。', hi: 'सवाल पढ़ें, अपने अनुभव से जवाब दें और मोड जानने के लिए कार्ड पलटें।', ar: 'اقرأ السؤال وأجب من تجربتك ثم اقلب البطاقة لاكتشاف النمط.', it: 'Leggi la domanda, rispondi dalla tua esperienza e gira la scheda per scoprire la modalità.', pt: 'Leia a pergunta, responda a partir da sua experiência e vire o cartão para descobrir o modo.', ru: 'Прочитайте вопрос, ответьте исходя из своего опыта и переверните карту, чтобы узнать режим.', de: 'Lies die Frage, antworte aus deiner Erfahrung und drehe die Karte um, um den Modus zu entdecken.', fr: 'Lisez la question, répondez selon votre expérience et retournez la carte pour découvrir le mode.', da: 'Læs spørgsmålet, svar ud fra din erfaring, og vend kortet for at opdage tilstanden.' },
+  triviaCardLabel: { es: 'FICHA', en: 'CARD', zh: '卡片', hi: 'कार्ड', ar: 'بطاقة', it: 'SCHEDA', pt: 'CARTÃO', ru: 'КАРТА', de: 'KARTE', fr: 'CARTE', da: 'KORT' },
+  triviaQuestionLabel: { es: 'PREGUNTA', en: 'QUESTION', zh: '问题', hi: 'सवाल', ar: 'السؤال', it: 'DOMANDA', pt: 'PERGUNTA', ru: 'ВОПРОС', de: 'FRAGE', fr: 'QUESTION', da: 'SPØRGSMÅL' },
+  triviaDiscovery: { es: 'DESCUBRIMIENTO', en: 'DISCOVERY', zh: '发现', hi: 'खोज', ar: 'اكتشاف', it: 'SCOPERTA', pt: 'DESCOBERTA', ru: 'ОТКРЫТИЕ', de: 'ENTDECKUNG', fr: 'DÉCOUVERTE', da: 'OPDAGELSE' },
+  triviaInfo: { es: 'INFORMACIÓN DEL MODO', en: 'MODE INFORMATION', zh: '模式信息', hi: 'मोड की जानकारी', ar: 'معلومات النمط', it: 'INFORMAZIONI SULLA MODALITÀ', pt: 'INFORMAÇÕES DO MODO', ru: 'ИНФОРМАЦИЯ О РЕЖИМЕ', de: 'MODUSINFORMATIONEN', fr: 'INFORMATIONS SUR LE MODE', da: 'INFORMATION OM TILSTANDEN' },
+  triviaFlip: { es: 'Voltear tarjeta', en: 'Flip card', zh: '翻转卡片', hi: 'कार्ड पलटें', ar: 'اقلب البطاقة', it: 'Gira la scheda', pt: 'Virar cartão', ru: 'Перевернуть карту', de: 'Karte umdrehen', fr: 'Retourner la carte', da: 'Vend kort' },
+  triviaBack: { es: 'Volver a la pregunta', en: 'Back to the question', zh: '返回问题', hi: 'सवाल पर वापस जाएं', ar: 'العودة إلى السؤال', it: 'Torna alla domanda', pt: 'Voltar à pergunta', ru: 'Вернуться к вопросу', de: 'Zur Frage zurück', fr: 'Retour à la question', da: 'Tilbage til spørgsmålet' },
+  triviaQuestionPrompt: { es: '¿Qué parte de tu vida pide atención?', en: 'What part of your life is asking for attention?', zh: '你生活中的哪一部分正在寻求关注？', hi: 'आपके जीवन का कौन सा हिस्सा ध्यान मांग रहा है?', ar: 'أي جزء من حياتك يطلب اهتمامك؟', it: 'Quale parte della tua vita chiede attenzione?', pt: 'Que parte da sua vida está pedindo atenção?', ru: 'Какая часть вашей жизни просит внимания?', de: 'Welcher Teil deines Lebens bittet um Aufmerksamkeit?', fr: 'Quelle partie de votre vie demande de l’attention ?', da: 'Hvilken del af dit liv beder om opmærksomhed?' },
+  triviaAnswerPrefix: { es: 'Este modo cultiva', en: 'This mode cultivates', zh: '这一模式培育', hi: 'यह मोड विकसित करता है', ar: 'ينمّي هذا النمط', it: 'Questa modalità coltiva', pt: 'Este modo cultiva', ru: 'Этот режим развивает', de: 'Dieser Modus kultiviert', fr: 'Ce mode cultive', da: 'Denne tilstand dyrker' },
+  globalName: { es: 'Modo Global', en: 'Global Mode', zh: '全球模式', hi: 'ग्लोबल मोड', ar: 'الوضع العالمي', it: 'Modalità globale', pt: 'Modo Global', ru: 'Глобальный режим', de: 'Globaler Modus', fr: 'Mode global', da: 'Global mode' },
+  globalEyebrow: { es: 'MODO GLOBAL', en: 'GLOBAL MODE', zh: '全球模式', hi: 'ग्लोबल मोड', ar: 'الوضع العالمي', it: 'MODALITÀ GLOBALE', pt: 'MODO GLOBAL', ru: 'ГЛОБАЛЬНЫЙ РЕЖИМ', de: 'GLOBALER MODUS', fr: 'MODE GLOBAL', da: 'GLOBAL MODE' },
+  globalTitle: { es: 'Tu cultivo, conectado al mundo.', en: 'Your cultivation, connected to the world.', zh: '让你的成长连接世界。', hi: 'आपका विकास दुनिया से जुड़ा है।', ar: 'تنميتك متصلة بالعالم.', it: 'La tua crescita, connessa al mondo.', pt: 'Seu cultivo conectado ao mundo.', ru: 'Ваше развитие связано с миром.', de: 'Deine Entwicklung, verbunden mit der Welt.', fr: 'Votre développement connecté au monde.', da: 'Din udvikling forbundet med verden.' },
+  globalSubtitle: { es: 'Aquí las prácticas dejan de ser teoría: encuentra personas, experiencias y elige insignias para reconocer tu avance.', en: 'Here practices become more than theory: find people, experiences and badges that recognize your progress.', zh: '在这里实践不再只是理论：发现伙伴、经验，并选择徽章来记录你的成长。', hi: 'यहाँ अभ्यास केवल सिद्धांत नहीं: लोगों, अनुभवों और अपनी प्रगति को पहचानने वाले बैज खोजें।', ar: 'هنا تصبح الممارسات أكثر من نظرية: اعثر على أشخاص وتجارب واختر شارات تعترف بتقدمك.', it: 'Qui le pratiche diventano realtà: trova persone, esperienze e distintivi per riconoscere i tuoi progressi.', pt: 'Aqui as práticas deixam de ser teoria: encontre pessoas, experiências e emblemas para reconhecer seu avanço.', ru: 'Здесь практики становятся реальностью: находите людей, опыт и значки, отмечающие ваш прогресс.', de: 'Hier werden Praktiken mehr als Theorie: Finde Menschen, Erfahrungen und Abzeichen, die deinen Fortschritt sichtbar machen.', fr: 'Ici les pratiques deviennent concrètes : trouvez des personnes, des expériences et des badges pour reconnaître vos progrès.', da: 'Her bliver praksis til mere end teori: find mennesker, oplevelser og badges, der anerkender din fremgang.' },
+  globalAccess: { es: 'ACCESO LIBRE · RED EN MOVIMIENTO', en: 'OPEN ACCESS · NETWORK IN MOTION', zh: '开放访问 · 网络正在连接', hi: 'खुली पहुंच · नेटवर्क सक्रिय है', ar: 'وصول مفت · شبكة متحركة', it: 'ACCESSO LIBERO · RETE IN MOVIMENTO', pt: 'ACESSO LIVRE · REDE EM MOVIMENTO', ru: 'СВОБОДНЫЙ ДОСТУП · СЕТЬ В ДВИЖЕНИИ', de: 'FREIER ZUGANG · NETZWERK IN BEWEGUNG', fr: 'ACCÈS LIBRE · RÉSEAU EN MOUVEMENT', da: 'ÅBEN ADGANG · NETVÆRK I BEVÆGELSE' },
+  presetExample: { es: 'Ej. Mi equilibrio', en: 'e.g. My balance', zh: '例如：我的平衡', hi: 'जैसे: मेरा संतुलन', ar: 'مثال: توازني', it: 'Es. Il mio equilibrio', pt: 'Ex.: Meu equilíbrio', ru: 'Например: Моё равновесие', de: 'z. B. Mein Gleichgewicht', fr: 'Ex. : Mon équilibre', da: 'Fx. Min balance' },
+  savedPresets: { es: 'Configuraciones de Vida Guardadas', en: 'Saved Life Presets', zh: '已保存的生活模式组合', hi: 'सहेजे गए जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة المحفوظة', it: 'Combinazioni salvate dei modi di vita', pt: 'Combinações salvas de modos de vida', ru: 'Сохранённые сочетания жизненных сфер', de: 'Gespeicherte Kombinationen der Lebensbereiche', fr: 'Combinaisons enregistrées des modes de vie', da: 'Gemte kombinationer af livsområder' },
+  savedConfigurationsEyebrow: { es: 'DIFERENTES MODOS DE OPERAR', en: 'DIFFERENT WAYS TO OPERATE', zh: '已保存的生活模式组合', hi: 'सहेजे गए जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة المحفوظة', it: 'COMBINAZIONI DEI MODI DI VITA', pt: 'COMBINAÇÕES DE MODOS DE VIDA', ru: 'СОЧЕТАНИЯ ЖИЗНЕННЫХ СФЕР', de: 'KOMBINATIONEN DER LEBENSBEREICHE', fr: 'COMBINAISONS DES MODES DE VIE', da: 'KOMBINATIONER AF LIVSOMRÅDER' },
+  presets: { es: 'Configuraciones de Vida', en: 'Life Presets', zh: '生活模式组合', hi: 'जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة', it: 'Combinazioni dei modi di vita', pt: 'Combinações de modos de vida', ru: 'Сочетания жизненных сфер', de: 'Kombinationen der Lebensbereiche', fr: 'Combinaisons des modes de vie', da: 'Kombinationer af livsområder' },
+  selectPreset: { es: '— Selecciona una Configuración de Vida —', en: '— Select a Life Preset —', zh: '— 选择生活模式组合 —', hi: '— जीवन-मोड संयोजन चुनें —', ar: '— اختر توليفة أنماط الحياة —', it: '— Seleziona una combinazione dei modi di vita —', pt: '— Selecione uma combinação de modos de vida —', ru: '— Выберите сочетание жизненных сфер —', de: '— Wähle eine Kombination der Lebensbereiche —', fr: '— Choisissez une combinaison des modes de vie —', da: '— Vælg en kombination af livsområder —' },
+  newPreset: { es: 'Nombra tu Configuración de Vida actual', en: 'Name your current Life Preset', zh: '为当前生活模式组合命名', hi: 'अपने वर्तमान जीवन-मोड संयोजन को नाम दें', ar: 'سمّ توليفة أنماط حياتك الحالية', it: 'Dai un nome alla tua combinazione attuale dei modi di vita', pt: 'Nomeie sua combinação atual de modos de vida', ru: 'Назовите текущее сочетание жизненных сфер', de: 'Benenne deine aktuelle Kombination der Lebensbereiche', fr: 'Nommez votre combinaison actuelle des modes de vie', da: 'Navngiv din aktuelle kombination af livsområder' },
+  savedPresetDescription: { es: 'Guarda y recupera tus Configuraciones de Vida para explorar distintas combinaciones de los 12 modos.', en: 'Save and restore level combinations to explore different presence maps.', zh: '保存和恢复你的生活模式组合，探索12种模式的不同等级搭配。', hi: '12 मोड के अलग-अलग स्तर संयोजनों को देखने के लिए अपनी जीवन-मोड संयोजन सहेजें और वापस लाएं।', ar: 'احفظ توليفات أنماط حياتك واستعدها لاستكشاف مستويات مختلفة عبر الأوضاع الاثني عشر.', it: 'Salva e ripristina le tue combinazioni dei modi di vita per esplorare diversi livelli nei 12 modi.', pt: 'Salve e recupere suas combinações de modos de vida para explorar diferentes níveis nos 12 modos.', ru: 'Сохраняйте и восстанавливайте сочетания жизненных сфер, чтобы исследовать разные уровни во всех 12 режимах.', de: 'Speichere und lade deine Kombinationen der Lebensbereiche, um verschiedene Stufen in allen 12 Modi zu erkunden.', fr: 'Enregistrez et restaurez vos combinaisons des modes de vie pour explorer différents niveaux dans les 12 modes.', da: 'Gem og gendan dine kombinationer af livsområder for at udforske forskellige niveauer på tværs af de 12 områder.' },
+  activityLevel: { es: 'ACTIVIDAD NIVEL {level}', en: 'LEVEL {level} ACTIVITY', zh: '等级 {level} 活动', hi: 'स्तर {level} गतिविधि', ar: 'نشاط المستوى {level}', it: 'ATTIVITÀ LIVELLO {level}', pt: 'ATIVIDADE NÍVEL {level}', ru: 'АКТИВНОСТЬ УРОВНЯ {level}', de: 'AKTIVITÄT STUFE {level}', fr: 'ACTIVITÉ NIVEAU {level}', da: 'AKTIVITET NIVEAU {level}' },
+  recommendation: { es: 'Recomendación', en: 'Recommendation', zh: '推荐', hi: 'सुझाव', ar: 'توصية', it: 'Raccomandazione', pt: 'Recomendação', ru: 'Рекомендация', de: 'Empfehlung', fr: 'Recommandation', da: 'Anbefaling' },
+  globalSection: { es: 'Modo Global', en: 'Global Mode', zh: '全球模式', hi: 'ग्लोबल मोड', ar: 'الوضع العالمي', it: 'Modalità globale', pt: 'Modo Global', ru: 'Глобальный режим', de: 'Globaler Modus', fr: 'Mode global', da: 'Global mode' },
+  commandCenter: { es: 'Centro de Mando', en: 'Command Center', zh: '指挥中心', hi: 'कमांड सेंटर', ar: 'مركز القيادة', it: 'Centro di comando', pt: 'Centro de comando', ru: 'Центр управления', de: 'Kommandozentrale', fr: 'Centre de commande', da: 'Kommandocenter' },
+  globalInsights: { es: 'Ideas Globales', en: 'Global Ideas', zh: '全球创意', hi: 'वैश्विक विचार', ar: 'أفكار عالمية', it: 'Idee Globali', pt: 'Ideias Globais', ru: 'Глобальные Идеи', de: 'Globale Ideen', fr: 'Idées Globales', da: 'Globale Idéer' },
+  specialistNetwork: { es: 'Red de Especialistas', en: 'Specialists Network', zh: '专家网络', hi: 'विशेषज्ञ नेटवर्क', ar: 'شبكة المتخصصين', it: 'Rete di specialisti', pt: 'Rede de especialistas', ru: 'Сеть специалистов', de: 'Expertennetzwerk', fr: 'Réseau de spécialistes', da: 'Specialistnetværk' },
+  findYourNextGuide: { es: 'Encuentra a tu siguiente guía.', en: 'Find your next guide.', zh: '寻找下一位引路人。', hi: 'अपने अगले मार्गदर्शक को खोजें।', ar: 'اعثر على مرشدك التالي.', it: 'Trova la tua prossima guida.', pt: 'Encontre seu próximo guia.', ru: 'Найдите своего наставника.', de: 'Finde deine nächste Begleitung.', fr: 'Trouvez votre prochain guide.', da: 'Find din næste guide.' },
+  verifiedProfiles: { es: 'PERFILES VERIFICADOS', en: 'VERIFIED PROFILES', zh: '已认证资料', hi: 'सत्यापित प्रोफ़ाइल', ar: 'ملفات موثقة', it: 'PROFILI VERIFICATI', pt: 'PERFIS VERIFICADOS', ru: 'ПОДТВЕРЖДЁННЫЕ ПРОФИЛИ', de: 'VERIFIZIERTE PROFILE', fr: 'PROFILS VÉRIFIÉS', da: 'VERIFICEREDE PROFILER' },
+  filterByMode: { es: 'Filtrar por modo', en: 'Filter by mode', zh: '按模式筛选', hi: 'मोड के अनुसार फ़िल्टर करें', ar: 'تصفية حسب الوضع', it: 'Filtra per modalità', pt: 'Filtrar por modo', ru: 'Фильтр по режиму', de: 'Nach Modus filtern', fr: 'Filtrer par mode', da: 'Filtrér efter tilstand' },
+  allModes: { es: 'Todos los modos', en: 'All modes', zh: '所有模式', hi: 'सभी मोड', ar: 'كل الأوضاع', it: 'Tutte le modalità', pt: 'Todos os modos', ru: 'Все режимы', de: 'Alle Modi', fr: 'Tous les modes', da: 'Alle tilstande' },
+  filterByLanguage: { es: 'Filtrar por idioma', en: 'Filter by language', zh: '按语言筛选', hi: 'भाषा के अनुसार फ़िल्टर करें', ar: 'تصفية حسب اللغة', it: 'Filtra per lingua', pt: 'Filtrar por idioma', ru: 'Фильтр по языку', de: 'Nach Sprache filtern', fr: 'Filtrer par langue', da: 'Filtrér efter sprog' },
+  anyLanguage: { es: 'Cualquier idioma', en: 'Any language', zh: '任何语言', hi: 'कोई भी भाषा', ar: 'أي لغة', it: 'Qualsiasi lingua', pt: 'Qualquer idioma', ru: 'Любой язык', de: 'Alle Sprachen', fr: 'Toutes les langues', da: 'Alle sprog' },
+  filterByLocation: { es: 'Filtrar por ubicación', en: 'Filter by location', zh: '按地区筛选', hi: 'स्थान के अनुसार फ़िल्टर करें', ar: 'تصفية حسب الموقع', it: 'Filtra per area geografica', pt: 'Filtrar por localização', ru: 'Фильтр по местоположению', de: 'Nach Standort filtern', fr: 'Filtrer par lieu', da: 'Filtrér efter sted' },
+  anyContinent: { es: 'Cualquier continente', en: 'Any continent', zh: '任何洲', hi: 'कोई भी महाद्वीप', ar: 'أي قارة', it: 'Qualsiasi continente', pt: 'Qualquer continente', ru: 'Любой континент', de: 'Alle Kontinente', fr: 'Tous les continents', da: 'Alle kontinenter' },
+  availableForGuidance: { es: 'Disponible para orientación privada', en: 'Available for private guidance', zh: '可提供私人指导', hi: 'निजी मार्गदर्शन के लिए उपलब्ध', ar: 'متاح للإرشاد الخاص', it: 'Disponibile per un orientamento privato', pt: 'Disponível para orientação privada', ru: 'Доступен для индивидуальной консультации', de: 'Für persönliche Beratung verfügbar', fr: 'Disponible pour un accompagnement privé', da: 'Tilgængelig for personlig vejledning' },
+  viewSpecialistProfile: { es: 'Ver perfil', en: 'View profile', zh: '查看资料', hi: 'प्रोफ़ाइल देखें', ar: 'عرض الملف الشخصي', it: 'Vedi profilo', pt: 'Ver perfil', ru: 'Посмотреть профиль', de: 'Profil ansehen', fr: 'Voir le profil', da: 'Se profil' },
+  noSpecialistsMatch: { es: 'No hay especialistas con estos filtros. Prueba otra combinación.', en: 'No specialists match these filters. Try another combination.', zh: '没有符合这些筛选条件的专家，请尝试其他组合。', hi: 'इन फ़िल्टर से कोई विशेषज्ञ नहीं मिला। दूसरा संयोजन आज़माएँ।', ar: 'لا يوجد متخصصون بهذه الفلاتر. جرّب مجموعة أخرى.', it: 'Nessuno specialista corrisponde a questi filtri. Prova un’altra combinazione.', pt: 'Nenhum especialista corresponde a estes filtros. Tente outra combinação.', ru: 'По этим фильтрам специалистов нет. Попробуйте другую комбинацию.', de: 'Keine Fachleute passen zu diesen Filtern. Versuche eine andere Kombination.', fr: 'Aucun spécialiste ne correspond à ces filtres. Essayez une autre combinaison.', da: 'Ingen specialister matcher disse filtre. Prøv en anden kombination.' },
+  verifiedProfile: { es: 'Perfil verificado', en: 'Verified profile', zh: '已认证资料', hi: 'सत्यापित प्रोफ़ाइल', ar: 'ملف موثق', it: 'Profilo verificato', pt: 'Perfil verificado', ru: 'Профиль подтверждён', de: 'Verifiziertes Profil', fr: 'Profil vérifié', da: 'Verificeret profil' },
+  matchLabel: { es: 'coincidencia', en: 'match', zh: '匹配', hi: 'मेल', ar: 'توافق', it: 'corrispondenza', pt: 'compatibilidade', ru: 'совпадение', de: 'Übereinstimmung', fr: 'correspondance', da: 'match' },
+  trajectory: { es: 'TRAYECTORIA', en: 'BACKGROUND', zh: '经历', hi: 'अनुभव', ar: 'المسيرة', it: 'PERCORSO', pt: 'TRAJETÓRIA', ru: 'ОПЫТ', de: 'WERDEGANG', fr: 'PARCOURS', da: 'BAGGRUND' },
+  specialistPreset: { es: 'CONFIGURACIÓN DE VIDA DE MODO CULTIVA', en: 'MODO CULTIVA PRESET', zh: 'Modo Cultiva 生活模式组合', hi: 'Modo Cultiva जीवन-मोड संयोजन', ar: 'توليفة أنماط الحياة من Modo Cultiva', it: 'COMBINAZIONE MODO CULTIVA DEI MODI DI VITA', pt: 'COMBINAÇÃO MODO CULTIVA DE MODOS DE VIDA', ru: 'СОЧЕТАНИЕ ЖИЗНЕННЫХ СФЕР MODO CULTIVA', de: 'MODO CULTIVA-KOMBINATION DER LEBENSBEREICHE', fr: 'COMBINAISON MODO CULTIVA DES MODES DE VIE', da: 'MODO CULTIVA-KOMBINATION AF LIVSOMRÅDER' },
+  twelveModesLevels: { es: '12 MODOS · NIVELES 0–9', en: '12 MODES · LEVELS 0–9', zh: '12种模式 · 等级0–9', hi: '12 मोड · स्तर 0–9', ar: '12 وضعاً · المستويات 0–9', it: '12 MODALITÀ · LIVELLI 0–9', pt: '12 MODOS · NÍVEIS 0–9', ru: '12 РЕЖИМОВ · УРОВНИ 0–9', de: '12 MODI · LEVEL 0–9', fr: '12 MODES · NIVEAUX 0–9', da: '12 TILSTANDE · NIVEAU 0–9' },
+  remote: { es: 'Remoto', en: 'Remote', zh: '远程', hi: 'दूरस्थ', ar: 'عن بُعد', it: 'Da remoto', pt: 'Remoto', ru: 'Удалённо', de: 'Remote', fr: 'À distance', da: 'Fjern' },
+  continentNorthAmerica: { es: 'América del Norte', en: 'North America', zh: '北美洲', hi: 'उत्तरी अमेरिका', ar: 'أمريكا الشمالية', it: 'America del Nord', pt: 'América do Norte', ru: 'Северная Америка', de: 'Nordamerika', fr: 'Amérique du Nord', da: 'Nordamerika' },
+  continentCentralAmerica: { es: 'América Central', en: 'Central America', zh: '中美洲', hi: 'मध्य अमेरिका', ar: 'أمريكا الوسطى', it: 'America centrale', pt: 'América Central', ru: 'Центральная Америка', de: 'Mittelamerika', fr: 'Amérique centrale', da: 'Mellemamerika' },
+  continentSouthAmerica: { es: 'América del Sur', en: 'South America', zh: '南美洲', hi: 'दक्षिण अमेरिका', ar: 'أمريكا الجنوبية', it: 'America del Sud', pt: 'América do Sul', ru: 'Южная Америка', de: 'Südamerika', fr: 'Amérique du Sud', da: 'Sydamerika' },
+  continentEurope: { es: 'Europa', en: 'Europe', zh: '欧洲', hi: 'यूरोप', ar: 'أوروبا', it: 'Europa', pt: 'Europa', ru: 'Европа', de: 'Europa', fr: 'Europe', da: 'Europa' },
+  continentAsia: { es: 'Asia', en: 'Asia', zh: '亚洲', hi: 'एशिया', ar: 'آسيا', it: 'Asia', pt: 'Ásia', ru: 'Азия', de: 'Asien', fr: 'Asie', da: 'Asien' },
+  continentAfrica: { es: 'África', en: 'Africa', zh: '非洲', hi: 'अफ़्रीका', ar: 'أفريقيا', it: 'Africa', pt: 'África', ru: 'Африка', de: 'Afrika', fr: 'Afrique', da: 'Afrika' },
+  continentOceania: { es: 'Oceanía', en: 'Oceania', zh: '大洋洲', hi: 'ओशिनिया', ar: 'أوقيانوسيا', it: 'Oceania', pt: 'Oceania', ru: 'Океания', de: 'Ozeanien', fr: 'Océanie', da: 'Oceanien' },
+  skinsGallery: { es: 'Galería de Skins & Filtros', en: 'Skins & Filters Gallery', zh: '皮肤与滤镜库', hi: 'स्किन और फ़िल्टर गैलरी', ar: 'معرض الواجهات والفلاتر', it: 'Galleria di skin e filtri', pt: 'Galeria de skins e filtros', ru: 'Галерея скинов и фильтров', de: 'Skins- und Filtergalerie', fr: 'Galerie des skins et filtres', da: 'Galleri med skins og filtre' },
+  globalEyebrowLine: { es: 'ENTRA A LA RED DONDE LAS PRÁCTICAS SE VUELVEN CONEXIONES', en: 'ENTER THE NETWORK WHERE PRACTICES BECOME CONNECTIONS', zh: '进入让实践成为连接的网络', hi: 'उस नेटवर्क में प्रवेश करें जहाँ अभ्यास संबंध बनते हैं', ar: 'ادخل الشبكة حيث تتحول الممارسات إلى روابط', it: 'ENTRA NELLA RETE DOVE LE PRATICHE DIVENTANO CONNESSIONI', pt: 'ENTRE NA REDE ONDE PRÁTICAS VIRAM CONEXÕES', ru: 'ВОЙДИТЕ В СЕТЬ, ГДЕ ПРАКТИКИ СТАНОВЯТСЯ СВЯЗЯМИ', de: 'BETRITT DAS NETZWERK, IN DEM PRAKTIKEN ZU VERBINDUNGEN WERDEN', fr: 'ENTREZ DANS LE RÉSEAU OÙ LES PRATIQUES DEVIENNENT DES LIENS', da: 'TRÆD IND I NETVÆRKET, HVOR PRAKSIS BLIVER TIL FORBINDELSER' },
+  effortParameter: { es: 'PARÁMETRO DE ESFUERZO', en: 'EFFORT PARAMETER', zh: '投入参数', hi: 'प्रयास पैरामीटर', ar: 'معيار الجهد', it: 'PARAMETRO DI IMPEGNO', pt: 'PARÂMETRO DE ESFORÇO', ru: 'ПАРАМЕТР УСИЛИЙ', de: 'AUFWANDSPARAMETER', fr: 'PARAMÈTRE D’EFFORT', da: 'INDSATSPARAMETER' },
+  considerThis: { es: 'TOMA EN CONSIDERACIÓN:', en: 'CONSIDER THIS:', zh: '请考虑：', hi: 'इस पर विचार करें：', ar: 'ضع هذا في اعتبارك:', it: 'Tieni presente:', pt: 'LEVE EM CONSIDERAÇÃO:', ru: 'УЧТИТЕ:', de: 'BEACHTE:', fr: 'À PRENDRE EN COMPTE :', da: 'TAG HØJDE FOR:' },
+  effortBajo: { es: 'Esta etapa requiere principalmente tiempo: observar, comprender y crear espacio constante para el modo.', en: 'This stage primarily requires time: observing, understanding and creating consistent space for the mode.', zh: '这一阶段主要需要时间：观察、理解，并为该模式持续留出空间。', hi: 'इस चरण में मुख्य रूप से समय चाहिए: देखना, समझना और इस मोड के लिए निरंतर जगह बनाना।', ar: 'تتطلب هذه المرحلة الوقت أساساً: الملاحظة والفهم وتخصيص مساحة مستمرة للوضع.', it: 'Questa fase richiede soprattutto tempo: osservare, comprendere e creare uno spazio costante per la modalità.', pt: 'Esta etapa requer principalmente tempo: observar, compreender e criar espaço constante para o modo.', ru: 'На этом этапе в первую очередь требуется время: наблюдать, понимать и постоянно оставлять место для режима.', de: 'Diese Phase erfordert vor allem Zeit: beobachten, verstehen und dauerhaft Raum für den Modus schaffen.', fr: 'Cette étape demande surtout du temps : observer, comprendre et créer un espace régulier pour le mode.', da: 'Dette trin kræver primært tid: at observere, forstå og skabe vedvarende plads til tilstanden.' },
+  effortMedio: { es: 'Esta etapa requiere tiempo y energía: sostener una práctica activa, tomar decisiones y mantener continuidad.', en: 'This stage requires time and energy: sustaining active practice, making decisions and maintaining continuity.', zh: '这一阶段需要时间和精力：保持主动实践、作出决定并维持连续性。', hi: 'इस चरण में समय और ऊर्जा चाहिए: सक्रिय अभ्यास बनाए रखना, निर्णय लेना और निरंतरता रखना।', ar: 'تتطلب هذه المرحلة الوقت والطاقة: الحفاظ على ممارسة نشطة واتخاذ القرارات والاستمرارية.', it: 'Questa fase richiede tempo ed energia: sostenere una pratica attiva, prendere decisioni e mantenere continuità.', pt: 'Esta etapa requer tempo e energia: manter uma prática ativa, tomar decisões e preservar a continuidade.', ru: 'На этом этапе нужны время и энергия: поддерживать активную практику, принимать решения и сохранять непрерывность.', de: 'Diese Phase erfordert Zeit und Energie: aktive Praxis aufrechterhalten, Entscheidungen treffen und Kontinuität sichern.', fr: 'Cette étape demande du temps et de l’énergie : maintenir une pratique active, décider et assurer la continuité.', da: 'Dette trin kræver tid og energi: at fastholde en aktiv praksis, træffe beslutninger og bevare kontinuiteten.' },
+  effortAlto: { es: 'Esta etapa requiere tiempo, energía y dinero: asignar recursos, ampliar capacidades y sostener una operación más compleja.', en: 'This stage requires time, energy and money: allocating resources, expanding capabilities and sustaining greater complexity.', zh: '这一阶段需要时间、精力和金钱：分配资源、扩展能力并维持更复杂的运作。', hi: 'इस चरण में समय, ऊर्जा और धन चाहिए: संसाधन लगाना, क्षमताएं बढ़ाना और अधिक जटिल संचालन बनाए रखना।', ar: 'تتطلب هذه المرحلة الوقت والطاقة والمال: توزيع الموارد وتوسيع القدرات والحفاظ على تشغيل أكثر تعقيداً.', it: 'Questa fase richiede tempo, energia e denaro: assegnare risorse, ampliare le capacità e sostenere un funzionamento più complesso.', pt: 'Esta etapa requer tempo, energia e dinheiro: alocar recursos, ampliar capacidades e sustentar uma operação mais complexa.', ru: 'На этом этапе нужны время, энергия и деньги: распределять ресурсы, расширять возможности и поддерживать более сложную работу.', de: 'Diese Phase erfordert Zeit, Energie und Geld: Ressourcen einsetzen, Fähigkeiten erweitern und komplexere Abläufe tragen.', fr: 'Cette étape demande du temps, de l’énergie et de l’argent : allouer des ressources, élargir les capacités et soutenir une organisation plus complexe.', da: 'Dette trin kræver tid, energi og penge: at fordele ressourcer, udvide evner og opretholde en mere kompleks drift.' },
+  effortVision: { es: 'Esta etapa integra los recursos desarrollados para consolidar una visión completa.', en: 'This stage integrates the resources developed to consolidate a complete vision.', zh: '这一阶段整合已发展的资源，形成完整的愿景。', hi: 'यह चरण विकसित संसाधनों को जोड़कर एक पूर्ण दृष्टि को मजबूत करता है।', ar: 'تدمج هذه المرحلة الموارد التي طُوّرت لترسيخ رؤية كاملة.', it: 'Questa fase integra le risorse sviluppate per consolidare una visione completa.', pt: 'Esta etapa integra os recursos desenvolvidos para consolidar uma visão completa.', ru: 'Этот этап объединяет развитые ресурсы для формирования целостного видения.', de: 'Diese Phase verbindet die entwickelten Ressourcen zu einer vollständigen Vision.', fr: 'Cette étape intègre les ressources développées pour consolider une vision complète.', da: 'Dette trin samler de udviklede ressourcer til en samlet vision.' },
+  presenceLevel: { es: 'Aumenta o disminuye tu nivel de claridad basado en tu realidad actual', en: 'Increase or decrease your clarity level based on your current reality', zh: '根据你当前的实际情况提高或降低你的清晰度', hi: 'अपनी वर्तमान वास्तविकता के अनुसार स्पष्टता का स्तर बढ़ाएँ या घटाएँ', ar: 'ارفع أو اخفض مستوى وضوحك بناءً على واقعك الحالي', it: 'Aumenta o diminuisci il tuo livello di chiarezza in base alla tua realtà attuale', pt: 'Aumente ou diminua seu nível de clareza com base na sua realidade atual', ru: 'Повышайте или понижайте уровень ясности с учётом текущей ситуации', de: 'Erhöhe oder verringere deine Klarheit entsprechend deiner aktuellen Lebensrealität', fr: 'Augmentez ou diminuez votre niveau de clarté selon votre réalité actuelle', da: 'Hæv eller sænk dit klarhedsniveau ud fra din aktuelle virkelighed' },
+  activityDesign: { es: 'Diseño de Actividad', en: 'Activity Design', zh: '活动设计', hi: 'गतिविधि डिजाइन', ar: 'تصميم النشاط', it: 'Progettazione dell’attività', pt: 'Design da atividade', ru: 'Дизайн активности', de: 'Aktivitätsdesign', fr: 'Conception de l’activité', da: 'Aktivitetsdesign' },
+  cultivationPath: { es: 'Tu ruta de cultivo', en: 'Your cultivation path', zh: '你的培育路径', hi: 'आपका विकास मार्ग', ar: 'مسار تنميتك', it: 'Il tuo percorso di crescita', pt: 'Sua rota de cultivo', ru: 'Ваш путь развития', de: 'Dein Entwicklungsweg', fr: 'Votre parcours de développement', da: 'Din udviklingsrejse' },
+  journeyBuilderIntro: { es: 'Define una práctica concreta para avanzar en', en: 'Define a concrete practice to advance in', zh: '为此模式制定一项具体的实践，帮助你不断进步', hi: 'इस मोड में आगे बढ़ने के लिए एक ठोस अभ्यास तय करें', ar: 'حدّد ممارسة ملموسة للتقدم في', it: 'Definisci una pratica concreta per avanzare in', pt: 'Defina uma prática concreta para avançar em', ru: 'Определите конкретную практику для продвижения в', de: 'Lege eine konkrete Praxis fest, um in diesem Bereich voranzukommen:', fr: 'Définissez une pratique concrète pour progresser dans', da: 'Fastlæg en konkret praksis for at gøre fremskridt inden for' },
+  cultivationArea: { es: 'Área de cultivo personal', en: 'Personal cultivation area', zh: '个人培育领域', hi: 'व्यक्तिगत विकास क्षेत्र', ar: 'مجال التنمية الشخصية', it: 'Area di crescita personale', pt: 'Área de cultivo pessoal', ru: 'Область личного развития', de: 'Persönlicher Entwicklungsbereich', fr: 'Domaine de développement personnel', da: 'Personligt udviklingsområde' },
+  activityUndefined: { es: 'Actividad por definir', en: 'Activity to define', zh: '待定义活动', hi: 'गतिविधि परिभाषित करें', ar: 'نشاط بحاجة إلى تعريف', it: 'Attività da definire', pt: 'Atividade a definir', ru: 'Активность нужно определить', de: 'Aktivität festlegen', fr: 'Activité à définir', da: 'Aktivitet skal defineres' },
+  activitySaved: { es: 'Actividad guardada en este navegador.', en: 'Activity saved in this browser.', zh: '活动已保存在此浏览器中。', hi: 'गतिविधि इस ब्राउज़र में सहेजी गई है।', ar: 'تم حفظ النشاط في هذا المتصفح.', it: 'Attività salvata in questo browser.', pt: 'Atividade salva neste navegador.', ru: 'Активность сохранена в этом браузере.', de: 'Aktivität in diesem Browser gespeichert.', fr: 'Activité enregistrée dans ce navigateur.', da: 'Aktivitet gemt i denne browser.' },
+  activitySavedToJourney: { es: 'Actividad guardada en el journey correspondiente.', en: 'Activity saved to the corresponding journey.', zh: '活动已保存到对应的模式旅程。', hi: 'गतिविधि संबंधित मोड यात्रा में सहेजी गई है।', ar: 'تم حفظ النشاط في رحلة الوضع المقابلة.', it: 'Attività salvata nel percorso corrispondente.', pt: 'Atividade salva na jornada correspondente.', ru: 'Активность сохранена в соответствующем пути режима.', de: 'Aktivität im entsprechenden Modus-Journey gespeichert.', fr: 'Activité enregistrée dans le parcours correspondant.', da: 'Aktiviteten blev gemt i den tilsvarende mode-rejse.' },
+  modifyActivity: { es: 'Modificar Actividad', en: 'Modify activity', zh: '修改活动', hi: 'गतिविधि संशोधित करें', ar: 'تعديل النشاط', it: 'Modifica attività', pt: 'Modificar atividade', ru: 'Изменить активность', de: 'Aktivität ändern', fr: 'Modifier l’activité', da: 'Redigér aktivitet' },
+  addActivity: { es: 'Agregar Actividad', en: 'Add activity', zh: '添加活动', hi: 'गतिविधि जोड़ें', ar: 'إضافة نشاط', it: 'Aggiungi attività', pt: 'Adicionar atividade', ru: 'Добавить активность', de: 'Aktivität hinzufügen', fr: 'Ajouter une activité', da: 'Tilføj aktivitet' },
+  activityPool: { es: 'Banco de actividades', en: 'Activity bank', zh: '活动库', hi: 'गतिविधि बैंक', ar: 'بنك الأنشطة', it: 'Raccolta di attività', pt: 'Banco de atividades', ru: 'Банк занятий', de: 'Aktivitätensammlung', fr: 'Banque d’activités', da: 'Aktivitetsbank' },
+  activityPoolDescription: { es: 'El Banco de Actividades ofrece frases célebres que pueden servirte de inspiración.', en: 'The Activity Bank offers famous quotes that can serve as inspiration.', zh: '活动库提供可以带来灵感的名人名言。', hi: 'गतिविधि बैंक प्रेरणा देने वाले प्रसिद्ध उद्धरण प्रदान करता है।', ar: 'يقدّم بنك الأنشطة اقتباسات شهيرة يمكن أن تمنحك الإلهام.', it: 'La Banca delle attività offre citazioni celebri che possono ispirarti.', pt: 'O Banco de Atividades oferece frases célebres que podem servir de inspiração.', ru: 'Банк активностей предлагает известные цитаты, которые могут вдохновить вас.', de: 'Die Aktivitätensammlung bietet berühmte Zitate als Inspiration.', fr: 'La Banque d’activités propose des citations célèbres pour vous inspirer.', da: 'Aktivitetsbanken tilbyder berømte citater, der kan inspirere dig.' },
+  modeAI: { es: 'Modo IA', en: 'Mode AI', zh: '模式 AI', hi: 'मोड AI', ar: 'وضع الذكاء الاصطناعي', it: 'Modo IA', pt: 'Modo IA', ru: 'Mode AI', de: 'Mode AI', fr: 'Mode IA', da: 'Mode AI' },
+  insightRequested: { es: 'Idea local solicitada', en: 'Local idea requested', zh: '已请求本地想法', hi: 'स्थानीय विचार का अनुरोध किया गया', ar: 'تم طلب فكرة محلية', it: 'Idea locale richiesta', pt: 'Ideia local solicitada', ru: 'Запрошена локальная идея', de: 'Lokale Idee angefragt', fr: 'Idée locale demandée', da: 'Lokal idé anmodet' },
+  requestInsights: { es: 'Pedir Idea Local', en: 'Request a local idea', zh: '请求本地想法', hi: 'स्थानीय विचार माँगें', ar: 'اطلب فكرة محلية', it: 'Richiedi un’idea locale', pt: 'Pedir ideia local', ru: 'Запросить локальную идею', de: 'Lokale Idee anfragen', fr: 'Demander une idée locale', da: 'Bed om en lokal idé' },
+  localIdeaCancelled: { es: 'Solicitud de idea local cancelada.', en: 'Local idea request cancelled.', zh: '已取消本地想法请求。', hi: 'स्थानीय विचार का अनुरोध रद्द किया गया।', ar: 'تم إلغاء طلب الفكرة المحلية.', it: 'Richiesta di idea locale annullata.', pt: 'Solicitação de ideia local cancelada.', ru: 'Запрос локальной идеи отменён.', de: 'Anfrage für lokale Idee zurückgezogen.', fr: 'Demande d’idée locale annulée.', da: 'Anmodningen om en lokal idé er annulleret.' },
+  editMyProfile: { es: 'Editar mi perfil', en: 'Edit my profile', zh: '编辑我的个人资料', hi: 'मेरी प्रोफ़ाइल संपादित करें', ar: 'تعديل ملفي الشخصي', it: 'Modifica il mio profilo', pt: 'Editar meu perfil', ru: 'Изменить мой профиль', de: 'Mein Profil bearbeiten', fr: 'Modifier mon profil', da: 'Rediger min profil' },
+  profileButton: { es: 'Perfil', en: 'Profile', zh: '个人资料', hi: 'प्रोफ़ाइल', ar: 'الملف الشخصي', it: 'Profilo', pt: 'Perfil', ru: 'Профиль', de: 'Profil', fr: 'Profil', da: 'Profil' },
+  accessDashboard: { es: 'Acceder al Centro de Control', en: 'Access the Control Center', zh: '进入控制中心', hi: 'नियंत्रण केंद्र खोलें', ar: 'الدخول إلى مركز التحكم', it: 'Accedi al centro di controllo', pt: 'Acessar o Centro de Controle', ru: 'Перейти в центр управления', de: 'Kontrollzentrum öffnen', fr: 'Accéder au centre de contrôle', da: 'Åbn kontrolcenteret' },
+  controlCenter: { es: 'Centro de Control', en: 'Control Center', zh: '控制中心', hi: 'नियंत्रण केंद्र', ar: 'مركز التحكم', it: 'Centro di controllo', pt: 'Centro de Controle', ru: 'Центр управления', de: 'Kontrollzentrum', fr: 'Centre de contrôle', da: 'Kontrolcenter' },
+  renameConfiguration: { es: 'Renombrar', en: 'Rename', zh: '重命名', hi: 'नाम बदलें', ar: 'إعادة التسمية', it: 'Rinomina', pt: 'Renomear', ru: 'Переименовать', de: 'Umbenennen', fr: 'Renommer', da: 'Omdøb' },
+  configurationNewName: { es: 'Nuevo nombre', en: 'New name', zh: '新名称', hi: 'नया नाम', ar: 'الاسم الجديد', it: 'Nuovo nome', pt: 'Novo nome', ru: 'Новое название', de: 'Neuer Name', fr: 'Nouveau nom', da: 'Nyt navn' },
+  saveConfigurationName: { es: 'Guardar nombre', en: 'Save name', zh: '保存名称', hi: 'नाम सहेजें', ar: 'حفظ الاسم', it: 'Salva nome', pt: 'Salvar nome', ru: 'Сохранить название', de: 'Namen speichern', fr: 'Enregistrer le nom', da: 'Gem navn' },
+  cancelRename: { es: 'Cancelar', en: 'Cancel', zh: '取消', hi: 'रद्द करें', ar: 'إلغاء', it: 'Annulla', pt: 'Cancelar', ru: 'Отмена', de: 'Abbrechen', fr: 'Annuler', da: 'Annuller' },
+  presetSelectRename: { es: 'Selecciona una Configuración de Vida para renombrarla.', en: 'Select a preset to rename.', zh: '选择要重命名的生活模式组合。', hi: 'नाम बदलने के लिए जीवन-मोड संयोजन चुनें।', ar: 'اختر توليفة أنماط الحياة لإعادة تسميتها.', it: 'Seleziona una combinazione da rinominare.', pt: 'Selecione uma combinação para renomear.', ru: 'Выберите сочетание для переименования.', de: 'Wähle eine Kombination zum Umbenennen aus.', fr: 'Sélectionnez une combinaison à renommer.', da: 'Vælg en kombination, der skal omdøbes.' },
+  presetNameExists: { es: 'Ya existe una Configuración de Vida con ese nombre. Elige otro.', en: 'A preset with that name already exists. Choose another name.', zh: '该名称已存在，请选择其他名称。', hi: 'इस नाम का संयोजन पहले से मौजूद है। दूसरा नाम चुनें।', ar: 'توجد توليفة بهذا الاسم. اختر اسماً آخر.', it: 'Questo nome esiste già. Scegline un altro.', pt: 'Já existe uma combinação com esse nome. Escolha outro.', ru: 'Такое название уже существует. Выберите другое.', de: 'Dieser Name ist bereits vergeben. Wähle einen anderen.', fr: 'Ce nom existe déjà. Choisissez-en un autre.', da: 'Navnet findes allerede. Vælg et andet.' },
+  presetRenamed: { es: 'Configuración de Vida renombrada a “{name}”.', en: 'Preset renamed to “{name}”.', zh: '已重命名为“{name}”。', hi: 'नाम बदलकर “{name}” कर दिया गया।', ar: 'تمت إعادة التسمية إلى “{name}”.', it: 'Combinazione rinominata “{name}”.', pt: 'Combinação renomeada para “{name}”.', ru: 'Новое название: «{name}».', de: 'Umbenannt in „{name}“.', fr: 'Combinaison renommée « {name} ».', da: 'Omdøbt til “{name}”.' },
+  presetRenameFailed: { es: 'No se pudo guardar el nuevo nombre. Inténtalo de nuevo.', en: 'Could not save the new name. Try again.', zh: '无法保存新名称，请重试。', hi: 'नया नाम सहेजा नहीं जा सका। फिर कोशिश करें।', ar: 'تعذر حفظ الاسم الجديد. حاول مجدداً.', it: 'Impossibile salvare il nuovo nome. Riprova.', pt: 'Não foi possível salvar o novo nome. Tente novamente.', ru: 'Не удалось сохранить новое название. Повторите попытку.', de: 'Der neue Name konnte nicht gespeichert werden. Versuche es erneut.', fr: 'Impossible d’enregistrer le nouveau nom. Réessayez.', da: 'Det nye navn kunne ikke gemmes. Prøv igen.' },
+  journeyGrowthBenefit: { es: 'Desarrollarlo fortalece tu bienestar y te da herramientas concretas para avanzar con más equilibrio.', en: 'Developing this area supports your wellbeing and gives you practical tools to move forward with greater balance.', zh: '发展这一领域有助于提升幸福感，并提供更平衡前进的实用方法。', hi: 'इस क्षेत्र को विकसित करने से आपका कल्याण बेहतर होता है और संतुलित प्रगति के व्यावहारिक साधन मिलते हैं।', ar: 'يساعد تطوير هذا المجال على تعزيز رفاهك ويمنحك أدوات عملية للتقدم بتوازن أكبر.', it: 'Coltivare quest’area sostiene il tuo benessere e ti offre strumenti concreti per progredire con più equilibrio.', pt: 'Desenvolver esta área favorece seu bem-estar e oferece ferramentas práticas para avançar com mais equilíbrio.', ru: 'Развитие этой сферы поддерживает благополучие и даёт практические способы двигаться вперёд сбалансированно.', de: 'Die Entwicklung dieses Bereichs stärkt dein Wohlbefinden und gibt dir konkrete Mittel für ausgewogene Fortschritte.', fr: 'Développer ce domaine favorise votre bien-être et vous donne des moyens concrets d’avancer avec plus d’équilibre.', da: 'Udvikling af dette område styrker dit velbefindende og giver konkrete værktøjer til mere balance.' },
+  current: { es: 'Actual', en: 'Current', zh: '当前', hi: 'वर्तमान', ar: 'الحالي', it: 'Attuale', pt: 'Atual', ru: 'Текущий', de: 'Aktuell', fr: 'Actuel', da: 'Aktuel' },
+  presetNameRequired: { es: 'Escribe un nombre para guardar tu configuración.', en: 'Enter a name to save your configuration.', zh: '输入名称以保存配置。', hi: 'अपना कॉन्फ़िगरेशन सहेजने के लिए नाम दर्ज करें।', ar: 'أدخل اسماً لحفظ إعداداتك.', it: 'Inserisci un nome per salvare la configurazione.', pt: 'Digite um nome para salvar sua configuração.', ru: 'Введите название, чтобы сохранить конфигурацию.', de: 'Gib einen Namen ein, um deine Konfiguration zu speichern.', fr: 'Saisissez un nom pour enregistrer votre configuration.', da: 'Indtast et navn for at gemme din konfiguration.' },
+  presetSelectLoad: { es: 'Selecciona un preset para cargarlo.', en: 'Select a preset to load it.', zh: '选择一个预设以加载。', hi: 'लोड करने के लिए एक प्रीसेट चुनें।', ar: 'اختر إعداداً مسبقاً لتحميله.', it: 'Seleziona un preset da caricare.', pt: 'Selecione um preset para carregá-lo.', ru: 'Выберите пресет для загрузки.', de: 'Wähle ein Preset zum Laden aus.', fr: 'Sélectionnez un preset à charger.', da: 'Vælg et preset, der skal indlæses.' },
+  presetSelectDelete: { es: 'Selecciona un preset para eliminarlo.', en: 'Select a preset to delete it.', zh: '选择一个预设以删除。', hi: 'हटाने के लिए एक प्रीसेट चुनें।', ar: 'اختر إعداداً مسبقاً لحذفه.', it: 'Seleziona un preset da eliminare.', pt: 'Selecione um preset para excluí-lo.', ru: 'Выберите пресет для удаления.', de: 'Wähle ein Preset zum Löschen aus.', fr: 'Sélectionnez un preset à supprimer.', da: 'Vælg et preset, der skal slettes.' },
+  presetSaved: { es: 'Preset “{name}” guardado.', en: 'Preset “{name}” saved.', zh: '预设“{name}”已保存。', hi: 'प्रीसेट “{name}” सहेजा गया।', ar: 'تم حفظ الإعداد المسبق “{name}”.', it: 'Preset “{name}” salvato.', pt: 'Preset “{name}” salvo.', ru: 'Пресет «{name}» сохранён.', de: 'Preset „{name}“ gespeichert.', fr: 'Preset « {name} » enregistré.', da: 'Preset “{name}” gemt.' },
+  presetLoaded: { es: 'Preset “{name}” cargado en tu mapa.', en: 'Preset “{name}” loaded onto your map.', zh: '预设“{name}”已加载到你的地图。', hi: 'प्रीसेट “{name}” आपके मानचित्र पर लोड किया गया।', ar: 'تم تحميل الإعداد المسبق “{name}” على خريطتك.', it: 'Preset “{name}” caricato sulla tua mappa.', pt: 'Preset “{name}” carregado no seu mapa.', ru: 'Пресет «{name}» загружен на карту.', de: 'Preset „{name}“ auf deine Karte geladen.', fr: 'Preset « {name} » chargé sur votre carte.', da: 'Preset “{name}” indlæst på dit kort.' },
+  presetDeleted: { es: 'Preset eliminado.', en: 'Preset deleted.', zh: '预设已删除。', hi: 'प्रीसेट हटा दिया गया।', ar: 'تم حذف الإعداد المسبق.', it: 'Preset eliminato.', pt: 'Preset excluído.', ru: 'Пресет удалён.', de: 'Preset gelöscht.', fr: 'Preset supprimé.', da: 'Preset slettet.' },
+  finalVision: { es: 'Tu visión final', en: 'Your final vision', zh: '你的最终愿景', hi: 'आपकी अंतिम दृष्टि', ar: 'رؤيتك النهائية', it: 'La tua visione finale', pt: 'Sua visão final', ru: 'Ваше итоговое видение', de: 'Deine finale Vision', fr: 'Votre vision finale', da: 'Din endelige vision' },
+  finalVisionCopy: { es: 'Representa en una imagen el resultado al que quieres llegar.', en: 'Represent the result you want to reach in an image.', zh: '用图片呈现你想达到的结果。', hi: 'जिस परिणाम तक पहुँचना है उसे चित्र में दिखाएं।', ar: 'مثّل النتيجة التي تريد الوصول إليها في صورة.', it: 'Rappresenta in un’immagine il risultato che vuoi raggiungere.', pt: 'Represente em uma imagem o resultado que deseja alcançar.', ru: 'Представьте на изображении результат, которого хотите достичь.', de: 'Zeige in einem Bild das Ergebnis, das du erreichen möchtest.', fr: 'Représentez en image le résultat à atteindre.', da: 'Vis det resultat, du vil nå, i et billede.' },
+  changeImage: { es: 'Cambiar imagen', en: 'Change image', zh: '更换图片', hi: 'चित्र बदलें', ar: 'تغيير الصورة', it: 'Cambia immagine', pt: 'Alterar imagem', ru: 'Изменить изображение', de: 'Bild ändern', fr: 'Changer l’image', da: 'Skift billede' },
+  uploadImage: { es: 'Cargar imagen', en: 'Upload image', zh: '上传图片', hi: 'चित्र अपलोड करें', ar: 'تحميل صورة', it: 'Carica immagine', pt: 'Carregar imagem', ru: 'Загрузить изображение', de: 'Bild hochladen', fr: 'Charger une image', da: 'Upload billede' },
+  activityPlaceholder: { es: 'Ej. Caminaré 20 minutos después del trabajo, tres veces esta semana…', en: 'e.g. I will walk for 20 minutes after work, three times this week…', zh: '例如：本周下班后散步20分钟，进行三次……', hi: 'जैसे: इस सप्ताह काम के बाद 20 मिनट टहलूंगा…', ar: 'مثال: سأمشي 20 دقيقة بعد العمل ثلاث مرات هذا الأسبوع…', it: 'Es. Camminerò 20 minuti dopo il lavoro, tre volte questa settimana…', pt: 'Ex.: Caminharei 20 minutos depois do trabalho, três vezes esta semana…', ru: 'Например: буду гулять 20 минут после работы три раза на этой неделе…', de: 'z. B. Ich gehe diese Woche dreimal 20 Minuten nach der Arbeit spazieren…', fr: 'Ex. : Je marcherai 20 minutes après le travail, trois fois cette semaine…', da: 'Fx. Jeg går 20 minutter efter arbejde tre gange i denne uge…' },
+  buildActivity: { es: 'Construyamos tu actividad', en: 'Let’s build your activity', zh: '一起设计你的活动', hi: 'अपनी गतिविधि बनाएं', ar: 'لنصمم نشاطك', it: 'Costruiamo la tua attività', pt: 'Vamos criar sua atividade', ru: 'Создадим вашу активность', de: 'Entwickeln wir deine Aktivität', fr: 'Construisons votre activité', da: 'Lad os bygge din aktivitet' },
+  agentStatus: { es: 'Estado del agente', en: 'Agent status', zh: '智能体状态', hi: 'एजेंट स्थिति', ar: 'حالة الوكيل', it: 'Stato dell’agente', pt: 'Status do agente', ru: 'Статус агента', de: 'Agentenstatus', fr: 'État de l’agent', da: 'Agentstatus' },
+  agentReady: { es: 'Modo IA listo', en: 'Mode AI ready', zh: '模式 AI 已就绪', hi: 'मोड AI तैयार', ar: 'وضع الذكاء الاصطناعي جاهز', it: 'Modo IA pronto', pt: 'Modo IA pronto', ru: 'Mode AI готов', de: 'Mode AI bereit', fr: 'Mode IA prêt', da: 'Mode AI klar' },
+  proposalReady: { es: 'Propuesta preparada para revisar', en: 'Proposal ready to review', zh: '建议已准备好供你查看', hi: 'सुझाव समीक्षा के लिए तैयार है', ar: 'الاقتراح جاهز للمراجعة', it: 'Proposta pronta da rivedere', pt: 'Proposta pronta para revisar', ru: 'Предложение готово к просмотру', de: 'Vorschlag zur Prüfung bereit', fr: 'Proposition prête à être examinée', da: 'Forslag klar til gennemgang' },
+  agentWaiting: { es: 'Agente contextual · espera tu contexto', en: 'Contextual agent · waiting for your context', zh: '上下文智能体 · 等待你的背景', hi: 'संदर्भ एजेंट · आपके संदर्भ की प्रतीक्षा में', ar: 'وكيل سياقي · بانتظار سياقك', it: 'Agente contestuale · in attesa del tuo contesto', pt: 'Agente contextual · aguardando seu contexto', ru: 'Контекстный агент · ждёт вашего контекста', de: 'Kontextagent · wartet auf deinen Kontext', fr: 'Agent contextuel · attend votre contexte', da: 'Kontekstagent · venter på din kontekst' },
+  consulting: { es: 'Consultando…', en: 'Consulting…', zh: '咨询中……', hi: 'परामर्श हो रहा है…', ar: 'جارٍ الاستشارة…', it: 'Consultazione…', pt: 'Consultando…', ru: 'Консультация…', de: 'Abfrage läuft …', fr: 'Consultation…', da: 'Rådfører…' },
+};
+const localizedModeNames: Record<Language, Record<string, string>> = {
+  es: { fisico: 'Modo Físico', intelectual: 'Modo Intelectual', emocional: 'Modo Emocional', arquetipico: 'Modo Arquetípico', espiritual: 'Modo Espiritual', romantico: 'Modo Romántico', familiar: 'Modo Familiar', social: 'Modo Social', financiero: 'Modo Financiero', profesional: 'Modo Profesional', ludico: 'Modo Lúdico', visionario: 'Modo Visionario' },
+  en: { fisico: 'Physical Mode', intelectual: 'Intellectual Mode', emocional: 'Emotional Mode', arquetipico: 'Archetypal Mode', espiritual: 'Spiritual Mode', romantico: 'Romantic Mode', familiar: 'Family Mode', social: 'Social Mode', financiero: 'Financial Mode', profesional: 'Professional Mode', ludico: 'Ludic Mode', visionario: 'Visionary Mode' },
+  zh: { fisico: '身体模式', intelectual: '智力模式', emocional: '情绪模式', arquetipico: '原型模式', espiritual: '精神模式', romantico: '浪漫模式', familiar: '家庭模式', social: '社交模式', financiero: '财务模式', profesional: '职业模式', ludico: 'Ludic 模式', visionario: '愿景模式' },
+  hi: { fisico: 'शारीरिक मोड', intelectual: 'बौद्धिक मोड', emocional: 'भावनात्मक मोड', arquetipico: 'आर्केटाइपल मोड', espiritual: 'आध्यात्मिक मोड', romantico: 'रोमांटिक मोड', familiar: 'पारिवारिक मोड', social: 'सामाजिक मोड', financiero: 'वित्तीय मोड', profesional: 'पेशेवर मोड', ludico: 'लुडिक मोड', visionario: 'दूरदर्शी मोड' },
+  ar: { fisico: 'الوضع الجسدي', intelectual: 'الوضع الفكري', emocional: 'الوضع العاطفي', arquetipico: 'الوضع النموذجي', espiritual: 'الوضع الروحي', romantico: 'الوضع الرومانسي', familiar: 'الوضع العائلي', social: 'الوضع الاجتماعي', financiero: 'الوضع المالي', profesional: 'الوضع المهني', ludico: 'الوضع اللودي', visionario: 'الوضع الاستشرافي' },
+  it: { fisico: 'Modalità fisica', intelectual: 'Modalità intellettuale', emocional: 'Modalità emotiva', arquetipico: 'Modalità archetipica', espiritual: 'Modalità spirituale', romantico: 'Modalità romantica', familiar: 'Modalità familiare', social: 'Modalità sociale', financiero: 'Modalità finanziaria', profesional: 'Modalità professionale', ludico: 'Modalità ludica', visionario: 'Modalità visionaria' },
+  pt: { fisico: 'Modo Físico', intelectual: 'Modo Intelectual', emocional: 'Modo Emocional', arquetipico: 'Modo Arquetípico', espiritual: 'Modo Espiritual', romantico: 'Modo Romântico', familiar: 'Modo Familiar', social: 'Modo Social', financiero: 'Modo Financeiro', profesional: 'Modo Profissional', ludico: 'Modo lúdico', visionario: 'Modo Visionário' },
+  ru: { fisico: 'Физический режим', intelectual: 'Интеллектуальный режим', emocional: 'Эмоциональный режим', arquetipico: 'Архетипический режим', espiritual: 'Духовный режим', romantico: 'Романтический режим', familiar: 'Семейный режим', social: 'Социальный режим', financiero: 'Финансовый режим', profesional: 'Профессиональный режим', ludico: 'Лудический режим', visionario: 'Визионерский режим' },
+  de: { fisico: 'Körper-Modus', intelectual: 'Intellektueller Modus', emocional: 'Emotionaler Modus', arquetipico: 'Archetypischer Modus', espiritual: 'Spiritueller Modus', romantico: 'Romantischer Modus', familiar: 'Familienmodus', social: 'Sozialer Modus', financiero: 'Finanzmodus', profesional: 'Berufsmodus', ludico: 'Ludischer Modus', visionario: 'Visionärer Modus' },
+  fr: { fisico: 'Mode physique', intelectual: 'Mode intellectuel', emocional: 'Mode émotionnel', arquetipico: 'Mode archétypal', espiritual: 'Mode spirituel', romantico: 'Mode romantique', familiar: 'Mode familial', social: 'Mode social', financiero: 'Mode financier', profesional: 'Mode professionnel', ludico: 'Mode ludique', visionario: 'Mode visionnaire' },
+  da: { fisico: 'Fysisk mode', intelectual: 'Intellektuel mode', emocional: 'Følelsesmæssig mode', arquetipico: 'Arketypisk mode', espiritual: 'Spirituel mode', romantico: 'Romantisk mode', familiar: 'Familiemode', social: 'Social mode', financiero: 'Finansiel mode', profesional: 'Professionel mode', ludico: 'Ludisk mode', visionario: 'Visionær mode' },
+};
+const localizedLevelNames = Object.fromEntries(Object.entries(clarityLevels.languages).map(([lang, items]) => [lang, items.map(item => item.name)])) as Record<Language, string[]>;
+const localizedModeDescriptions: Partial<Record<Language, Record<string, string>>> = {
+  es: Object.fromEntries(modes.map((mode) => [mode.key, mode.description])),
+  en: { fisico: 'Body health and wellbeing', intelectual: 'Intellectual and cognitive development', emocional: 'Emotional balance and regulation', arquetipico: 'Character, coherence and personal essence', espiritual: 'Purpose, meaning and connection', romantico: 'Partnership and love', familiar: 'Family roots and close bonds', social: 'Friendships, support network and community', financiero: 'Money management, saving and investing', profesional: 'Career, vocation and work performance', ludico: 'Enjoyment, rest and renewed energy', visionario: 'Goals, long-term planning and legacy' },
+  it: { fisico: 'Salute e benessere del corpo', intelectual: 'Sviluppo intellettuale e cognitivo', emocional: 'Gestione ed equilibrio delle emozioni', arquetipico: 'Carattere, coerenza ed essenza personale', espiritual: 'Scopo, significato e connessione', romantico: 'Relazione di coppia e amore', familiar: 'Legami familiari e radici', social: 'Amicizie, rete di sostegno e comunità', financiero: 'Gestione del denaro, risparmio e investimenti', profesional: 'Carriera, vocazione e rendimento professionale', ludico: 'Piacere, tempo libero, riposo ed energia', visionario: 'Obiettivi, pianificazione e lascito' },
+  da: { fisico: 'Sundhed og kropsligt velvære', intelectual: 'Intellektuel og kognitiv udvikling', emocional: 'Håndtering og balance af følelser', arquetipico: 'Karakter, sammenhæng og personlig essens', espiritual: 'Formål, mening og forbindelse', romantico: 'Parforhold og kærlighed', familiar: 'Familiebånd og rødder', social: 'Venskaber, netværk og fællesskab', financiero: 'Penge, opsparing og investering', profesional: 'Karriere, kald og arbejdspræstation', ludico: 'Glæde, fritid, hvile og ny energi', visionario: 'Mål, langsigtet planlægning og arv' },
+};
+const localizedJourneyModeDescriptions: Partial<Record<Language, Record<string, string>>> = {
+  es: {
+    fisico: 'Cuidar tu salud física sostiene tu energía, autonomía y bienestar diario. Trabajarlo ayuda a prevenir desgaste y te da más capacidad para disfrutar y avanzar en las demás áreas.',
+    intelectual: 'Cultivar tu curiosidad y pensamiento amplía lo que puedes comprender y crear. Te ayuda a aprender mejor, tomar decisiones con criterio y adaptarte a los cambios.',
+    emocional: 'Reconocer y regular tus emociones mejora cómo respondes a los retos y te relacionas. Practicarlo aporta calma, resiliencia y decisiones más alineadas contigo.',
+    arquetipico: 'Explorar tus valores, carácter y patrones fortalece una identidad coherente. Así puedes actuar con autenticidad, elegir mejor y sostener cambios que sí representan quién eres.',
+    espiritual: 'Conectar con propósito y sentido da dirección a tus decisiones, especialmente en momentos difíciles. Cultivarlo puede aportar perspectiva, serenidad y motivación duradera.',
+    romantico: 'Cuidar la intimidad y la vida de pareja construye confianza y apoyo mutuo. Trabajarlo favorece una comunicación más honesta, cercanía y vínculos más sanos.',
+    familiar: 'Atender los vínculos familiares ayuda a crear pertenencia, apoyo y límites saludables. Puede mejorar la convivencia y fortalecer una red cercana para las distintas etapas de vida.',
+    social: 'Construir amistades y comunidad reduce el aislamiento y multiplica las oportunidades de apoyo. Invertir en esta área fortalece la colaboración, la confianza y el sentido de pertenencia.',
+    financiero: 'Comprender y ordenar tus finanzas reduce incertidumbre y amplía tus opciones. Avanzar aquí ayuda a tomar decisiones sostenibles, prepararte para imprevistos y financiar tus prioridades.',
+    profesional: 'Desarrollar tu trabajo con intención puede unir habilidades, propósito y contribución. Cultivarlo abre oportunidades, fortalece tu autonomía y hace más sostenible tu crecimiento.',
+    ludico: 'El juego, el descanso y el disfrute restauran energía y alimentan la creatividad. Darles espacio ayuda a prevenir el agotamiento y hace que el progreso sea más equilibrado y sostenible.',
+    visionario: 'Definir una visión convierte deseos dispersos en dirección y prioridades. Trabajarla ayuda a planear a largo plazo, elegir próximos pasos y construir un legado significativo.',
+  },
+  en: {
+    fisico: 'Caring for your physical health supports energy, independence, and everyday wellbeing. It helps prevent depletion and gives you more capacity to enjoy life and grow in other areas.',
+    intelectual: 'Nurturing curiosity and clear thinking expands what you can understand and create. It helps you learn, make sound decisions, and adapt to change.',
+    emocional: 'Recognizing and regulating emotions improves how you respond to challenges and connect with others. It can build calm, resilience, and decisions that feel true to you.',
+    arquetipico: 'Exploring your values, character, and patterns strengthens a coherent identity. This helps you act authentically, choose wisely, and sustain changes that reflect who you are.',
+    espiritual: 'Connecting with purpose gives direction to choices, especially during difficult moments. Cultivating it can bring perspective, serenity, and lasting motivation.',
+    romantico: 'Caring for intimacy and partnership builds trust and mutual support. It encourages honest communication, closeness, and healthier relationships.',
+    familiar: 'Attending to family relationships can create belonging, support, and healthy boundaries. It may improve daily life and strengthen a close support network.',
+    social: 'Building friendships and community reduces isolation and expands support. Investing here strengthens collaboration, trust, and belonging.',
+    financiero: 'Understanding and organizing your finances reduces uncertainty and expands your choices. Progress helps you plan sustainably, prepare for surprises, and fund what matters.',
+    profesional: 'Developing your work with intention can connect skills, purpose, and contribution. It creates opportunity, strengthens independence, and supports sustainable growth.',
+    ludico: 'Play, rest, and enjoyment restore energy and nurture creativity. Making room for them helps prevent burnout and keeps progress balanced and sustainable.',
+    visionario: 'Defining a vision turns scattered wishes into direction and priorities. Working on it helps you plan ahead, choose next steps, and build a meaningful legacy.',
+  },
+};
+const localizedLevelDescriptions = Object.fromEntries(Object.entries(clarityLevels.languages).map(([lang, items]) => [lang, items.map(item => item.description)])) as Record<Language, string[]>;
+const activityStageDescriptions: Record<Language, string[]> = {
+  es: ['Observa sin exigirte resultados; el primer paso es notar lo que ocurre.', 'Haz un registro breve y reconoce cuándo aparece el impulso de actuar.', 'Elige una señal concreta y conviértela en una decisión pequeña.', 'Repite una acción sencilla hasta que empiece a tener un ritmo.', 'Sostén una práctica verificable y revisa qué te ayuda a mantenerla.', 'Protege lo que ya funciona con un mantenimiento ligero y constante.', 'Define una meta medible y asigna energía específica para moverla.', 'Ajusta el sistema con datos, disciplina y una revisión periódica.', 'Optimiza, delega o busca guía experta para multiplicar el impacto.', 'Integra lo aprendido y conviértelo en una referencia para otras personas.'],
+  en: ['Observe without demanding results; the first step is noticing what is happening.', 'Keep a brief record and notice when the impulse to act appears.', 'Choose one concrete signal and turn it into a small decision.', 'Repeat one simple action until it begins to find a rhythm.', 'Sustain a verifiable practice and review what helps you keep it.', 'Protect what already works with light, consistent maintenance.', 'Set a measurable goal and assign specific energy to move it forward.', 'Tune the system with data, discipline and a regular review.', 'Optimize, delegate or seek expert guidance to multiply the impact.', 'Integrate what you learned and turn it into a reference for others.'],
+  zh: ['先观察，不要求立刻有结果；第一步是看见正在发生什么。', '做一份简短记录，留意行动冲动何时出现。', '选择一个具体信号，把它变成一个小决定。', '重复一个简单行动，直到它形成节奏。', '坚持可验证的练习，回顾什么帮助你持续。', '用轻量而稳定的维护保护已经有效的部分。', '设定可衡量的目标，为它投入明确的精力。', '用数据、纪律和定期复盘调校系统。', '优化、授权或寻求专家指导，放大影响。', '整合所学，把它变成可以帮助他人的参考。'],
+  hi: ['परिणाम का दबाव न बनाएं; पहला कदम यह देखना है कि क्या हो रहा है।', 'छोटा रिकॉर्ड रखें और देखें कि कार्य करने की इच्छा कब आती है।', 'एक ठोस संकेत चुनें और उसे छोटे निर्णय में बदलें।', 'एक सरल कार्य दोहराएं, जब तक उसमें लय न आने लगे।', 'एक मापने योग्य अभ्यास बनाए रखें और देखें कि क्या मदद करता है।', 'हल्के और निरंतर रखरखाव से जो काम कर रहा है उसकी रक्षा करें।', 'मापने योग्य लक्ष्य तय करें और उसे आगे बढ़ाने के लिए ऊर्जा दें।', 'डेटा, अनुशासन और नियमित समीक्षा से प्रणाली सुधारें।', 'प्रभाव बढ़ाने के लिए अनुकूलित करें, सौंपें या विशेषज्ञ सहायता लें।', 'सीख को एकीकृत करें और उसे दूसरों के लिए संदर्भ बनाएं।'],
+  ar: ['راقب دون مطالبة نفسك بالنتيجة؛ الخطوة الأولى هي ملاحظة ما يحدث.', 'سجّل ملاحظة قصيرة وانتبه إلى وقت ظهور الرغبة في الفعل.', 'اختر إشارة ملموسة وحوّلها إلى قرار صغير.', 'كرّر فعلاً بسيطاً حتى يبدأ في اكتساب إيقاع.', 'حافظ على ممارسة قابلة للملاحظة وراجع ما يساعدك على الاستمرار.', 'احمِ ما يعمل بالفعل بصيانة خفيفة ومنتظمة.', 'حدّد هدفاً قابلاً للقياس وخصص له طاقة واضحة.', 'اضبط النظام بالبيانات والانضباط والمراجعة الدورية.', 'حسّن أو فوّض أو اطلب إرشاداً متخصصاً لمضاعفة الأثر.', 'ادمج ما تعلمته وحوّله إلى مرجع للآخرين.'],
+  it: ['Osserva senza pretendere risultati: il primo passo è notare ciò che accade.', 'Tieni una breve traccia e nota quando compare l’impulso ad agire.', 'Scegli un segnale concreto e trasformalo in una piccola decisione.', 'Ripeti un’azione semplice finché non trova il suo ritmo.', 'Mantieni una pratica verificabile e rivedi cosa ti aiuta a continuare.', 'Proteggi ciò che funziona con una manutenzione leggera e costante.', 'Definisci un obiettivo misurabile e dedicagli energia specifica.', 'Regola il sistema con dati, disciplina e revisioni periodiche.', 'Ottimizza, delega o cerca una guida esperta per moltiplicare l’impatto.', 'Integra ciò che hai imparato e trasformalo in un riferimento per altri.'],
+  pt: ['Observe sem exigir resultados; o primeiro passo é notar o que está acontecendo.', 'Faça um registro breve e perceba quando surge o impulso de agir.', 'Escolha um sinal concreto e transforme-o em uma pequena decisão.', 'Repita uma ação simples até que ela encontre um ritmo.', 'Mantenha uma prática verificável e reveja o que ajuda a continuar.', 'Proteja o que já funciona com uma manutenção leve e constante.', 'Defina uma meta mensurável e dedique energia específica a ela.', 'Ajuste o sistema com dados, disciplina e revisão periódica.', 'Otimize, delegue ou busque orientação especializada para ampliar o impacto.', 'Integre o que aprendeu e transforme isso em referência para outras pessoas.'],
+  ru: ['Наблюдайте без требования результата: первый шаг — заметить происходящее.', 'Ведите короткую запись и замечайте, когда появляется импульс действовать.', 'Выберите конкретный сигнал и превратите его в небольшое решение.', 'Повторяйте простое действие, пока оно не обретёт ритм.', 'Поддерживайте проверяемую практику и смотрите, что помогает продолжать.', 'Сохраняйте работающее с помощью лёгкого и постоянного ухода.', 'Определите измеримую цель и направьте на неё энергию.', 'Настраивайте систему данными, дисциплиной и регулярным обзором.', 'Оптимизируйте, делегируйте или обратитесь к эксперту, чтобы усилить эффект.', 'Объедините опыт и превратите его в ориентир для других.'],
+  de: ['Beobachte ohne Ergebnisdruck; der erste Schritt ist, wahrzunehmen, was passiert.', 'Führe eine kurze Notiz und erkenne, wann der Impuls zum Handeln entsteht.', 'Wähle ein konkretes Signal und mache daraus eine kleine Entscheidung.', 'Wiederhole eine einfache Handlung, bis sie einen Rhythmus bekommt.', 'Halte eine überprüfbare Praxis aufrecht und prüfe, was dich dabei unterstützt.', 'Schütze, was bereits funktioniert, durch leichte und konstante Pflege.', 'Setze ein messbares Ziel und widme ihm gezielt Energie.', 'Justiere das System mit Daten, Disziplin und regelmäßiger Rückschau.', 'Optimiere, delegiere oder suche fachliche Begleitung, um die Wirkung zu vervielfachen.', 'Integriere das Gelernte und mache es zu einer Orientierung für andere.'],
+  fr: ['Observez sans exiger de résultat ; le premier pas est de voir ce qui se passe.', 'Notez brièvement et repérez le moment où l’envie d’agir apparaît.', 'Choisissez un signal concret et transformez-le en petite décision.', 'Répétez une action simple jusqu’à ce qu’elle trouve son rythme.', 'Maintenez une pratique vérifiable et observez ce qui vous aide à continuer.', 'Protégez ce qui fonctionne déjà par un entretien léger et régulier.', 'Fixez un objectif mesurable et consacrez-lui une énergie précise.', 'Ajustez le système avec des données, de la discipline et une revue régulière.', 'Optimisez, déléguez ou cherchez un accompagnement expert pour amplifier l’impact.', 'Intégrez vos apprentissages et transformez-les en repère pour les autres.'],
+  da: ['Observer uden krav om resultater; det første skridt er at lægge mærke til, hvad der sker.', 'Skriv en kort note og bemærk, hvornår trangen til at handle opstår.', 'Vælg et konkret signal og gør det til en lille beslutning.', 'Gentag en enkel handling, indtil den finder en rytme.', 'Hold fast i en synlig praksis og se, hvad der hjælper dig videre.', 'Beskyt det, der virker, med let og stabil vedligeholdelse.', 'Sæt et målbart mål og giv det målrettet energi.', 'Juster systemet med data, disciplin og regelmæssig gennemgang.', 'Optimer, deleger eller søg ekspertvejledning for at øge effekten.', 'Saml det lærte og gør det til en reference for andre.'],
+};
+const supportedLanguages = Object.keys(languageNames) as Language[];
+const detectBrowserLanguage = (): Language => {
+  if (typeof navigator === 'undefined') return 'es';
+  return browserLanguage(navigator.languages ?? [], navigator.language);
+};
+const detectLanguagePreference = () => {
+  const storage = scopedPersonalStorage(deviceStateStorage(), null);
+  return restoreLanguagePreference(null, 'auto', detectBrowserLanguage(), storage.getItem('modoCultiva_manualLanguage_v1'));
+};
+const detectLanguage = (): Language => detectLanguagePreference().language;
+const authClient = {
+  async login(email: string, password: string): Promise<AuthTokens> {
+    const response = await fetch(`${apiUrl}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail ?? 'No fue posible iniciar sesión.');
+    return payload as AuthTokens;
+  },
+  async logout(refresh_token: string): Promise<void> { await fetch(`${apiUrl}/auth/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token }) }); },
+};
+
+const deviceStateStorage = (): RecoveryStorage | null => { try { return window.localStorage; } catch { return null; } };
+const readLegacyDeviceState = (): Record<string, unknown> => {
+  const readJson = (key: string, fallback: unknown) => {
+    try { return JSON.parse(window.localStorage.getItem(key) ?? JSON.stringify(fallback)); }
+    catch { return fallback; }
+  };
+  const state: Record<string, unknown> = {
+    levels: { ...defaultLevels, ...readJson('modoCultiva_lastState', {}) },
+    presets: readJson('modoCultiva_presets', {}),
+    activityDrafts: readJson('modoCultiva_activityDrafts', {}),
+    activityAlignments: readJson('modoCultiva_activityAlignments', {}),
+    activityCompletions: cleanCompletions(readJson('modoCultiva_activityCompletions', {})),
+    activityReactions: cleanReactions(readJson('modoCultiva_activityReactions', {})),
+    insightRequests: readJson('modoCultiva_insightRequests', {}),
+    visionImages: readJson('modoCultiva_visionImages', {}),
+    featuredBadges: readJson('modoCultiva_featuredBadges', []),
+    selectedPreset: window.localStorage.getItem('modoCultiva_selectedPreset') ?? '',
+    profileName: window.localStorage.getItem('modoCultiva_profileName') ?? '',
+    profileImage: window.localStorage.getItem('modoCultiva_profileImage'),
+    skin: window.localStorage.getItem('modoCultiva_skin') ?? 'holista',
+    paletteFilter: 'none',
+  };
+  const savedPlan = window.localStorage.getItem('modoCultiva_plan');
+  if (savedPlan === 'basic' || savedPlan === 'gold' || savedPlan === 'ultimate') state.activePlan = savedPlan;
+  const manualLanguage = readManualLanguage(window.localStorage.getItem('modoCultiva_manualLanguage_v1'));
+  if (manualLanguage) { state.language = manualLanguage; state.languageSource = 'manual'; }
+  return state;
+};
+const hasLegacyDeviceConfiguration = (state: Record<string, unknown>): boolean => {
+  const levels = state.levels as Record<string, number>;
+  const hasProgress = Object.values(levels).some((level) => Number(level) > 0);
+  const hasEntries = (key: string) => {
+    const value = state[key];
+    return value !== null && typeof value === 'object' && Object.keys(value).length > 0;
+  };
+  return hasProgress || hasEntries('presets') || hasEntries('activityDrafts') || hasEntries('activityCompletions') || hasEntries('activityReactions')
+    || hasEntries('insightRequests') || hasEntries('visionImages')
+    || (Array.isArray(state.featuredBadges) && state.featuredBadges.length > 0)
+    || Boolean(state.profileName) || Boolean(state.profileImage);
+};
+
+function App() {
+  const [legacyArchive] = useState<StateObject>(() => {
+    try { return captureLegacyArchive(deviceStateStorage(), readLegacyDeviceState()); } catch { return {}; }
+  });
+  const personalStorageRef = useRef(scopedPersonalStorage(deviceStateStorage(), null));
+  const [language, setLanguage] = useState<Language>(detectLanguage);
+  const [languageSource, setLanguageSource] = useState<LanguageSource>(() => detectLanguagePreference().languageSource);
+  const handleLanguageChange = (nextLanguage: Language) => {
+    try { personalStorageRef.current.setItem('modoCultiva_manualLanguage_v1', JSON.stringify({ version: 1, source: 'manual', language: nextLanguage })); } catch { /* Session/cloud language still works. */ }
+    setLanguage(nextLanguage); setLanguageSource('manual');
+    // Retain an explicit choice before any pending canonical response can run.
+    persistedDocumentRef.current = { ...persistedDocumentRef.current, language: nextLanguage, languageSource: 'manual' };
+    stateQueueRef.current?.stage(current => ({ ...current, language: nextLanguage, languageSource: 'manual' }));
+  };
+  const tr = (key: string) => extraTranslations[key]?.[language] ?? translations[language][key] ?? translations.es[key] ?? key;
+  const trf = (key: string, values: Record<string, string>) => Object.entries(values).reduce((copy, [token, value]) => copy.replace(`{${token}}`, value), tr(key));
+  const insightRequestKey = (modeKey: string, level: number) => `${modeKey}-${level}`;
+  const modeName = (mode: Mode) => localizedModeNames[language][mode.key] ?? mode.name;
+  const modeShortName = (mode: Mode) => modeName(mode).replace(/^(Modo |Mode |模式|모드 )/i, '').replace(/\s+Mode$/i, '');
+  const continentLabel = (continent: string) => {
+    const keys: Record<string, string> = { 'América del Norte': 'continentNorthAmerica', 'América Central': 'continentCentralAmerica', 'América del Sur': 'continentSouthAmerica', Europa: 'continentEurope', Asia: 'continentAsia', África: 'continentAfrica', Oceanía: 'continentOceania' };
+    return keys[continent] ? tr(keys[continent]) : continent;
+  };
+  const specialistLocation = (location: string) => location.replace(/\bRemote\b|\bRemoto\b/gi, tr('remote'));
+  const modeDescription = (mode: Mode) => localizedModeDescriptions[language]?.[mode.key] ?? `${modeName(mode)} · ${tr('cultivationArea')}`;
+  const modeJourneyDescription = (mode: Mode) => localizedJourneyModeDescriptions[language]?.[mode.key] ?? `${modeDescription(mode)}. ${tr('journeyGrowthBenefit')}`;
+  const triviaQuestion = (mode: Mode) => language === 'es' ? labCards[mode.key].question : tr('triviaQuestionPrompt');
+  const triviaAnswer = (mode: Mode) => language === 'es' ? labCards[mode.key].answer : `${tr('triviaAnswerPrefix')} ${modeDescription(mode).toLowerCase()}.`;
+  const levelDescription = (level: number) => localizedLevelDescriptions[language][level] ?? levelDescriptions[level];
+  const levelDefinitionText = (level: number) => levelDescription(level).replace(/^.*?(?:\s+—\s+|\s+–\s+|\s+-\s+|——)/u, '');
+  const activityDescription = (level: number) => {
+    const tier = level <= 2 ? 'low' : level <= 5 ? 'medium' : level <= 8 ? 'high' : 'vision';
+    return localizedEffortDescriptions[language]?.[tier] ?? localizedEffortDescriptions.es[tier];
+  };
+  const localizeGlobalInsight = (insight: GlobalInsight): GlobalInsight => ({
+    ...insight,
+    activity: (() => { const localized = localizedPoolActivities(insight.modeKey, insight.level, language); return localized[(insight.variant ?? 0) % localized.length]?.title ?? insight.activity; })(),
+    bio: localizedInsightBio(insight.author),
+    presetName: `${insight.author} · ${tr('presenceRoute')}`,
+  });
+  const localizedInsightBio = (author: string) => {
+    if (language === 'es') return insightAuthorBios[author] ?? '';
+    const english: Record<string, string> = {
+      'Sofía Méndez': 'I cultivate purposeful leadership so work can also become a space for presence and coherence.',
+      'Marcus Lee': 'I design financial systems that turn clarity, freedom and vision into everyday decisions.',
+      'Elena Costa': 'I support honest conversations so relationships can grow with care and healthy boundaries.',
+      'Diego Ríos': 'I believe sustained small rituals can transform an intention into a way of life.',
+      'Nadia Chen': 'I explore how learning, connection and creation can open new possibilities for a wider life.',
+      'Camila Torres': 'I cultivate community and movement so each person can find their own path of expansion.',
+    };
+    const fallback: Record<Language, string> = {
+      en: 'A community member sharing a practice that supported their progress.', zh: '分享支持其成长实践的社区成员。', hi: 'अपनी प्रगति में सहायक अभ्यास साझा करने वाला समुदाय सदस्य।', ar: 'عضو في المجتمع يشارك ممارسة ساعدته على التقدم.', it: 'Una persona della comunità condivide una pratica che ha sostenuto il suo percorso.', pt: 'Uma pessoa da comunidade compartilha uma prática que apoiou seu avanço.', ru: 'Участник сообщества делится практикой, которая помогла ему двигаться дальше.', de: 'Ein Community-Mitglied teilt eine Praxis, die den eigenen Fortschritt unterstützt hat.', fr: 'Un membre de la communauté partage une pratique qui a soutenu son parcours.', da: 'Et fællesskabsmedlem deler en praksis, der støttede deres fremgang.', es: '',
+    };
+    return language === 'en' ? (english[author] ?? fallback.en) : fallback[language];
+  };
+  const badgeTitle = (key: string) => key === 'completionist' ? 'Completionist' : key === 'maxed' ? 'Maxed' : tr(({ 'first-step': 'badgeTitleFirstStep', 'three-moves': 'badgeTitleThreeMoves', 'level-up': 'badgeTitleLevelUp', 'full-spectrum': 'badgeTitleFullSpectrum', 'global-eye': 'badgeTitleGlobalEye', visionary: 'badgeTitleVisionary', 'preset-maker': 'badgeTitlePresetMaker', 'skin-shift': 'badgeTitleSkinShift' } as Record<string, string>)[key] ?? key);
+  const badgeDescription = (key: string) => key === 'completionist' || key === 'maxed' ? badgeCopy(language)[key] : tr(({ 'first-step': 'badgeDescFirstStep', 'three-moves': 'badgeDescThreeMoves', 'level-up': 'badgeDescLevelUp', 'full-spectrum': 'badgeDescFullSpectrum', 'global-eye': 'badgeDescGlobalEye', visionary: 'badgeDescVisionary', 'preset-maker': 'badgeDescPresetMaker', 'skin-shift': 'badgeDescSkinShift' } as Record<string, string>)[key] ?? key);
+  const effortLabel = (level: number) => {
+    if (language === 'es') return effortLabelByLevel[level];
+    const tier = level <= 2 ? 'low' : level <= 5 ? 'medium' : level <= 8 ? 'high' : 'vision';
+    const labels: Record<Language, Record<string, string>> = {
+      es: { low: 'EXIGENCIA BAJA (Tiempo)', medium: 'EXIGENCIA MEDIA (Tiempo + Energía)', high: 'EXIGENCIA ALTA (Tiempo + Energía + Dinero)', vision: 'VISIÓN FINAL' },
+      en: { low: 'LOW EFFORT (Time)', medium: 'MEDIUM EFFORT (Time + Energy)', high: 'HIGH EFFORT (Time + Energy + Money)', vision: 'FINAL VISION' },
+      zh: { low: '低要求（时间）', medium: '中等要求（时间 + 精力）', high: '高要求（时间 + 精力 + 金钱）', vision: '最终愿景' },
+      hi: { low: 'कम प्रयास (समय)', medium: 'मध्यम प्रयास (समय + ऊर्जा)', high: 'उच्च प्रयास (समय + ऊर्जा + धन)', vision: 'अंतिम दृष्टि' },
+      ar: { low: 'جهد منخفض (وقت)', medium: 'جهد متوسط (وقت + طاقة)', high: 'جهد عالٍ (وقت + طاقة + مال)', vision: 'الرؤية النهائية' },
+      it: { low: 'IMPEGNO BASSO (Tempo)', medium: 'IMPEGNO MEDIO (Tempo + Energia)', high: 'IMPEGNO ALTO (Tempo + Energia + Denaro)', vision: 'VISIONE FINALE' },
+      pt: { low: 'EXIGÊNCIA BAIXA (Tempo)', medium: 'EXIGÊNCIA MÉDIA (Tempo + Energia)', high: 'EXIGÊNCIA ALTA (Tempo + Energia + Dinheiro)', vision: 'VISÃO FINAL' },
+      ru: { low: 'НИЗКАЯ НАГРУЗКА (Время)', medium: 'СРЕДНЯЯ НАГРУЗКА (Время + Энергия)', high: 'ВЫСОКАЯ НАГРУЗКА (Время + Энергия + Деньги)', vision: 'ФИНАЛЬНОЕ ВИДЕНИЕ' },
+      de: { low: 'GERINGER AUFWAND (Zeit)', medium: 'MITTLERER AUFWAND (Zeit + Energie)', high: 'HOHER AUFWAND (Zeit + Energie + Geld)', vision: 'ENDVISION' },
+      fr: { low: 'FAIBLE EFFORT (Temps)', medium: 'EFFORT MOYEN (Temps + Énergie)', high: 'EFFORT ÉLEVÉ (Temps + Énergie + Argent)', vision: 'VISION FINALE' },
+      da: { low: 'LAV INDSATS (Tid)', medium: 'MIDDEL INDSATS (Tid + Energi)', high: 'HØJ INDSATS (Tid + Energi + Penge)', vision: 'ENDELIG VISION' },
+    };
+    return labels[language][tier];
+  };
+  const poolActivities = (modeKey: string, level: number) => getBankActivities(modeKey, level, language);
+  const [profileName, setProfileName] = useState(() => {
+    try {
+      const saved = personalStorageRef.current.getItem('modoCultiva_profileName');
+      return saved === defaultUserProfile.name ? '' : (saved ?? '');
+    } catch {
+      return '';
+    }
+  });
+  const [levels, setLevels] = useState<Record<string, number>>(() => {
+    try {
+      const saved = personalStorageRef.current.getItem('modoCultiva_lastState');
+      return saved ? { ...defaultLevels, ...JSON.parse(saved) } : defaultLevels;
+    } catch {
+      return defaultLevels;
+    }
+  });
+  const [selectedMode, setSelectedMode] = useState<Mode | null>(null);
+  const [journeySlide, setJourneySlide] = useState(0);
+  const [journeyReturnView, setJourneyReturnView] = useState<'welcome' | 'dashboard'>('welcome');
+  const [cultOpen, setCultOpen] = useState(false);
+  const [activeActivity, setActiveActivity] = useState<number | null>(null);
+  const [activityEntry, setActivityEntry] = useState<ActivityEntry>('custom');
+  const [poolSelection, setPoolSelection] = useState(0);
+  const [activityPrompt, setActivityPrompt] = useState('');
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
+  const [aiHasConsulted, setAiHasConsulted] = useState(false);
+  const [aiProposal, setAiProposal] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const aiRequestRef = useRef<AbortController | null>(null);
+  useEffect(() => () => {
+    aiRequestRef.current?.abort();
+    aiRequestRef.current = null;
+    setAiLoading(false);
+    setAiHasConsulted(false);
+    setAiProposal('');
+    setAiNotice(null);
+  }, [selectedMode?.key, activeActivity, activityEntry, language]);
+  const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>(() => {
+    try {
+      return JSON.parse(personalStorageRef.current.getItem('modoCultiva_activityDrafts') ?? '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [activityCompletions, setActivityCompletions] = useState<ActivityCompletions>(() => {
+    try { return cleanCompletions(JSON.parse(personalStorageRef.current.getItem('modoCultiva_activityCompletions') ?? '{}')); }
+    catch { return {}; }
+  });
+  const [activityAlignments, setActivityAlignments] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(personalStorageRef.current.getItem('modoCultiva_activityAlignments') ?? '{}'); }
+    catch { return {}; }
+  });
+  const [communitySubmissions, setCommunitySubmissions] = useState<CommunitySubmission[]>([]);
+  const [localIdeaRequests, setLocalIdeaRequests] = useState<Record<string, CommunityIdeaRequest>>({});
+  const [localIdeaBusy, setLocalIdeaBusy] = useState(false);
+  const [localIdeaNotice, setLocalIdeaNotice] = useState<{ key: string; kind: 'login' | 'profile' | 'failed' | 'result'; count?: number } | null>(null);
+  const localIdeaOperation = useRef<AbortController | null>(null);
+  const localIdeaVersion = useRef(0);
+  // Visual draft proof stays in this session's memory, never in localStorage,
+  // the public state document, profile projections or social share payloads.
+  const [evidenceDrafts, setEvidenceDrafts] = useState<Record<string, { activity: string; draft: EvidenceDraft }>>({});
+  const [cardAudienceDrafts, setCardAudienceDrafts] = useState<Record<string, CardAudience>>({});
+  const [publicCardId, setPublicCardId] = useState<string | null>(() => {
+    const id = new URLSearchParams(window.location.search).get('community-card');
+    return id && isCommunityCardId(id) ? id : null;
+  });
+  const [communityShareCandidates, setCommunityShareCandidates] = useState<CommunityShareCandidate[]>([]);
+  const [communityOpen, setCommunityOpen] = useState(false);
+  const [communityTab, setCommunityTab] = useState<CommunityTab>('network');
+  const [activityReactions, setActivityReactions] = useState<ActivityReactions>(() => {
+    try { return cleanReactions(JSON.parse(personalStorageRef.current.getItem('modoCultiva_activityReactions') ?? '{}')); }
+    catch { return {}; }
+  });
+  const reactToActivity = (modeKey: string, level: number, reaction: Reaction) => {
+    const key = activityReactionKey(modeKey, level, activityDrafts[`${modeKey}-${level}`] ?? '');
+    const next = { ...activityReactions };
+    if (next[key] === reaction) delete next[key];
+    else next[key] = reaction;
+    // Persist first: quota errors must not look like a successfully saved reaction.
+    personalStorageRef.current.setItem('modoCultiva_activityReactions', JSON.stringify(next));
+    setActivityReactions(next);
+  };
+  const [insightRequests, setInsightRequests] = useState<Record<string, boolean>>(() => {
+    try {
+      return JSON.parse(personalStorageRef.current.getItem('modoCultiva_insightRequests') ?? '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [insightNotice, setInsightNotice] = useState<string | null>(null);
+  const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
+  const [view, setView] = useState<View>('welcome');
+  const [authTokens, setAuthTokens] = useState<AuthTokens | null>(() => {
+    try {
+      const saved = window.sessionStorage.getItem('gm-auth-tokens');
+      return saved ? JSON.parse(saved) as AuthTokens : null;
+    } catch {
+      return null;
+    }
+  });
+  const isAuthenticated = Boolean(authTokens?.access_token);
+  const [verifiedIdentity, setVerifiedIdentity] = useState<AuthTokens['identity'] | null>(null);
+  const isOwnerAccount = verifiedIdentity?.email?.trim().toLowerCase() === ownerEmail;
+  const displayedProfileName = isOwnerAccount
+    ? (profileName.trim() || defaultUserProfile.name)
+    : (profileName.trim() === defaultUserProfile.name ? '' : profileName);
+  const displayedProfileRole = isOwnerAccount ? defaultUserProfile.role : '';
+  const [stateHydrated, setStateHydrated] = useState(false);
+  const [hydrationAttempt, setHydrationAttempt] = useState(0);
+  const [accountPhase, setAccountPhase] = useState<StateAccountPhase>('loading');
+  const [signingOut, setSigningOut] = useState(false);
+  const activeSessionRef = useRef(authTokens?.access_token ?? null);
+  const hydrationGenerationRef = useRef(0);
+  const accountScopeRef = useRef<AccountStateScope | null>(null);
+  const recoveryMemoryRef = useRef(new Map<string, PendingAccountState>());
+  const consentMemoryRef = useRef(new Set<string>());
+  const consentChoiceRef = useRef<((choice: 'import' | 'cloud-only' | 'cancel') => void) | null>(null);
+  const [stateSyncStatus, setStateSyncStatus] = useState<'syncing' | 'synced' | 'error'>('syncing');
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
+  const [activePlan, setActivePlan] = useState<PlanKey>(() => {
+    try {
+      const saved = personalStorageRef.current.getItem('modoCultiva_plan') as PlanKey | null;
+      return saved === 'basic' || saved === 'gold' || saved === 'ultimate' ? saved : 'ultimate';
+    } catch {
+      return 'ultimate';
+    }
+  });
+  const [pendingAccess, setPendingAccess] = useState<AccessRequest | null>(null);
+  const [pendingActivity, setPendingActivity] = useState<PendingActivity | null>(null);
+  const [insightPreview, setInsightPreview] = useState<{ modeKey: string; level: number } | null>(null);
+  const [cultInsightPreview, setCultInsightPreview] = useState<(typeof globalInsightActivities)[number] | null>(null);
+  const [specialistPreview, setSpecialistPreview] = useState<Specialist | null>(null);
+  const [profilePreviewMode, setProfilePreviewMode] = useState<boolean>(false);
+  const [configurationsOpen, setConfigurationsOpen] = useState(false);
+  const configurationsDialogRef = useRef<HTMLDialogElement | null>(null);
+  const configurationsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
+  const [cultTab, setCultTab] = useState<CultTab>('insights');
+  const [insightSlide, setInsightSlide] = useState(0);
+  const [insightCycle, setInsightCycle] = useState(0);
+  const [insightVariants, setInsightVariants] = useState<Record<string, number>>({});
+  const [specialistModeFilter, setSpecialistModeFilter] = useState('all');
+  const [specialistLanguageFilter, setSpecialistLanguageFilter] = useState('all');
+  const [specialistContinentFilter, setSpecialistContinentFilter] = useState('all');
+  const [labFlippedCard, setLabFlippedCard] = useState<string | null>(null);
+  const [featuredBadges, setFeaturedBadges] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(personalStorageRef.current.getItem('modoCultiva_featuredBadges') ?? '[]');
+      return Array.isArray(saved) ? saved.slice(0, 3) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [skin, setSkin] = useState<Skin>(() => {
+    try {
+      const savedSkin = personalStorageRef.current.getItem('modoCultiva_skin');
+      if (savedSkin !== 'holista') personalStorageRef.current.setItem('modoCultiva_skin', 'holista');
+      return 'holista';
+    } catch {
+      return 'holista';
+    }
+  });
+  const [paletteFilter, setPaletteFilter] = useState<PaletteFilter>(() => {
+    try {
+      personalStorageRef.current.removeItem('modoCultiva_palette_filter');
+      return 'none';
+    } catch {
+      return 'none';
+    }
+  });
+  useEffect(() => {
+    if (skin !== 'holista' || paletteFilter === 'none') return;
+    setPaletteFilter('none');
+    try {
+      personalStorageRef.current.removeItem('modoCultiva_palette_filter');
+    } catch {
+      // Holista remains on its original palette for the current session.
+    }
+  }, [paletteFilter, skin]);
+  const loginSkinChoice = useRef<Skin | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(() => {
+    try {
+      return personalStorageRef.current.getItem('modoCultiva_profileImage');
+    } catch {
+      return null;
+    }
+  });
+  const [customizingAvatar, setCustomizingAvatar] = useState(false);
+  const [visionImages, setVisionImages] = useState<Record<string, string>>(() => {
+    try {
+      return JSON.parse(personalStorageRef.current.getItem('modoCultiva_visionImages') ?? '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [presets, setPresets] = useState<Record<string, Preset>>(() => {
+    try {
+      return JSON.parse(personalStorageRef.current.getItem('modoCultiva_presets') ?? '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [presetName, setPresetName] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState(() => personalStorageRef.current.getItem('modoCultiva_selectedPreset') ?? '');
+  const [presetNotice, setPresetNotice] = useState<string | null>(null);
+  const [renamingPreset, setRenamingPreset] = useState(false);
+  const [presetRenameName, setPresetRenameName] = useState('');
+  const presetRenameInputRef = useRef<HTMLInputElement | null>(null);
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginName, setLoginName] = useState('');
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const journeyPanelRef = useRef<HTMLElement | null>(null);
+  const journeyReturnScrollTop = useRef(0);
+  const cultEmbeddedRef = useRef<HTMLElement | null>(null);
+  const stateQueueRef = useRef<StateSyncQueue | null>(null);
+  const stateQueueSessionRef = useRef<string | null>(null);
+  const [onboardingWelcomeCompleted, setOnboardingWelcomeCompleted] = useState(false);
+  const [welcomeScope, setWelcomeScope] = useState<WelcomeIntroScope | null>(null);
+  const welcomeChecked = useRef(new Set<string>());
+  const [guestWelcomeVisitorId] = useState(() => {
+    const fallbackId = crypto.randomUUID();
+    try {
+      const key = 'modoCultiva_welcomeVisitorId';
+      const visitorId = window.localStorage.getItem(key);
+      if (visitorId) return visitorId; // Read-only storage/quota must not change a known scope.
+      window.localStorage.setItem(key, fallbackId);
+      return fallbackId;
+    } catch { return fallbackId; } // Session guard works even if storage is denied.
+  });
+  const [tourIndex, setTourIndex] = useState<number | null>(null);
+  const [tourModeKey, setTourModeKey] = useState<string | null>(null);
+  const [tourVisitedMethods, setTourVisitedMethods] = useState<TourMethod[]>([]);
+  const [validationReceipts, setValidationReceipts] = useState<Record<string, unknown>>({});
+  const [legacyCompletionSlots, setLegacyCompletionSlots] = useState<readonly string[]>([]);
+  const communityClient = useMemo(() => authTokens?.access_token && stateHydrated
+    ? createCommunityClient(apiUrl, authTokens.access_token) : null, [authTokens?.access_token, stateHydrated]);
+  const localIdeaSession = useRef(communityClient); localIdeaSession.current = communityClient;
+  const persistedDocument: StateObject = { profileName, profileImage, levels, activityDrafts, activityAlignments, activityCompletions, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language, languageSource, onboardingWelcomeCompleted };
+  const persistedDocumentRef = useRef(persistedDocument);
+  const committedDocumentRef = useRef<StateObject | null>(null);
+  const guestDocumentRef = useRef(cloneStateValue(persistedDocument));
+
+  const sessionIsCurrent = (token: string | null | undefined, queue?: StateSyncQueue) => Boolean(token)
+    && activeSessionRef.current === token && stateQueueSessionRef.current === token
+    && (!queue || stateQueueRef.current === queue);
+
+  const retainPendingState = (queue = stateQueueRef.current, scope = accountScopeRef.current): boolean => {
+    if (!queue || !scope) return true;
+    const record = pendingAccountRecord(scope, queue.getSnapshot(), queue.getDesired());
+    recoveryMemoryRef.current.set(accountStateKey(scope), record);
+    return writeStoredJson(deviceStateStorage(), accountRecoveryKey(scope), record);
+  };
+
+  // Only committed UI deltas enter canonical staging; renders cannot overwrite it.
+  useLayoutEffect(() => {
+    const token = authTokens?.access_token;
+    const queue = stateQueueRef.current;
+    if (!token) {
+      if (!signingOut) {
+        persistedDocumentRef.current = cloneStateValue(persistedDocument);
+        guestDocumentRef.current = cloneStateValue(persistedDocument);
+      }
+      return;
+    }
+    if (!stateHydrated || !queue || !sessionIsCurrent(token, queue)) return;
+    const base = committedDocumentRef.current;
+    if (base) {
+      persistedDocumentRef.current = stageCommittedUi(base, persistedDocument, persistedDocumentRef.current);
+      queue.stage(current => stageCommittedUi(base, persistedDocument, current));
+    } else queue.stage(persistedDocumentRef.current);
+    committedDocumentRef.current = cloneStateValue(persistedDocument);
+    retainPendingState(queue);
+  });
+
+  const normalizeLanguageDocument = (state: StateObject): StateObject => normalizeLanguageState(state, detectBrowserLanguage());
+  const normalizeCanonicalSnapshot = (snapshot: StateSnapshot): StateSnapshot => snapshot.state && typeof snapshot.state === 'object' && !Array.isArray(snapshot.state)
+    ? { ...snapshot, state: normalizeLanguageDocument(snapshot.state) } : snapshot;
+
+  const reconcileCanonicalState = (base: StateObject, remote: StateObject, snapshot: StateSnapshot) => {
+    // Close the canonical-ack / pending React-commit window synchronously.
+    persistedDocumentRef.current = normalizeLanguageDocument(reconcileState(base, persistedDocumentRef.current, remote));
+    const field = <T,>(key: string, current: T): T => reconcileState({ value: base[key] }, { value: current }, { value: remote[key] }).value as T;
+    if ('profileName' in remote) setProfileName(current => field('profileName', current));
+    if ('profileImage' in remote) setProfileImage(current => field('profileImage', current));
+    if ('levels' in remote) setLevels(current => field('levels', current));
+    if ('activityDrafts' in remote) setActivityDrafts(current => field('activityDrafts', current));
+    if ('activityAlignments' in remote) setActivityAlignments(current => field('activityAlignments', current));
+    setActivityCompletions(cleanCompletions(remote.activityCompletions));
+    if ('activityReactions' in remote) setActivityReactions(current => field('activityReactions', current));
+    if ('insightRequests' in remote) setInsightRequests(current => field('insightRequests', current));
+    if ('presets' in remote) setPresets(current => field('presets', current));
+    if ('visionImages' in remote) setVisionImages(current => field('visionImages', current));
+    if ('skin' in remote) setSkin(current => field('skin', current));
+    if ('paletteFilter' in remote) setPaletteFilter(current => field('paletteFilter', current));
+    if ('activePlan' in remote) setActivePlan(current => field('activePlan', current));
+    if ('featuredBadges' in remote) setFeaturedBadges(current => field('featuredBadges', current));
+    if ('selectedPreset' in remote) setSelectedPreset(current => field('selectedPreset', current));
+    if ('language' in remote || 'languageSource' in remote) {
+      const preference = resolveLanguagePreference(persistedDocumentRef.current.language, persistedDocumentRef.current.languageSource, detectBrowserLanguage());
+      setLanguage(preference.language);
+      setLanguageSource(preference.languageSource);
+    }
+    if ('onboardingWelcomeCompleted' in remote) setOnboardingWelcomeCompleted(current => field('onboardingWelcomeCompleted', current));
+    setValidationReceipts(snapshot.validationReceipts && typeof snapshot.validationReceipts === 'object' ? snapshot.validationReceipts as Record<string, unknown> : {});
+    setLegacyCompletionSlots(snapshot.legacyCompletionSlots ?? []);
+    retainPendingState();
+  };
+
+  const flushPersonalState = async () => {
+    const token = authTokens?.access_token;
+    const queue = stateQueueRef.current;
+    if (!queue || !stateHydrated || !sessionIsCurrent(token, queue)) throw new Error(stateAccountCopy(language).needsSession);
+    queue.stage(persistedDocumentRef.current);
+    retainPendingState(queue);
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const result = await queue.flush();
+      if (!sessionIsCurrent(token, queue)) throw new DOMException('Session changed', 'AbortError');
+      retainPendingState(queue);
+      if (result.status !== 'synced') { setStateSyncStatus('error'); throw new Error(stateAccountCopy(language).saveFailed); }
+      if (!queue.isDirty()) { setStateSyncStatus('synced'); return; }
+    }
+    throw new Error(stateAccountCopy(language).saveFailed);
+  };
+
+  const refreshPersonalState = async () => {
+    const token = authTokens?.access_token;
+    const queue = stateQueueRef.current;
+    if (!token || !queue || !sessionIsCurrent(token, queue)) return;
+    await queue.refreshFrom(async signal => {
+      if (!sessionIsCurrent(token, queue)) throw new DOMException('Session changed', 'AbortError');
+      const response = await fetch(`${apiUrl}/state`, { signal, cache: 'no-store', headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error(stateAccountCopy(language).errorHint);
+      const snapshot = await response.json() as StateSnapshot;
+      if (!sessionIsCurrent(token, queue)) throw new DOMException('Session changed', 'AbortError');
+      return normalizeCanonicalSnapshot(snapshot);
+    });
+  };
+
+  useEffect(() => {
+    try { personalStorageRef.current.setItem('modoCultiva_activityAlignments', JSON.stringify(activityAlignments)); }
+    catch { /* The live definition remains available if the device cache is full. */ }
+  }, [activityAlignments]);
+
+  const refreshCommunity = async (signal?: AbortSignal) => {
+    if (!communityClient) return;
+    const client = communityClient;
+    const token = authTokens?.access_token;
+    const result = await client.submissions(signal);
+    if (signal?.aborted || stateQueueSessionRef.current !== token) return;
+    setCommunitySubmissions(result.submissions);
+    await refreshPersonalState();
+  };
+
+  useEffect(() => {
+    setCommunitySubmissions([]); setEvidenceDrafts({}); setCardAudienceDrafts({}); setCommunityShareCandidates([]);
+    localIdeaOperation.current?.abort(); localIdeaOperation.current = null; localIdeaVersion.current++;
+    setLocalIdeaRequests({}); setLocalIdeaBusy(false); setLocalIdeaNotice(null);
+    if (!communityClient) return;
+    const controller = new AbortController();
+    const client = communityClient;
+    const refresh = () => { if (!document.hidden) {
+      void refreshCommunity(controller.signal).catch(() => { /* No simulated reviews on network failure. */ });
+      const version = localIdeaVersion.current;
+      void client.ideas(controller.signal).then(result => {
+        if (controller.signal.aborted || localIdeaSession.current !== client || localIdeaVersion.current !== version) return;
+        setLocalIdeaRequests(Object.fromEntries(result.requests.filter(item => item.author_id === verifiedIdentity?.user_id && item.status === 'pending').map(item => [insightRequestKey(item.mode, item.source_level), item])));
+      }).catch(() => { /* Never substitute cached delivery claims for server state. */ });
+    } };
+    refresh();
+    const interval = window.setInterval(refresh, 20_000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { controller.abort(); localIdeaOperation.current?.abort(); window.clearInterval(interval); document.removeEventListener('visibilitychange', refresh); };
+  }, [communityClient]);
+
+  useEffect(() => {
+    window.history.scrollRestoration = 'manual';
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [view]);
+
+  useEffect(() => {
+    try {
+      personalStorageRef.current.setItem('modoCultiva_language', language);
+      personalStorageRef.current.setItem('modoCultiva_language_source', languageSource);
+      if (languageSource === 'manual') personalStorageRef.current.setItem('modoCultiva_manualLanguage_v1', JSON.stringify({ version: 1, source: 'manual', language }));
+    } catch { /* Cloud state and the current language remain available. */ }
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : language;
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+  }, [language, languageSource]);
+
+  // The product content is intentionally kept in one component for this prototype.
+  // Translate the remaining editorial labels after each language change so that
+  // cards, dashboards, modals and the three Cult sections change together.
+  useEffect(() => {
+    const phraseBook: Record<string, Record<Language, string>> = {
+      'Cultiva todos tus modos.': { es: 'Cultiva todos tus modos.', en: 'Cultivate every mode of your life.', zh: '培育你生命中的每一种模式。', hi: 'अपने जीवन के हर मोड को विकसित करें।', ar: 'ازرع كل أوضاع حياتك.', it: 'Coltiva ogni modalità della tua vita.', pt: 'Cultive todos os seus modos.', ru: 'Развивайте каждый режим своей жизни.', de: 'Kultiviere jeden Modus deines Lebens.', fr: 'Cultivez chaque mode de votre vie.', da: 'Dyrk alle dine livsmodi.' },
+      'Tu centro de cultivo.': { es: 'Tu centro de cultivo.', en: 'Your cultivation center.', zh: '你的培育中心。', hi: 'आपका विकास केंद्र।', ar: 'مركز تنميتك.', it: 'Il tuo centro di crescita.', pt: 'Seu centro de cultivo.', ru: 'Ваш центр развития.', de: 'Dein Entwicklungszentrum.', fr: 'Votre centre de développement.', da: 'Dit udviklingscenter.' },
+      'Tu progreso en una mirada': { es: 'Tu progreso en una mirada', en: 'Your progress at a glance', zh: '一眼看见你的进展', hi: 'एक नज़र में आपकी प्रगति', ar: 'تقدمك في لمحة', it: 'I tuoi progressi a colpo d’occhio', pt: 'Seu progresso em um olhar', ru: 'Ваш прогресс одним взглядом', de: 'Dein Fortschritt auf einen Blick', fr: 'Votre progression en un coup d’œil', da: 'Dit fremskridt på et øjeblik' },
+      'Nivel Cultiva': { es: 'Nivel Cultiva', en: 'Cultiva Level', zh: 'Cultiva 等级', hi: 'Cultiva स्तर', ar: 'مستوى Cultiva', it: 'Livello Cultiva', pt: 'Nível Cultiva', ru: 'Уровень Cultiva', de: 'Cultiva-Stufe', fr: 'Niveau Cultiva', da: 'Cultiva-niveau' },
+      'RESUMEN EJECUTIVO': { es: 'RESUMEN EJECUTIVO', en: 'EXECUTIVE SUMMARY', zh: '执行摘要', hi: 'कार्यकारी सारांश', ar: 'ملخص تنفيذي', it: 'SINTESI ESECUTIVA', pt: 'RESUMO EXECUTIVO', ru: 'КРАТКИЙ ОБЗОР', de: 'EXECUTIVE SUMMARY', fr: 'SYNTHÈSE', da: 'LEDelsesRESUMÉ' },
+      'MODO MÁS FUERTE': { es: 'MODO MÁS FUERTE', en: 'STRONGEST MODE', zh: '最强模式', hi: 'सबसे मजबूत मोड', ar: 'أقوى وضع', it: 'MODALITÀ PIÙ FORTE', pt: 'MODO MAIS FORTE', ru: 'САМЫЙ СИЛЬНЫЙ РЕЖИМ', de: 'STÄRKSTER MODUS', fr: 'MODE LE PLUS FORT', da: 'STÆRKESTE MODE' },
+      'MODO MENOS CULTIVADO': { es: 'MODO MENOS CULTIVADO', en: 'LEAST CULTIVATED MODE', zh: '最需要培养的模式', hi: 'सबसे कम विकसित मोड', ar: 'أقل وضع تنمية', it: 'MODALITÀ MENO COLTIVATA', pt: 'MODO MENOS CULTIVADO', ru: 'НАИМЕНЕЕ РАЗВИТЫЙ РЕЖИМ', de: 'AM WENIGSTEN ENTWICKELTER MODUS', fr: 'MODE LE MOINS CULTIVÉ', da: 'MINDST DYRKEDE MODE' },
+      'ACTIVIDADES DEFINIDAS': { es: 'ACTIVIDADES DEFINIDAS', en: 'DEFINED ACTIVITIES', zh: '已定义活动', hi: 'निर्धारित गतिविधियां', ar: 'الأنشطة المحددة', it: 'ATTIVITÀ DEFINITE', pt: 'ATIVIDADES DEFINIDAS', ru: 'ЗАДАННЫЕ АКТИВНОСТИ', de: 'DEFINIERTE AKTIVITÄTEN', fr: 'ACTIVITÉS DÉFINIES', da: 'DEFINEREDE AKTIVITETER' },
+      'PRESETS ACTIVOS': { es: 'CONFIGURACIONES DE VIDA ACTIVAS', en: 'ACTIVE LIFE PRESETS', zh: '启用的生活模式组合', hi: 'सक्रिय जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة النشطة', it: 'COMBINAZIONI DEI MODI DI VITA ATTIVE', pt: 'CONFIGURAÇÕES DE VIDA ATIVAS', ru: 'АКТИВНЫЕ СОЧЕТАНИЯ ЖИЗНЕННЫХ СФЕР', de: 'AKTIVE KOMBINATIONEN DER LEBENSBEREICHE', fr: 'COMBINAISONS ACTIVES DES MODES DE VIE', da: 'AKTIVE KOMBINATIONER AF LIVSOMRÅDER' },
+      'DISTRIBUCIÓN DE PRESENCIA': { es: 'DISTRIBUCIÓN DE PRESENCIA', en: 'PRESENCE DISTRIBUTION', zh: '存在感分布', hi: 'उपस्थिति का वितरण', ar: 'توزيع الحضور', it: 'DISTRIBUZIONE DELLA PRESENZA', pt: 'DISTRIBUIÇÃO DE PRESENÇA', ru: 'РАСПРЕДЕЛЕНИЕ ПРИСУТСТВИЯ', de: 'VERTEILUNG DER PRÄSENZ', fr: 'RÉPARTITION DE LA PRÉSENCE', da: 'FORDELING AF TILSTEDEVÆRELSE' },
+      'Áreas para cultivar': { es: 'Áreas para cultivar', en: 'Areas to cultivate', zh: '需要培育的领域', hi: 'विकसित करने के क्षेत्र', ar: 'مجالات للتنمية', it: 'Aree da coltivare', pt: 'Áreas para cultivar', ru: 'Области для развития', de: 'Bereiche zur Entwicklung', fr: 'Domaines à cultiver', da: 'Områder at dyrke' },
+      'PRÓXIMOS FOCOS': { es: 'PRÓXIMOS FOCOS', en: 'NEXT FOCUSES', zh: '下一个重点', hi: 'अगले फोकस', ar: 'التركيزات القادمة', it: 'PROSSIMI FOCUS', pt: 'PRÓXIMOS FOCOS', ru: 'СЛЕДУЮЩИЕ ФОКУСЫ', de: 'NÄCHSTE FOKUS-BEREICHE', fr: 'PROCHAINS FOCUS', da: 'NÆSTE FOKUSOMRÅDER' },
+      'Siguiente movimiento': { es: 'Siguiente movimiento', en: 'Next move', zh: '下一步行动', hi: 'अगला कदम', ar: 'الخطوة التالية', it: 'Prossima mossa', pt: 'Próximo movimento', ru: 'Следующий шаг', de: 'Nächster Schritt', fr: 'Prochaine étape', da: 'Næste skridt' },
+      'Continúa tu cultivo': { es: 'Continúa tu cultivo', en: 'Continue your cultivation', zh: '继续你的培育之旅', hi: 'अपना विकास जारी रखें', ar: 'واصل تنميتك', it: 'Continua la tua crescita', pt: 'Continue seu cultivo', ru: 'Продолжайте развитие', de: 'Setze deine Entwicklung fort', fr: 'Poursuivez votre développement', da: 'Fortsæt din udvikling' },
+      'Configuraciones guardadas': { es: 'Configuraciones guardadas', en: 'Saved configurations', zh: '已保存的配置', hi: 'सहेजे गए कॉन्फ़िगरेशन', ar: 'الإعدادات المحفوظة', it: 'Configurazioni salvate', pt: 'Configurações salvas', ru: 'Сохранённые настройки', de: 'Gespeicherte Konfigurationen', fr: 'Configurations enregistrées', da: 'Gemte konfigurationer' },
+      'Tu ruta de cultivo': { es: 'Tu ruta de cultivo', en: 'Your cultivation path', zh: '你的培育路径', hi: 'आपका विकास मार्ग', ar: 'مسار تنميتك', it: 'Il tuo percorso di crescita', pt: 'Sua rota de cultivo', ru: 'Ваш путь развития', de: 'Dein Entwicklungsweg', fr: 'Votre parcours de développement', da: 'Din udviklingsrejse' },
+      'Diseño de Actividad': { es: 'Diseño de Actividad', en: 'Activity Design', zh: '活动设计', hi: 'गतिविधि डिजाइन', ar: 'تصميم النشاط', it: 'Progettazione dell’attività', pt: 'Design da atividade', ru: 'Дизайн активности', de: 'Aktivitätsdesign', fr: 'Conception de l’activité', da: 'Aktivitetsdesign' },
+      'Pool de Actividades': { es: 'Banco de actividades', en: 'Activity bank', zh: '活动库', hi: 'गतिविधि बैंक', ar: 'بنك الأنشطة', it: 'Raccolta di attività', pt: 'Banco de atividades', ru: 'Банк занятий', de: 'Aktivitätensammlung', fr: 'Banque d’activités', da: 'Aktivitetsbank' },
+      'Construyamos tu actividad': { es: 'Construyamos tu actividad', en: 'Let’s build your activity', zh: '一起设计你的活动', hi: 'अपनी गतिविधि बनाएं', ar: 'لنصمم نشاطك', it: 'Costruiamo la tua attività', pt: 'Vamos criar sua atividade', ru: 'Создадим вашу активность', de: 'Entwickeln wir deine Aktivität', fr: 'Construisons votre activité', da: 'Lad os bygge din aktivitet' },
+      'Pedir Insights': { es: 'Ideas locales', en: 'Local ideas', zh: '本地创意', hi: 'स्थानीय विचार', ar: 'أفكار محلية', it: 'Idee locali', pt: 'Ideias locais', ru: 'Локальные идеи', de: 'Lokale Ideen', fr: 'Idées locales', da: 'Lokale idéer' },
+      'Insights Globales': { es: 'Ideas globales', en: 'Global ideas', zh: '全球创意', hi: 'वैश्विक विचार', ar: 'أفكار عالمية', it: 'Idee globali', pt: 'Ideias globais', ru: 'Глобальные идеи', de: 'Globale Ideen', fr: 'Idées globales', da: 'Globale idéer' },
+      'Insights Globales.': { es: 'Ideas globales.', en: 'Global ideas.', zh: '全球创意。', hi: 'वैश्विक विचार।', ar: 'أفكار عالمية.', it: 'Idee globali.', pt: 'Ideias globais.', ru: 'Глобальные идеи.', de: 'Globale Ideen.', fr: 'Idées globales.', da: 'Globale idéer.' },
+      'Red de Especialistas': { es: 'Red de Especialistas', en: 'Specialists Network', zh: '专家网络', hi: 'विशेषज्ञ नेटवर्क', ar: 'شبكة المتخصصين', it: 'Rete di specialisti', pt: 'Rede de especialistas', ru: 'Сеть специалистов', de: 'Expertennetzwerk', fr: 'Réseau de spécialistes', da: 'Specialistnetværk' },
+      'Galería de Skins & Filtros': { es: 'Galería de Skins & Filtros', en: 'Skins & Filters Gallery', zh: '皮肤与滤镜库', hi: 'स्किन और फ़िल्टर गैलरी', ar: 'معرض الواجهات والفلاتر', it: 'Galleria di skin e filtri', pt: 'Galeria de skins e filtros', ru: 'Галерея скинов и фильтров', de: 'Skins- und Filtergalerie', fr: 'Galerie des skins et filtres', da: 'Galleri med skins og filtre' },
+      'Presets guardados': { es: 'Configuraciones de Vida Guardadas', en: 'Saved Life Presets', zh: '已保存的生活模式组合', hi: 'सहेजे गए जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة المحفوظة', it: 'Combinazioni salvate dei modi di vita', pt: 'Configurações de Vida Guardadas', ru: 'Сохранённые сочетания жизненных сфер', de: 'Gespeicherte Kombinationen der Lebensbereiche', fr: 'Combinaisons enregistrées des modes de vie', da: 'Gemte kombinationer af livsområder' },
+      'Nuevo preset': { es: 'Nueva Configuración de Vida', en: 'New Life Preset', zh: '新的生活模式组合', hi: 'नया जीवन-मोड संयोजन', ar: 'توليفة أنماط حياة جديدة', it: 'Nuova combinazione dei modi di vita', pt: 'Nova Configuração de Vida', ru: 'Новое сочетание жизненных сфер', de: 'Neue Kombination der Lebensbereiche', fr: 'Nouvelle combinaison des modes de vie', da: 'Ny kombination af livsområder' },
+      '— Selecciona un preset —': { es: '— Selecciona una Configuración de Vida —', en: '— Select a Life Preset —', zh: '— 选择生活模式组合 —', hi: '— जीवन-मोड संयोजन चुनें —', ar: '— اختر توليفة أنماط الحياة —', it: '— Seleziona una combinazione dei modi di vita —', pt: '— Selecione uma Configuração de Vida —', ru: '— Выберите сочетание жизненных сфер —', de: '— Wähle eine Kombination der Lebensbereiche —', fr: '— Choisissez une combinaison des modes de vie —', da: '— Vælg en kombination af livsområder —' },
+      'Guardar': { es: 'Guardar', en: 'Save', zh: '保存', hi: 'सहेजें', ar: 'حفظ', it: 'Salva', pt: 'Salvar', ru: 'Сохранить', de: 'Speichern', fr: 'Enregistrer', da: 'Gem' },
+      'Cargar': { es: 'Cargar', en: 'Load', zh: '加载', hi: 'लोड करें', ar: 'تحميل', it: 'Carica', pt: 'Carregar', ru: 'Загрузить', de: 'Laden', fr: 'Charger', da: 'Indlæs' },
+      'Eliminar': { es: 'Eliminar', en: 'Delete', zh: '删除', hi: 'हटाएं', ar: 'حذف', it: 'Elimina', pt: 'Excluir', ru: 'Удалить', de: 'Löschen', fr: 'Supprimer', da: 'Slet' },
+      'Ajusta tu nivel de presencia': { es: 'Ajusta tu nivel de presencia', en: 'Adjust your presence level', zh: '调整你的存在感等级', hi: 'अपना उपस्थिति स्तर समायोजित करें', ar: 'اضبط مستوى حضورك', it: 'Regola il tuo livello di presenza', pt: 'Ajuste seu nível de presença', ru: 'Настройте уровень присутствия', de: 'Passe dein Präsenzlevel an', fr: 'Ajustez votre niveau de présence', da: 'Juster dit tilstedeværelsesniveau' },
+      'Actividad por definir': { es: 'Actividad por definir', en: 'Activity to define', zh: '待定义活动', hi: 'गतिविधि परिभाषित करें', ar: 'نشاط بحاجة إلى تعريف', it: 'Attività da definire', pt: 'Atividade a definir', ru: 'Активность нужно определить', de: 'Aktivität festlegen', fr: 'Activité à définir', da: 'Aktivitet skal defineres' },
+      'Actividad guardada en este navegador.': { es: 'Actividad guardada en este navegador.', en: 'Activity saved in this browser.', zh: '活动已保存在此浏览器中。', hi: 'गतिविधि इस ब्राउज़र में सहेजी गई है।', ar: 'تم حفظ النشاط في هذا المتصفح.', it: 'Attività salvata in questo browser.', pt: 'Atividade salva neste navegador.', ru: 'Активность сохранена в этом браузере.', de: 'Aktivität in diesem Browser gespeichert.', fr: 'Activité enregistrée dans ce navigateur.', da: 'Aktivitet gemt i denne browser.' },
+      'Modificar Actividad': { es: 'Modificar Actividad', en: 'Modify activity', zh: '修改活动', hi: 'गतिविधि संशोधित करें', ar: 'تعديل النشاط', it: 'Modifica attività', pt: 'Modificar atividade', ru: 'Изменить активность', de: 'Aktivität ändern', fr: 'Modifier l’activité', da: 'Redigér aktivitet' },
+      'Agregar Actividad': { es: 'Agregar Actividad', en: 'Add activity', zh: '添加活动', hi: 'गतिविधि जोड़ें', ar: 'إضافة نشاط', it: 'Aggiungi attività', pt: 'Adicionar atividade', ru: 'Добавить активность', de: 'Aktivität hinzufügen', fr: 'Ajouter une activité', da: 'Tilføj aktivitet' },
+      'Navegar recomendaciones': { es: 'Navegar recomendaciones', en: 'Browse recommendations', zh: '浏览推荐', hi: 'सुझाव ब्राउज़ करें', ar: 'تصفح التوصيات', it: 'Sfoglia le raccomandazioni', pt: 'Navegar pelas recomendações', ru: 'Просмотреть рекомендации', de: 'Empfehlungen durchsuchen', fr: 'Parcourir les recommandations', da: 'Gennemse anbefalinger' },
+      'Usar esta actividad': { es: 'Usar esta actividad', en: 'Use this activity', zh: '使用此活动', hi: 'इस गतिविधि का उपयोग करें', ar: 'استخدم هذا النشاط', it: 'Usa questa attività', pt: 'Usar esta atividade', ru: 'Использовать активность', de: 'Diese Aktivität nutzen', fr: 'Utiliser cette activité', da: 'Brug denne aktivitet' },
+      'Todos los modos': { es: 'Todos los modos', en: 'All modes', zh: '所有模式', hi: 'सभी मोड', ar: 'كل الأوضاع', it: 'Tutte le modalità', pt: 'Todos os modos', ru: 'Все режимы', de: 'Alle Modi', fr: 'Tous les modes', da: 'Alle modes' },
+      'Cualquier idioma': { es: 'Cualquier idioma', en: 'Any language', zh: '任何语言', hi: 'कोई भी भाषा', ar: 'أي لغة', it: 'Qualsiasi lingua', pt: 'Qualquer idioma', ru: 'Любой язык', de: 'Jede Sprache', fr: 'Toutes les langues', da: 'Ethvert sprog' },
+      'Cualquier continente': { es: 'Cualquier continente', en: 'Any continent', zh: '任何洲', hi: 'कोई भी महाद्वीप', ar: 'أي قارة', it: 'Qualsiasi continente', pt: 'Qualquer continente', ru: 'Любой континент', de: 'Jeder Kontinent', fr: 'Tous les continents', da: 'Ethvert kontinent' },
+      'No hay especialistas con estos filtros. Prueba otra combinación.': { es: 'No hay especialistas con estos filtros. Prueba otra combinación.', en: 'No specialists match these filters. Try another combination.', zh: '没有符合这些筛选条件的专家。请尝试其他组合。', hi: 'इन फ़िल्टर से कोई विशेषज्ञ नहीं मिला। दूसरा संयोजन आज़माएं।', ar: 'لا يوجد متخصصون بهذه الفلاتر. جرّب تركيبة أخرى.', it: 'Nessuno specialista corrisponde a questi filtri. Prova un’altra combinazione.', pt: 'Nenhum especialista corresponde a estes filtros. Tente outra combinação.', ru: 'По этим фильтрам специалистов нет. Попробуйте другую комбинацию.', de: 'Keine Spezialisten passen zu diesen Filtern. Versuche eine andere Kombination.', fr: 'Aucun spécialiste ne correspond à ces filtres. Essayez une autre combinaison.', da: 'Ingen specialister matcher disse filtre. Prøv en anden kombination.' },
+      'Disponible para orientación privada': { es: 'Disponible para orientación privada', en: 'Available for private guidance', zh: '可提供私人指导', hi: 'निजी मार्गदर्शन के लिए उपलब्ध', ar: 'متاح للتوجيه الخاص', it: 'Disponibile per orientamento privato', pt: 'Disponível para orientação privada', ru: 'Доступен для частного сопровождения', de: 'Für private Begleitung verfügbar', fr: 'Disponible pour un accompagnement privé', da: 'Tilgængelig for privat vejledning' },
+      'PERFILES VERIFICADOS': { es: 'PERFILES VERIFICADOS', en: 'VERIFIED PROFILES', zh: '已验证资料', hi: 'सत्यापित प्रोफ़ाइल', ar: 'ملفات موثقة', it: 'PROFILI VERIFICATI', pt: 'PERFIS VERIFICADOS', ru: 'ПРОВЕРЕННЫЕ ПРОФИЛИ', de: 'VERIFIZIERTE PROFILE', fr: 'PROFILS VÉRIFIÉS', da: 'VERIFICEREDE PROFILER' },
+      'Volver a Journey del Modo': { es: 'Volver a Journey del Modo', en: 'Back to mode journey', zh: '返回模式旅程', hi: 'मोड यात्रा पर लौटें', ar: 'العودة إلى رحلة الوضع', it: 'Torna al percorso della modalità', pt: 'Voltar à jornada do modo', ru: 'Вернуться к пути режима', de: 'Zurück zur Modus-Journey', fr: 'Retour au parcours du mode', da: 'Tilbage til mode-rejsen' },
+      'Una vista completa para recordar las áreas que te hacen ser tú. Observa tu equilibrio, elige dónde poner presencia y entra a tu dashboard cuando quieras profundizar.': { es: 'Una vista completa para recordar las áreas que te hacen ser tú. Observa tu equilibrio, elige dónde poner presencia y entra a tu dashboard cuando quieras profundizar.', en: 'A complete view of the areas that make you who you are. Observe your balance, choose where to place presence, and enter your dashboard whenever you want to go deeper.', zh: '完整查看构成你的生活领域。观察你的平衡，选择投入关注的地方，并随时进入仪表盘深入探索。', hi: 'उन क्षेत्रों का पूरा दृश्य जो आपको आप बनाते हैं। अपना संतुलन देखें, तय करें कि ध्यान कहाँ देना है और गहराई से जानने के लिए डैशबोर्ड खोलें।', ar: 'رؤية كاملة للمجالات التي تجعلك ما أنت عليه. راقب توازنك واختر أين تضع حضورك وادخل إلى لوحة التحكم عندما تريد التعمق.', it: 'Una visione completa delle aree che ti rendono te stesso. Osserva il tuo equilibrio, scegli dove portare presenza ed entra nella dashboard quando vuoi approfondire.', pt: 'Uma visão completa das áreas que fazem você ser quem é. Observe seu equilíbrio, escolha onde colocar presença e entre no painel quando quiser aprofundar.', ru: 'Полный обзор областей, которые делают вас собой. Наблюдайте за балансом, выбирайте, куда направить внимание, и открывайте панель для углубления.', de: 'Ein vollständiger Blick auf die Bereiche, die dich ausmachen. Beobachte dein Gleichgewicht, wähle deinen Fokus und öffne das Dashboard, wann immer du tiefer gehen möchtest.', fr: 'Une vue complète des domaines qui vous définissent. Observez votre équilibre, choisissez où placer votre présence et ouvrez votre tableau de bord pour aller plus loin.', da: 'Et komplet overblik over de områder, der gør dig til dig. Se din balance, vælg hvor du vil være nærværende, og åbn dashboardet, når du vil gå i dybden.' },
+      'Claridad mental y definición de rumbo': { es: 'Claridad mental y definición de rumbo', en: 'Mental clarity and direction', zh: '思路清晰与方向感', hi: 'मानसिक स्पष्टता और दिशा', ar: 'وضوح ذهني وتحديد الاتجاه', it: 'Chiarezza mentale e direzione', pt: 'Clareza mental e definição de rumo', ru: 'Ясность ума и направление', de: 'Mentale Klarheit und Richtung', fr: 'Clarté mentale et direction', da: 'Mental klarhed og retning' },
+      'Movimiento y práctica sin inversión': { es: 'Movimiento y práctica sin inversión', en: 'Movement and practice without investment', zh: '行动与无需投入的练习', hi: 'निवेश के बिना अभ्यास और行动', ar: 'الحركة والممارسة دون استثمار', it: 'Movimento e pratica senza investimento', pt: 'Movimento e prática sem investimento', ru: 'Движение и практика без вложений', de: 'Bewegung und Übung ohne Investition', fr: 'Mouvement et pratique sans investissement', da: 'Bevægelse og øvelse uden investering' },
+      'Inversión y asignación estratégica de recursos': { es: 'Inversión y asignación estratégica de recursos', en: 'Investment and strategic resource allocation', zh: '投资与战略资源分配', hi: 'निवेश और रणनीतिक संसाधन आवंटन', ar: 'الاستثمار والتخصيص الاستراتيجي للموارد', it: 'Investimento e allocazione strategica delle risorse', pt: 'Investimento e alocação estratégica de recursos', ru: 'Инвестиции и стратегическое распределение ресурсов', de: 'Investition und strategische Ressourcenverteilung', fr: 'Investissement et allocation stratégique des ressources', da: 'Investering og strategisk ressourcefordeling' },
+      'Define el resultado que quieres alcanzar': { es: 'Define el resultado que quieres alcanzar', en: 'Define the result you want to reach', zh: '定义你想实现的结果', hi: 'वह परिणाम तय करें जिसे आप पाना चाहते हैं', ar: 'حدد النتيجة التي تريد الوصول إليها', it: 'Definisci il risultato che vuoi raggiungere', pt: 'Defina o resultado que deseja alcançar', ru: 'Определите результат, которого хотите достичь', de: 'Definiere das Ergebnis, das du erreichen möchtest', fr: 'Définissez le résultat que vous souhaitez atteindre', da: 'Definér det resultat, du vil nå' },
+      'Explora recomendaciones del nivel': { es: 'Explora recomendaciones del nivel', en: 'Explore recommendations for level', zh: '探索该等级的推荐', hi: 'इस स्तर की सिफारिशें देखें', ar: 'استكشف توصيات المستوى', it: 'Esplora le raccomandazioni del livello', pt: 'Explore recomendações do nível', ru: 'Изучите рекомендации уровня', de: 'Entdecke Empfehlungen für Stufe', fr: 'Explorez les recommandations du niveau', da: 'Udforsk anbefalinger for niveau' },
+      'Cada sugerencia respeta el esfuerzo de esta etapa.': { es: 'Cada sugerencia respeta el esfuerzo de esta etapa.', en: 'Each suggestion respects the effort required at this stage.', zh: '每条建议都符合这一阶段的投入要求。', hi: 'हर सुझाव इस चरण के प्रयास का सम्मान करता है।', ar: 'كل اقتراح يراعي الجهد المطلوب في هذه المرحلة.', it: 'Ogni suggerimento rispetta l’impegno di questa fase.', pt: 'Cada sugestão respeita o esforço desta etapa.', ru: 'Каждая рекомендация соответствует усилиям этого этапа.', de: 'Jeder Vorschlag berücksichtigt den Aufwand dieser Phase.', fr: 'Chaque suggestion respecte l’effort de cette étape.', da: 'Hvert forslag respekterer indsatsen på dette trin.' },
+      'Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.': { es: 'Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.', en: 'Share your context and ask Mode AI for a personalized suggestion.', zh: '分享你的背景并咨询模式 AI，获取个性化建议。', hi: 'अपना संदर्भ साझा करें और व्यक्तिगत सुझाव के लिए मोड AI से पूछें।', ar: 'شارك سياقك واستشر وضع الذكاء الاصطناعي للحصول على اقتراح مخصص.', it: 'Condividi il tuo contesto e consulta Modo IA per ricevere una proposta personalizzata.', pt: 'Compartilhe seu contexto e consulte o Modo IA para receber uma proposta personalizada.', ru: 'Расскажите о своём контексте и спросите Mode AI о персональном предложении.', de: 'Teile deinen Kontext und frage Mode AI nach einem persönlichen Vorschlag.', fr: 'Partagez votre contexte et consultez le Mode IA pour une proposition personnalisée.', da: 'Del din kontekst og spørg Mode AI efter et personligt forslag.' },
+      'Tu contexto para la IA': { es: 'Tu contexto para la IA', en: 'Your context for AI', zh: '你的 AI 背景', hi: 'AI के लिए आपका संदर्भ', ar: 'سياقك للذكاء الاصطناعي', it: 'Il tuo contesto per l’IA', pt: 'Seu contexto para a IA', ru: 'Ваш контекст для ИИ', de: 'Dein Kontext für die KI', fr: 'Votre contexte pour l’IA', da: 'Din kontekst til AI' },
+      'Consultar al Modo IA': { es: 'Consultar al Modo IA', en: 'Ask Mode AI', zh: '咨询模式 AI', hi: 'मोड AI से पूछें', ar: 'استشر وضع الذكاء الاصطناعي', it: 'Consulta Modo IA', pt: 'Consultar o Modo IA', ru: 'Спросить у Mode AI', de: 'Mode AI fragen', fr: 'Consulter le Mode IA', da: 'Spørg Mode AI' },
+    };
+    const replacements = new Map<string, string>();
+    Object.entries(phraseBook).forEach(([source, values]) => replacements.set(source, values[language] ?? source));
+    modes.forEach((mode) => {
+      replacements.set(mode.name, localizedModeNames[language][mode.key] ?? mode.name);
+      replacements.set(mode.shortName, (localizedModeNames[language][mode.key] ?? mode.name).replace(/^(Modo |Mode |模式|모드 )/i, '').replace(/\s+Mode$/i, ''));
+      replacements.set(mode.description, localizedModeDescriptions[language]?.[mode.key] ?? mode.description);
+    });
+    levelNames.forEach((name, index) => replacements.set(name, localizedLevelNames[language][index] ?? name));
+    replacements.set('NIVEL', language === 'es' ? 'NIVEL' : tr('level').toUpperCase());
+    replacements.set('NIVELES', language === 'es' ? 'NIVELES' : tr('levels').toUpperCase());
+    replacements.set('MODO IA', language === 'es' ? 'MODO IA' : 'MODE AI');
+    replacements.set('Agregar actividad', tr('activity'));
+    replacements.set('Pool de actividades', tr('activityPool'));
+    replacements.set('Voltear tarjeta', language === 'es' ? 'Voltear tarjeta' : 'Flip card');
+    replacements.set('Volver a la pregunta', language === 'es' ? 'Volver a la pregunta' : 'Back to the question');
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const nodes: Text[] = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+    nodes.forEach((node) => {
+      const parent = node.parentElement;
+      if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(parent.tagName)) return;
+      // These labels are already localized by React; preserve the complete mode word.
+      if (parent.closest('.overview-mode-name')) return;
+      if (parent.closest('.profile-cultiva-level')) return;
+      if (parent.closest('.badges-gallery, .activity-journey-flow, .community-panel, .public-activity-card, .state-account-boundary, .journey-social-card, .mc-welcome, .guided-tour-layer, .demo-profile-notice, .demo-profile-label, .journey-vision-completion, .clarity-goal')) return;
+      let next = node.nodeValue ?? '';
+      replacements.forEach((value, source) => {
+        if (source && next.includes(source)) next = next.split(source).join(value);
+      });
+      if (next !== node.nodeValue) node.nodeValue = next;
+    });
+  }, [language, tr]);
+
+  const restoreJourneyPosition = () => {
+    window.requestAnimationFrame(() => {
+      journeyPanelRef.current?.scrollTo({ top: journeyReturnScrollTop.current, behavior: 'auto' });
+    });
+  };
+
+  const normalizePersonalDocument = (state: StateObject): StateObject => ({
+    ...normalizeLanguageDocument(state),
+    profileName: typeof state.profileName === 'string' ? state.profileName : '',
+    profileImage: typeof state.profileImage === 'string' ? state.profileImage : null,
+    levels: { ...defaultLevels, ...(state.levels && typeof state.levels === 'object' ? state.levels as Record<string, number> : {}) },
+    activityDrafts: state.activityDrafts && typeof state.activityDrafts === 'object' ? state.activityDrafts : {},
+    activityAlignments: state.activityAlignments && typeof state.activityAlignments === 'object' ? state.activityAlignments : {},
+    activityCompletions: cleanCompletions(state.activityCompletions),
+    activityReactions: cleanReactions(state.activityReactions),
+    insightRequests: state.insightRequests && typeof state.insightRequests === 'object' ? state.insightRequests : {},
+    presets: state.presets && typeof state.presets === 'object' ? state.presets : {},
+    visionImages: state.visionImages && typeof state.visionImages === 'object' ? state.visionImages : {},
+    featuredBadges: Array.isArray(state.featuredBadges) ? state.featuredBadges : [],
+    selectedPreset: typeof state.selectedPreset === 'string' && state.presets && typeof state.presets === 'object' && Object.prototype.hasOwnProperty.call(state.presets, state.selectedPreset) ? state.selectedPreset : '',
+    ...restoreLanguagePreference(state.language, state.languageSource, detectBrowserLanguage(), personalStorageRef.current.getItem('modoCultiva_manualLanguage_v1')),
+    skin: typeof state.skin === 'string' && allSkinKeys.has(state.skin as Skin) ? state.skin : 'holista',
+    paletteFilter: state.paletteFilter === 'nocturna' || state.paletteFilter === 'lucid' ? state.paletteFilter : 'none',
+    activePlan: state.activePlan === 'basic' || state.activePlan === 'gold' || state.activePlan === 'ultimate' ? state.activePlan : 'ultimate',
+    onboardingWelcomeCompleted: state.onboardingWelcomeCompleted === true,
+  });
+
+  const applyPersonalDocument = (state: StateObject) => {
+    setProfileName(state.profileName as string); setProfileImage(state.profileImage as string | null);
+    setLevels(state.levels as Record<string, number>);
+    setActivityDrafts(state.activityDrafts as Record<string, string>); setActivityAlignments(state.activityAlignments as Record<string, string>);
+    const remoteCompletions = cleanCompletions(state.activityCompletions);
+    setActivityCompletions(remoteCompletions);
+    setActivityReactions(cleanReactions(state.activityReactions)); setInsightRequests(state.insightRequests as Record<string, boolean>);
+    setPresets(state.presets as Record<string, Preset>); setVisionImages(state.visionImages as Record<string, string>);
+    setFeaturedBadges(state.featuredBadges as string[]); setSelectedPreset(state.selectedPreset as string);
+    setLanguage(state.language as Language); setLanguageSource(state.languageSource === 'manual' ? 'manual' : 'auto'); setSkin(state.skin as Skin); setPaletteFilter(state.paletteFilter as PaletteFilter);
+    setActivePlan(state.activePlan as PlanKey); setOnboardingWelcomeCompleted(state.onboardingWelcomeCompleted === true);
+  };
+
+  const completeLogin = (tokens: AuthTokens, destination: View, nextActivity: PendingActivity | null) => {
+    const previous = stateQueueRef.current;
+    if (previous?.isDirty() && !retainPendingState(previous)) throw new Error(stateAccountCopy(language).saveFailed);
+    if (!activeSessionRef.current) guestDocumentRef.current = cloneStateValue(persistedDocumentRef.current);
+    // Invalidate old continuations synchronously, before React's auth effect.
+    activeSessionRef.current = tokens.access_token;
+    previous?.dispose(); stateQueueRef.current = null; stateQueueSessionRef.current = null;
+    setStateHydrated(false); setVerifiedIdentity(null); setAccountPhase('loading');
+    consentChoiceRef.current?.('cancel'); consentChoiceRef.current = null;
+    try { window.sessionStorage.setItem('gm-auth-tokens', JSON.stringify(tokens)); } catch { /* Keep the explicitly authenticated in-memory session. */ }
+    setAuthTokens(tokens);
+    setAuthError(null);
+    setPendingAccess(null);
+    setPendingActivity(null);
+    if (nextActivity) {
+      setActivityEntry(nextActivity.entry);
+      setActiveActivity(nextActivity.level);
+      setPoolSelection(0);
+      setActivityPrompt('');
+    }
+    setView(destination);
+  };
+
+  const logout = async () => {
+    const token = activeSessionRef.current;
+    const queue = stateQueueRef.current;
+    if (signingOut && accountPhase !== 'logout-error') return;
+    setSigningOut(true); setAccountPhase('signing-out');
+    consentChoiceRef.current?.('cancel'); consentChoiceRef.current = null;
+    let timeout: number | undefined;
+    try {
+      if (queue && sessionIsCurrent(token, queue)) {
+        queue.stage(persistedDocumentRef.current);
+        retainPendingState(queue);
+        try {
+          await Promise.race([flushPersonalState(), new Promise<never>((_, reject) => {
+            timeout = window.setTimeout(() => reject(new Error('Save timed out')), 8000);
+          })]);
+        } catch { /* An account-scoped durable recovery copy is the offline fallback. */ }
+        finally { if (timeout !== undefined) window.clearTimeout(timeout); }
+        if (activeSessionRef.current !== token) return;
+        if (queue.isDirty() && !retainPendingState(queue)) {
+          setAccountPhase('logout-error'); return;
+        }
+      }
+      if (activeSessionRef.current !== token) return;
+      activeSessionRef.current = null;
+      queue?.dispose(); stateQueueRef.current = null; stateQueueSessionRef.current = null;
+      hydrationGenerationRef.current += 1;
+      if (authTokens?.refresh_token) {
+        await Promise.race([authClient.logout(authTokens.refresh_token), new Promise<void>(resolve => {
+          timeout = window.setTimeout(resolve, 3000);
+        })]);
+      }
+    } catch {
+      // The local session is still cleared if the server is temporarily unavailable.
+    } finally { if (timeout !== undefined) window.clearTimeout(timeout); }
+    if (activeSessionRef.current !== null) return;
+    try { window.sessionStorage.removeItem('gm-auth-tokens'); } catch { /* In-memory logout still works. */ }
+    personalStorageRef.current = scopedPersonalStorage(deviceStateStorage(), null);
+    accountScopeRef.current = null; committedDocumentRef.current = null;
+    applyPersonalDocument(normalizePersonalDocument(guestDocumentRef.current));
+    persistedDocumentRef.current = cloneStateValue(guestDocumentRef.current);
+    setAuthTokens(null);
+    setStateHydrated(false);
+    setVerifiedIdentity(null);
+    setWelcomeScope(null); setTourIndex(null);
+    setSelectedMode(null);
+    setCultOpen(false);
+    setActiveActivity(null);
+    setPendingAccess(null);
+    loginSkinChoice.current = null;
+    setSigningOut(false);
+    setView('welcome');
+  };
+
+  const submitAuthentication = async () => {
+    setAuthError(null);
+    try {
+      const tokens = registering
+        ? await (async () => {
+            const response = await fetch(`${apiUrl}/auth/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: loginUsername.trim(), name: loginName.trim(), password: loginPassword }),
+            });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.detail ?? 'No fue posible crear la cuenta.');
+            return payload as AuthTokens;
+          })()
+        : await authClient.login(loginUsername.trim(), loginPassword);
+      completeLogin(tokens, pendingAccess?.returnView ?? 'welcome', pendingActivity);
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'No fue posible autenticar la cuenta.');
+    }
+  };
+
+  useEffect(() => {
+    try {
+      personalStorageRef.current.setItem('modoCultiva_lastState', JSON.stringify(levels));
+    } catch {
+      // Local persistence is optional for the prototype.
+    }
+  }, [levels]);
+
+  useEffect(() => {
+    retainPendingState();
+    stateQueueRef.current?.dispose();
+    stateQueueRef.current = null;
+    stateQueueSessionRef.current = null;
+    committedDocumentRef.current = null;
+    setStateHydrated(false);
+    setVerifiedIdentity(null);
+    setAccountPhase('loading');
+    setValidationReceipts({});
+    setLegacyCompletionSlots([]);
+    setCommunityOpen(false);
+    if (!authTokens?.access_token) {
+      return;
+    }
+    const accessToken = authTokens.access_token;
+    const controller = new AbortController();
+    const generation = ++hydrationGenerationRef.current;
+    let ownedQueue: StateSyncQueue | null = null;
+    const current = () => !controller.signal.aborted && generation === hydrationGenerationRef.current && activeSessionRef.current === accessToken;
+    async function hydrateUserState() {
+      try {
+        setStateSyncStatus('syncing');
+        const [response, identityResponse] = await Promise.all([
+          fetch(`${apiUrl}/state`, { signal: controller.signal, cache: 'no-store', headers: { Authorization: `Bearer ${accessToken}` } }),
+          fetch(`${apiUrl}/auth/me`, { signal: controller.signal, cache: 'no-store', headers: { Authorization: `Bearer ${accessToken}` } }),
+        ]);
+        if (!response.ok || !identityResponse.ok) throw new Error(stateAccountCopy(language).errorHint);
+        const identity = await identityResponse.json() as AuthTokens['identity'];
+        let payload = await response.json() as StateSnapshot;
+        if (!current()) return;
+        const scope = { organizationId: identity.organization_id, accountId: identity.user_id };
+        const scopeKey = accountStateKey(scope);
+        setVerifiedIdentity(identity);
+        accountScopeRef.current = scope;
+        personalStorageRef.current = scopedPersonalStorage(deviceStateStorage(), scope);
+        if (hasLegacyDeviceConfiguration({ levels: {}, ...legacyArchive }) && !consentMemoryRef.current.has(scopeKey) && !hasLegacyConsent(deviceStateStorage(), scope)) {
+          setAccountPhase('consent');
+          const choice = await new Promise<'import' | 'cloud-only' | 'cancel'>(resolve => { consentChoiceRef.current = resolve; });
+          consentChoiceRef.current = null;
+          if (!current() || choice === 'cancel') return;
+          setAccountPhase('loading');
+          if (choice === 'import') {
+            const migrationResponse = await fetch(`${apiUrl}/state/merge`, {
+              method: 'POST',
+              signal: controller.signal,
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+              body: JSON.stringify({ state: legacyImportDocument(legacyArchive) }),
+            });
+            if (!migrationResponse.ok) throw new Error(stateAccountCopy(language).errorHint);
+            payload = await migrationResponse.json() as StateSnapshot;
+          }
+          if (!current()) return;
+          consentMemoryRef.current.add(scopeKey);
+          writeStoredJson(deviceStateStorage(), legacyConsentKey(scope), { version: 1, choice });
+        }
+        if (!current()) return;
+        if (!payload.revision || !payload.state || typeof payload.state !== 'object') throw new Error(stateAccountCopy(language).errorHint);
+        payload = normalizeCanonicalSnapshot(payload);
+        const stored = recoveryMemoryRef.current.get(scopeKey) ?? readPendingAccount(deviceStateStorage(), scope);
+        const state = normalizePersonalDocument(recoverAccountState(stored ?? null, payload));
+        ownedQueue = createStateSyncQueue({
+          initial: payload,
+          serializeBody: (document, revision) => JSON.stringify({ state: document, expected_revision: revision }),
+          transport: async (document, revision, signal, keepalive) => {
+            const saved = await fetch(`${apiUrl}/state`, { method: 'PUT', signal, cache: 'no-store', keepalive,
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+              body: JSON.stringify({ state: document, expected_revision: revision }),
+            });
+            const canonical = normalizeCanonicalSnapshot(await saved.json() as StateSnapshot);
+            if (saved.status === 409 && canonical.revision) return { conflict: canonical };
+            if (!saved.ok || !canonical.revision) throw new Error(stateAccountCopy(language).saveFailed);
+            return canonical;
+          },
+          onReconcile: (base, remote, snapshot) => {
+            if (current() && sessionIsCurrent(accessToken, ownedQueue ?? undefined)) reconcileCanonicalState(base, remote, snapshot);
+          },
+        });
+        if (!current()) { ownedQueue.dispose(); return; }
+        stateQueueRef.current = ownedQueue;
+        stateQueueSessionRef.current = accessToken;
+        ownedQueue.stage(state);
+        persistedDocumentRef.current = cloneStateValue(state);
+        retainPendingState(ownedQueue, scope);
+        setValidationReceipts(payload.validationReceipts && typeof payload.validationReceipts === 'object' ? payload.validationReceipts as Record<string, unknown> : {});
+        setLegacyCompletionSlots(payload.legacyCompletionSlots ?? []);
+        applyPersonalDocument(state);
+        setStateHydrated(true);
+        setStateSyncStatus('synced');
+      } catch (error) {
+        if (current() && !(error instanceof DOMException && error.name === 'AbortError')) {
+          setAccountPhase('error');
+          setStateSyncStatus('error');
+          setAuthError(stateAccountCopy(language).errorHint);
+        }
+      }
+    }
+    void hydrateUserState();
+    return () => {
+      controller.abort();
+      consentChoiceRef.current?.('cancel'); consentChoiceRef.current = null;
+      if (ownedQueue && stateQueueRef.current === ownedQueue) {
+        retainPendingState(ownedQueue);
+        ownedQueue.dispose(); stateQueueRef.current = null; stateQueueSessionRef.current = null;
+      }
+    };
+  }, [authTokens?.access_token, hydrationAttempt]);
+
+  useEffect(() => {
+    if (authTokens && !isOwnerAccount && profileName.trim() === defaultUserProfile.name) setProfileName('');
+  }, [authTokens, isOwnerAccount, profileName]);
+
+  useEffect(() => {
+    if (!authTokens?.access_token || !stateHydrated) return;
+    const queue = stateQueueRef.current;
+    if (!queue || stateQueueSessionRef.current !== authTokens.access_token) return;
+    // Staging already happened in the commit layout effect; debounce only I/O.
+    const persistState = (keepalive = false) => {
+      setStateSyncStatus('syncing');
+      void queue.flush({ keepalive }).then(result => {
+        if (sessionIsCurrent(authTokens.access_token, queue)) {
+          retainPendingState(queue);
+          setStateSyncStatus(result.status === 'synced' && !queue.isDirty() ? 'synced' : 'error');
+        }
+      });
+    };
+    const pagehide = () => persistState(true);
+    const online = () => persistState();
+    window.addEventListener('pagehide', pagehide);
+    window.addEventListener('online', online);
+    const timer = window.setTimeout(() => {
+      persistState();
+    }, 350);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('pagehide', pagehide);
+      window.removeEventListener('online', online);
+    };
+  }, [activePlan, activityDrafts, activityAlignments, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, insightRequests, language, languageSource, levels, onboardingWelcomeCompleted, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadHealth() {
+      try {
+        const response = await fetch(`${apiUrl}/health`, { signal: controller.signal });
+        if (!response.ok) throw new Error(`API returned ${response.status}`);
+        setApiState({ status: 'success', data: (await response.json()) as HealthResponse });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setApiState({ status: 'error', message: error instanceof Error ? error.message : 'Unable to reach the API' });
+      }
+    }
+    loadHealth();
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+    const closeProfileMenuOnOutsidePress = (event: PointerEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) setProfileMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', closeProfileMenuOnOutsidePress);
+    return () => document.removeEventListener('pointerdown', closeProfileMenuOnOutsidePress);
+  }, [profileMenuOpen]);
+
+  useEffect(() => {
+    if (!configurationsOpen) { setRenamingPreset(false); return; }
+    const dialog = configurationsDialogRef.current;
+    if (!dialog) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog.showModal();
+    dialog.focus({ preventScroll: true });
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+      configurationsTriggerRef.current?.focus({ preventScroll: true });
+    };
+  }, [configurationsOpen, language]);
+
+  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyReturnView, cultOpen, cultTab, profileMenuOpen, configurationsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
+  const navigationSnapshotKey = JSON.stringify(navigationSnapshot);
+  const navigationSnapshotRef = useRef(navigationSnapshot);
+  navigationSnapshotRef.current = navigationSnapshot;
+  const restoreNavigationRef = useRef((snapshot: typeof navigationSnapshot) => {});
+  restoreNavigationRef.current = (snapshot) => {
+    setView(snapshot.view); setSelectedMode(snapshot.selectedMode); setActiveActivity(snapshot.activeActivity);
+    setActivityEntry(snapshot.activityEntry); setJourneySlide(snapshot.journeySlide); setJourneyReturnView(snapshot.journeyReturnView);
+    setCultOpen(snapshot.cultOpen); setCultTab(snapshot.cultTab); setProfileMenuOpen(snapshot.profileMenuOpen);
+    setConfigurationsOpen(snapshot.configurationsOpen); setRenamingPreset(snapshot.renamingPreset);
+    setCustomizingAvatar(snapshot.customizingAvatar); setProfilePreviewMode(snapshot.profilePreviewMode);
+    setSelectedPlan(snapshot.selectedPlan); setInsightPreview(snapshot.insightPreview);
+    setCultInsightPreview(snapshot.cultInsightPreview); setSpecialistPreview(snapshot.specialistPreview);
+    setCommunityOpen(snapshot.communityOpen); setCommunityTab(snapshot.communityTab);
+    setPublicCardId(snapshot.publicCardId);
+    if (snapshot.selectedMode && snapshot.activeActivity === null) restoreJourneyPosition();
+  };
+  const tourReturnRef = useRef<{ navigation: typeof navigationSnapshot; activityPrompt: string; aiProposal: string; aiHasConsulted: boolean; aiNotice: string | null; poolSelection: number; pageScroll: number; journeyScroll: number } | null>(null);
+  const startTour = () => {
+    if (aiLoading) return;
+    if (tourIndex === null) tourReturnRef.current = { navigation: navigationSnapshotRef.current, activityPrompt, aiProposal, aiHasConsulted, aiNotice, poolSelection, pageScroll: window.scrollY, journeyScroll: journeyPanelRef.current?.scrollTop ?? 0 };
+    setTourModeKey(null); setTourVisitedMethods([]); setTourIndex(0);
+  };
+  const closeTour = () => {
+    setTourIndex(null);
+    const restore = tourReturnRef.current; tourReturnRef.current = null;
+    if (!restore) return;
+    restoreNavigationRef.current(restore.navigation);
+    // Restore form drafts AFTER the existing editor's navigation-reset effect.
+    window.requestAnimationFrame(() => {
+      setActivityPrompt(restore.activityPrompt); setAiProposal(restore.aiProposal); setAiHasConsulted(restore.aiHasConsulted); setAiNotice(restore.aiNotice); setPoolSelection(restore.poolSelection);
+      window.scrollTo({ top: restore.pageScroll, behavior: 'instant' });
+      journeyPanelRef.current?.scrollTo({ top: restore.journeyScroll, behavior: 'instant' });
+    });
+  };
+  const tourTopic = tourIndex === null ? null : tourTopics[tourIndex];
+  const tourMode = modes.find(mode => mode.key === tourModeKey) ?? selectedMode ?? modes[0];
+  const tourSource = Math.min(8, Math.max(0, levels[tourMode.key] ?? 0));
+  const tourStep: GuidedTourStep | null = tourTopic ? (() => {
+    const controlTopic = tourTopic.startsWith('control');
+    const copy = guidedTourStepCopy(language, controlTopic ? 'controlCenter' : tourTopic as TourStageId);
+    const targets: Record<TourTopic, string | readonly string[]> = {
+      modes: '.welcome-view .overview-mode', modeDescription: '.journey-intro-compact', selfAssessment: ['.level-definition--compact', '#journey-slider'], activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target summary',
+      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions > .insight-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.activity-flow-stages', evidence: '.activity-flow-stages > li:nth-child(2)', audience: '.activity-flow-audience .card-audience-options', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
+      reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading', specialists: '.cult-embedded-content .cult-section-heading', community: '.community-header h2', profile: '.profile-preview-identity', badges: '.achievement-heading', configurations: '#presets-title',
+      controlCenter: '.crm-card--score .crm-card-heading', controlStrongest: '.crm-metric-card:nth-of-type(1)', controlLeast: '.crm-metric-card:nth-of-type(2)', controlFocus: '.crm-focus-card .crm-card-heading', controlTrivia: '.crm-trivia-card h2', replay: '[data-tour="replay"]',
+    };
+    const selection = targets[tourTopic];
+    return { id: tourTopic, ...copy,
+      ...(tourTopic === 'modes' ? { targets: [{ selector: selection as string, minMatches: 12 }], nextDisabled: !tourModeKey }
+        : tourTopic === 'methods' ? { methodChecklist: true, targets: [
+          { selector: '.journey-fixed-actions > button:first-child', method: 'custom' as const }, { selector: '.activity-pool-button', method: 'bank' as const },
+          { selector: '.activity-ai-button', method: 'ai' as const }, { selector: '.journey-fixed-actions > .insight-button', method: 'localContacts' as const },
+        ] }
+        : Array.isArray(selection) ? { targets: selection } : { target: selection as string }),
+      ...(tourTopic === 'nextClarity' ? { clarityTarget: clarityTransition(tourSource, language)!.target } : {}),
+      onEnter: ({ signal }) => {
+        if (signal.aborted) return;
+        setCommunityOpen(false); setConfigurationsOpen(false); setProfilePreviewMode(false); setCustomizingAvatar(false);
+        setCultInsightPreview(null); setSpecialistPreview(null); setInsightPreview(null); setSelectedPlan(null); setProfileMenuOpen(false);
+        setActiveActivity(null); setSelectedMode(null); setCultOpen(false); setView('welcome');
+        if (tourTopic === 'modes') return;
+        if (tourTopic === 'replay') { setProfileMenuOpen(true); return; }
+        if (controlTopic) { setView('dashboard'); return; }
+        if (tourTopic === 'configurations') { setConfigurationsOpen(true); return; }
+        if (tourTopic === 'profile') { setProfilePreviewMode(true); return; }
+        if (['reviews', 'community'].includes(tourTopic)) {
+          setCommunityTab(tourTopic === 'reviews' ? 'reviews' : 'network'); setCommunityOpen(true); return;
+        }
+        setSelectedMode(tourMode); setJourneyReturnView('welcome'); setJourneySlide(tourTopic === 'vision' ? 9 : tourSource);
+        if (['globalIdeas', 'specialists', 'badges'].includes(tourTopic)) {
+          setCultTab(tourTopic === 'specialists' ? 'network' : tourTopic === 'badges' ? 'badges' : 'insights'); return;
+        }
+        if (tourTopic === 'custom' || tourTopic === 'bank' || tourTopic === 'ai') {
+          setActivityEntry(tourTopic === 'bank' ? 'pool' : tourTopic); setActiveActivity(tourSource); setPoolSelection(0);
+          setActivityPrompt(tourTopic === 'custom' ? activityDrafts[`${tourMode.key}-${tourSource}`] ?? '' : '');
+        }
+      },
+    };
+  })() : null;
+
+  useLayoutEffect(() => {
+    if (tourTopic !== 'audience' || !selectedMode) return;
+    const settings = document.querySelector<HTMLDetailsElement>('.activity-flow-published-audience');
+    if (!settings) return;
+    const wasOpen = settings.open; settings.open = true;
+    return () => { settings.open = wasOpen; };
+  }, [tourTopic, selectedMode, journeySlide]);
+
+  useEffect(() => {
+    if (!tourTopic) return;
+    const method = tourTopic === 'custom' ? 'custom' : tourTopic === 'bank' ? 'bank' : tourTopic === 'ai' ? 'ai' : tourTopic === 'localContacts' ? 'localContacts' : null;
+    if (!method) return;
+    const mounted = method === 'localContacts' ? Boolean(selectedMode && document.querySelector('.journey-fixed-actions > .insight-button'))
+      : activeActivity !== null && activityEntry === (method === 'bank' ? 'pool' : method) && Boolean(document.querySelector(`.activity-agent--${activityEntry}`));
+    if (mounted) setTourVisitedMethods(current => current.includes(method) ? current : [...current, method]);
+  }, [tourTopic, communityOpen, communityTab, activeActivity, activityEntry, selectedMode]);
+
+  useEffect(() => {
+    if (publicCardId) return; // Shared cards open directly, without a welcome covering their content.
+    if (authTokens && (!stateHydrated || !verifiedIdentity)) return;
+    const scope: WelcomeIntroScope = verifiedIdentity ? { kind: 'account', organizationId: verifiedIdentity.organization_id, accountId: verifiedIdentity.user_id } : { kind: 'guest', visitorId: guestWelcomeVisitorId };
+    const key = welcomeIntroStorageKey(scope);
+    if (!key || welcomeChecked.current.has(key)) return;
+    let completion: ReturnType<typeof readWelcomeIntroCompletion> = 'unavailable';
+    try { completion = readWelcomeIntroCompletion(window.localStorage, scope); } catch { /* Session memory still prevents looping. */ }
+    const decision = decideWelcomeIntro({ status: 'ready', scope }, scope.kind === 'account' && onboardingWelcomeCompleted ? 'complete' : completion);
+    if (decision !== 'wait') welcomeChecked.current.add(key);
+    if (decision === 'show') setWelcomeScope(scope);
+  }, [authTokens?.access_token, stateHydrated, verifiedIdentity, onboardingWelcomeCompleted, guestWelcomeVisitorId, publicCardId]);
+  const navigationHistoryRef = useRef<ReturnType<typeof createNavigationHistory<typeof navigationSnapshot>> | null>(null);
+  useEffect(() => {
+    const navigation = createNavigationHistory(window.history, navigationSnapshotRef.current, (snapshot) => {
+      const base = snapshot.view === 'welcome' ? 0 : snapshot.view === 'lab' ? 2 : 1;
+      return base + Number(Boolean(snapshot.selectedMode)) + Number(snapshot.activeActivity !== null)
+        + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
+        + Number(snapshot.customizingAvatar) + Number(snapshot.profilePreviewMode) + Number(Boolean(snapshot.selectedPlan))
+        + Number(Boolean(snapshot.insightPreview)) + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview)) + Number(snapshot.communityOpen) + Number(Boolean(snapshot.publicCardId));
+    }, (snapshot) => restoreNavigationRef.current(snapshot), (left, right) => {
+      // Ignore details belonging to hidden layers when matching an old parent.
+      const location = (snapshot: typeof navigationSnapshot) => [
+        snapshot.view, snapshot.selectedMode?.key, snapshot.activeActivity,
+        snapshot.selectedMode || snapshot.view === 'cult' ? [snapshot.cultOpen, snapshot.cultTab] : null,
+        snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.configurationsOpen && snapshot.renamingPreset,
+        snapshot.customizingAvatar, snapshot.profilePreviewMode, snapshot.selectedPlan,
+        snapshot.insightPreview, snapshot.cultInsightPreview, snapshot.specialistPreview, snapshot.communityOpen, snapshot.communityTab, snapshot.publicCardId,
+      ];
+      return JSON.stringify(location(left)) === JSON.stringify(location(right));
     });
     navigationHistoryRef.current = navigation;
     const handlePopState = (event: PopStateEvent) => navigation.onPopState(event.state);
