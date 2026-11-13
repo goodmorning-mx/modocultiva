@@ -2504,6 +2504,11 @@ function App() {
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ' welcome-view--polished'}`} data-layer="home" aria-label={tr('lifeModes')}>
           <div className="home-greeting">
             <div className="home-greeting-heading">
+              <svg className="home-greeting-plant" viewBox="0 0 40 48" aria-hidden="true">
+                <path d="M20 25V13m0 8c-1-6-6-9-12-8 1 6 5 10 12 10m0-5c1-6 6-9 12-8-1 6-5 10-12 11" />
+                <path d="M11 27h18l-2 15H13l-2-15Z" />
+                <path d="M14 31h12" />
+              </svg>
               <div className="home-greeting-copy">
                 <h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>
                 <p>{homeGreetingPhrase}<span className="home-greeting-emoji" role="img" aria-label="¡Hola!">👋</span></p>

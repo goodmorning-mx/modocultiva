@@ -17,6 +17,7 @@ assert.ok(cardGrid.includes('className="home-mode-meter"') && cardGrid.includes(
 assert.ok(cardGrid.includes('data-tour-mode={mode.key}'), 'Guided tour can target every mode card');
 assert.ok(app.includes('topbar--material-home') && app.includes('className="home-material-title">Modo Cultiva</span>'), 'Home uses a centered Material title bar');
 assert.ok(app.includes('<h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>'), 'Home has an expanded, styled greeting for the signed in user');
+assert.ok(app.includes('className="home-greeting-plant" viewBox="0 0 40 48"'), 'Greeting includes a minimal potted plant icon');
 assert.equal((greetingList.match(/^\s*'/gm) ?? []).length, 10, 'Home has ten friendly greeting messages');
 assert.ok(app.includes('homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]') && app.includes('className="home-greeting-emoji" role="img"'), 'Home selects a friendly greeting and displays its welcome emoji');
 assert.ok(app.includes('<p>{homeGreetingPhrase}<span className="home-greeting-emoji"') && app.includes('>👋</span>'), 'The small phone emoji follows the welcome phrase');
@@ -31,8 +32,12 @@ assert.match(css, /\.home-mode-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,
 assert.match(css, /\.home-mode-card\s*\{[^}]*grid-template-columns:\s*56px minmax\(0, 1fr\) 92px 20px/, 'Mode cards use a larger horizontal tile layout');
 assert.match(css, /\.home-mode-card\s*\{[^}]*min-height:\s*152px[^}]*padding:\s*20px 22px/, 'Mode tiles are tall and have generous padding');
 assert.match(css, /\.home-mode-card\s*\{[^}]*box-shadow:/, 'Cards retain elevation and shade');
+assert.match(css, /\.home-mode-description\s*\{[^}]*color:\s*#f4fff7[^}]*font-weight:\s*650/, 'Mode introductions are bold and white');
+assert.match(css, /\.home-mode-summary b\s*\{[^}]*border:\s*1px solid[^}]*box-shadow:/, 'Mode level indicators are visually emphasized');
 assert.match(css, /\.topbar--material-home\s*\{[^}]*border:\s*0[^}]*border-bottom:\s*1px/, 'Silver bar has only a bottom border');
 assert.match(css, /\.home-greeting\s*\{[^}]*min-height:\s*244px/, 'Greeting header reserves room for quick actions');
+assert.match(css, /\.home-greeting h1 span\s*\{[^}]*margin-bottom:\s*14px[^}]*font-size:\s*\.82em/, 'Welcome word has extra space and distinct typography from the user name');
+assert.match(css, /\.home-greeting h1 strong\s*\{[^}]*font-size:\s*1\.12em/, 'User name has a larger type size than the welcome word');
 assert.match(css, /\.home-greeting\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Greeting header is completely transparent');
 assert.match(css, /\.home-greeting-heading\s*\{[^}]*margin-top:\s*24px/, 'Greeting title and phrase sit lower within the same header');
 assert.match(css, /\.home-sort-button\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Sort arrows have a completely transparent container');
