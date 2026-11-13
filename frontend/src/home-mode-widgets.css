@@ -21,6 +21,23 @@
 .home-profile-avatar svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
 .home-profile-avatar:hover, .home-profile-avatar:focus-visible { transform: translateY(-1px); border-color: #a5ffc0; box-shadow: 0 0 0 4px rgba(112, 237, 156, .18), 0 6px 16px rgba(0, 0, 0, .28); }
 .home-profile-avatar:focus-visible { outline: 2px solid #b6f0c5; outline-offset: 4px; }
+.home-menu-button { display: grid; flex: 0 0 42px; place-items: center; width: 42px; height: 42px; padding: 0; border: 1px solid rgba(112, 237, 156, .24); border-radius: 50%; color: #eaf7ef; background: rgba(112, 237, 156, .07); cursor: pointer; transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease; }
+.home-menu-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 1.8; }
+.home-menu-button:hover, .home-menu-button:focus-visible { transform: translateY(-1px); border-color: rgba(112, 237, 156, .7); color: #a5ffc0; background: rgba(112, 237, 156, .14); }
+.home-menu-button:focus-visible, .home-sidebar-close:focus-visible, .home-sidebar-nav button:focus-visible { outline: 2px solid #b6f0c5; outline-offset: 3px; }
+.home-sidebar-backdrop { position: fixed; z-index: 9999; inset: 0; display: flex; justify-content: flex-end; background: rgba(1, 12, 16, .66); backdrop-filter: blur(5px); animation: home-sidebar-fade .18s ease both; }
+.home-sidebar { display: flex; flex-direction: column; width: min(370px, calc(100vw - 24px)); height: 100%; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); border-left: 1px solid rgba(112, 237, 156, .22); color: #eaf7ef; background: linear-gradient(165deg, #123238, #07191f 75%); box-shadow: -18px 0 50px rgba(0, 0, 0, .38); animation: home-sidebar-slide .22s cubic-bezier(.2, .8, .2, 1) both; }
+.home-sidebar-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 9px 2px 24px; border-bottom: 1px solid rgba(112, 237, 156, .17); }
+.home-sidebar-eyebrow { color: #70ed9c; font-size: .68rem; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+.home-sidebar-heading h2 { margin: 5px 0 0; color: #f1fff4; font-size: 1.55rem; font-weight: 750; letter-spacing: -.04em; }
+.home-sidebar-close { display: grid; flex: 0 0 38px; place-items: center; width: 38px; height: 38px; padding: 0 0 3px; border: 1px solid rgba(201, 234, 215, .18); border-radius: 50%; color: #d7eee0; background: rgba(255, 255, 255, .04); font: 300 1.6rem/1 sans-serif; cursor: pointer; }
+.home-sidebar-nav { display: grid; gap: 8px; padding-top: 18px; }
+.home-sidebar-nav button { display: grid; grid-template-columns: 42px minmax(0, 1fr) 20px; align-items: center; gap: 12px; min-height: 58px; padding: 8px 12px; border: 1px solid rgba(156, 203, 184, .13); border-radius: 15px; color: #effaf2; text-align: left; background: rgba(255, 255, 255, .035); font: inherit; font-size: .92rem; font-weight: 650; cursor: pointer; transition: background .18s ease, border-color .18s ease, transform .18s ease; }
+.home-sidebar-nav button:hover { transform: translateX(-2px); border-color: rgba(112, 237, 156, .38); background: rgba(112, 237, 156, .09); }
+.home-sidebar-icon { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid rgba(112, 237, 156, .2); border-radius: 12px; color: #70ed9c; background: rgba(112, 237, 156, .08); font-size: 1.2rem; }
+.home-sidebar-arrow { justify-self: end; color: rgba(201, 234, 215, .6); font-size: 1.35rem; font-weight: 400; }
+@keyframes home-sidebar-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes home-sidebar-slide { from { transform: translateX(20px); opacity: .72; } to { transform: translateX(0); opacity: 1; } }
 .topbar--material-home .language-picker select { max-width: 128px; padding: 7px 22px 7px 5px; border: 0; border-radius: 0; color: #d5f2dd; background: transparent; font-family: inherit; font-size: .72rem; }
 .topbar--material-home .language-picker svg { color: #d5f2dd; }
 .topbar--material-home .state-sync-state { display: none; }
@@ -64,6 +81,8 @@
   .topbar--material-home .brand img { width: 32px; height: 32px; }
   .home-profile-avatar { flex-basis: 36px; width: 36px; height: 36px; }
   .home-profile-avatar svg { width: 19px; height: 19px; }
+  .home-menu-button { flex-basis: 36px; width: 36px; height: 36px; }
+  .home-menu-button svg { width: 19px; height: 19px; }
   .home-material-title { justify-self: center; font-size: .84rem; }
   .topbar--material-home .topbar-actions { gap: 4px; }
   .topbar--material-home .language-picker select { max-width: 102px; padding-inline: 3px 17px; font-size: .61rem; }
