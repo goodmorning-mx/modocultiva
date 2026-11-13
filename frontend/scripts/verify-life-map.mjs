@@ -34,6 +34,9 @@ assert.match(css, /\.home-mode-card\s*\{[^}]*box-shadow:/, 'Cards retain elevati
 assert.match(css, /\.topbar--material-home\s*\{[^}]*border:\s*0[^}]*border-bottom:\s*1px/, 'Silver bar has only a bottom border');
 assert.match(css, /\.home-greeting\s*\{[^}]*min-height:\s*244px/, 'Greeting header reserves room for quick actions');
 assert.match(css, /\.home-greeting\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Greeting header is completely transparent');
+assert.match(css, /\.home-greeting-heading\s*\{[^}]*margin-top:\s*24px/, 'Greeting title and phrase sit lower within the same header');
+assert.match(css, /\.home-sort-button\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Sort arrows have a completely transparent container');
+assert.match(css, /\.home-greeting\s*\{[^}]*margin:\s*0 auto 4px/, 'Sort arrows and welcome header sit close to the first mode tile');
 assert.match(css, /\.home-greeting h1\s*\{[^}]*font-weight:\s*600/, 'Greeting uses Material-style semibold typography');
 assert.match(css, /\.app-shell--zen[\s\S]*?\.home-mode-card[\s\S]*?var\(--skin-accent\)/, 'Alternate skins retain their palette accent');
 assert.ok(css.includes('prefers-reduced-motion') && css.includes('forced-colors'), 'Motion and high contrast accommodations remain available');
