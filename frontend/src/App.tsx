@@ -323,6 +323,18 @@ const homeSortLabels: Record<Language, { sort: string; reset: string }> = {
   fr: { sort: 'Trier les modes du niveau le plus élevé au plus bas', reset: 'Réinitialiser l’ordre des modes' },
   da: { sort: 'Sortér tilstande fra højeste til laveste niveau', reset: 'Nulstil rækkefølgen' },
 };
+const homeGreetingPhrases = [
+  'Hoy es un buen día para crecer.',
+  'Qué alegría tenerte por aquí.',
+  'Hoy puedes dar un paso bonito.',
+  'Tu camino florece a tu ritmo.',
+  'Un nuevo día trae nuevas posibilidades.',
+  'Vamos a cultivar algo bueno hoy.',
+  'Cada pequeño avance cuenta.',
+  'Este espacio es para ti.',
+  'Hoy empieza con una buena intención.',
+  'Me alegra acompañarte en tu camino.',
+];
 const translations: Record<Language, Record<string, string>> = {
   es: { enter: 'ENTRAR', login: 'Iniciar sesión', createAccount: 'Crear una cuenta', logout: 'Cerrar sesión', premium: 'Modos Premium', welcome: 'Bienvenido a tu mapa de vida', dashboard: 'Dashboard', customize: 'Personalizar', pressToEnter: 'Presiona para entrar', chooseLanguage: 'Idioma', journey: 'Journey del Modo', back: 'Volver', activity: 'Actividad', askAI: 'Consultar al Modo IA', useActivity: 'Usar esta actividad', context: 'Tu contexto para la IA', plans: 'Elige tu siguiente nivel', freeAccess: 'Continuar como invitado', password: 'Contraseña', email: 'Correo electrónico', name: 'Nombre', home: 'Inicio', levels: 'Niveles', modes: 'Modos', save: 'Guardar', load: 'Cargar', remove: 'Eliminar', close: 'Cerrar', viewProfile: 'Ver perfil', next: 'Siguiente', previous: 'Anterior', recommendations: 'Recomendaciones', filters: 'Filtros', skins: 'Skins', analyze: 'Analizar actividad', useInMap: 'Guardar en mi mapa' },
   en: { enter: 'ENTER', login: 'Sign in', createAccount: 'Create an account', logout: 'Log out', premium: 'Premium Modes', welcome: 'Welcome to your life map', dashboard: 'Dashboard', customize: 'Customize', pressToEnter: 'Press to enter', chooseLanguage: 'Language', journey: 'Mode Journey', back: 'Back', activity: 'Activity', askAI: 'Ask Mode AI', useActivity: 'Use this activity', context: 'Your context for AI', plans: 'Choose your next level', freeAccess: 'Continue as guest', password: 'Password', email: 'Email', name: 'Name', home: 'Home', levels: 'Levels', modes: 'Modes', save: 'Save', load: 'Load', remove: 'Delete', close: 'Close', viewProfile: 'View profile', next: 'Next', previous: 'Previous', recommendations: 'Recommendations', filters: 'Filters', skins: 'Skins', analyze: 'Analyze activity', useInMap: 'Save to my map' },
@@ -2326,6 +2338,7 @@ function App() {
   const orderedHomeModes = homeSortDescending
     ? [...modes].sort((left, right) => levels[right.key] - levels[left.key])
     : modes;
+  const [homeGreetingPhrase] = useState(() => homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]);
 
   return (
     <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
@@ -2393,7 +2406,13 @@ function App() {
       ) : view === 'welcome' ? (
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ' welcome-view--polished'}`} data-layer="home" aria-label={tr('lifeModes')}>
           <div className="home-greeting">
-            <h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>
+            <div className="home-greeting-heading">
+              <span className="home-greeting-emoji" role="img" aria-label="¡Hola!">👋🌞</span>
+              <div className="home-greeting-copy">
+                <h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>
+                <p>{homeGreetingPhrase}</p>
+              </div>
+            </div>
             <div className="home-greeting-quick-space">
               <button className={`home-sort-button${homeSortDescending ? ' is-active' : ''}`} type="button" aria-label={homeSortDescending ? homeSortLabels[language].reset : homeSortLabels[language].sort} aria-pressed={homeSortDescending} onClick={() => setHomeSortDescending((current) => !current)}>
                 <span className="home-sort-glyph" aria-hidden="true"><b>&gt;</b><b>&lt;</b><i>{homeSortDescending ? '↓' : '↕'}</i></span>
