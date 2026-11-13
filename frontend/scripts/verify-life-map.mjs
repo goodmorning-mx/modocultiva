@@ -16,6 +16,7 @@ assert.ok(cardGrid.includes('localizedLevelNames[language][level]'), 'Cards expo
 assert.ok(cardGrid.includes('className="home-mode-meter"') && cardGrid.includes('length: 9') && cardGrid.includes('index < level'), 'Cards show their existing nine step progress meter');
 assert.ok(cardGrid.includes('data-tour-mode={mode.key}'), 'Guided tour can target every mode card');
 assert.ok(app.includes('topbar--material-home') && app.includes('className="home-material-title">Modo Cultiva</span>'), 'Home uses a centered Material title bar');
+assert.ok(app.includes('className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)') && app.includes('profileImage ? <img src={profileImage} alt="" />'), 'Home app bar identifies the user with their profile photo and opens their profile');
 assert.ok(app.includes('<h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>'), 'Home has an expanded, styled greeting for the signed in user');
 assert.ok(app.includes('className="home-greeting-plant" viewBox="0 0 40 48"'), 'Greeting includes a minimal potted plant icon');
 assert.equal((greetingList.match(/^\s*'/gm) ?? []).length, 10, 'Home has ten friendly greeting messages');
@@ -23,7 +24,7 @@ assert.ok(app.includes('homeGreetingPhrases[Math.floor(Math.random() * homeGreet
 assert.ok(app.includes('<p>{homeGreetingPhrase}<span className="home-greeting-emoji"') && app.includes('>👋</span>'), 'The small phone emoji follows the welcome phrase');
 assert.ok(app.includes('homeSortDescending') && app.includes('levels[right.key] - levels[left.key]') && app.includes('home-sort-glyph') && app.includes('<i>↑</i><i>↓</i>'), 'Home sorts modes with an up/down arrow-only control');
 assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*grid-column:\s*1/,'Current brand logo sits on the left side of the app bar');
-assert.ok(app.includes('languageFlags[code]') && app.includes('{view !== \'welcome\' && <><PwaControls'), 'Home keeps only the flag language picker in its title bar');
+assert.ok(app.includes('{view === \'welcome\' ? <button className="home-profile-avatar"') && app.includes(': <><label className="language-picker">') && app.includes('languageFlags[code]'), 'Home uses a profile avatar while other views retain the flag language picker');
 assert.ok(!app.includes('home-silverbar-shortcuts') && !app.includes('home-silverbar-action'), 'Home title bar contains no shortcut icons');
 assert.ok(!app.includes('welcome-copy') && !cardGrid.includes('home-mode-roman'), 'Home shows no heading or roman characters above tiles');
 
@@ -35,6 +36,7 @@ assert.match(css, /\.home-mode-card\s*\{[^}]*box-shadow:/, 'Cards retain elevati
 assert.match(css, /\.home-mode-description\s*\{[^}]*color:\s*#f4fff7[^}]*font-weight:\s*650/, 'Mode introductions are bold and white');
 assert.match(css, /\.home-mode-summary b\s*\{[^}]*border:\s*1px solid[^}]*box-shadow:/, 'Mode level indicators are visually emphasized');
 assert.match(css, /\.topbar--material-home\s*\{[^}]*border:\s*0[^}]*border-bottom:\s*1px/, 'Silver bar has only a bottom border');
+assert.match(css, /\.home-profile-avatar\s*\{[^}]*border-radius:\s*50%/, 'Home profile avatar is circular');
 assert.match(css, /\.home-greeting\s*\{[^}]*min-height:\s*244px/, 'Greeting header reserves room for quick actions');
 assert.match(css, /\.home-greeting h1 span\s*\{[^}]*margin-bottom:\s*14px[^}]*font-size:\s*\.82em/, 'Welcome word has extra space and distinct typography from the user name');
 assert.match(css, /\.home-greeting h1 strong\s*\{[^}]*font-size:\s*1\.12em/, 'User name has a larger type size than the welcome word');
