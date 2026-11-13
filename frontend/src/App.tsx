@@ -306,6 +306,23 @@ const languageNames: Record<Language, string> = {
   es: 'Español', en: 'English', zh: '中文', hi: 'हिन्दी', ar: 'العربية',
   it: 'Italiano', pt: 'Português', ru: 'Русский', de: 'Deutsch', fr: 'Français', da: 'Dansk',
 };
+const languageFlags: Record<Language, string> = {
+  es: '🇲🇽', en: '🇺🇸', zh: '🇨🇳', hi: '🇮🇳', ar: '🇸🇦',
+  it: '🇮🇹', pt: '🇧🇷', ru: '🇷🇺', de: '🇩🇪', fr: '🇫🇷', da: '🇩🇰',
+};
+const homeSortLabels: Record<Language, { sort: string; reset: string }> = {
+  es: { sort: 'Ordenar modos de mayor a menor nivel', reset: 'Restablecer el orden de los modos' },
+  en: { sort: 'Sort modes from highest to lowest level', reset: 'Reset mode order' },
+  zh: { sort: '按等级从高到低排序', reset: '恢复模式顺序' },
+  hi: { sort: 'मोड को उच्चतम स्तर से क्रमबद्ध करें', reset: 'मोड क्रम रीसेट करें' },
+  ar: { sort: 'رتّب الأوضاع من الأعلى إلى الأدنى', reset: 'إعادة ترتيب الأوضاع' },
+  it: { sort: 'Ordina i modi dal livello più alto', reset: 'Ripristina ordine modalità' },
+  pt: { sort: 'Ordenar modos do maior para o menor nível', reset: 'Redefinir ordem dos modos' },
+  ru: { sort: 'Сначала режимы с наивысшим уровнем', reset: 'Сбросить порядок режимов' },
+  de: { sort: 'Modi vom höchsten zum niedrigsten Level sortieren', reset: 'Modusreihenfolge zurücksetzen' },
+  fr: { sort: 'Trier les modes du niveau le plus élevé au plus bas', reset: 'Réinitialiser l’ordre des modes' },
+  da: { sort: 'Sortér tilstande fra højeste til laveste niveau', reset: 'Nulstil rækkefølgen' },
+};
 const translations: Record<Language, Record<string, string>> = {
   es: { enter: 'ENTRAR', login: 'Iniciar sesión', createAccount: 'Crear una cuenta', logout: 'Cerrar sesión', premium: 'Modos Premium', welcome: 'Bienvenido a tu mapa de vida', dashboard: 'Dashboard', customize: 'Personalizar', pressToEnter: 'Presiona para entrar', chooseLanguage: 'Idioma', journey: 'Journey del Modo', back: 'Volver', activity: 'Actividad', askAI: 'Consultar al Modo IA', useActivity: 'Usar esta actividad', context: 'Tu contexto para la IA', plans: 'Elige tu siguiente nivel', freeAccess: 'Continuar como invitado', password: 'Contraseña', email: 'Correo electrónico', name: 'Nombre', home: 'Inicio', levels: 'Niveles', modes: 'Modos', save: 'Guardar', load: 'Cargar', remove: 'Eliminar', close: 'Cerrar', viewProfile: 'Ver perfil', next: 'Siguiente', previous: 'Anterior', recommendations: 'Recomendaciones', filters: 'Filtros', skins: 'Skins', analyze: 'Analizar actividad', useInMap: 'Guardar en mi mapa' },
   en: { enter: 'ENTER', login: 'Sign in', createAccount: 'Create an account', logout: 'Log out', premium: 'Premium Modes', welcome: 'Welcome to your life map', dashboard: 'Dashboard', customize: 'Customize', pressToEnter: 'Press to enter', chooseLanguage: 'Language', journey: 'Mode Journey', back: 'Back', activity: 'Activity', askAI: 'Ask Mode AI', useActivity: 'Use this activity', context: 'Your context for AI', plans: 'Choose your next level', freeAccess: 'Continue as guest', password: 'Password', email: 'Email', name: 'Name', home: 'Home', levels: 'Levels', modes: 'Modes', save: 'Save', load: 'Load', remove: 'Delete', close: 'Close', viewProfile: 'View profile', next: 'Next', previous: 'Previous', recommendations: 'Recommendations', filters: 'Filters', skins: 'Skins', analyze: 'Analyze activity', useInMap: 'Save to my map' },
@@ -860,6 +877,7 @@ function App() {
   const [insightNotice, setInsightNotice] = useState<string | null>(null);
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
   const [view, setView] = useState<View>('welcome');
+  const [homeSortDescending, setHomeSortDescending] = useState(false);
   const [authTokens, setAuthTokens] = useState<AuthTokens | null>(() => {
     try {
       const saved = window.sessionStorage.getItem('gm-auth-tokens');
@@ -2305,15 +2323,13 @@ function App() {
   }, [activityDrafts, levels, presets]);
 
   const accountBlocked = signingOut || (isAuthenticated && (!stateHydrated || !verifiedIdentity || activeSessionRef.current !== authTokens?.access_token));
+  const orderedHomeModes = homeSortDescending
+    ? [...modes].sort((left, right) => levels[right.key] - levels[left.key])
+    : modes;
 
   return (
     <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
       <header className={`topbar${view === 'welcome' ? ' topbar--material-home' : ''}`}>
-        {view === 'welcome' && <div className="home-silverbar-shortcuts">
-          <button className="home-silverbar-action" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')} title={tr('profileButton')}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg></button>
-          <button ref={configurationsTriggerRef} className="home-silverbar-action" type="button" onClick={() => setConfigurationsOpen(true)} aria-label={tr('presets')} title={tr('presets')} aria-haspopup="dialog" aria-controls="life-configurations-card">✦</button>
-          <button className="home-silverbar-action" type="button" onClick={() => setView('dashboard')} aria-label={tr('controlCenter')} title={tr('controlCenter')}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></svg></button>
-        </div>}
         <a className="brand" href="/" aria-label="Modo Cultiva, inicio">
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
@@ -2321,12 +2337,12 @@ function App() {
         {view === 'welcome' && <span className="home-material-title">Modo Cultiva</span>}
         <div className="topbar-meta">{tr('lifeModes')}</div>
         <div className="topbar-actions">
-          <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select><svg viewBox="0 0 12 12" width="10" height="10" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg></label>
-          <PwaControls language={language} />
+          <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageFlags[code]} {languageNames[code]}</option>)}</select><svg viewBox="0 0 12 12" width="10" height="10" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg></label>
+          {view !== 'welcome' && <><PwaControls language={language} />
           <div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">
             <button type="button" role="menuitem" data-tour="replay" disabled={aiLoading} onClick={startTour}>{onboardingIntegrationCopy(language).replay} <span aria-hidden="true">↗</span></button>
             <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setCommunityTab('network'); setCommunityOpen(true); }}>{onboardingIntegrationCopy(language).network} <span aria-hidden="true">↗</span></button>
-            {isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div>
+            {isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div></>}
         </div>
         {isAuthenticated && <span className={`state-sync-state state-sync-state--${stateSyncStatus}`} role="status">{tr(stateSyncStatus === 'syncing' ? 'syncState' : stateSyncStatus === 'synced' ? 'syncReady' : 'syncFailed')}</span>}
       </header>
@@ -2376,9 +2392,17 @@ function App() {
         </section>
       ) : view === 'welcome' ? (
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ' welcome-view--polished'}`} data-layer="home" aria-label={tr('lifeModes')}>
-          <div className="home-greeting"><h1>Bienvenido, <strong>{displayedProfileName}</strong></h1></div>
+          <div className="home-greeting">
+            <h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>
+            <div className="home-greeting-quick-space">
+              <button className={`home-sort-button${homeSortDescending ? ' is-active' : ''}`} type="button" aria-label={homeSortDescending ? homeSortLabels[language].reset : homeSortLabels[language].sort} aria-pressed={homeSortDescending} onClick={() => setHomeSortDescending((current) => !current)}>
+                <span className="home-sort-glyph" aria-hidden="true"><b>&gt;</b><b>&lt;</b><i>{homeSortDescending ? '↓' : '↕'}</i></span>
+                <span>{homeSortDescending ? homeSortLabels[language].sort : tr('level')}</span>
+              </button>
+            </div>
+          </div>
           <div className="home-mode-grid" aria-label={tr('lifeModes')}>
-            {modes.map((mode) => {
+            {orderedHomeModes.map((mode) => {
               const level = levels[mode.key];
               return <button className="home-mode-card" data-tour-mode={mode.key} key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties} aria-label={`${modeName(mode)}, ${tr('level')} ${level}`}>
                 <span className="home-mode-card-top"><span className="home-mode-icon" aria-hidden="true">{mode.icon}</span></span>
