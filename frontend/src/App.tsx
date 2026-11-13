@@ -2407,16 +2407,14 @@ function App() {
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ' welcome-view--polished'}`} data-layer="home" aria-label={tr('lifeModes')}>
           <div className="home-greeting">
             <div className="home-greeting-heading">
-              <span className="home-greeting-emoji" role="img" aria-label="¡Hola!">👋🌞</span>
               <div className="home-greeting-copy">
                 <h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>
-                <p>{homeGreetingPhrase}</p>
+                <p>{homeGreetingPhrase}<span className="home-greeting-emoji" role="img" aria-label="¡Hola!">👋</span></p>
               </div>
             </div>
             <div className="home-greeting-quick-space">
               <button className={`home-sort-button${homeSortDescending ? ' is-active' : ''}`} type="button" aria-label={homeSortDescending ? homeSortLabels[language].reset : homeSortLabels[language].sort} aria-pressed={homeSortDescending} onClick={() => setHomeSortDescending((current) => !current)}>
-                <span className="home-sort-glyph" aria-hidden="true"><b>&gt;</b><b>&lt;</b><i>{homeSortDescending ? '↓' : '↕'}</i></span>
-                <span>{homeSortDescending ? homeSortLabels[language].sort : tr('level')}</span>
+                <span className="home-sort-glyph" aria-hidden="true"><i>↑</i><i>↓</i></span>
               </button>
             </div>
           </div>
