@@ -335,6 +335,19 @@ const homeGreetingPhrases = [
   'Hoy empieza con una buena intención.',
   'Me alegra acompañarte en tu camino.',
 ];
+const pullRefreshCopy: Record<Language, { loading: string; failed: string }> = {
+  es: { loading: 'Actualizando Modo Cultiva', failed: 'No se pudo actualizar. Intenta de nuevo.' },
+  en: { loading: 'Refreshing Modo Cultiva', failed: 'Could not refresh. Try again.' },
+  zh: { loading: '正在刷新 Modo Cultiva', failed: '刷新失败，请重试。' },
+  hi: { loading: 'Modo Cultiva रीफ़्रेश हो रहा है', failed: 'रीफ़्रेश नहीं हो सका। फिर कोशिश करें।' },
+  ar: { loading: 'جارٍ تحديث Modo Cultiva', failed: 'تعذر التحديث. حاول مرة أخرى.' },
+  it: { loading: 'Aggiornamento di Modo Cultiva', failed: 'Aggiornamento non riuscito. Riprova.' },
+  pt: { loading: 'Atualizando o Modo Cultiva', failed: 'Não foi possível atualizar. Tente novamente.' },
+  ru: { loading: 'Обновление Modo Cultiva', failed: 'Не удалось обновить. Попробуйте ещё раз.' },
+  de: { loading: 'Modo Cultiva wird aktualisiert', failed: 'Aktualisierung fehlgeschlagen. Bitte erneut versuchen.' },
+  fr: { loading: 'Actualisation de Modo Cultiva', failed: 'Échec de l’actualisation. Réessayez.' },
+  da: { loading: 'Opdaterer Modo Cultiva', failed: 'Kunne ikke opdatere. Prøv igen.' },
+};
 const translations: Record<Language, Record<string, string>> = {
   es: { enter: 'ENTRAR', login: 'Iniciar sesión', createAccount: 'Crear una cuenta', logout: 'Cerrar sesión', premium: 'Modos Premium', welcome: 'Bienvenido a tu mapa de vida', dashboard: 'Dashboard', customize: 'Personalizar', pressToEnter: 'Presiona para entrar', chooseLanguage: 'Idioma', journey: 'Journey del Modo', back: 'Volver', activity: 'Actividad', askAI: 'Consultar al Modo IA', useActivity: 'Usar esta actividad', context: 'Tu contexto para la IA', plans: 'Elige tu siguiente nivel', freeAccess: 'Continuar como invitado', password: 'Contraseña', email: 'Correo electrónico', name: 'Nombre', home: 'Inicio', levels: 'Niveles', modes: 'Modos', save: 'Guardar', load: 'Cargar', remove: 'Eliminar', close: 'Cerrar', viewProfile: 'Ver perfil', next: 'Siguiente', previous: 'Anterior', recommendations: 'Recomendaciones', filters: 'Filtros', skins: 'Skins', analyze: 'Analizar actividad', useInMap: 'Guardar en mi mapa' },
   en: { enter: 'ENTER', login: 'Sign in', createAccount: 'Create an account', logout: 'Log out', premium: 'Premium Modes', welcome: 'Welcome to your life map', dashboard: 'Dashboard', customize: 'Customize', pressToEnter: 'Press to enter', chooseLanguage: 'Language', journey: 'Mode Journey', back: 'Back', activity: 'Activity', askAI: 'Ask Mode AI', useActivity: 'Use this activity', context: 'Your context for AI', plans: 'Choose your next level', freeAccess: 'Continue as guest', password: 'Password', email: 'Email', name: 'Name', home: 'Home', levels: 'Levels', modes: 'Modes', save: 'Save', load: 'Load', remove: 'Delete', close: 'Close', viewProfile: 'View profile', next: 'Next', previous: 'Previous', recommendations: 'Recommendations', filters: 'Filters', skins: 'Skins', analyze: 'Analyze activity', useInMap: 'Save to my map' },
@@ -916,6 +929,8 @@ function App() {
   const consentMemoryRef = useRef(new Set<string>());
   const consentChoiceRef = useRef<((choice: 'import' | 'cloud-only' | 'cancel') => void) | null>(null);
   const [stateSyncStatus, setStateSyncStatus] = useState<'syncing' | 'synced' | 'error'>('syncing');
+  const [pullDistance, setPullDistance] = useState(0);
+  const [pullRefreshState, setPullRefreshState] = useState<'idle' | 'refreshing' | 'error'>('idle');
   const [authError, setAuthError] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
   const [activePlan, setActivePlan] = useState<PlanKey>(() => {
@@ -1017,6 +1032,8 @@ function App() {
   const cultEmbeddedRef = useRef<HTMLElement | null>(null);
   const stateQueueRef = useRef<StateSyncQueue | null>(null);
   const stateQueueSessionRef = useRef<string | null>(null);
+  const pullStartYRef = useRef<number | null>(null);
+  const pullDistanceRef = useRef(0);
   const [onboardingWelcomeCompleted, setOnboardingWelcomeCompleted] = useState(false);
   const [welcomeScope, setWelcomeScope] = useState<WelcomeIntroScope | null>(null);
   const welcomeChecked = useRef(new Set<string>());
@@ -1138,6 +1155,72 @@ function App() {
       return normalizeCanonicalSnapshot(snapshot);
     });
   };
+
+  useEffect(() => {
+    const setDistance = (distance: number) => {
+      pullDistanceRef.current = distance;
+      setPullDistance(distance);
+    };
+    const refreshApplication = async () => {
+      setPullRefreshState('refreshing');
+      setDistance(100);
+      try {
+        if (authTokens?.access_token && stateHydrated && stateQueueRef.current) await flushPersonalState();
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.getRegistration().catch(() => undefined);
+          if (registration) {
+            await Promise.race([registration.update().catch(() => undefined), new Promise<void>(resolve => window.setTimeout(resolve, 2200))]);
+            const installing = registration.installing;
+            if (installing) await Promise.race([
+              new Promise<void>(resolve => {
+                if (installing.state === 'activated' || installing.state === 'redundant') resolve();
+                else installing.addEventListener('statechange', () => { if (installing.state === 'activated' || installing.state === 'redundant') resolve(); });
+              }),
+              new Promise<void>(resolve => window.setTimeout(resolve, 1800)),
+            ]);
+          }
+        }
+        window.location.reload();
+      } catch {
+        setPullRefreshState('error');
+        window.setTimeout(() => {
+          setPullRefreshState('idle');
+          setDistance(0);
+        }, 2800);
+      }
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      if (pullRefreshState !== 'idle' || window.scrollY > 0 || event.touches.length !== 1) return;
+      if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"], [role="dialog"], dialog, [data-no-pull-refresh]')) return;
+      pullStartYRef.current = event.touches[0].clientY;
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      const startY = pullStartYRef.current;
+      if (startY === null || pullRefreshState === 'refreshing' || event.touches.length !== 1) return;
+      if (window.scrollY > 0) { pullStartYRef.current = null; setDistance(0); return; }
+      const movement = event.touches[0].clientY - startY;
+      if (movement < -8) { pullStartYRef.current = null; setDistance(0); return; }
+      if (movement <= 0) return;
+      if (event.cancelable) event.preventDefault();
+      setDistance(Math.min(100, movement * .72));
+    };
+    const onTouchEnd = () => {
+      pullStartYRef.current = null;
+      const distance = pullDistanceRef.current;
+      if (distance >= 72 && pullRefreshState !== 'refreshing') void refreshApplication();
+      else if (pullRefreshState !== 'refreshing') setDistance(0);
+    };
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [authTokens?.access_token, stateHydrated, language, pullRefreshState]);
 
   useEffect(() => {
     try { personalStorageRef.current.setItem('modoCultiva_activityAlignments', JSON.stringify(activityAlignments)); }
@@ -2342,6 +2425,20 @@ function App() {
 
   return (
     <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
+      <div
+        className={`pull-refresh-indicator${pullDistance > 0 || pullRefreshState !== 'idle' ? ' is-visible' : ''}${pullRefreshState === 'refreshing' ? ' is-refreshing' : ''}${pullRefreshState === 'error' ? ' is-error' : ''}`}
+        style={{ transform: `translate(-50%, ${pullRefreshState === 'idle' ? Math.min(pullDistance * .65, 60) - 52 : 12}px)` }}
+        role="status"
+        aria-live="polite"
+        aria-busy={pullRefreshState === 'refreshing'}
+      >
+        <svg className="pull-refresh-spinner" viewBox="0 0 40 40" aria-hidden="true">
+          <circle className="pull-refresh-track" cx="20" cy="20" r="16" />
+          <circle className="pull-refresh-arc" cx="20" cy="20" r="16" style={{ strokeDasharray: pullRefreshState === 'refreshing' ? '68 32' : '100', strokeDashoffset: pullRefreshState === 'refreshing' ? 0 : 100 - Math.min(78, pullDistance / 72 * 78) }} />
+        </svg>
+        <span className="sr-only">{pullRefreshState === 'refreshing' ? pullRefreshCopy[language].loading : pullRefreshState === 'error' ? pullRefreshCopy[language].failed : ''}</span>
+        {pullRefreshState === 'error' && <span className="pull-refresh-error-message">{pullRefreshCopy[language].failed}</span>}
+      </div>
       <header className={`topbar${view === 'welcome' ? ' topbar--material-home' : ''}`}>
         <a className="brand" href="/" aria-label="Modo Cultiva, inicio">
           <img src={logo} alt="Modo Cultiva" />
