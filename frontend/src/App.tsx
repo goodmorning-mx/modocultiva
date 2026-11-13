@@ -2308,7 +2308,7 @@ function App() {
 
   return (
     <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
-      <header className={`topbar${view === 'welcome' ? ' topbar--silver-home' : ''}`}>
+      <header className={`topbar${view === 'welcome' ? ' topbar--material-home' : ''}`}>
         {view === 'welcome' && <div className="home-silverbar-shortcuts">
           <button className="home-silverbar-action" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')} title={tr('profileButton')}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg></button>
           <button ref={configurationsTriggerRef} className="home-silverbar-action" type="button" onClick={() => setConfigurationsOpen(true)} aria-label={tr('presets')} title={tr('presets')} aria-haspopup="dialog" aria-controls="life-configurations-card">✦</button>
@@ -2318,7 +2318,7 @@ function App() {
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
-        {view === 'welcome' && <span className="home-silverbar-title">Modo Cultiva</span>}
+        {view === 'welcome' && <span className="home-material-title">Modo Cultiva</span>}
         <div className="topbar-meta">{tr('lifeModes')}</div>
         <div className="topbar-actions">
           <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select><svg viewBox="0 0 12 12" width="10" height="10" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg></label>
@@ -2376,6 +2376,7 @@ function App() {
         </section>
       ) : view === 'welcome' ? (
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ' welcome-view--polished'}`} data-layer="home" aria-label={tr('lifeModes')}>
+          <div className="home-greeting"><h1>Bienvenido, <strong>{displayedProfileName}</strong></h1></div>
           <div className="home-mode-grid" aria-label={tr('lifeModes')}>
             {modes.map((mode) => {
               const level = levels[mode.key];
