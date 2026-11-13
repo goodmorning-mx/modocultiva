@@ -24,7 +24,8 @@ assert.ok(app.includes('homeGreetingPhrases[Math.floor(Math.random() * homeGreet
 assert.ok(app.includes('<p>{homeGreetingPhrase}<span className="home-greeting-emoji"') && app.includes('>👋</span>'), 'The small phone emoji follows the welcome phrase');
 assert.ok(app.includes('homeSortDescending') && app.includes('levels[right.key] - levels[left.key]') && app.includes('home-sort-glyph') && app.includes('<i>↑</i><i>↓</i>'), 'Home sorts modes with an up/down arrow-only control');
 assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*grid-column:\s*1/,'Current brand logo sits on the left side of the app bar');
-assert.ok(app.includes('{view === \'welcome\' ? <button className="home-profile-avatar"') && app.includes(': <><label className="language-picker">') && app.includes('languageFlags[code]'), 'Home uses a profile avatar while other views retain the flag language picker');
+assert.ok(app.includes('{view === \'welcome\' ? <><button className="home-profile-avatar"') && app.includes('className="home-menu-button"') && app.includes(': <><label className="language-picker">') && app.includes('languageFlags[code]'), 'Home uses a profile avatar and menu button while other views retain the flag language picker');
+assert.ok(app.includes('className="home-sidebar" id="home-sidebar" role="dialog"') && app.includes("setView('dashboard')") && app.includes("setView('lab')") && app.includes('setConfigurationsOpen(true)'), 'Home sidebar opens as an accessible navigation panel with links to existing screens and options');
 assert.ok(!app.includes('home-silverbar-shortcuts') && !app.includes('home-silverbar-action'), 'Home title bar contains no shortcut icons');
 assert.ok(!app.includes('welcome-copy') && !cardGrid.includes('home-mode-roman'), 'Home shows no heading or roman characters above tiles');
 
