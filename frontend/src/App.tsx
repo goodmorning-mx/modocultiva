@@ -362,6 +362,7 @@ const translations: Record<Language, Record<string, string>> = {
   da: { enter: 'GÅ IND', login: 'Log ind', createAccount: 'Opret konto', logout: 'Log ud', premium: 'Premium-tilstande', welcome: 'Velkommen til dit livskort', dashboard: 'Dashboard', customize: 'Tilpas', pressToEnter: 'Tryk for at gå ind', chooseLanguage: 'Sprog', journey: 'Mode-rejse', back: 'Tilbage', activity: 'Aktivitet', askAI: 'Spørg Mode AI', useActivity: 'Brug denne aktivitet', context: 'Din kontekst til AI', plans: 'Vælg dit næste niveau', freeAccess: 'Fortsæt som gæst', password: 'Adgangskode', email: 'E-mail', name: 'Navn', home: 'Hjem', levels: 'Niveauer', modes: 'Modes', save: 'Gem', load: 'Indlæs', remove: 'Slet', close: 'Luk', viewProfile: 'Se profil', next: 'Næste', previous: 'Forrige', recommendations: 'Anbefalinger', filters: 'Filtre', skins: 'Skins', analyze: 'Analysér aktivitet', useInMap: 'Gem på mit kort' },
  };
 const extraTranslations: Record<string, Record<Language, string>> = {
+  homeNavigation: { es: 'Navegación', en: 'Navigation', zh: '导航', hi: 'नेविगेशन', ar: 'التنقل', it: 'Navigazione', pt: 'Navegação', ru: 'Навигация', de: 'Navigation', fr: 'Navigation', da: 'Navigation' },
   dashboardTitle: { es: 'Tu centro de cultivo.', en: 'Your cultivation center.', zh: '你的培育中心。', hi: 'आपका विकास केंद्र।', ar: 'مركز تنميتك.', it: 'Il tuo centro di crescita.', pt: 'Seu centro de cultivo.', ru: 'Ваш центр развития.', de: 'Dein Entwicklungszentrum.', fr: 'Votre centre de développement.', da: 'Dit udviklingscenter.' },
   dashboardIntro: { es: 'Una lectura ejecutiva de tu progreso, tus focos de atención y los siguientes movimientos de tu mapa de vida.', en: 'An executive view of your progress, your areas of focus, and the next movements on your life map.', zh: '概览你的进展、关注重点以及人生地图上的下一步。', hi: 'आपकी प्रगति, ध्यान के क्षेत्रों और जीवन मानचित्र की अगली चालों का कार्यकारी अवलोकन।', ar: 'نظرة تنفيذية على تقدمك ومجالات تركيزك وخطواتك التالية على خريطة حياتك.', it: 'Una lettura esecutiva dei tuoi progressi, delle aree su cui concentrarti e dei prossimi passi sulla tua mappa della vita.', pt: 'Uma visão executiva do seu progresso, dos seus focos de atenção e dos próximos movimentos no seu mapa de vida.', ru: 'Обзор вашего прогресса, зон внимания и следующих шагов на карте жизни.', de: 'Ein Überblick über deinen Fortschritt, deine Fokusbereiche und die nächsten Schritte auf deiner Lebenskarte.', fr: 'Une lecture synthétique de vos progrès, de vos domaines d’attention et de vos prochaines étapes sur votre carte de vie.', da: 'Et overblik over din fremgang, dine fokusområder og de næste skridt på dit livskort.' },
   executiveSummary: { es: 'RESUMEN EJECUTIVO', en: 'EXECUTIVE SUMMARY', zh: '执行摘要', hi: 'कार्यकारी सारांश', ar: 'ملخص تنفيذي', it: 'RIEPILOGO ESECUTIVO', pt: 'RESUMO EXECUTIVO', ru: 'КРАТКИЙ ОБЗОР', de: 'EXECUTIVE SUMMARY', fr: 'RÉSUMÉ EXÉCUTIF', da: 'EXECUTIVE RESUMÉ' },
@@ -902,6 +903,7 @@ function App() {
   const [insightNotice, setInsightNotice] = useState<string | null>(null);
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
   const [view, setView] = useState<View>('welcome');
+  const [homeSidebarOpen, setHomeSidebarOpen] = useState(false);
   const [homeSortDescending, setHomeSortDescending] = useState(false);
   const [authTokens, setAuthTokens] = useState<AuthTokens | null>(() => {
     try {
@@ -2423,6 +2425,15 @@ function App() {
     : modes;
   const [homeGreetingPhrase] = useState(() => homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]);
 
+  useEffect(() => {
+    if (!homeSidebarOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setHomeSidebarOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [homeSidebarOpen]);
+
   return (
     <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
       <div
@@ -2447,9 +2458,9 @@ function App() {
         {view === 'welcome' && <span className="home-material-title">Modo Cultiva</span>}
         <div className="topbar-meta">{tr('lifeModes')}</div>
         <div className="topbar-actions">
-          {view === 'welcome' ? <button className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')} title={tr('profileButton')}>
+          {view === 'welcome' ? <><button className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')} title={tr('profileButton')}>
             {profileImage ? <img src={profileImage} alt="" /> : <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg>}
-          </button> : <><label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageFlags[code]} {languageNames[code]}</option>)}</select><svg viewBox="0 0 12 12" width="10" height="10" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg></label><PwaControls language={language} />
+          </button><button className="home-menu-button" type="button" onClick={() => setHomeSidebarOpen(true)} aria-label={tr('homeNavigation')} aria-expanded={homeSidebarOpen} aria-controls="home-sidebar" title={tr('homeNavigation')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button></> : <><label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageFlags[code]} {languageNames[code]}</option>)}</select><svg viewBox="0 0 12 12" width="10" height="10" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg></label><PwaControls language={language} />
           <div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">
             <button type="button" role="menuitem" data-tour="replay" disabled={aiLoading} onClick={startTour}>{onboardingIntegrationCopy(language).replay} <span aria-hidden="true">↗</span></button>
             <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setCommunityTab('network'); setCommunityOpen(true); }}>{onboardingIntegrationCopy(language).network} <span aria-hidden="true">↗</span></button>
@@ -2457,6 +2468,20 @@ function App() {
         </div>
         {isAuthenticated && <span className={`state-sync-state state-sync-state--${stateSyncStatus}`} role="status">{tr(stateSyncStatus === 'syncing' ? 'syncState' : stateSyncStatus === 'synced' ? 'syncReady' : 'syncFailed')}</span>}
       </header>
+
+      {homeSidebarOpen && view === 'welcome' && <div className="home-sidebar-backdrop" role="presentation" onClick={() => setHomeSidebarOpen(false)}>
+        <aside className="home-sidebar" id="home-sidebar" role="dialog" aria-modal="true" aria-labelledby="home-sidebar-title" onClick={(event) => event.stopPropagation()}>
+          <div className="home-sidebar-heading"><div><span className="home-sidebar-eyebrow">Modo Cultiva</span><h2 id="home-sidebar-title">{tr('homeNavigation')}</h2></div><button className="home-sidebar-close" type="button" onClick={() => setHomeSidebarOpen(false)} aria-label={tr('close')}>×</button></div>
+          <nav className="home-sidebar-nav" aria-label={tr('homeNavigation')}>
+            <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('welcome'); }}><span className="home-sidebar-icon" aria-hidden="true">⌂</span><span>{tr('home')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('dashboard'); }}><span className="home-sidebar-icon" aria-hidden="true">◫</span><span>{tr('controlCenter')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('lab'); }}><span className="home-sidebar-icon" aria-hidden="true">✳</span><span>{tr('triviaTitle')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" onClick={() => { setHomeSidebarOpen(false); setProfilePreviewMode(true); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('profileButton')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" onClick={() => { setHomeSidebarOpen(false); setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            {!RELEASE_FREE_ACCESS && <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('plans'); }}><span className="home-sidebar-icon" aria-hidden="true">✦</span><span>{tr('premium')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>}
+          </nav>
+        </aside>
+      </div>}
 
       {view === 'login' ? (
         <section className="login-view" data-layer="inicio" aria-labelledby="login-title">
