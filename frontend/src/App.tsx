@@ -2308,11 +2308,17 @@ function App() {
 
   return (
     <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
-      <header className="topbar">
+      <header className={`topbar${view === 'welcome' ? ' topbar--silver-home' : ''}`}>
+        {view === 'welcome' && <div className="home-silverbar-shortcuts">
+          <button className="home-silverbar-action" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')} title={tr('profileButton')}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg></button>
+          <button ref={configurationsTriggerRef} className="home-silverbar-action" type="button" onClick={() => setConfigurationsOpen(true)} aria-label={tr('presets')} title={tr('presets')} aria-haspopup="dialog" aria-controls="life-configurations-card">✦</button>
+          <button className="home-silverbar-action" type="button" onClick={() => setView('dashboard')} aria-label={tr('controlCenter')} title={tr('controlCenter')}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></svg></button>
+        </div>}
         <a className="brand" href="/" aria-label="Modo Cultiva, inicio">
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
+        {view === 'welcome' && <span className="home-silverbar-title">Modo Cultiva</span>}
         <div className="topbar-meta">{tr('lifeModes')}</div>
         <div className="topbar-actions">
           <label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageNames[code]}</option>)}</select><svg viewBox="0 0 12 12" width="10" height="10" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg></label>
@@ -2369,25 +2375,12 @@ function App() {
           </main><aside className="cult-rail"><div className="cult-status-card"><span className="cult-status-label">TU ESTATUS</span><div className="cult-badge">U</div><h3>ULTIMATE MODE</h3><p>{tr('globalTitle')}</p><div className="cult-status-rule" /><span className="cult-status-label">TU RED</span><strong>24 conexiones</strong><small>+6 esta semana</small></div><div className="cult-rail-card"><span className="cult-status-label">PRÓXIMO EN TU RUTA</span><strong>{modeName(modes[11])}</strong><p>3 recomendaciones esperan tu revisión.</p><button type="button" onClick={() => setCultTab('insights')}>{tr('recommendations')} →</button></div><div className="cult-quote">“No cultivas una sola versión de ti.<br /><strong>Cultivas todas.</strong>”</div></aside></div>
         </section>
       ) : view === 'welcome' ? (
-        <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ' welcome-view--polished'}`} data-layer="home" aria-labelledby="welcome-title">
-          <div className="welcome-copy">
-            <p className="kicker">{tr('welcome')}</p>
-            <h1 id="welcome-title">Cultiva todos tus modos.</h1>
-            <p className="intro-copy">{tr('welcomeOverviewCopy')}</p>
-          </div>
-          <div className="home-profile-bar">
-            <button className="home-profile-card" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')}>
-              <span className="home-profile-avatar" style={profileImage ? { backgroundImage: `linear-gradient(180deg, rgba(4, 18, 29, .08), rgba(4, 18, 29, .32)), url(${profileImage})` } : undefined}>{!profileImage && <span>{displayedProfileName ? displayedProfileName.slice(0, 1).toUpperCase() : <CultivaLeaf />}</span>}</span>
-              <span className="home-profile-copy"><strong>{displayedProfileName || tr('welcome')}</strong>{displayedProfileRole && <small>{displayedProfileRole}</small>}</span>
-              <span className="home-profile-action">{tr('profileButton')} <b>↗</b></span>
-            </button>
-            <button ref={configurationsTriggerRef} className="home-presets-button" type="button" onClick={() => setConfigurationsOpen(true)} aria-haspopup="dialog" aria-controls="life-configurations-card"><span aria-hidden="true">✦</span>{tr('presets')}<b aria-hidden="true">↗</b></button>
-          </div>
+        <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ' welcome-view--polished'}`} data-layer="home" aria-label={tr('lifeModes')}>
           <div className="home-mode-grid" aria-label={tr('lifeModes')}>
             {modes.map((mode) => {
               const level = levels[mode.key];
               return <button className="home-mode-card" data-tour-mode={mode.key} key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties} aria-label={`${modeName(mode)}, ${tr('level')} ${level}`}>
-                <span className="home-mode-card-top"><span className="home-mode-icon" aria-hidden="true">{mode.icon}</span><span className="home-mode-roman">{mode.roman}</span></span>
+                <span className="home-mode-card-top"><span className="home-mode-icon" aria-hidden="true">{mode.icon}</span></span>
                 <strong className="home-mode-name">{modeShortName(mode)}</strong>
                 <span className="home-mode-summary"><b>{tr('level')} {level}</b><small>{localizedLevelNames[language][level]}</small></span>
                 <span className="home-mode-meter" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < level ? 'is-active' : undefined} />)}</span>
@@ -2395,9 +2388,6 @@ function App() {
                 <span className="home-mode-arrow" aria-hidden="true">↗</span>
               </button>;
             })}
-          </div>
-          <div className="overview-dashboard-entry">
-            <button className="overview-dashboard-cta" type="button" onClick={() => setView('dashboard')}>{tr('controlCenter')} <span aria-hidden="true">↗</span></button>
           </div>
         </section>
       ) : (
