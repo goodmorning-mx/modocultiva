@@ -5,6 +5,7 @@ const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const css = await readFile(new URL('../src/home-mode-widgets.css', import.meta.url), 'utf8');
 const modeList = app.match(/const modes: Mode\[\] = \[([\s\S]*?)\n\];/)?.[1] ?? '';
 const greetingList = app.match(/const homeGreetingPhrases = \[([\s\S]*?)\n\];/)?.[1] ?? '';
+const quoteList = app.match(/const homeCultivationQuotes = \[([\s\S]*?)\n\];/)?.[1] ?? '';
 const gridStart = app.indexOf('<div className="home-mode-grid"');
 const cardGrid = gridStart < 0 ? '' : app.slice(gridStart, app.indexOf('</section>', gridStart));
 
@@ -23,6 +24,10 @@ assert.equal((greetingList.match(/^\s*'/gm) ?? []).length, 10, 'Home has ten fri
 assert.ok(app.includes('homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]') && app.includes('className="home-greeting-emoji" role="img"'), 'Home selects a friendly greeting and displays its welcome emoji');
 assert.ok(app.includes('<p>{homeGreetingPhrase}<span className="home-greeting-emoji"') && app.includes('>👋</span>'), 'The small phone emoji follows the welcome phrase');
 assert.ok(app.includes('const homeCultivationQuotes = [') && app.includes('className="home-quote-card"') && app.includes('homeDailyQuote.author') && app.includes('homeDailyQuote.source'), 'Home displays an attributed daily cultivation quote with a source');
+assert.equal((quoteList.match(/\{ quote:/g) ?? []).length, 20, 'Home has twenty attributed daily quotes');
+const quoteModeCounts = [...quoteList.matchAll(/modeKey: '([^']+)'/g)].reduce((counts, match) => ({ ...counts, [match[1]]: (counts[match[1]] ?? 0) + 1 }), {});
+assert.equal(Object.keys(quoteModeCounts).length, 12, 'Daily quotes cover every life mode');
+assert.ok(Math.max(...Object.values(quoteModeCounts)) - Math.min(...Object.values(quoteModeCounts)) <= 1, 'Daily quotes are balanced across the life modes');
 assert.ok(app.includes('homeSortDescending') && app.includes('levels[right.key] - levels[left.key]') && app.includes('home-sort-glyph') && app.includes('<i>↑</i><i>↓</i>'), 'Home sorts modes with an up/down arrow-only control');
 assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*grid-column:\s*1/,'Current brand logo sits on the left side of the app bar');
 assert.ok(app.includes('{view === \'welcome\' ? <><button className="home-profile-avatar"') && app.includes('className="home-menu-button"') && app.includes(': <><label className="language-picker">') && app.includes('languageFlags[code]'), 'Home uses a profile avatar and menu button while other views retain the flag language picker');
