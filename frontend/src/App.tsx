@@ -323,18 +323,6 @@ const homeSortLabels: Record<Language, { sort: string; reset: string }> = {
   fr: { sort: 'Trier les modes du niveau le plus élevé au plus bas', reset: 'Réinitialiser l’ordre des modes' },
   da: { sort: 'Sortér tilstande fra højeste til laveste niveau', reset: 'Nulstil rækkefølgen' },
 };
-const homeGreetingPhrases = [
-  'Hoy es un buen día para crecer.',
-  'Qué alegría tenerte por aquí.',
-  'Hoy puedes dar un paso bonito.',
-  'Tu camino florece a tu ritmo.',
-  'Un nuevo día trae nuevas posibilidades.',
-  'Vamos a cultivar algo bueno hoy.',
-  'Cada pequeño avance cuenta.',
-  'Este espacio es para ti.',
-  'Hoy empieza con una buena intención.',
-  'Me alegra acompañarte en tu camino.',
-];
 const homeCultivationQuotes = [
   { quote: 'Tu tiempo es limitado; no lo desperdicies viviendo la vida de alguien más.', author: 'Steve Jobs', modeKey: 'visionario', source: 'https://news.stanford.edu/stories/2005/06/youve-got-find-love-jobs-says' },
   { quote: 'La educación es el arma más poderosa que puedes usar para cambiar el mundo.', author: 'Nelson Mandela', modeKey: 'intelectual', source: 'https://www.nelsonmandela.org/news/entry/education-the-most-powerful-agent-of-change' },
@@ -2447,7 +2435,6 @@ function App() {
   const orderedHomeModes = homeSortDescending
     ? [...modes].sort((left, right) => levels[right.key] - levels[left.key])
     : modes;
-  const [homeGreetingPhrase] = useState(() => homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]);
   const homeDailyQuote = homeCultivationQuotes[Math.floor(Date.now() / 86_400_000) % homeCultivationQuotes.length];
 
   useEffect(() => {
@@ -2562,14 +2549,9 @@ function App() {
               </svg>
               <div className="home-greeting-copy">
                 <h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>
-                <p>{homeGreetingPhrase}<span className="home-greeting-emoji" role="img" aria-label="¡Hola!">👋</span></p>
+                <p className="home-greeting-quote"><span>“{homeDailyQuote.quote}”</span><span className="home-greeting-quote-meta">— {homeDailyQuote.author} — {modeName(modes.find((mode) => mode.key === homeDailyQuote.modeKey) ?? modes[0])}</span><a href={homeDailyQuote.source} target="_blank" rel="noreferrer" aria-label={`${tr('homeQuoteSource')}: ${homeDailyQuote.author}`}>↗</a></p>
               </div>
             </div>
-            <article className="home-quote-card" aria-label={tr('homeDailyIdea')}>
-              <span className="home-quote-label"><span aria-hidden="true">✳</span> {tr('homeDailyIdea')}</span>
-              <blockquote>“{homeDailyQuote.quote}”</blockquote>
-              <div className="home-quote-footer"><span><strong>{homeDailyQuote.author}</strong><small>{modeName(modes.find((mode) => mode.key === homeDailyQuote.modeKey) ?? modes[0])}</small></span><a href={homeDailyQuote.source} target="_blank" rel="noreferrer">{tr('homeQuoteSource')} ↗</a></div>
-            </article>
             <div className="home-greeting-quick-space">
               <button className={`home-sort-button${homeSortDescending ? ' is-active' : ''}`} type="button" aria-label={homeSortDescending ? homeSortLabels[language].reset : homeSortLabels[language].sort} aria-pressed={homeSortDescending} onClick={() => setHomeSortDescending((current) => !current)}>
                 <span className="home-sort-glyph" aria-hidden="true"><i>↑</i><i>↓</i></span>
