@@ -335,6 +335,13 @@ const homeGreetingPhrases = [
   'Hoy empieza con una buena intención.',
   'Me alegra acompañarte en tu camino.',
 ];
+const homeCultivationQuotes = [
+  { quote: 'Tu tiempo es limitado; no lo desperdicies viviendo la vida de alguien más.', author: 'Steve Jobs', modeKey: 'visionario', source: 'https://news.stanford.edu/stories/2005/06/youve-got-find-love-jobs-says' },
+  { quote: 'La educación es el arma más poderosa que puedes usar para cambiar el mundo.', author: 'Nelson Mandela', modeKey: 'intelectual', source: 'https://www.nelsonmandela.org/news/entry/education-the-most-powerful-agent-of-change' },
+  { quote: 'La gente olvidará lo que dijiste y lo que hiciste, pero nunca cómo la hiciste sentir.', author: 'Maya Angelou', modeKey: 'emocional', source: 'https://www.mayaangelou.com/2018/04/04/dr-maya-angelous-90th-birthday/' },
+  { quote: 'La pregunta más urgente de la vida es: ¿qué estás haciendo por los demás?', author: 'Martin Luther King Jr.', modeKey: 'social', source: 'https://thekingcenter.org/wp-content/uploads/2025/07/Teaching-6-12-Curriculum-07.10.2025-v2.pdf' },
+  { quote: 'La educación me abrió muchas puertas y me dio confianza para perseguir mis ambiciones y tener voz en el mundo.', author: 'Michelle Obama', modeKey: 'profesional', source: 'https://obamawhitehouse.archives.gov/the-press-office/2016/10/11/international-day-girl-op-ed-first-lady-michelle-obama' },
+];
 const pullRefreshCopy: Record<Language, { loading: string; failed: string }> = {
   es: { loading: 'Actualizando Modo Cultiva', failed: 'No se pudo actualizar. Intenta de nuevo.' },
   en: { loading: 'Refreshing Modo Cultiva', failed: 'Could not refresh. Try again.' },
@@ -363,6 +370,8 @@ const translations: Record<Language, Record<string, string>> = {
  };
 const extraTranslations: Record<string, Record<Language, string>> = {
   homeNavigation: { es: 'Navegación', en: 'Navigation', zh: '导航', hi: 'नेविगेशन', ar: 'التنقل', it: 'Navigazione', pt: 'Navegação', ru: 'Навигация', de: 'Navigation', fr: 'Navigation', da: 'Navigation' },
+  homeDailyIdea: { es: 'Una idea para cultivar', en: 'An idea to cultivate', zh: '一个值得培育的想法', hi: 'विकसित करने का एक विचार', ar: 'فكرة تستحق أن تنمو', it: 'Un’idea da coltivare', pt: 'Uma ideia para cultivar', ru: 'Идея для развития', de: 'Ein Gedanke zum Wachsen', fr: 'Une idée à cultiver', da: 'En tanke at dyrke' },
+  homeQuoteSource: { es: 'Ver fuente', en: 'View source', zh: '查看来源', hi: 'स्रोत देखें', ar: 'عرض المصدر', it: 'Vedi la fonte', pt: 'Ver fonte', ru: 'Источник', de: 'Quelle ansehen', fr: 'Voir la source', da: 'Se kilde' },
   dashboardTitle: { es: 'Tu centro de cultivo.', en: 'Your cultivation center.', zh: '你的培育中心。', hi: 'आपका विकास केंद्र।', ar: 'مركز تنميتك.', it: 'Il tuo centro di crescita.', pt: 'Seu centro de cultivo.', ru: 'Ваш центр развития.', de: 'Dein Entwicklungszentrum.', fr: 'Votre centre de développement.', da: 'Dit udviklingscenter.' },
   dashboardIntro: { es: 'Una lectura ejecutiva de tu progreso, tus focos de atención y los siguientes movimientos de tu mapa de vida.', en: 'An executive view of your progress, your areas of focus, and the next movements on your life map.', zh: '概览你的进展、关注重点以及人生地图上的下一步。', hi: 'आपकी प्रगति, ध्यान के क्षेत्रों और जीवन मानचित्र की अगली चालों का कार्यकारी अवलोकन।', ar: 'نظرة تنفيذية على تقدمك ومجالات تركيزك وخطواتك التالية على خريطة حياتك.', it: 'Una lettura esecutiva dei tuoi progressi, delle aree su cui concentrarti e dei prossimi passi sulla tua mappa della vita.', pt: 'Uma visão executiva do seu progresso, dos seus focos de atenção e dos próximos movimentos no seu mapa de vida.', ru: 'Обзор вашего прогресса, зон внимания и следующих шагов на карте жизни.', de: 'Ein Überblick über deinen Fortschritt, deine Fokusbereiche und die nächsten Schritte auf deiner Lebenskarte.', fr: 'Une lecture synthétique de vos progrès, de vos domaines d’attention et de vos prochaines étapes sur votre carte de vie.', da: 'Et overblik over din fremgang, dine fokusområder og de næste skridt på dit livskort.' },
   executiveSummary: { es: 'RESUMEN EJECUTIVO', en: 'EXECUTIVE SUMMARY', zh: '执行摘要', hi: 'कार्यकारी सारांश', ar: 'ملخص تنفيذي', it: 'RIEPILOGO ESECUTIVO', pt: 'RESUMO EXECUTIVO', ru: 'КРАТКИЙ ОБЗОР', de: 'EXECUTIVE SUMMARY', fr: 'RÉSUMÉ EXÉCUTIF', da: 'EXECUTIVE RESUMÉ' },
@@ -2424,6 +2433,7 @@ function App() {
     ? [...modes].sort((left, right) => levels[right.key] - levels[left.key])
     : modes;
   const [homeGreetingPhrase] = useState(() => homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]);
+  const homeDailyQuote = homeCultivationQuotes[Math.floor(Date.now() / 86_400_000) % homeCultivationQuotes.length];
 
   useEffect(() => {
     if (!homeSidebarOpen) return;
@@ -2540,6 +2550,11 @@ function App() {
                 <p>{homeGreetingPhrase}<span className="home-greeting-emoji" role="img" aria-label="¡Hola!">👋</span></p>
               </div>
             </div>
+            <article className="home-quote-card" aria-label={tr('homeDailyIdea')}>
+              <span className="home-quote-label"><span aria-hidden="true">✳</span> {tr('homeDailyIdea')}</span>
+              <blockquote>“{homeDailyQuote.quote}”</blockquote>
+              <div className="home-quote-footer"><span><strong>{homeDailyQuote.author}</strong><small>{modeName(modes.find((mode) => mode.key === homeDailyQuote.modeKey) ?? modes[0])}</small></span><a href={homeDailyQuote.source} target="_blank" rel="noreferrer">{tr('homeQuoteSource')} ↗</a></div>
+            </article>
             <div className="home-greeting-quick-space">
               <button className={`home-sort-button${homeSortDescending ? ' is-active' : ''}`} type="button" aria-label={homeSortDescending ? homeSortLabels[language].reset : homeSortLabels[language].sort} aria-pressed={homeSortDescending} onClick={() => setHomeSortDescending((current) => !current)}>
                 <span className="home-sort-glyph" aria-hidden="true"><i>↑</i><i>↓</i></span>

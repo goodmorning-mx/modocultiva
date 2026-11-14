@@ -22,6 +22,7 @@ assert.ok(app.includes('className="home-greeting-plant" viewBox="0 0 40 48"'), '
 assert.equal((greetingList.match(/^\s*'/gm) ?? []).length, 10, 'Home has ten friendly greeting messages');
 assert.ok(app.includes('homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]') && app.includes('className="home-greeting-emoji" role="img"'), 'Home selects a friendly greeting and displays its welcome emoji');
 assert.ok(app.includes('<p>{homeGreetingPhrase}<span className="home-greeting-emoji"') && app.includes('>👋</span>'), 'The small phone emoji follows the welcome phrase');
+assert.ok(app.includes('const homeCultivationQuotes = [') && app.includes('className="home-quote-card"') && app.includes('homeDailyQuote.author') && app.includes('homeDailyQuote.source'), 'Home displays an attributed daily cultivation quote with a source');
 assert.ok(app.includes('homeSortDescending') && app.includes('levels[right.key] - levels[left.key]') && app.includes('home-sort-glyph') && app.includes('<i>↑</i><i>↓</i>'), 'Home sorts modes with an up/down arrow-only control');
 assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*grid-column:\s*1/,'Current brand logo sits on the left side of the app bar');
 assert.ok(app.includes('{view === \'welcome\' ? <><button className="home-profile-avatar"') && app.includes('className="home-menu-button"') && app.includes(': <><label className="language-picker">') && app.includes('languageFlags[code]'), 'Home uses a profile avatar and menu button while other views retain the flag language picker');
