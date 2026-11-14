@@ -5,6 +5,7 @@ const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const css = await readFile(new URL('../src/home-mode-widgets.css', import.meta.url), 'utf8');
 const modeList = app.match(/const modes: Mode\[\] = \[([\s\S]*?)\n\];/)?.[1] ?? '';
 const quoteList = app.match(/const homeCultivationQuotes = \[([\s\S]*?)\n\];/)?.[1] ?? '';
+const greetingList = app.match(/const homeGreetingPhrases = \[([\s\S]*?)\n\];/)?.[1] ?? '';
 const gridStart = app.indexOf('<div className="home-mode-grid"');
 const cardGrid = gridStart < 0 ? '' : app.slice(gridStart, app.indexOf('</section>', gridStart));
 
@@ -19,6 +20,10 @@ assert.ok(app.includes('topbar--material-home') && app.includes('className="home
 assert.ok(app.includes('className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)') && app.includes('profileImage ? <img src={profileImage} alt="" />'), 'Home app bar identifies the user with their profile photo and opens their profile');
 assert.ok(app.includes('<h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>'), 'Home has an expanded, styled greeting for the signed in user');
 assert.ok(app.includes('className="home-greeting-plant" viewBox="0 0 40 48"'), 'Greeting includes a minimal potted plant icon');
+assert.match(css, /\.home-greeting-heading\s*\{[^}]*margin-top:\s*4px/, 'Welcome name and plant sit high in the home header');
+assert.equal((greetingList.match(/^\s*'/gm) ?? []).length, 10, 'Home has ten friendly greeting messages');
+assert.ok(app.includes('homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]') && app.includes('className="home-greeting-welcome-phrase"') && app.includes('>👋</span>'), 'A friendly greeting and emoji appear beside the sorting arrows');
+assert.ok(app.includes('<div className="home-greeting-quick-space">') && app.includes('className="home-sort-button"'), 'Greeting phrase and mode sorting control share the same row');
 assert.ok(app.includes('const homeCultivationQuotes = [') && app.includes('className="home-greeting-quote"') && app.includes('homeDailyQuote.author') && app.includes('homeDailyQuote.source'), 'Home displays the sourced daily quote directly under the user name');
 assert.ok(app.includes('— {homeDailyQuote.author} — {modeName('), 'Daily quote follows the phrase — author — mode format');
 assert.equal((quoteList.match(/\{ quote:/g) ?? []).length, 20, 'Home has twenty attributed daily quotes');

@@ -345,6 +345,18 @@ const homeCultivationQuotes = [
   { quote: 'El margen de seguridad es la piedra angular del éxito al invertir.', author: 'Warren Buffett', modeKey: 'financiero', source: 'https://www.berkshirehathaway.com/letters/1992.html' },
   { quote: 'El deporte también puede ser una forma de crear arte.', author: 'Pierre de Coubertin', modeKey: 'ludico', source: 'https://library.olympics.com/digitalCollection/DigitalCollectionAttachmentDownloadHandler.ashx?documentId=1447367&parentDocumentId=1447366&skipCopyright=true&skipWatermark=true' },
 ];
+const homeGreetingPhrases = [
+  'Hoy es un buen día para crecer.',
+  'Qué alegría tenerte por aquí.',
+  'Hoy puedes dar un paso bonito.',
+  'Tu camino florece a tu ritmo.',
+  'Un nuevo día trae nuevas posibilidades.',
+  'Vamos a cultivar algo bueno hoy.',
+  'Cada pequeño avance cuenta.',
+  'Este espacio es para ti.',
+  'Hoy empieza con una buena intención.',
+  'Me alegra acompañarte en tu camino.',
+];
 const pullRefreshCopy: Record<Language, { loading: string; failed: string }> = {
   es: { loading: 'Actualizando Modo Cultiva', failed: 'No se pudo actualizar. Intenta de nuevo.' },
   en: { loading: 'Refreshing Modo Cultiva', failed: 'Could not refresh. Try again.' },
@@ -2436,6 +2448,7 @@ function App() {
     ? [...modes].sort((left, right) => levels[right.key] - levels[left.key])
     : modes;
   const homeDailyQuote = homeCultivationQuotes[Math.floor(Date.now() / 86_400_000) % homeCultivationQuotes.length];
+  const [homeGreetingPhrase] = useState(() => homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]);
 
   useEffect(() => {
     if (!homeSidebarOpen) return;
@@ -2553,6 +2566,7 @@ function App() {
               </div>
             </div>
             <div className="home-greeting-quick-space">
+              <p className="home-greeting-welcome-phrase">{homeGreetingPhrase}<span className="home-greeting-emoji" role="img" aria-label="¡Hola!">👋</span></p>
               <button className={`home-sort-button${homeSortDescending ? ' is-active' : ''}`} type="button" aria-label={homeSortDescending ? homeSortLabels[language].reset : homeSortLabels[language].sort} aria-pressed={homeSortDescending} onClick={() => setHomeSortDescending((current) => !current)}>
                 <span className="home-sort-glyph" aria-hidden="true"><i>↑</i><i>↓</i></span>
               </button>
