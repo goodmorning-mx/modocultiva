@@ -24,6 +24,7 @@ assert.equal((greetingList.match(/^\s*'/gm) ?? []).length, 10, 'Home has ten fri
 assert.ok(app.includes('homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]') && app.includes('className="home-greeting-emoji" role="img"'), 'Home selects a friendly greeting and displays its welcome emoji');
 assert.ok(app.includes('<p>{homeGreetingPhrase}<span className="home-greeting-emoji"') && app.includes('>👋</span>'), 'The small phone emoji follows the welcome phrase');
 assert.ok(app.includes('const homeCultivationQuotes = [') && app.includes('className="home-quote-card"') && app.includes('homeDailyQuote.author') && app.includes('homeDailyQuote.source'), 'Home displays an attributed daily cultivation quote with a source');
+assert.match(css, /\.home-quote-card\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Welcome header quote container stays transparent');
 assert.equal((quoteList.match(/\{ quote:/g) ?? []).length, 20, 'Home has twenty attributed daily quotes');
 const quoteModeCounts = [...quoteList.matchAll(/modeKey: '([^']+)'/g)].reduce((counts, match) => ({ ...counts, [match[1]]: (counts[match[1]] ?? 0) + 1 }), {});
 assert.equal(Object.keys(quoteModeCounts).length, 12, 'Daily quotes cover every life mode');
