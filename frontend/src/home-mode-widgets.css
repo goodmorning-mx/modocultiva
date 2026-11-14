@@ -50,7 +50,7 @@
 .home-greeting h1 strong { display: block; margin-top: 0; color: #70ed9c; font-size: 1.12em; font-weight: 750; overflow-wrap: anywhere; }
 .home-greeting-copy p { display: flex; align-items: center; gap: 7px; margin: 13px 0 0; color: color-mix(in srgb, var(--skin-ink, #eaf7ef) 78%, transparent); font-size: clamp(.98rem, 2.6vw, 1.2rem); font-weight: 550; letter-spacing: -.015em; line-height: 1.45; }
 .home-greeting-emoji { flex: 0 0 auto; font-size: .98rem; line-height: 1; filter: drop-shadow(0 0 5px rgba(255, 210, 82, .5)); }
-.home-quote-card { display: grid; gap: 8px; margin: 22px 0 0 51px; padding: 15px 17px; border: 1px solid rgba(112, 237, 156, .2); border-radius: 17px; color: #edf8f0; background: linear-gradient(135deg, rgba(112, 237, 156, .09), rgba(10, 37, 41, .48)); box-shadow: 0 9px 22px rgba(0, 0, 0, .14), inset 0 1px 0 rgba(255, 255, 255, .035); }
+.home-quote-card { display: grid; gap: 8px; margin: 22px 0 0 51px; padding: 15px 17px; border: 0; border-radius: 0; color: #edf8f0; background: transparent; box-shadow: none; }
 .home-quote-label { display: flex; align-items: center; gap: 7px; color: #8af1a8; font-size: .69rem; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
 .home-quote-card blockquote { margin: 0; color: #f3fff6; font-size: clamp(.92rem, 2.4vw, 1.08rem); font-weight: 600; letter-spacing: -.015em; line-height: 1.5; }
 .home-quote-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
