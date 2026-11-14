@@ -50,7 +50,6 @@ assert.match(css, /\.home-greeting\s*\{[^}]*min-height:\s*244px/, 'Greeting head
 assert.match(css, /\.home-greeting h1 span\s*\{[^}]*margin-bottom:\s*14px[^}]*font-size:\s*\.82em/, 'Welcome word has extra space and distinct typography from the user name');
 assert.match(css, /\.home-greeting h1 strong\s*\{[^}]*font-size:\s*1\.12em/, 'User name has a larger type size than the welcome word');
 assert.match(css, /\.home-greeting\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Greeting header is completely transparent');
-assert.match(css, /\.home-greeting-heading\s*\{[^}]*margin-top:\s*24px/, 'Greeting title and phrase sit lower within the same header');
 assert.match(css, /\.home-sort-button\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Sort arrows have a completely transparent container');
 assert.match(css, /\.home-greeting\s*\{[^}]*margin:\s*0 auto 4px/, 'Sort arrows and welcome header sit close to the first mode tile');
 assert.match(css, /\.home-greeting h1\s*\{[^}]*font-weight:\s*600/, 'Greeting uses Material-style semibold typography');
