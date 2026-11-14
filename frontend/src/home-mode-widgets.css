@@ -42,8 +42,8 @@
 .topbar--material-home .language-picker svg { color: #d5f2dd; }
 .topbar--material-home .state-sync-state { display: none; }
 .home-greeting { display: flex; flex-direction: column; width: 100%; min-height: 244px; margin: 0 auto 4px; padding: clamp(24px, 5vw, 38px); overflow: hidden; border: 0; border-radius: 0; color: #eaf7ef; background: transparent; box-shadow: none; }
-.home-greeting-heading { display: flex; align-items: flex-start; gap: 13px; margin-top: 24px; }
-.home-greeting-plant { flex: 0 0 38px; width: 38px; height: 46px; margin-top: 12px; fill: color-mix(in srgb, var(--skin-accent, #70ed9c) 8%, transparent); stroke: var(--skin-accent, #70ed9c); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+.home-greeting-heading { display: flex; align-items: flex-start; gap: 13px; margin-top: 4px; }
+.home-greeting-plant { flex: 0 0 38px; width: 38px; height: 46px; margin-top: 2px; fill: color-mix(in srgb, var(--skin-accent, #70ed9c) 8%, transparent); stroke: var(--skin-accent, #70ed9c); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .home-greeting-copy { min-width: 0; }
 .home-greeting h1 { margin: 0; color: #eaf7ef; font-size: clamp(2rem, 7vw, 3.15rem); font-weight: 600; letter-spacing: -.055em; line-height: 1.08; }
 .home-greeting h1 span { display: block; margin-bottom: 14px; color: color-mix(in srgb, var(--skin-ink, #eaf7ef) 78%, transparent); font-size: .82em; font-weight: 600; letter-spacing: -.035em; }
@@ -53,7 +53,9 @@
 .home-greeting-quote-meta { color: #8af1a8; font-size: .84em; font-weight: 650; }
 .home-greeting-quote a { color: #8af1a8; font-size: .8em; text-decoration: none; }
 .home-greeting-quote a:hover { color: #c8ffd7; text-decoration: underline; }
-.home-greeting-quick-space { display: flex; flex: 1; min-height: 58px; align-items: flex-end; justify-content: flex-end; padding-top: 10px; }
+.home-greeting-quick-space { display: flex; flex: 1; min-height: 58px; align-items: center; justify-content: space-between; gap: 12px; padding-top: 10px; }
+.home-greeting-welcome-phrase { display: flex; align-items: center; gap: 7px; min-width: 0; margin: 0; color: color-mix(in srgb, var(--skin-ink, #eaf7ef) 78%, transparent); font-size: clamp(.88rem, 2.3vw, 1.04rem); font-weight: 550; letter-spacing: -.015em; line-height: 1.4; }
+.home-greeting-emoji { flex: 0 0 auto; font-size: .96em; line-height: 1; filter: drop-shadow(0 0 5px rgba(255, 210, 82, .5)); }
 .home-sort-button { display: inline-flex; width: 38px; min-height: 38px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 50%; color: #d7eee0; background: transparent; box-shadow: none; font-family: inherit; font-size: .76rem; font-weight: 600; line-height: 1.2; cursor: pointer; transition: color .18s ease, transform .18s ease; }
 .home-sort-button:hover, .home-sort-button.is-active { transform: translateY(-1px); color: #f1fff4; background: transparent; }
 .home-sort-button:focus-visible { outline: 2px solid #b6f0c5; outline-offset: 3px; }
@@ -91,11 +93,12 @@
   .topbar--material-home .language-picker select { max-width: 102px; padding-inline: 3px 17px; font-size: .61rem; }
   .home-mode-grid { gap: 8px; }
   .home-greeting { min-height: 226px; margin-bottom: 4px; padding: 23px 20px; }
-  .home-greeting-heading { margin-top: 18px; }
-  .home-greeting-plant { flex-basis: 28px; width: 28px; height: 36px; margin-top: 8px; stroke-width: 2; }
+  .home-greeting-heading { gap: 10px; margin-top: 0; }
+  .home-greeting-plant { flex-basis: 28px; width: 28px; height: 36px; margin-top: 2px; stroke-width: 2; }
   .home-greeting h1 { font-size: clamp(1.85rem, 8vw, 2.55rem); }
   .home-greeting-copy p { margin-top: 10px; font-size: .96rem; }
-  .home-greeting-quick-space { min-height: 48px; }
+  .home-greeting-quick-space { min-height: 48px; gap: 8px; }
+  .home-greeting-welcome-phrase { font-size: .79rem; }
   .home-sort-button { width: 36px; min-height: 36px; padding: 0; font-size: .7rem; }
   .home-mode-card { grid-template-columns: 48px minmax(0, 1fr) 76px 16px; column-gap: 11px; row-gap: 6px; min-height: 132px; padding: 16px 14px; border-radius: 18px; }
   .home-mode-icon { width: 46px; height: 46px; border-radius: 14px; font-size: 1.35rem; }
