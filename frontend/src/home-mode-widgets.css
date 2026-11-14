@@ -25,8 +25,8 @@
 .home-menu-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 1.8; }
 .home-menu-button:hover, .home-menu-button:focus-visible { transform: translateY(-1px); border-color: rgba(112, 237, 156, .7); color: #a5ffc0; background: rgba(112, 237, 156, .14); }
 .home-menu-button:focus-visible, .home-sidebar-close:focus-visible, .home-sidebar-nav button:focus-visible { outline: 2px solid #b6f0c5; outline-offset: 3px; }
-.home-sidebar-backdrop { position: fixed; z-index: 9999; inset: 0; display: flex; justify-content: flex-end; background: rgba(1, 12, 16, .66); backdrop-filter: blur(5px); animation: home-sidebar-fade .18s ease both; }
-.home-sidebar { display: flex; flex-direction: column; width: min(370px, calc(100vw - 24px)); height: 100%; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); border-left: 1px solid rgba(112, 237, 156, .22); color: #eaf7ef; background: linear-gradient(165deg, #123238, #07191f 75%); box-shadow: -18px 0 50px rgba(0, 0, 0, .38); animation: home-sidebar-slide .22s cubic-bezier(.2, .8, .2, 1) both; }
+.home-sidebar-backdrop { position: fixed; z-index: 9999; inset: 0; display: flex; justify-content: flex-end; background: rgba(1, 12, 16, .66); backdrop-filter: blur(5px); animation: home-sidebar-fade .34s ease-out both; }
+.home-sidebar { display: flex; flex-direction: column; width: min(320px, calc(100vw - 40px)); height: 100%; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); border-left: 1px solid rgba(112, 237, 156, .22); color: #eaf7ef; background: linear-gradient(165deg, #123238, #07191f 75%); box-shadow: -18px 0 50px rgba(0, 0, 0, .38); animation: home-sidebar-slide .36s cubic-bezier(.22, 1, .36, 1) both; }
 .home-sidebar-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 9px 2px 24px; border-bottom: 1px solid rgba(112, 237, 156, .17); }
 .home-sidebar-eyebrow { color: #70ed9c; font-size: .68rem; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
 .home-sidebar-heading h2 { margin: 5px 0 0; color: #f1fff4; font-size: 1.55rem; font-weight: 750; letter-spacing: -.04em; }
@@ -37,7 +37,7 @@
 .home-sidebar-icon { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid rgba(112, 237, 156, .2); border-radius: 12px; color: #70ed9c; background: rgba(112, 237, 156, .08); font-size: 1.2rem; }
 .home-sidebar-arrow { justify-self: end; color: rgba(201, 234, 215, .6); font-size: 1.35rem; font-weight: 400; }
 @keyframes home-sidebar-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes home-sidebar-slide { from { transform: translateX(20px); opacity: .72; } to { transform: translateX(0); opacity: 1; } }
+@keyframes home-sidebar-slide { from { transform: translateX(100%); opacity: .72; } to { transform: translateX(0); opacity: 1; } }
 .topbar--material-home .language-picker select { max-width: 128px; padding: 7px 22px 7px 5px; border: 0; border-radius: 0; color: #d5f2dd; background: transparent; font-family: inherit; font-size: .72rem; }
 .topbar--material-home .language-picker svg { color: #d5f2dd; }
 .topbar--material-home .state-sync-state { display: none; }
@@ -46,7 +46,7 @@
 .home-greeting-plant { flex: 0 0 38px; width: 38px; height: 46px; margin-top: 2px; fill: color-mix(in srgb, var(--skin-accent, #70ed9c) 8%, transparent); stroke: var(--skin-accent, #70ed9c); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .home-greeting-copy { min-width: 0; }
 .home-greeting h1 { margin: 0; color: #eaf7ef; font-size: clamp(2rem, 7vw, 3.15rem); font-weight: 600; letter-spacing: -.055em; line-height: 1.08; }
-.home-greeting h1 span { display: block; margin-bottom: 14px; color: color-mix(in srgb, var(--skin-ink, #eaf7ef) 78%, transparent); font-size: .82em; font-weight: 600; letter-spacing: -.035em; }
+.home-greeting h1 span { display: block; margin-bottom: 14px; color: color-mix(in srgb, var(--skin-ink, #eaf7ef) 78%, transparent); font-size: .82em; font-weight: 600; letter-spacing: -.035em; transform: translateY(-5px); }
 .home-greeting h1 strong { display: block; margin-top: 0; color: #70ed9c; font-size: 1.12em; font-weight: 750; overflow-wrap: anywhere; }
 .home-greeting-copy p { display: flex; align-items: center; gap: 7px; margin: 13px 0 0; color: color-mix(in srgb, var(--skin-ink, #eaf7ef) 78%, transparent); font-size: clamp(.98rem, 2.6vw, 1.2rem); font-weight: 550; letter-spacing: -.015em; line-height: 1.45; }
 .home-greeting-quote { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 7px !important; max-width: 760px; color: #f3fff6 !important; font-size: clamp(.9rem, 2.4vw, 1.08rem) !important; font-weight: 600 !important; line-height: 1.5 !important; }

@@ -34,6 +34,8 @@ assert.ok(app.includes('homeSortDescending') && app.includes('levels[right.key] 
 assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*grid-column:\s*1/,'Current brand logo sits on the left side of the app bar');
 assert.ok(app.includes('{view === \'welcome\' ? <><button className="home-profile-avatar"') && app.includes('className="home-menu-button"') && app.includes(': <><label className="language-picker">') && app.includes('languageFlags[code]'), 'Home uses a profile avatar and menu button while other views retain the flag language picker');
 assert.ok(app.includes('className="home-sidebar" id="home-sidebar" role="dialog"') && app.includes("setView('dashboard')") && app.includes("setView('lab')") && app.includes('setConfigurationsOpen(true)'), 'Home sidebar opens as an accessible navigation panel with links to existing screens and options');
+assert.match(css, /\.home-sidebar\s*\{[^}]*width:\s*min\(320px, calc\(100vw - 40px\)\)[^}]*animation: home-sidebar-slide \.36s/, 'Sidebar is narrow and has a paced entrance animation');
+assert.match(css, /@keyframes home-sidebar-slide\s*\{ from \{ transform: translateX\(100%\)/, 'Sidebar slides in from the right');
 assert.ok(!app.includes('home-silverbar-shortcuts') && !app.includes('home-silverbar-action'), 'Home title bar contains no shortcut icons');
 assert.ok(!app.includes('welcome-copy') && !cardGrid.includes('home-mode-roman'), 'Home shows no heading or roman characters above tiles');
 
@@ -47,7 +49,7 @@ assert.match(css, /\.home-mode-summary b\s*\{[^}]*border:\s*1px solid[^}]*box-sh
 assert.match(css, /\.topbar--material-home\s*\{[^}]*border:\s*0[^}]*border-bottom:\s*1px/, 'Silver bar has only a bottom border');
 assert.match(css, /\.home-profile-avatar\s*\{[^}]*border-radius:\s*50%/, 'Home profile avatar is circular');
 assert.match(css, /\.home-greeting\s*\{[^}]*min-height:\s*244px/, 'Greeting header reserves room for quick actions');
-assert.match(css, /\.home-greeting h1 span\s*\{[^}]*margin-bottom:\s*14px[^}]*font-size:\s*\.82em/, 'Welcome word has extra space and distinct typography from the user name');
+assert.match(css, /\.home-greeting h1 span\s*\{[^}]*margin-bottom:\s*14px[^}]*font-size:\s*\.82em[^}]*transform:\s*translateY\(-5px\)/, 'Only the welcome word sits slightly higher than the user name');
 assert.match(css, /\.home-greeting h1 strong\s*\{[^}]*font-size:\s*1\.12em/, 'User name has a larger type size than the welcome word');
 assert.match(css, /\.home-greeting\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Greeting header is completely transparent');
 assert.match(css, /\.home-sort-button\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Sort arrows have a completely transparent container');
