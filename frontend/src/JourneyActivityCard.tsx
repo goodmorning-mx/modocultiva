@@ -74,8 +74,8 @@ function SharePreview({ card, platform, onClose }: { card: ActivityShare; platfo
   </dialog>;
 }
 
-type Props = { card: ActivityShare; current: boolean; defined: boolean; reaction?: Reaction; onReact: (reaction: Reaction) => void; flow?: Omit<ActivityJourneyFlowProps, 'sourceLevel' | 'language'>; sharePreviewScope?: string; showSocial?: boolean; actions?: ReactNode; emptyTitle?: string };
-export function JourneyActivityCard({ card, current, defined, reaction, onReact, flow, sharePreviewScope, showSocial = true, actions, emptyTitle }: Props) {
+type Props = { card: ActivityShare; current: boolean; defined: boolean; reaction?: Reaction; onReact: (reaction: Reaction) => void; flow?: Omit<ActivityJourneyFlowProps, 'sourceLevel' | 'language'>; sharePreviewScope?: string; showSocial?: boolean; showReactions?: boolean; actions?: ReactNode; emptyTitle?: string };
+export function JourneyActivityCard({ card, current, defined, reaction, onReact, flow, sharePreviewScope, showSocial = true, showReactions = true, actions, emptyTitle }: Props) {
   const copy = socialCopy(card.language);
   const [defineWithActions, defineToShare] = activityDefinitionCopy(card.language);
   const hasActivity = defined && Boolean(card.activity.trim());
@@ -98,9 +98,9 @@ export function JourneyActivityCard({ card, current, defined, reaction, onReact,
     {actions}
   </article>
     {showSocial && <footer className="journey-social-footer" style={{ '--mode-color': card.color } as CSSProperties} dir={card.language === 'ar' ? 'rtl' : 'ltr'}>
-      <div className="journey-reactions"><span className="journey-social-label">{copy.reaction}</span><div role="group" aria-label={copy.reaction}>{REACTIONS.map((key, i) => <button key={key} type="button" className={`journey-reaction journey-reaction--${key}`} aria-label={copy.reactions[i]} title={copy.reactions[i]} aria-pressed={reaction === key} onClick={() => { try { onReact(key); setNotice(''); } catch { setNotice(copy.storageError); } }}><ReactionIcon reaction={key} /></button>)}</div></div>
+      {showReactions && <div className="journey-reactions"><span className="journey-social-label">{copy.reaction}</span><div role="group" aria-label={copy.reaction}>{REACTIONS.map((key, i) => <button key={key} type="button" className={`journey-reaction journey-reaction--${key}`} aria-label={copy.reactions[i]} title={copy.reactions[i]} aria-pressed={reaction === key} onClick={() => { try { onReact(key); setNotice(''); } catch { setNotice(copy.storageError); } }}><ReactionIcon reaction={key} /></button>)}</div></div>}
       <div className="journey-share"><span className="journey-social-label">{shareLabel}</span><div role="group" aria-label={shareLabel}>{SHARE_PLATFORMS.map(key => <button key={key} type="button" disabled={!canExport} onClick={() => { if (canExport) setPlatform(key); }} aria-label={`${copy.share} · ${platformName(key, card.language)}`} title={platformName(key, card.language)}><PlatformIcon platform={key} /><span>{platformName(key, card.language)}</span></button>)}</div></div>
-      {notice && <p className="journey-reaction-notice" role="status">{notice}</p>}
+      {showReactions && notice && <p className="journey-reaction-notice" role="status">{notice}</p>}
     </footer>}
     {showSocial && canExport && platform && <SharePreview card={publicCard} platform={platform} onClose={() => setPlatform(null)} />}
   </>;

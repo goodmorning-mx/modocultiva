@@ -18,6 +18,7 @@ const { createStateSyncQueue } = (await pure('stateSyncQueue')).module;
 const { reconcileState, cloneStateValue: clone } = (await pure('stateReconcile')).module;
 const { stateAccountCopy, stateAccountMessageValues } = (await pure('stateAccountMessages')).module;
 const { resolveLanguagePreference, restoreLanguagePreference, normalizeLanguageState } = (await pure('languagePreference')).module;
+const { cleanHomeVisionCards } = (await pure('homeVision')).module;
 const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('App.tsx', app, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 function expression(name) {
@@ -29,7 +30,10 @@ function expression(name) {
   }
   visit(ast); assert.ok(found, `Actual App helper ${name}`); return found;
 }
-const actual = (name, bindings) => new Function(...Object.keys(bindings), compile(`return (${expression(name)});`))(...Object.values(bindings));
+const actual = (name, bindings) => {
+  const scope = { cleanHomeVisionCards, ...bindings };
+  return new Function(...Object.keys(scope), compile(`return (${expression(name)});`))(...Object.values(scope));
+};
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const modes = actual('modes', {});
 const levels = Object.fromEntries(modes.map((mode, index) => [mode.key, index % 10])); levels.fisico = 3;

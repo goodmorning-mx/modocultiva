@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 export interface CarouselItem {
   id: string;
   src: string;
+  fallbackSrc?: string;
   label: string;
   style: CSSProperties;
   content: ReactNode;

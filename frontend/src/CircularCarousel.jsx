@@ -740,6 +740,9 @@ const CircularCarousel = ({
           <img
             className="circular-carousel__photo"
             src={item.src}
+            onError={({ currentTarget }) => {
+              if (item.fallbackSrc && currentTarget.getAttribute('src') !== item.fallbackSrc) currentTarget.src = item.fallbackSrc;
+            }}
             alt=""
             draggable={false}
             decoding="async"
