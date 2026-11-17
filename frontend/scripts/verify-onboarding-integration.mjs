@@ -269,6 +269,13 @@ async function assertFixedHome(page) {
   assert.ok(bounds.y >= 0 && bounds.y + bounds.height <= viewport.height + 1, 'Carousel controls fit without scrolling');
   assert.equal(await page.evaluate(() => window.scrollY), 0, 'Home stays fixed under a wheel or programmatic scroll');
 }
+async function assertJourneyNumbers(steps, language) {
+  assert.equal(await steps.nth(0).locator('.journey-step-number').count(), 0, 'The overview is not a numbered step');
+  for (const step of [1, 2, 3]) {
+    const number = steps.nth(step).locator('.journey-step-number');
+    assert.equal(await number.evaluate(tag => tag.firstChild.textContent), step.toLocaleString(language), 'The activity number remains visible regardless of status');
+  }
+}
 async function inspectSpotlight(page, owner) {
   const result = await page.locator('.guided-tour-layer').evaluate(layer => {
     const rect = element => { const r = element.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, right: r.right, bottom: r.bottom }; };
@@ -489,6 +496,11 @@ async function runCase(browser, config, task) {
         await selectPhysicalMode(page);
         const steps = page.locator('.journey-step-list button');
         const up = page.locator('.journey-level-link--up');
+        await assertJourneyNumbers(steps, task.language);
+        if (task.language === 'es') {
+          assert.match(await up.textContent(), /Siguiente nivel · 4.*Se desbloquea al validar tu actividad/s);
+          assert.match(await page.locator('.journey-level-link--down').textContent(), /Ver nivel anterior · 2/);
+        }
         await steps.nth(3).click();
         assert.equal(await page.locator('.activity-flow-review progress').getAttribute('value'), '1');
         assert.equal(await up.isDisabled(), true);
@@ -499,8 +511,9 @@ async function runCase(browser, config, task) {
         transport.setApprovals(3); state.levels.fisico = 4;
         await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
         await page.locator('.activity-flow-review progress[value="3"]').waitFor();
+        if (task.language === 'es') await eventually(async () => /Subir al siguiente nivel · 4/.test(await up.textContent()), 'The unlocked ascent invites the user to go up');
         await up.click();
-        assert.equal(await steps.nth(0).getAttribute('aria-current'), 'step');
+        assert.equal(await steps.nth(0).getAttribute('aria-current'), 'true');
         assert.equal(await steps.nth(2).isDisabled(), true, 'A new level has no evidence until its activity is defined');
         assert.equal(await steps.nth(3).isDisabled(), true);
         assert.equal(await up.isDisabled(), true);
@@ -531,7 +544,9 @@ async function runCase(browser, config, task) {
         await selectPhysicalMode(page);
         const steps = page.locator('.journey-step-list button');
         assert.equal(await steps.count(), 4);
-        assert.equal(await steps.nth(0).getAttribute('aria-current'), 'step');
+        assert.equal(await steps.nth(0).getAttribute('aria-current'), 'true');
+        await assertJourneyNumbers(steps, task.language);
+        assert.ok(await steps.nth(1).locator('.journey-step-check').isVisible(), 'A completion check does not replace the step number');
         assert.equal(await steps.nth(3).isDisabled(), true);
         assert.equal(await page.locator('.journey-level-link--up').isDisabled(), true);
         assert.equal(await page.locator('#journey-slider').count(), 0);

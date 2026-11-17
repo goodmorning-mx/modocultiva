@@ -23,13 +23,26 @@
 .journey-ascent-status .journey-builder-heading { min-height: 36px; align-items: center; }
 .journey-ascent-status .kicker { margin: 0; color: var(--mode-color); overflow-wrap: anywhere; }
 .journey-deck .journey-level-link {
-  display: inline-flex; width: fit-content; min-height: 44px; justify-self: center; align-items: center; gap: 8px;
-  padding: 5px 17px; border: 1px solid color-mix(in srgb, var(--mode-color) 48%, transparent); border-radius: 99px;
-  background: #091c23b8; color: var(--mode-color); font-size: .78rem; font-weight: 700;
+  display: inline-flex; min-block-size: 48px; max-inline-size: 100%; justify-self: center; align-items: center; gap: 10px;
+  padding-block: 7px; padding-inline: 9px 16px; border: 1px solid var(--mode-color); border-radius: 15px;
+  color: #f0f7f4; font-size: .86rem; line-height: 1.25; text-align: start;
 }
-.journey-level-link:disabled { border-style: dashed; color: #b3c6c3; cursor: not-allowed; }
-.journey-level-link:disabled svg { width: 14px; height: 14px; }
+.journey-level-link-icon {
+  display: grid; flex: 0 0 32px; block-size: 32px; place-items: center; border-radius: 9px;
+  background: color-mix(in srgb, var(--mode-color) 20%, #0c2229); color: #f0f7f4; font-size: 1.2rem;
+}
+.journey-level-link-copy { display: grid; min-inline-size: 0; gap: 3px; }
+.journey-level-link strong, .journey-level-link small { overflow-wrap: anywhere; }
+.journey-level-link small { display: flex; align-items: center; gap: 4px; color: #c0d6ce; font-size: .71rem; }
+.journey-level-link small svg { flex: 0 0 12px; block-size: 12px; }
+.journey-deck .journey-level-link--up {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--mode-color) 26%, #0b1e24), #0b1e24);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--mode-color) 22%, transparent);
+}
+.journey-deck .journey-level-link--up:disabled { border-style: dashed; cursor: not-allowed; }
 .journey-deck .journey-level-link--up:not(:disabled) { background: var(--mode-color); color: #030807; }
+.journey-deck .journey-level-link--down { background: #102933; border-color: color-mix(in srgb, var(--mode-color) 55%, #47636b); }
+.journey-deck .journey-level-link--down:hover { border-color: var(--mode-color); background: #1a3841; }
 .journey-deck-navigation { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 7px; }
 .journey-step-list { display: flex; justify-content: center; gap: 4px; padding: 0; margin: 0; list-style: none; }
 .journey-step-list li { flex: 1 1 0; max-inline-size: 150px; min-inline-size: 0; }
@@ -37,12 +50,21 @@
   min-height: 44px; padding: 5px; border: 1px solid #bdd8d127; border-radius: 12px;
   background: #091d24aa; color: #deeee6; font-size: .85rem; font-weight: 700;
 }
-.journey-step-list button { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; overflow-wrap: anywhere; }
-.journey-step-list button span { color: var(--mode-color); }
+.journey-step-list button { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 100%; overflow-wrap: anywhere; }
+.journey-step-number {
+  position: relative; display: grid; flex: 0 0 auto; place-items: center; min-inline-size: 21px; block-size: 21px;
+  border-radius: 6px; background: color-mix(in srgb, var(--mode-color) 17%, #091d24); color: #eff8f2; font-variant-numeric: tabular-nums;
+}
+.journey-step-check {
+  position: absolute; inset-block-start: -4px; inset-inline-end: -4px; display: grid; place-items: center; width: 12px; height: 12px;
+  border-radius: 50%; background: #b1ebc1; color: #0b281e; font: 700 .53rem/1 system-ui, sans-serif;
+}
 .journey-step-list button small { font: inherit; }
 .journey-step-list [data-step-state='current'] button { background: var(--mode-color); color: #030807; border-color: transparent; }
-.journey-step-list [data-step-state='current'] button span { color: inherit; }
-.journey-step-list button:disabled, .journey-step-arrow:disabled { opacity: .48; cursor: not-allowed; }
+.journey-step-list [data-step-state='current'] .journey-step-number { background: #0b2121; color: #eff8f2; }
+.journey-step-list button:disabled { color: #96afac; border-style: dashed; cursor: not-allowed; }
+.journey-step-list button:disabled .journey-step-number { background: #20353f; color: #cad8dc; }
+.journey-step-arrow:disabled { opacity: .48; cursor: not-allowed; }
 .journey-deck .journey-step-arrow { min-width: 44px; font-size: 1.15rem; }
 .journey-deck button:focus-visible { outline: 2px solid var(--mode-color); outline-offset: 3px; }
 .journey-deck-content { min-width: 0; touch-action: pan-y pinch-zoom; }
