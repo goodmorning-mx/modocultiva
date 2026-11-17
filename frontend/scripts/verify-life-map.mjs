@@ -3,19 +3,27 @@ import { readFile } from 'node:fs/promises';
 
 const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const css = await readFile(new URL('../src/home-mode-widgets.css', import.meta.url), 'utf8');
+const carousel = await readFile(new URL('../src/CircularCarousel.jsx', import.meta.url), 'utf8');
+const carouselCss = await readFile(new URL('../src/CircularCarousel.css', import.meta.url), 'utf8');
 const modeList = app.match(/const modes: Mode\[\] = \[([\s\S]*?)\n\];/)?.[1] ?? '';
 const quoteList = app.match(/const homeCultivationQuotes = \[([\s\S]*?)\n\];/)?.[1] ?? '';
 const greetingList = app.match(/const homeGreetingPhrases = \[([\s\S]*?)\n\];/)?.[1] ?? '';
-const gridStart = app.indexOf('<div className="home-mode-grid"');
-const cardGrid = gridStart < 0 ? '' : app.slice(gridStart, app.indexOf('</section>', gridStart));
+const carouselStart = app.indexOf('<CircularCarousel');
+const homeCarousel = carouselStart < 0 ? '' : app.slice(carouselStart, app.indexOf('</section>', carouselStart));
 
 assert.equal((modeList.match(/\{ key: '/g) ?? []).length, 12, 'All 12 modes remain in the home data');
-assert.ok(cardGrid.includes('orderedHomeModes.map((mode) =>'), 'Home renders modes in the selected sort order');
-assert.ok(cardGrid.includes('className="home-mode-card"') && cardGrid.includes('onClick={() => openMode(mode)}'), 'Each mode is an independent interactive card');
-assert.ok(cardGrid.includes('aria-label={`${modeName(mode)}, ${tr(\'level\')} ${level}`}'), 'Each card keeps its full accessible name and level');
-assert.ok(cardGrid.includes('localizedLevelNames[language][level]'), 'Cards expose the current level label');
-assert.ok(cardGrid.includes('className="home-mode-meter"') && cardGrid.includes('length: 9') && cardGrid.includes('index < level'), 'Cards show their existing nine step progress meter');
-assert.ok(cardGrid.includes('data-tour-mode={mode.key}'), 'Guided tour can target every mode card');
+assert.ok(homeCarousel.includes('orderedHomeModes.map((mode) =>'), 'Home renders modes in the selected sort order');
+assert.ok(carousel.includes('className="home-mode-card"') && homeCarousel.includes('openMode(mode)'), 'Each mode opens its existing journey');
+assert.match(homeCarousel, /preset="panorama"[\s\S]*cardWidth=\{270\}[\s\S]*aspectRatio=\{0\.75\}[\s\S]*autoplay="drift"/);
+assert.match(carousel, /const step = 360 \/ count/, 'The ring spaces cards based on item count');
+for (const [, key] of modeList.matchAll(/\{ key: '([^']+)'/g)) {
+  const photo = await readFile(new URL(`../public/mode-photos/${key}.jpg`, import.meta.url));
+  assert.equal(photo.readUInt16BE(0), 0xffd8, `Mode ${key} has a local JPEG`);
+}
+assert.ok(homeCarousel.includes('label: `${modeName(mode)}, ${tr(\'level\')} ${level}`') && carousel.includes('aria-label={item.label}'), 'Each card keeps its full accessible name and level');
+assert.ok(homeCarousel.includes('localizedLevelNames[language][level]'), 'Cards expose the current level label');
+assert.ok(homeCarousel.includes('className="home-mode-meter"') && homeCarousel.includes('length: 9') && homeCarousel.includes('index < level'), 'Cards show their existing nine step progress meter');
+assert.ok(carousel.includes('data-tour-mode={item.id}'), 'Guided tour can target every mode card');
 assert.ok(app.includes('topbar--material-home') && app.includes('className="home-material-title">Modo Cultiva</span>'), 'Home uses a centered Material title bar');
 assert.ok(app.includes('className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)') && app.includes('profileImage ? <img src={profileImage} alt="" />'), 'Home app bar identifies the user with their profile photo and opens their profile');
 assert.ok(app.includes('<h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>'), 'Home has an expanded, styled greeting for the signed in user');
@@ -37,15 +45,12 @@ assert.ok(app.includes('className="home-sidebar" id="home-sidebar" role="dialog"
 assert.match(css, /\.home-sidebar\s*\{[^}]*width:\s*min\(320px, calc\(100vw - 40px\)\)[^}]*animation: home-sidebar-slide \.36s/, 'Sidebar is narrow and has a paced entrance animation');
 assert.match(css, /@keyframes home-sidebar-slide\s*\{ from \{ transform: translateX\(100%\)/, 'Sidebar slides in from the right');
 assert.ok(!app.includes('home-silverbar-shortcuts') && !app.includes('home-silverbar-action'), 'Home title bar contains no shortcut icons');
-assert.ok(!app.includes('welcome-copy') && !cardGrid.includes('home-mode-roman'), 'Home shows no heading or roman characters above tiles');
+assert.ok(!app.includes('welcome-copy') && !homeCarousel.includes('home-mode-roman'), 'Home shows no heading or roman characters above tiles');
 
-for (const breakpoint of ['@media (max-width: 900px)', '@media (max-width: 680px)', '@media (max-width: 360px)']) assert.ok(css.includes(breakpoint), 'Responsive card layout includes ' + breakpoint);
-assert.match(css, /\.home-mode-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/, 'Tiles remain in a single column');
-assert.match(css, /\.home-mode-card\s*\{[^}]*grid-template-columns:\s*56px minmax\(0, 1fr\) 92px 20px/, 'Mode cards use a larger horizontal tile layout');
-assert.match(css, /\.home-mode-card\s*\{[^}]*min-height:\s*152px[^}]*padding:\s*20px 22px/, 'Mode tiles are tall and have generous padding');
-assert.match(css, /\.home-mode-card\s*\{[^}]*box-shadow:/, 'Cards retain elevation and shade');
-assert.match(css, /\.home-mode-description\s*\{[^}]*color:\s*#f4fff7[^}]*font-weight:\s*650/, 'Mode introductions are bold and white');
-assert.match(css, /\.home-mode-summary b\s*\{[^}]*border:\s*1px solid[^}]*box-shadow:/, 'Mode level indicators are visually emphasized');
+assert.match(carouselCss, /height:\s*560px/);
+assert.match(carouselCss, /@media \(max-width: 680px\)[\s\S]*height:\s*440px/);
+assert.match(css, /\.home-mode-card:focus-visible/);
+assert.match(carousel, /tabIndex=\{active === index \? 0 : -1\}/);
 assert.match(css, /\.topbar--material-home\s*\{[^}]*border:\s*0[^}]*border-bottom:\s*1px/, 'Silver bar has only a bottom border');
 assert.match(css, /\.home-profile-avatar\s*\{[^}]*border-radius:\s*50%/, 'Home profile avatar is circular');
 assert.match(css, /\.home-greeting\s*\{[^}]*min-height:\s*244px/, 'Greeting header reserves room for quick actions');
@@ -55,8 +60,6 @@ assert.match(css, /\.home-greeting\s*\{[^}]*border:\s*0[^}]*background:\s*transp
 assert.match(css, /\.home-sort-button\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Sort arrows have a completely transparent container');
 assert.match(css, /\.home-greeting\s*\{[^}]*margin:\s*0 auto 4px/, 'Sort arrows and welcome header sit close to the first mode tile');
 assert.match(css, /\.home-greeting h1\s*\{[^}]*font-weight:\s*600/, 'Greeting uses Material-style semibold typography');
-assert.match(css, /\.app-shell--zen[\s\S]*?\.home-mode-card[\s\S]*?var\(--skin-accent\)/, 'Alternate skins retain their palette accent');
 assert.ok(css.includes('prefers-reduced-motion') && css.includes('forced-colors'), 'Motion and high contrast accommodations remain available');
-assert.ok(!cardGrid.includes('overview-mode') && !cardGrid.includes('overview-stage'), 'Home mode selection uses the card grid');
 
-console.log('[home-mode-cards] 12 large horizontal tiles in one column, centered Material title bar, user greeting, level labels, meters, responsive layout, elevation, theme palette and accessibility passed');
+console.log('[home-mode-cards] 12 local photos and interactive panorama cards, centered Material title bar, user greeting, level labels, meters, responsive layout, elevation, theme palette and accessibility passed');

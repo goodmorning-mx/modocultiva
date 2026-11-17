@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import CircularCarousel from './CircularCarousel';
 import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
 import { VisionImage } from './VisionImage';
@@ -115,6 +116,19 @@ const modes: Mode[] = [
   { key: 'ludico', roman: 'XI', name: 'Modo Lúdico', shortName: 'Lúdico', description: 'Disfrute, ocio, descanso y recarga', icon: '✹', color: '#f3b86e', accent: '#543b22' },
   { key: 'visionario', roman: 'XII', name: 'Modo Visionario', shortName: 'Visionario', description: 'Metas, planificación y legado', icon: '△', color: '#72e79b', accent: '#214b39' },
 ];
+const homeCarouselControls: Record<AppLanguage, [string, string, string, string]> = {
+  es: ['Modo anterior', 'Modo siguiente', 'Pausar carrusel', 'Reanudar carrusel'],
+  en: ['Previous mode', 'Next mode', 'Pause carousel', 'Resume carousel'],
+  zh: ['上一个模式', '下一个模式', '暂停轮播', '继续轮播'],
+  hi: ['पिछला मोड', 'अगला मोड', 'कैरोसेल रोकें', 'कैरोसेल फिर चलाएँ'],
+  ar: ['الوضع السابق', 'الوضع التالي', 'إيقاف العرض مؤقتًا', 'استئناف العرض'],
+  it: ['Modalità precedente', 'Modalità successiva', 'Metti in pausa il carosello', 'Riprendi il carosello'],
+  pt: ['Modo anterior', 'Próximo modo', 'Pausar carrossel', 'Retomar carrossel'],
+  ru: ['Предыдущий режим', 'Следующий режим', 'Приостановить карусель', 'Продолжить карусель'],
+  de: ['Vorheriger Modus', 'Nächster Modus', 'Karussell anhalten', 'Karussell fortsetzen'],
+  fr: ['Mode précédent', 'Mode suivant', 'Mettre le carrousel en pause', 'Reprendre le carrousel'],
+  da: ['Forrige tilstand', 'Næste tilstand', 'Sæt karrusellen på pause', 'Fortsæt karrusellen'],
+};
 const labCards: Record<string, { question: string; answer: string }> = {
   fisico: { question: '¿Qué señales te da hoy tu cuerpo?', answer: 'El Modo Físico cultiva salud, descanso, alimentación, movimiento y la relación cotidiana con tu cuerpo.' },
   intelectual: { question: '¿Qué idea nueva quieres comprender?', answer: 'El Modo Intelectual desarrolla tu curiosidad, pensamiento crítico, aprendizaje y capacidad de ampliar tus perspectivas.' },
@@ -928,6 +942,7 @@ function App() {
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
   const [view, setView] = useState<View>('welcome');
   const [homeSidebarOpen, setHomeSidebarOpen] = useState(false);
+  const [homeCarouselPaused, setHomeCarouselPaused] = useState(false);
   const [homeSortDescending, setHomeSortDescending] = useState(false);
   const [authTokens, setAuthTokens] = useState<AuthTokens | null>(() => {
     try {
@@ -1746,6 +1761,7 @@ function App() {
   };
   const closeTour = () => {
     setTourIndex(null);
+    setHomeSidebarOpen(false);
     const restore = tourReturnRef.current; tourReturnRef.current = null;
     if (!restore) return;
     restoreNavigationRef.current(restore.navigation);
@@ -1763,14 +1779,14 @@ function App() {
     const controlTopic = tourTopic.startsWith('control');
     const copy = guidedTourStepCopy(language, controlTopic ? 'controlCenter' : tourTopic as TourStageId);
     const targets: Record<TourTopic, string | readonly string[]> = {
-      modes: '.welcome-view .overview-mode', modeDescription: '.journey-intro-compact', selfAssessment: ['.level-definition--compact', '#journey-slider'], activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target summary',
+      modes: '.welcome-view .circular-carousel', modeDescription: '.journey-intro-compact', selfAssessment: ['.level-definition--compact', '#journey-slider'], activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target summary',
       custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions > .insight-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.activity-flow-stages', evidence: '.activity-flow-stages > li:nth-child(2)', audience: '.activity-flow-audience .card-audience-options', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
       reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading', specialists: '.cult-embedded-content .cult-section-heading', community: '.community-header h2', profile: '.profile-preview-identity', badges: '.achievement-heading', configurations: '#presets-title',
       controlCenter: '.crm-card--score .crm-card-heading', controlStrongest: '.crm-metric-card:nth-of-type(1)', controlLeast: '.crm-metric-card:nth-of-type(2)', controlFocus: '.crm-focus-card .crm-card-heading', controlTrivia: '.crm-trivia-card h2', replay: '[data-tour="replay"]',
     };
     const selection = targets[tourTopic];
     return { id: tourTopic, ...copy,
-      ...(tourTopic === 'modes' ? { targets: [{ selector: selection as string, minMatches: 12 }], nextDisabled: !tourModeKey }
+      ...(tourTopic === 'modes' ? { target: selection as string, nextDisabled: !tourModeKey }
         : tourTopic === 'methods' ? { methodChecklist: true, targets: [
           { selector: '.journey-fixed-actions > button:first-child', method: 'custom' as const }, { selector: '.activity-pool-button', method: 'bank' as const },
           { selector: '.activity-ai-button', method: 'ai' as const }, { selector: '.journey-fixed-actions > .insight-button', method: 'localContacts' as const },
@@ -1782,8 +1798,8 @@ function App() {
         setCommunityOpen(false); setConfigurationsOpen(false); setProfilePreviewMode(false); setCustomizingAvatar(false);
         setCultInsightPreview(null); setSpecialistPreview(null); setInsightPreview(null); setSelectedPlan(null); setProfileMenuOpen(false);
         setActiveActivity(null); setSelectedMode(null); setCultOpen(false); setView('welcome');
-        if (tourTopic === 'modes') return;
-        if (tourTopic === 'replay') { setProfileMenuOpen(true); return; }
+        setHomeSidebarOpen(tourTopic === 'replay');
+        if (tourTopic === 'modes' || tourTopic === 'replay') return;
         if (controlTopic) { setView('dashboard'); return; }
         if (tourTopic === 'configurations') { setConfigurationsOpen(true); return; }
         if (tourTopic === 'profile') { setProfilePreviewMode(true); return; }
@@ -2503,6 +2519,7 @@ function App() {
             <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('lab'); }}><span className="home-sidebar-icon" aria-hidden="true">✳</span><span>{tr('triviaTitle')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" onClick={() => { setHomeSidebarOpen(false); setProfilePreviewMode(true); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('profileButton')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" onClick={() => { setHomeSidebarOpen(false); setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-tour="replay" disabled={aiLoading} onClick={startTour}><span className="home-sidebar-icon" aria-hidden="true">↻</span><span>{onboardingIntegrationCopy(language).replay}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             {!RELEASE_FREE_ACCESS && <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('plans'); }}><span className="home-sidebar-icon" aria-hidden="true">✦</span><span>{tr('premium')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>}
           </nav>
         </aside>
@@ -2572,19 +2589,68 @@ function App() {
               </button>
             </div>
           </div>
-          <div className="home-mode-grid" aria-label={tr('lifeModes')}>
-            {orderedHomeModes.map((mode) => {
+          <CircularCarousel
+            label={tr('lifeModes')}
+            items={orderedHomeModes.map((mode) => {
               const level = levels[mode.key];
-              return <button className="home-mode-card" data-tour-mode={mode.key} key={mode.key} type="button" onClick={() => openMode(mode)} style={{ '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties} aria-label={`${modeName(mode)}, ${tr('level')} ${level}`}>
-                <span className="home-mode-card-top"><span className="home-mode-icon" aria-hidden="true">{mode.icon}</span></span>
-                <strong className="home-mode-name">{modeShortName(mode)}</strong>
-                <span className="home-mode-summary"><b>{tr('level')} {level}</b><small>{localizedLevelNames[language][level]}</small></span>
-                <span className="home-mode-meter" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < level ? 'is-active' : undefined} />)}</span>
-                <span className="home-mode-description">{modeDescription(mode)}</span>
-                <span className="home-mode-arrow" aria-hidden="true">↗</span>
-              </button>;
+              return {
+                id: mode.key,
+                src: `/mode-photos/${mode.key}.jpg`,
+                label: `${modeName(mode)}, ${tr('level')} ${level}`,
+                style: { '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties,
+                content: <>
+                  <span className="home-mode-icon" aria-hidden="true">{mode.icon}</span>
+                  <strong className="home-mode-name">{modeShortName(mode)}</strong>
+                  <span className="home-mode-description">{modeDescription(mode)}</span>
+                  <span className="home-mode-summary"><b>{tr('level')} {level}</b><small>{localizedLevelNames[language][level]}</small></span>
+                  <span className="home-mode-meter" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < level ? 'is-active' : undefined} />)}</span>
+                </>,
+              };
             })}
-          </div>
+            onItemClick={(item) => {
+              const mode = modes.find((entry) => entry.key === item.id);
+              if (!mode) return;
+              openMode(mode);
+              if (tourTopic === 'modes') {
+                setTourModeKey(mode.key);
+                setTourIndex(1);
+              }
+            }}
+            paused={homeCarouselPaused || tourTopic === 'modes'}
+            controls={{
+              previous: homeCarouselControls[language][0],
+              next: homeCarouselControls[language][1],
+              rotation: tourTopic !== 'modes' && <button
+                type="button"
+                className="home-carousel-rotation"
+                aria-label={homeCarouselControls[language][homeCarouselPaused ? 3 : 2]}
+                onClick={() => setHomeCarouselPaused((paused) => !paused)}
+              >{homeCarouselPaused ? '▶' : 'Ⅱ'}</button>,
+            }}
+            preset="panorama"
+            intro={tourTopic === 'modes' ? 'none' : 'assemble'}
+            cardWidth={270}
+            aspectRatio={0.75}
+            speed={14}
+            gap={25}
+            tilt={0}
+            curve={1}
+            perspective={1800}
+            autoplay="drift"
+            interval={3}
+            direction="left"
+            momentum={0.6}
+            snap
+            pauseOnHover
+            focusOnClick
+            draggable
+            parallax={0.94}
+            stretch={0.5}
+            fadeColor="#000000"
+            depthFade={0.55}
+            innerShade={0.6}
+            cornerRadius={12}
+          />
         </section>
       ) : (
       <>
@@ -2795,11 +2861,8 @@ function App() {
       {!accountBlocked && !publicCardId && <GuidedTour step={tourStep} language={language} visitedMethods={tourVisitedMethods} onPrevious={() => setTourIndex(current => current === null ? null : Math.max(0, current - 1))}
         onNext={() => { if (tourIndex === tourTopics.length - 1) closeTour(); else setTourIndex(current => current === null ? null : current + 1); }} onClose={closeTour}
         canGoBack={tourIndex !== null && tourIndex > 0} isLastStep={tourIndex === tourTopics.length - 1} showCounter={isAuthenticated && stateHydrated && isOwnerAccount} counter={tourIndex === null ? undefined : { current: tourIndex + 1, total: tourTopics.length }}
-        onTargetInteraction={({ stepId, element, method }) => {
-          if (stepId === 'methods' && method) { setTourIndex(tourTopics.indexOf(method === 'localContacts' ? 'localContacts' : method === 'bank' ? 'bank' : method)); return; }
-          if (stepId !== 'modes') return;
-          const key = (element.closest('[data-tour-mode]') as HTMLElement | null)?.dataset.tourMode;
-          if (key && modes.some(mode => mode.key === key)) { setTourModeKey(key); setTourIndex(1); }
+        onTargetInteraction={({ stepId, method }) => {
+          if (stepId === 'methods' && method) setTourIndex(tourTopics.indexOf(method === 'localContacts' ? 'localContacts' : method === 'bank' ? 'bank' : method));
         }} />}
       {!accountBlocked && !publicCardId && welcomeScope && <WelcomeIntro key={welcomeIntroStorageKey(welcomeScope)} language={language} onComplete={() => {
         try { markWelcomeIntroComplete(window.localStorage, welcomeScope); } catch { /* The in-memory scope guard prevents a replay loop. */ }

@@ -23,7 +23,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'Personalizada', bank: 'Banco de 10 ideas', ai: 'Modo IA', localContacts: 'Contactos del siguiente nivel' },
     activityStages: ['Definir actividad', 'Adjuntar foto o video', 'Esperar 3 aprobaciones'], validated: 'Validada',
     stages: {
-      modes: ['Tu vida, en doce modos', 'Elige cualquiera de los 12 modos del círculo Holista. No hay un orden obligatorio: empieza por el área que hoy necesita tu atención.'],
+      modes: ['Tu vida, en doce modos', 'Elige cualquiera de los 12 modos del carrusel. No hay un orden obligatorio: empieza por el área que hoy necesita tu atención.'],
       modeDescription: ['Conoce este modo', 'Lee su descripción para entender qué área de tu vida vas a cultivar antes de elegir un punto de partida.'],
       selfAssessment: ['Reconoce tu punto de partida', 'La autoevaluación inicial va de 0 a 9: elige la descripción que te representa hoy. No equivale a progreso validado. Si ya tienes niveles o actividades, este recorrido no los reinicia.'],
       activityDesign: ['Diseña una actividad con intención', 'En los niveles 0–8 defines una actividad concreta para tu modo y nivel de origen, dirigida al siguiente nivel de claridad. Explorar el recorrido no exige guardar ni completar nada.'],
@@ -56,7 +56,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'Custom', bank: 'Bank of 10 ideas', ai: 'Mode AI', localContacts: 'Next-level contacts' },
     activityStages: ['Define activity', 'Attach photo or video', 'Wait for 3 approvals'], validated: 'Validated',
     stages: {
-      modes: ['Your life, in twelve modes', 'Choose any of the 12 modes on the Holista circle. There is no required order: begin with the area that needs your attention today.'],
+      modes: ['Your life, in twelve modes', 'Choose any of the 12 modes in the carousel. There is no required order: begin with the area that needs your attention today.'],
       modeDescription: ['Get to know this mode', 'Read its description to understand which area of your life you are cultivating before choosing your starting point.'],
       selfAssessment: ['Recognize your starting point', 'Initial self-assessment runs from 0 to 9: choose the description that fits you today. It is not validated progress. This tour never resets existing levels or activities.'],
       activityDesign: ['Design an intentional activity', 'At levels 0–8, define a concrete activity for your mode and source level, aimed at the next clarity level. Exploring this tour requires no saving or completion.'],
@@ -89,7 +89,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: '自定义', bank: '10 个想法库', ai: '模式 AI', localContacts: '高一级的联系人' },
     activityStages: ['定义活动', '附上照片或视频', '等待 3 人批准'], validated: '已验证',
     stages: {
-      modes: ['生活的十二种模式', '从 Holista 圆环上的 12 种模式中任选一种。没有规定顺序，从今天最需要关注的领域开始。'],
+      modes: ['生活的十二种模式', '从 轮播中的 12 种模式中任选一种。没有规定顺序，从今天最需要关注的领域开始。'],
       modeDescription: ['认识这个模式', '先阅读描述，了解将要培养的生活领域，再选择起点。'],
       selfAssessment: ['认识你的起点', '初始自评范围为 0–9：选择符合当下自己的描述。自评不等于已验证的进展。导览不会重置已有等级或活动。'],
       activityDesign: ['有目的地设计活动', '在 0–8 级，为当前模式和起始等级设计具体活动，目标是下一个清晰度等级。浏览导览不要求保存或完成活动。'],
@@ -122,7 +122,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'अपनी गतिविधि', bank: '10 विचारों का संग्रह', ai: 'मोड AI', localContacts: 'अगले स्तर के संपर्क' },
     activityStages: ['गतिविधि तय करें', 'फ़ोटो या वीडियो जोड़ें', '3 स्वीकृतियों की प्रतीक्षा'], validated: 'सत्यापित',
     stages: {
-      modes: ['जीवन के बारह मोड', 'Holista के वृत्त में 12 मोड में से कोई चुनें। कोई तय क्रम नहीं है; आज जिस क्षेत्र को ध्यान चाहिए उससे शुरू करें।'],
+      modes: ['जीवन के बारह मोड', 'कैरोसेल में 12 मोड में से कोई चुनें। कोई तय क्रम नहीं है; आज जिस क्षेत्र को ध्यान चाहिए उससे शुरू करें।'],
       modeDescription: ['इस मोड को जानें', 'आरंभिक स्तर चुनने से पहले विवरण पढ़ें और जानें कि जीवन का कौन सा क्षेत्र विकसित करेंगे।'],
       selfAssessment: ['अपना आरंभ पहचानें', 'शुरुआती स्व-मूल्यांकन 0–9 है: आज का सही विवरण चुनें। यह सत्यापित प्रगति नहीं है। परिचय पुराने स्तर या गतिविधियाँ रीसेट नहीं करता।'],
       activityDesign: ['उद्देश्यपूर्ण गतिविधि बनाएँ', 'स्तर 0–8 में अपने मोड और मूल स्तर के लिए ठोस गतिविधि तय करें, जिसका लक्ष्य स्पष्टता का अगला स्तर हो। परिचय में सहेजना या पूरा करना ज़रूरी नहीं।'],
@@ -155,7 +155,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'نشاط مخصص', bank: 'بنك 10 أفكار', ai: 'وضع الذكاء الاصطناعي', localContacts: 'جهات اتصال بالمستوى التالي' },
     activityStages: ['تحديد النشاط', 'إرفاق صورة أو فيديو', 'انتظار 3 موافقات'], validated: 'تم التحقق',
     stages: {
-      modes: ['حياتك في اثني عشر وضعاً', 'اختر أياً من الأوضاع الـ12 على دائرة Holista. لا ترتيب إلزامياً؛ ابدأ بالمجال الذي يحتاج انتباهك اليوم.'],
+      modes: ['حياتك في اثني عشر وضعاً', 'اختر أياً من الأوضاع الـ12 في العرض الدوّار. لا ترتيب إلزامياً؛ ابدأ بالمجال الذي يحتاج انتباهك اليوم.'],
       modeDescription: ['تعرّف إلى هذا الوضع', 'اقرأ وصفه لفهم مجال الحياة الذي ستنميه قبل اختيار نقطة البداية.'],
       selfAssessment: ['تعرّف إلى نقطة بدايتك', 'التقييم الذاتي الأولي من 0 إلى 9: اختر الوصف الذي يمثلك اليوم. ليس تقدماً تم التحقق منه. لا تعيد الجولة ضبط مستوياتك أو أنشطتك الحالية.'],
       activityDesign: ['صمّم نشاطاً هادفاً', 'في المستويات 0–8 تحدد نشاطاً ملموساً لوضعك ومستوى الانطلاق باتجاه مستوى الوضوح التالي. لا يتطلب الاستكشاف حفظاً أو إنجازاً.'],
@@ -188,7 +188,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'Personalizzata', bank: 'Banca di 10 idee', ai: 'Modo IA', localContacts: 'Contatti del livello successivo' },
     activityStages: ['Definire l’attività', 'Allegare foto o video', 'Attendere 3 approvazioni'], validated: 'Convalidata',
     stages: {
-      modes: ['La tua vita in dodici modalità', 'Scegli una qualsiasi delle 12 modalità sul cerchio Holista. Non c’è un ordine obbligatorio: parti dall’area che oggi richiede attenzione.'],
+      modes: ['La tua vita in dodici modalità', 'Scegli una qualsiasi delle 12 modalità nel carosello. Non c’è un ordine obbligatorio: parti dall’area che oggi richiede attenzione.'],
       modeDescription: ['Conosci questa modalità', 'Leggi la descrizione per capire quale area della vita coltivare prima di scegliere il punto di partenza.'],
       selfAssessment: ['Riconosci il tuo punto di partenza', 'L’autovalutazione iniziale va da 0 a 9: scegli la descrizione che ti rappresenta oggi. Non è progresso convalidato. La guida non azzera livelli o attività esistenti.'],
       activityDesign: ['Progetta un’attività intenzionale', 'Ai livelli 0–8 definisci un’attività concreta per modalità e livello di origine, diretta al prossimo livello di chiarezza. Esplorare non richiede salvataggi o completamenti.'],
@@ -221,7 +221,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'Personalizada', bank: 'Banco de 10 ideias', ai: 'Modo IA', localContacts: 'Contatos do próximo nível' },
     activityStages: ['Definir atividade', 'Anexar foto ou vídeo', 'Aguardar 3 aprovações'], validated: 'Validada',
     stages: {
-      modes: ['Sua vida em doze modos', 'Escolha qualquer um dos 12 modos no círculo Holista. Não há ordem obrigatória: comece pela área que precisa de atenção hoje.'],
+      modes: ['Sua vida em doze modos', 'Escolha qualquer um dos 12 modos no carrossel. Não há ordem obrigatória: comece pela área que precisa de atenção hoje.'],
       modeDescription: ['Conheça este modo', 'Leia a descrição para entender qual área da vida vai cultivar antes de escolher seu ponto de partida.'],
       selfAssessment: ['Reconheça seu ponto de partida', 'A autoavaliação inicial vai de 0 a 9: escolha a descrição que representa você hoje. Não é progresso validado. A visita não reinicia níveis ou atividades existentes.'],
       activityDesign: ['Desenhe uma atividade com intenção', 'Nos níveis 0–8, defina uma atividade concreta para seu modo e nível de origem, voltada ao próximo nível de clareza. Explorar não exige salvar nem concluir nada.'],
@@ -254,7 +254,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'Свой вариант', bank: 'Банк из 10 идей', ai: 'Режим ИИ', localContacts: 'Контакты следующего уровня' },
     activityStages: ['Определить активность', 'Прикрепить фото или видео', 'Ждать 3 одобрения'], validated: 'Подтверждено',
     stages: {
-      modes: ['Ваша жизнь в двенадцати режимах', 'Выберите любой из 12 режимов на круге Holista. Обязательного порядка нет: начните с области, которой нужно внимание сегодня.'],
+      modes: ['Ваша жизнь в двенадцати режимах', 'Выберите любой из 12 режимов в карусели. Обязательного порядка нет: начните с области, которой нужно внимание сегодня.'],
       modeDescription: ['Познакомьтесь с режимом', 'Прочитайте описание, чтобы понять область жизни, которую будете развивать, прежде чем выбрать отправную точку.'],
       selfAssessment: ['Определите отправную точку', 'Начальная самооценка — от 0 до 9: выберите описание себя сегодня. Это не подтверждённый прогресс. Экскурсия не сбрасывает существующие уровни и активности.'],
       activityDesign: ['Создайте осмысленную активность', 'На уровнях 0–8 задайте конкретную активность для режима и исходного уровня, направленную к следующей ясности. Просмотр не требует сохранения или выполнения.'],
@@ -287,7 +287,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'Eigener Entwurf', bank: 'Sammlung mit 10 Ideen', ai: 'Modus KI', localContacts: 'Kontakte der nächsten Stufe' },
     activityStages: ['Aktivität definieren', 'Foto oder Video anhängen', 'Auf 3 Zustimmungen warten'], validated: 'Validiert',
     stages: {
-      modes: ['Dein Leben in zwölf Modi', 'Wähle einen beliebigen der 12 Modi im Holista-Kreis. Es gibt keine feste Reihenfolge: Beginne mit dem Bereich, der heute Aufmerksamkeit braucht.'],
+      modes: ['Dein Leben in zwölf Modi', 'Wähle einen beliebigen der 12 Modi im Karussell. Es gibt keine feste Reihenfolge: Beginne mit dem Bereich, der heute Aufmerksamkeit braucht.'],
       modeDescription: ['Lerne diesen Modus kennen', 'Lies die Beschreibung des Lebensbereichs, bevor du deinen Ausgangspunkt wählst.'],
       selfAssessment: ['Erkenne deinen Ausgangspunkt', 'Die erste Selbsteinschätzung geht von 0 bis 9: Wähle die Beschreibung, die heute passt. Sie ist kein validierter Fortschritt. Bestehende Stufen und Aktivitäten werden nicht zurückgesetzt.'],
       activityDesign: ['Gestalte eine gezielte Aktivität', 'Auf Stufen 0–8 definierst du eine konkrete Aktivität für Modus und Ausgangsstufe mit Ziel nächste Klarheitsstufe. Erkunden erfordert weder Speichern noch Abschließen.'],
@@ -320,7 +320,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'Personnalisée', bank: 'Banque de 10 idées', ai: 'Mode IA', localContacts: 'Contacts du niveau suivant' },
     activityStages: ['Définir l’activité', 'Joindre photo ou vidéo', 'Attendre 3 approbations'], validated: 'Validée',
     stages: {
-      modes: ['Votre vie en douze modes', 'Choisissez un des 12 modes du cercle Holista. Aucun ordre imposé : commencez par le domaine qui demande votre attention aujourd’hui.'],
+      modes: ['Votre vie en douze modes', 'Choisissez un des 12 modes du carrousel. Aucun ordre imposé : commencez par le domaine qui demande votre attention aujourd’hui.'],
       modeDescription: ['Découvrez ce mode', 'Lisez sa description pour comprendre le domaine de vie à cultiver avant de choisir votre point de départ.'],
       selfAssessment: ['Reconnaissez votre point de départ', 'L’autoévaluation initiale va de 0 à 9 : choisissez la description qui vous correspond aujourd’hui. Ce n’est pas un progrès validé. La visite ne réinitialise pas vos niveaux ou activités existants.'],
       activityDesign: ['Concevez une activité intentionnelle', 'Aux niveaux 0–8, définissez une activité concrète pour votre mode et niveau de départ, orientée vers la prochaine clarté. Explorer n’exige ni sauvegarde ni réalisation.'],
@@ -353,7 +353,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     methods: { custom: 'Egen aktivitet', bank: 'Bank med 10 idéer', ai: 'Modus AI', localContacts: 'Kontakter på næste niveau' },
     activityStages: ['Definér aktiviteten', 'Vedhæft foto eller video', 'Afvent 3 godkendelser'], validated: 'Valideret',
     stages: {
-      modes: ['Dit liv i tolv modi', 'Vælg en af de 12 modi på Holista-cirklen. Ingen bestemt rækkefølge: Start med det område, der behøver opmærksomhed i dag.'],
+      modes: ['Dit liv i tolv modi', 'Vælg en af de 12 modi i karrusellen. Ingen bestemt rækkefølge: Start med det område, der behøver opmærksomhed i dag.'],
       modeDescription: ['Lær denne modus at kende', 'Læs beskrivelsen for at forstå det livsområde, du vil dyrke, før du vælger udgangspunkt.'],
       selfAssessment: ['Genkend dit udgangspunkt', 'Den første selvevaluering går fra 0 til 9: Vælg beskrivelsen, der passer i dag. Det er ikke valideret fremgang. Rundvisningen nulstiller ikke eksisterende niveauer eller aktiviteter.'],
       activityDesign: ['Skab en målrettet aktivitet', 'På niveau 0–8 definerer du en konkret aktivitet for modus og kildeniveau rettet mod næste klarhedsniveau. Udforskning kræver ikke gemning eller gennemførelse.'],
