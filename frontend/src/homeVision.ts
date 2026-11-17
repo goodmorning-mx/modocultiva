@@ -1,16 +1,27 @@
 import { BADGE_MODES, hasVisionImage } from './badgeProgress';
 
-export type HomeVisionCards = Partial<Record<string, true>>;
+export type HomeImageSource = 'default' | 'vision' | 'electric';
+// true remains the stored representation of Vision Final for existing accounts.
+export type HomeVisionCards = Partial<Record<string, true | 'electric'>>;
 export function cleanHomeVisionCards(value: unknown): HomeVisionCards {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   const options = value as Record<string, unknown>;
-  return Object.fromEntries(BADGE_MODES.filter(mode => options[mode] === true).map(mode => [mode, true]));
+  return Object.fromEntries(BADGE_MODES.filter(mode => options[mode] === true || options[mode] === 'electric').map(mode => [mode, options[mode] as true | 'electric']));
 }
 
 export const defaultModePhoto = (mode: string) => `/mode-photos/${mode}.jpg`;
-export function homeModePhoto(mode: string, image: string | undefined, preferences: HomeVisionCards) {
-  return preferences[mode] && image && hasVisionImage(image) ? image.trim() : defaultModePhoto(mode);
+export const modeSymbol = (mode: string) => `/mode-symbols/${mode}.png`;
+export function homeImageSource(mode: string, image: string | undefined, preferences: HomeVisionCards): HomeImageSource {
+  if (preferences[mode] === 'electric') return 'electric';
+  return preferences[mode] === true && hasVisionImage(image) ? 'vision' : 'default';
 }
+export function homeModePhoto(mode: string, image: string | undefined, preferences: HomeVisionCards) {
+  const source = homeImageSource(mode, image, preferences);
+  return source === 'electric' ? modeSymbol(mode) : source === 'vision' ? image!.trim() : defaultModePhoto(mode);
+}
+
+const electricLabels = { es: 'Símbolo eléctrico', en: 'Electric symbol', zh: '电光符号', hi: 'विद्युत प्रतीक', ar: 'رمز كهربائي', it: 'Simbolo elettrico', pt: 'Símbolo elétrico', ru: 'Электрический символ', de: 'Elektrisches Symbol', fr: 'Symbole électrique', da: 'Elektrisk symbol' } as const;
+export const electricSymbolLabel = (language: keyof typeof electricLabels) => electricLabels[language];
 
 const copy = {
   es: ['Imágenes de los modos', 'Elige qué imagen aparece en cada tarjeta de inicio. Las fotos se cargan únicamente en Visión Final (nivel 9).', 'Predeterminada', 'Visión Final', 'Sin foto en Visión Final', 'No se pudo guardar en este dispositivo.'],

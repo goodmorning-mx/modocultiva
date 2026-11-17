@@ -4,6 +4,7 @@ export interface CarouselItem {
   id: string;
   src: string;
   fallbackSrc?: string;
+  electric?: boolean;
   label: string;
   style: CSSProperties;
   content: ReactNode;
@@ -14,6 +15,7 @@ export default function CircularCarousel(props: {
   label: string;
   controls: { previous: string; next: string; rotation: ReactNode };
   paused?: boolean;
+  effectsEnabled?: boolean;
   onItemClick: (item: CarouselItem) => void;
   preset?: 'panorama' | 'cylinder' | 'orbit' | 'wheel';
   intro?: 'assemble' | 'none' | 'rise' | 'spin';

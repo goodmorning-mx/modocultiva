@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { hasVisionImage } from './badgeProgress';
-import { defaultModePhoto, homeModePhoto, homeVisionCopy, type HomeVisionCards } from './homeVision';
+import { defaultModePhoto, homeModePhoto, homeImageSource, homeVisionCopy, electricSymbolLabel, type HomeVisionCards, type HomeImageSource } from './homeVision';
 import './home-vision-settings.css';
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
   images: Record<string, string | undefined>;
   preferences: HomeVisionCards;
   closeLabel: string;
-  onChange: (mode: string, useVision: boolean) => boolean;
+  onChange: (mode: string, source: HomeImageSource) => boolean;
   onClose: () => void;
 };
 
@@ -38,7 +38,7 @@ export function HomeVisionSettings({ language, modes, images, preferences, close
     <div className="home-vision-modes">
       {modes.map(mode => {
         const available = hasVisionImage(images[mode.key]);
-        const selected = Boolean(available && preferences[mode.key]);
+        const selected = homeImageSource(mode.key, images[mode.key], preferences);
         const fallback = defaultModePhoto(mode.key);
         return <fieldset key={mode.key} data-mode={mode.key} style={{ '--mode-color': mode.color } as CSSProperties} aria-describedby={!available ? `${id}-${mode.key}` : undefined}>
           <legend>{mode.name}</legend>
@@ -46,9 +46,10 @@ export function HomeVisionSettings({ language, modes, images, preferences, close
             if (event.currentTarget.getAttribute('src') !== fallback) event.currentTarget.src = fallback;
           }} />
           <div className="home-vision-options">
-            <label><input type="radio" name={`${id}-${mode.key}-source`} value="default" checked={!selected} onChange={() => setFailed(!onChange(mode.key, false))} />{defaultLabel}</label>
-            <label><input type="radio" name={`${id}-${mode.key}-source`} value="vision" checked={selected} disabled={!available} onChange={() => setFailed(!onChange(mode.key, true))} />{visionLabel}</label>
+            <label><input type="radio" name={`${id}-${mode.key}-source`} value="default" checked={selected === 'default'} onChange={() => setFailed(!onChange(mode.key, 'default'))} />{defaultLabel}</label>
+            <label><input type="radio" name={`${id}-${mode.key}-source`} value="vision" checked={selected === 'vision'} disabled={!available} onChange={() => setFailed(!onChange(mode.key, 'vision'))} />{visionLabel}</label>
             {!available && <small id={`${id}-${mode.key}`}>{noPhoto}</small>}
+            <label><input type="radio" name={`${id}-${mode.key}-source`} value="electric" checked={selected === 'electric'} onChange={() => setFailed(!onChange(mode.key, 'electric'))} />{electricSymbolLabel(language)}</label>
           </div>
         </fieldset>;
       })}

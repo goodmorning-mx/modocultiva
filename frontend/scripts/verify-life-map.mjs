@@ -13,13 +13,15 @@ const homeCarousel = carouselStart < 0 ? '' : app.slice(carouselStart, app.index
 
 assert.equal((modeList.match(/\{ key: '/g) ?? []).length, 12, 'All 12 modes remain in the home data');
 assert.ok(homeCarousel.includes('orderedHomeModes.map((mode) =>'), 'Home renders modes in the selected sort order');
-assert.ok(carousel.includes('className="home-mode-card"') && homeCarousel.includes('openMode(mode)'), 'Each mode opens its existing journey');
+assert.ok(carousel.includes('className={`home-mode-card') && homeCarousel.includes('openMode(mode)'), 'Each mode opens its existing journey');
 assert.match(homeCarousel, /preset="panorama"[\s\S]*cardWidth=\{270\}[\s\S]*aspectRatio=\{0\.75\}[\s\S]*autoplay="drift"/);
 assert.match(homeCarousel, /speed=\{4\}/, 'Home drift uses 4 degrees per second instead of 14');
 assert.match(carousel, /const step = 360 \/ count/, 'The ring spaces cards based on item count');
 for (const [, key] of modeList.matchAll(/\{ key: '([^']+)'/g)) {
   const photo = await readFile(new URL(`../public/mode-photos/${key}.jpg`, import.meta.url));
   assert.equal(photo.readUInt16BE(0), 0xffd8, `Mode ${key} has a local JPEG`);
+  const symbol = await readFile(new URL(`../public/mode-symbols/${key}.png`, import.meta.url));
+  assert.equal(symbol.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', `Mode ${key} has its original PNG symbol`);
 }
 assert.ok(homeCarousel.includes('label: `${modeName(mode)}, ${tr(\'level\')} ${level}`') && carousel.includes('aria-label={item.label}'), 'Each card keeps its full accessible name and level');
 assert.ok(homeCarousel.includes('localizedLevelNames[language][level]'), 'Cards expose the current level label');

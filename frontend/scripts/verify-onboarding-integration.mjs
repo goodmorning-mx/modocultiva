@@ -23,6 +23,7 @@ const TOUR_STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesig
 const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-ambiguous-cache-welcome', 'tour', 'identity', 'drafts', 'local-idea', 'account-local-idea', 'account-local-zero', 'account-local-failure'];
 const ACCESS = 'synthetic-qa-token-not-a-credential';
 CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey', 'home-vision', 'account-home-vision');
+CASES.push('electric-home', 'account-electric-home');
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -55,6 +56,7 @@ const { onboardingIntegrationCopy } = sourceModule('src/onboardingIntegrationMes
 const { guidedTourStepCopy } = sourceModule('src/guidedTourMessages.ts');
 const { JOURNEY_REACTIONS_ENABLED } = sourceModule('src/journeySocial.ts');
 const { cleanHomeVisionCards, homeModePhoto, homeVisionCopy } = sourceModule('src/homeVision.ts');
+const { electricSymbolLabel } = sourceModule('src/homeVision.ts');
 const STOPS = TOUR_STOPS.filter(stop => JOURNEY_REACTIONS_ENABLED || stop !== 'reactions');
 
 function options(argv) {
@@ -412,6 +414,7 @@ async function runCase(browser, config, task) {
   if (localeTask) { state.language = 'en'; if (!task.name.includes('legacy-locale') && !task.name.includes('ambiguous-cache')) state.languageSource = 'auto'; }
   if (manualTask) { state.language = expectedLanguage; if (!task.name.includes('cached-manual')) state.languageSource = 'manual'; }
   const account = task.name.includes('account') || task.name === 'identity'; const reduced = task.width === 320 || task.width === 870;
+  if (task.name.endsWith('electric-home')) state.homeVisionCards = { fisico: true };
   if (task.name.endsWith('home-vision')) {
     state.levels.fisico = 9;
     state.visionImages = { fisico: PNG, arquetipico: 'data:image/png;base64,AAAA' };
@@ -423,12 +426,18 @@ async function runCase(browser, config, task) {
   if (account && !welcomeTask) state.onboardingWelcomeCompleted = true;
   const regionalLocales = { es: 'es-MX', en: 'en-GB', zh: 'zh-Hans-CN', hi: 'hi-IN', ar: 'ar-SA', it: 'it-IT', pt: 'pt-BR', ru: 'ru-RU', de: 'de-DE', fr: 'fr-FR', da: 'da-DK' };
   const height = task.name === 'fresh-journey' ? (task.width <= 390 ? 568 : task.width === 870 ? 667 : 835) : 835;
-  const context = await browser.newContext({ viewport: { width: task.width, height }, serviceWorkers: 'block', reducedMotion: reduced ? 'reduce' : 'no-preference', locale: regionalLocales[task.language] });
+  const context = await browser.newContext({ viewport: { width: task.width, height }, hasTouch: task.width <= 390, serviceWorkers: 'block', reducedMotion: reduced ? 'reduce' : 'no-preference', locale: regionalLocales[task.language] });
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
   const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts', localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name) });
   await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: 'manual', manualRecord: !localeTask, cachedManual: task.name.includes('ambiguous-cache') });
+  if (task.name.endsWith('electric-home') && !account) await context.addInitScript(() => {
+    if (!localStorage.getItem('__electric_seed')) {
+      localStorage.setItem('modo-cultiva:guest-cache:v1:modoCultiva_homeVisionCards', JSON.stringify({fisico:true}));
+      localStorage.setItem('__electric_seed','1');
+    }
+  });
   const configuration = { ...config, ...task, language: expectedLanguage, reduced }; let result;
   try {
     if (welcomeTask) { await page.clock.install({ time: new Date('2026-10-29T12:00:00Z') }); await page.clock.pauseAt(new Date('2026-10-29T12:00:01Z')); }
@@ -460,6 +469,59 @@ async function runCase(browser, config, task) {
           await assertPreserved(page, state); await assertMap(page, state.levels);
         }
         result = { tours, preserved: true, guestCounter: false, sharingPreviewTested: config.sharePreview };
+      } else if (task.name.endsWith('electric-home')) {
+        const modal = page.locator('.home-vision-settings[open]');
+        const open = async () => { await page.locator('.home-menu-button').click(); await page.locator('[data-home-menu-item="images"]').click(); await modal.waitFor(); };
+        await open();
+        assert.equal(await modal.locator('[data-mode=fisico] input[value=vision]').isChecked(), true, 'Keep the old boolean preference');
+        assert.equal(await modal.locator('input[value=electric]').count(), 12);
+        assert.equal(await modal.locator('input[type=file]').count(), 0);
+        for (const mode of MODES) {
+          await modal.locator(`[data-mode=${mode}] input[value=electric]`).check();
+          assert.ok((await modal.locator(`[data-mode=${mode}]`).innerText()).includes(electricSymbolLabel(task.language)));
+        }
+        assert.equal(await page.locator('.electric-logo canvas').count(), 0, 'Settings must not mount twelve renderers');
+        await page.keyboard.press('Escape');
+        const expected = Object.fromEntries(MODES.map(mode => [mode, 'electric']));
+        if (account) await eventually(() => JSON.stringify(transport.snapshot().state.homeVisionCards) === JSON.stringify(expected), 'All electric preferences synced');
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        if (account) await settleHydration(page, expectedLanguage, config.timeout);
+        const carousel = page.locator('.circular-carousel[data-ready]');
+        await carousel.locator('.home-mode-card[tabindex="0"]').press('Home');
+        if (!reduced) {
+          await page.locator('.mode-electric-symbol.is-rendered').waitFor({timeout:30000});
+          assert.equal(await page.locator('.electric-logo canvas').count(), 1, 'One WebGL context, not twelve');
+          await page.evaluate(() => { globalThis.__qaVisibility = true; document.dispatchEvent(new Event('visibilitychange')); });
+          await eventually(async () => await page.locator('.electric-logo canvas').count() === 0, 'Hidden tab releases canvas');
+          await page.evaluate(() => { globalThis.__qaVisibility = false; document.dispatchEvent(new Event('visibilitychange')); });
+          await page.locator('.mode-electric-symbol.is-rendered').waitFor({timeout:30000});
+          await page.emulateMedia({ reducedMotion: 'reduce' });
+          await eventually(async () => await page.locator('.electric-logo canvas').count() === 0, 'Live reduced motion removes animation');
+          await page.emulateMedia({ reducedMotion: 'no-preference' });
+          await page.locator('.mode-electric-symbol.is-rendered').waitFor({timeout:30000});
+          if (process.env.ELECTRIC_QA_SCREENSHOT) { await delay(1800); await page.screenshot({path:process.env.ELECTRIC_QA_SCREENSHOT}); }
+          await page.locator('.electric-logo canvas').dispatchEvent('webglcontextlost');
+          await eventually(async () => await page.locator('.electric-logo canvas').count() === 0, 'Lost GPU context returns to the PNG');
+        } else assert.equal(await page.locator('.electric-logo canvas').count(), 0);
+        for (const [index, mode] of MODES.entries()) {
+          const button = carousel.locator(`[data-tour-mode="${mode}"][tabindex="0"]`);
+          await button.waitFor();
+          assert.ok((await button.getAttribute('class')).includes('home-mode-card--electric'));
+          assert.equal(await button.locator('.mode-electric-symbol-fallback').getAttribute('src'), `/mode-symbols/${mode}.png`);
+          if (index % 2) await button.press('Enter'); else if (task.width <= 390) await button.tap(); else await button.click();
+          await page.locator('.journey-panel').waitFor();
+          assert.equal(await page.locator('.electric-logo canvas').count(), 0, 'Covered home releases renderer');
+          await page.locator('.close-journey').click();
+          if (index < MODES.length-1) await carousel.locator('.circular-carousel__controls button').nth(1).click();
+        }
+        await open();
+        for (const mode of MODES) assert.equal(await modal.locator(`[data-mode=${mode}] input[value=electric]`).isChecked(), true);
+        await modal.locator('[data-mode=fisico] input[value=vision]').check();
+        await modal.locator('[data-mode=intelectual] input[value=default]').check();
+        await page.keyboard.press('Escape');
+        if (account) await eventually(() => transport.snapshot().state.homeVisionCards?.fisico === true && !transport.snapshot().state.homeVisionCards?.intelectual, 'Restoring existing choices synced');
+        await assertPreserved(page,state,account);
+        result = { electricModes:12, oldBooleanPreserved:true, selectableSources:3, persistence:account?'account':'guest', oneRenderer:!reduced, strictReducedMotion:true, allModesOpen:true, preserved:true };
       } else if (task.name.endsWith('home-vision')) {
         const menu = page.locator('.home-menu-button');
         const modal = page.locator('.home-vision-settings[open]');
@@ -709,6 +771,8 @@ async function runCase(browser, config, task) {
 function selfTest() {
   assert.equal(STOPS.length, JOURNEY_REACTIONS_ENABLED ? 30 : 29); assert.equal(new Set(STOPS).size, STOPS.length); assert.ok(STOPS.includes('audience'));
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, emocional: false, unknown: true, social: 'true' }), { fisico: true });
+  assert.deepEqual(cleanHomeVisionCards({ fisico: true, social: 'electric', unknown: 'electric' }), { fisico:true, social:'electric' });
+  assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/fisico.png');
   assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
   assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '/mode-photos/fisico.jpg');
   assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-photos/fisico.jpg');
