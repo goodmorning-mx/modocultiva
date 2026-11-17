@@ -56,9 +56,10 @@ const { stateAccountCopy } = sourceModule('src/stateAccountMessages.ts');
 const { onboardingIntegrationCopy } = sourceModule('src/onboardingIntegrationMessages.ts');
 const { guidedTourStepCopy } = sourceModule('src/guidedTourMessages.ts');
 const { JOURNEY_REACTIONS_ENABLED } = sourceModule('src/journeySocial.ts');
+const { JOURNEY_SUBMISSION_AUDIENCE_ENABLED } = sourceModule('src/journeyDeck.ts');
 const { cleanHomeVisionCards, homeModePhoto, homeVisionCopy } = sourceModule('src/homeVision.ts');
 const { electricSymbolLabel } = sourceModule('src/homeVision.ts');
-const STOPS = TOUR_STOPS.filter(stop => JOURNEY_REACTIONS_ENABLED || stop !== 'reactions');
+const STOPS = TOUR_STOPS.filter(stop => (JOURNEY_REACTIONS_ENABLED || stop !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || stop !== 'audience'));
 
 function options(argv) {
   const result = { url: process.env.ONBOARDING_URL ?? 'http://127.0.0.1:4173', languages: LANGUAGES, widths: WIDTHS, cases: CASES, replays: 2, workers: 2, timeout: 12000, methodRegressions: true, sharePreview: true, draftReplay: 'pointer' };
@@ -631,7 +632,20 @@ async function runCase(browser, config, task) {
           const dialog = page.locator('.journey-panel');
           assert.equal(await dialog.locator('.journey-replay').count(), 0);
           assert.equal(await dialog.locator('.journey-current-level .global-sparks').count(), 1);
+          assert.equal(await dialog.locator('.journey-step-arrow--previous').count(), 0, 'No Previous arrow on Overview');
           assert.equal(await dialog.locator('.journey-step-arrow--next .global-sparks').count(), 1);
+          const separator = await dialog.locator('.journey-definition-label').evaluate(el => {
+            const label = el.getBoundingClientRect();
+            const caption = el.firstElementChild.getBoundingClientRect();
+            return {
+              centerOffset: Math.abs((label.left + label.right) - (caption.left + caption.right)) / 2,
+              before: parseFloat(getComputedStyle(el, '::before').width),
+              after: parseFloat(getComputedStyle(el, '::after').width),
+              animation: getComputedStyle(el.querySelector('.global-sparks'), '::before').animationName,
+            };
+          });
+          assert.ok(separator.centerOffset < 1 && separator.before > 0 && Math.abs(separator.before - separator.after) < 1, 'Separator label is centered between equal lines');
+          assert.equal(separator.animation, reduced ? 'none' : 'global-spark-drift');
           if (task.language === 'es') {
             assert.equal((await dialog.locator('.journey-current-level').textContent()).trim(), 'Estás en nivel: 0');
             assert.equal(await dialog.locator('.journey-definition-label').textContent(), 'Definición del nivel actual:');
@@ -683,6 +697,23 @@ async function runCase(browser, config, task) {
         const steps = page.locator('.journey-step-list button');
         const up = page.locator('.journey-level-link--up');
         await assertJourneyNumbers(steps, task.language);
+        const previous = page.locator('.journey-step-arrow--previous');
+        assert.equal(await previous.count(), 0);
+        for (const step of [1, 2, 3]) {
+          await steps.nth(step).click();
+          assert.equal(await previous.isVisible(), true, `Previous is visible in step ${step}`);
+          assert.deepEqual(await steps.locator('small').evaluateAll(labels => labels.map(label => {
+            const range = document.createRange();
+            range.selectNodeContents(label);
+            return range.getClientRects().length === 1 && label.scrollWidth <= label.clientWidth + 1;
+          })), [true, true, true, true], 'Tab text stays inside each button on one line');
+        }
+        await previous.click();
+        assert.equal(await steps.nth(2).getAttribute('aria-current'), 'step');
+        await previous.click();
+        await previous.click();
+        assert.equal(await previous.count(), 0);
+        assert.equal(await steps.nth(0).evaluate(button => button === document.activeElement), true);
         if (task.language === 'es') {
           assert.match(await up.textContent(), /Siguiente nivel · 4.*Se desbloquea al validar tu actividad/s);
           assert.match(await page.locator('.journey-level-link--down').textContent(), /Ver nivel anterior · 2/);
@@ -760,8 +791,9 @@ async function runCase(browser, config, task) {
         const flow = page.locator('.activity-journey-flow'); await flow.waitFor();
         assert.equal(await page.locator('.journey-community-actions').count(), 0);
         assert.equal(await flow.locator(':scope > .activity-flow-help').count(), 0);
-        assert.equal(await flow.locator('.card-audience-options > label').count(), 2);
-        for (const label of await flow.locator('.card-audience-options > label').all()) assert.ok((await label.boundingBox()).height <= 80, 'Compact audience targets, including mobile');
+        assert.equal(await flow.locator('form .activity-flow-audience').count(), Number(JOURNEY_SUBMISSION_AUDIENCE_ENABLED));
+        assert.equal(await flow.locator('form .activity-flow-audience .activity-flow-help').count(), 0, 'Audience details do not appear in the evidence form');
+        assert.equal(await flow.locator('form .activity-flow-reference').count(), 1, 'Evidence reference is still available');
         const height = (await flow.boundingBox()).height; assert.ok(height < 1350, `Compact default flow height: ${height}`);
         await steps.nth(1).click();
         const trigger = page.locator(methodSelectors.localContacts);
@@ -817,7 +849,8 @@ async function runCase(browser, config, task) {
 }
 
 function selfTest() {
-  assert.equal(STOPS.length, JOURNEY_REACTIONS_ENABLED ? 30 : 29); assert.equal(new Set(STOPS).size, STOPS.length); assert.ok(STOPS.includes('audience'));
+  assert.equal(STOPS.length, 28 + Number(JOURNEY_REACTIONS_ENABLED) + Number(JOURNEY_SUBMISSION_AUDIENCE_ENABLED));
+  assert.equal(new Set(STOPS).size, STOPS.length); assert.equal(STOPS.includes('audience'), JOURNEY_SUBMISSION_AUDIENCE_ENABLED);
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, emocional: false, unknown: true, social: 'true' }), { fisico: true });
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, social: 'electric', unknown: 'electric' }), { fisico:true, social:'electric' });
   assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/fisico.webp');

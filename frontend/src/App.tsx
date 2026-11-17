@@ -20,7 +20,7 @@ import { activityFlowCopy } from './activityJourneyFlowMessages';
 import { PublicActivityCard } from './PublicActivityCard';
 import { adaptActivityFlow } from './activityFlowAdapter';
 import { ActivityJourneyFlow, activityFlowStage, type ActivityJourneyFlowProps } from './ActivityJourneyFlow';
-import { canOpenJourneyLevel, journeyGesture, journeyLevelLabels, journeyOverviewLabels, journeyStepLabels, type JourneyStep } from './journeyDeck';
+import { canOpenJourneyLevel, journeyGesture, journeyLevelLabels, journeyOverviewLabels, journeyStepLabels, JOURNEY_SUBMISSION_AUDIENCE_ENABLED, type JourneyStep } from './journeyDeck';
 import type { EvidenceDraft } from './visualEvidence';
 import { onboardingIntegrationCopy } from './onboardingIntegrationMessages';
 import { WelcomeIntro } from './WelcomeIntro';
@@ -82,7 +82,7 @@ type ActivityEntry = 'custom' | 'pool' | 'ai';
 type PoolActivity = { title: string; description: string };
 type TourTopic = TourStageId | 'controlStrongest' | 'controlLeast' | 'controlFocus' | 'controlTrivia';
 const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'] satisfies TourTopic[])
-  .filter(topic => JOURNEY_REACTIONS_ENABLED || topic !== 'reactions');
+  .filter(topic => (JOURNEY_REACTIONS_ENABLED || topic !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || topic !== 'audience'));
 type AccessRequest = { feature: string; plan: 'Cuenta' | 'Entry' | 'Gold' | 'Ultimate Mode'; returnView: View };
 type PendingActivity = { level: number; entry: ActivityEntry };
 type PlanKey = 'basic' | 'gold' | 'ultimate';
@@ -2253,6 +2253,7 @@ function App() {
       state: adaptActivityFlow({ activity, alignment: activityAlignments[key] ?? '', mode: modeKey, level, actor: verifiedIdentity?.user_id, submissions: communitySubmissions, evidenceDraft: evidenceDrafts[key], historical: legacyCompletionSlots.includes(key) || (!isAuthenticated && Boolean(activityCompletions[key])) }),
       targetSnapshot: matching && ['pending', 'changes_requested', 'approved'].includes(matching.status) ? { ...matching.rubric_snapshot.target, version: matching.rubric_version } : undefined,
       audience: cardAudienceDrafts[key] ?? matching?.audience ?? 'network',
+      allowSubmissionAudience: JOURNEY_SUBMISSION_AUDIENCE_ENABLED,
       publishedAudience: matching?.audience ?? 'network',
       sharedCardId: matching?.shared_card_id ?? null,
       onAudienceChange: audience => setCardAudienceDrafts(current => ({ ...current, [key]: audience })),
@@ -2901,7 +2902,10 @@ function App() {
               event.preventDefault();
               goJourneyStep(displayJourneyStep + ((event.key === 'ArrowRight') !== (language === 'ar') ? 1 : -1));
             }}>
-              <button className="journey-step-arrow" type="button" disabled={displayJourneyStep === 0} onClick={() => goJourneyStep(displayJourneyStep - 1)} aria-label={tr('previous')}>{language === 'ar' ? '→' : '←'}</button>
+              {displayJourneyStep > 0 && <button className="journey-step-arrow journey-step-arrow--previous" type="button" onClick={event => {
+                goJourneyStep(displayJourneyStep - 1);
+                if (displayJourneyStep === 1) event.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.journey-step-list button')?.focus({ preventScroll: true });
+              }} aria-label={tr('previous')}>{language === 'ar' ? '→' : '←'}</button>}
               <ol className="journey-step-list">
                 {deckLabels.slice(0, visibleJourneyLevel === 9 ? 2 : 4).map((label, step) => {
                   const title = visibleJourneyLevel === 9 && step === 1 ? tr('finalVision') : label;
@@ -2925,7 +2929,12 @@ function App() {
                 <span className="journey-icon" aria-hidden="true">{selectedMode.icon}</span>
                 <div><h3>{modeName(selectedMode)}</h3><p>{modeJourneyDescription(selectedMode)}</p>
                 <div className="journey-deck-clarity">
-                  <h4 className="journey-definition-label">{viewingAnotherLevel ? viewedDefinitionLabel : currentDefinitionLabel}</h4>
+                  <h4 className="journey-definition-label">
+                    <span className="journey-definition-caption">
+                      <span className="global-sparks" aria-hidden="true" />
+                      <span>{viewingAnotherLevel ? viewedDefinitionLabel : currentDefinitionLabel}</span>
+                    </span>
+                  </h4>
                   <strong>{localizedLevelNames[language][visibleJourneyLevel]}</strong><p>{levelDefinitionText(visibleJourneyLevel)}</p>
                 </div></div>
               </article> : visibleJourneyLevel === 9 ? <article className="journey-level-card journey-level-card--active journey-level-card--vision">

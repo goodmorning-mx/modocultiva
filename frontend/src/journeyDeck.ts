@@ -1,5 +1,8 @@
 export type JourneyStep = 0 | 1 | 2 | 3;
 
+// Until the Home feed is available, submitting evidence is network-only.
+export const JOURNEY_SUBMISSION_AUDIENCE_ENABLED = false;
+
 export const journeyStepLabels = {
   es: ['Vista del modo', 'Actividad', 'Evidencia', 'Validación', 'Pedir Idea Global'],
   en: ['Mode overview', 'Activity', 'Evidence', 'Validation', 'Ask for a Global Idea'],

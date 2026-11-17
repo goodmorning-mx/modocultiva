@@ -34,6 +34,8 @@ export type ActivityJourneyFlowProps = {
   onUploadVideo?: UploadVideo;
   onLoadVideo?: LoadVideo;
   audience?: CardAudience;
+  /** Temporarily hide the draft selector and submit to the network only. */
+  allowSubmissionAudience?: boolean;
   /** Selection only, not publication. The host must not write from this callback. */
   onAudienceChange?: (audience: CardAudience) => void;
   /** Authoritative current audience, separate from a controlled draft selection. */
@@ -52,9 +54,9 @@ export type ActivityJourneyFlowProps = {
 };
 
 /** Shared by submission and feed editors. Selection never performs a write. */
-export function CardAudienceControl({ language = 'en', value, confirmed, onChange, onConfirm, disabled = false, draft = false }: {
+export function CardAudienceControl({ language = 'en', value, confirmed, onChange, onConfirm, disabled = false, draft = false, showDetails = true }: {
   language?: string; value: CardAudience; confirmed: boolean; onChange: (audience: CardAudience) => void;
-  onConfirm: (confirmed: boolean) => void; disabled?: boolean; draft?: boolean;
+  onConfirm: (confirmed: boolean) => void; disabled?: boolean; draft?: boolean; showDetails?: boolean;
 }) {
   const copy = cardAudienceCopy(language); const id = useId();
   return <fieldset className="card-audience-control activity-flow-audience" disabled={disabled} aria-describedby={`${id}-help`}>
@@ -64,7 +66,7 @@ export function CardAudienceControl({ language = 'en', value, confirmed, onChang
       <span><strong>{copy[audience]}</strong></span>
     </label>)}</div>
     <p id={`${id}-help`} className="card-audience-note">{value === 'network' ? copy.networkDetail : copy.publicDetail}</p>
-    <details className="activity-flow-help"><summary>{compactActivityCopy(language).details}</summary><p>{copy.selectionOnly}</p>{draft && <p>{copy.draftOwnerOnly}</p>}</details>
+    {showDetails && <details className="activity-flow-help"><summary>{compactActivityCopy(language).details}</summary><p>{copy.selectionOnly}</p>{draft && <p>{copy.draftOwnerOnly}</p>}</details>}
     {value === 'public' && <div className="card-audience-public-warning">
       <p id={`${id}-warning`}>{copy.publicWarning}</p>
       <label className="card-audience-confirm"><input type="checkbox" checked={confirmed} aria-describedby={`${id}-warning`} onChange={event => onConfirm(event.target.checked)} /><span>{copy.publicConfirm}</span></label>
@@ -105,7 +107,7 @@ export function ActivityJourneyFlow(props: ActivityJourneyFlowProps) {
   return <ActivityJourneyFlowContent key={`${props.activityKey ?? ''}:${props.sourceLevel}`} {...props} />;
 }
 
-function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDefine, onSubmit, onDraftChange, onUploadVideo, onLoadVideo, audience = 'network', onAudienceChange, publishedAudience, sharedCardId, onSetAudience, onUnshare, disabled = false, targetSnapshot, viewStep, definitionOnly, manualDraft, onManualDraftChange }: ActivityJourneyFlowProps) {
+function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDefine, onSubmit, onDraftChange, onUploadVideo, onLoadVideo, audience = 'network', allowSubmissionAudience = true, onAudienceChange, publishedAudience, sharedCardId, onSetAudience, onUnshare, disabled = false, targetSnapshot, viewStep, definitionOnly, manualDraft, onManualDraftChange }: ActivityJourneyFlowProps) {
   const copy = activityFlowCopy(language);
   const compact = compactActivityCopy(language);
   const audienceCopy = cardAudienceCopy(language);
@@ -136,6 +138,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
   const definitionChanged = definition.activity.trim() !== state.definition?.activity.trim() || definition.target_alignment.trim() !== state.definition?.target_alignment.trim();
   const locked = disabled || busy;
   const publishReady = selectedAudience !== 'public' || publicConfirmed;
+  const submitReady = !allowSubmissionAudience || publishReady;
 
   useEffect(() => {
     const next = normalizeCardAudience(audience);
@@ -180,8 +183,8 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
     if (problem) { setError(copy[problem]); return; }
     if (!onSubmit || !state.definition || !targetMatches || visualBusy) return;
     const saved = state.definition;
-    if (!publishReady) return;
-    const publication = cardPublicationFields(selectedAudience, publicConfirmed);
+    if (!submitReady) return;
+    const publication = allowSubmissionAudience ? cardPublicationFields(selectedAudience, publicConfirmed) : cardPublicationFields('network', false);
     void perform(signal => onSubmit({ activity: saved.activity.trim(), target_alignment: saved.target_alignment.trim(), evidence: evidenceInputFromDraft(draft), ...publication }, signal));
   };
 
@@ -211,7 +214,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
       <label htmlFor={`${id}-alignment`}>{copy.alignment}</label>
       <textarea id={`${id}-alignment`} dir="auto" value={definition.target_alignment} disabled={locked} required aria-describedby={`${id}-minimum ${id}-target`} onChange={event => editDefinition({ ...definition, target_alignment: event.target.value })} />
       <p id={`${id}-minimum`} className="activity-flow-note">{copy.minimum}</p>
-      {!inDeck && !definitionOnly && <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />}
+      {allowSubmissionAudience && !inDeck && !definitionOnly && <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft showDetails={false} onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />}
       <div className="activity-flow-actions">
         <button type="submit" disabled={locked || !onDefine || !targetMatches || !validActivityDefinition(definition) || !definitionChanged}>{copy.save}</button>
         {editing && <button type="button" disabled={busy} onClick={() => { setDefinition(state.definition!); setEditing(false); setError(''); }}>{copy.cancel}</button>}
@@ -233,8 +236,9 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
         <details className="activity-flow-reference" open={draft.link ? true : undefined}><summary>{compact.reference}</summary><label htmlFor={`${id}-link`}>{copy.link}</label>
         <input id={`${id}-link`} dir="ltr" type="url" inputMode="url" value={draft.link ?? ''} disabled={locked} onChange={event => changeDraft({ ...draft, link: event.target.value })} />
         </details>
-        <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />
-        <button type="submit" disabled={locked || visualBusy || !onSubmit || !targetMatches || !publishReady || evidenceDraftProblem(draft) !== null}>{compact.send}</button>
+        {allowSubmissionAudience && <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft showDetails={false} onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />}
+        {!allowSubmissionAudience && onSubmit && <p className="activity-flow-note">{audienceCopy.networkDetail}</p>}
+        <button type="submit" disabled={locked || visualBusy || !onSubmit || !targetMatches || !submitReady || evidenceDraftProblem(draft) !== null}>{compact.send}</button>
         {!onSubmit && <p className="activity-flow-note">{copy.unavailable}</p>}
       </form> : <div className="activity-flow-review" role="status" aria-live="polite" aria-atomic="true">
         <h6>{validated ? copy.validated : copy.stages[2]}</h6>
