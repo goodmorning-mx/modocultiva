@@ -25,6 +25,7 @@ const ACCESS = 'synthetic-qa-token-not-a-credential';
 CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey', 'home-vision', 'account-home-vision');
 CASES.push('electric-home', 'account-electric-home');
 CASES.push('home-upload', 'account-home-upload');
+CASES.push('guest-language-switch', 'account-language-switch');
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -59,6 +60,8 @@ const { JOURNEY_REACTIONS_ENABLED } = sourceModule('src/journeySocial.ts');
 const { JOURNEY_SUBMISSION_AUDIENCE_ENABLED } = sourceModule('src/journeyDeck.ts');
 const { cleanHomeVisionCards, homeModePhoto, homeVisionCopy } = sourceModule('src/homeVision.ts');
 const { electricSymbolLabel } = sourceModule('src/homeVision.ts');
+const { interfaceCopy, homeGreetingPhrases } = sourceModule('src/interfaceLanguage.ts');
+const { homeQuoteText } = sourceModule('src/homeQuoteTranslations.ts');
 const STOPS = TOUR_STOPS.filter(stop => (JOURNEY_REACTIONS_ENABLED || stop !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || stop !== 'audience'));
 
 function options(argv) {
@@ -425,6 +428,11 @@ async function runCase(browser, config, task) {
   if (manualTask) { state.language = expectedLanguage; if (!task.name.includes('cached-manual')) state.languageSource = 'manual'; }
   const account = task.name.includes('account') || task.name === 'identity'; const reduced = task.width === 320 || task.width === 870;
   const uploads = task.name.endsWith('home-upload');
+  const switchesLanguage = task.name.endsWith('language-switch');
+  if (switchesLanguage) {
+    state.profileName = 'Cultiva todos tus modos.';
+    if (account) state.languageSource = 'manual';
+  }
   if (uploads) delete state.visionImages.financiero;
   if (task.name.endsWith('electric-home')) state.homeVisionCards = { fisico: true };
   if (task.name.endsWith('home-vision')) {
@@ -443,7 +451,7 @@ async function runCase(browser, config, task) {
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
   const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts', localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads });
-  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: 'manual', manualRecord: !localeTask, cachedManual: task.name.includes('ambiguous-cache') });
+  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: 'manual', manualRecord: !localeTask && !switchesLanguage, cachedManual: task.name.includes('ambiguous-cache') });
   if (task.name.endsWith('electric-home') && !account) await context.addInitScript(() => {
     if (!localStorage.getItem('__electric_seed')) {
       localStorage.setItem('modo-cultiva:guest-cache:v1:modoCultiva_homeVisionCards', JSON.stringify({fisico:true}));
@@ -481,6 +489,47 @@ async function runCase(browser, config, task) {
           await assertPreserved(page, state); await assertMap(page, state.levels);
         }
         result = { tours, preserved: true, guestCounter: false, sharingPreviewTested: config.sharePreview };
+      } else if (switchesLanguage) {
+        const preferred = LANGUAGES.filter(code => code !== expectedLanguage).at(-1);
+        const assertLanguage = async code => {
+          assert.equal(await page.locator('html').getAttribute('lang'), code === 'zh' ? 'zh-CN' : code);
+          assert.equal(await page.locator('html').getAttribute('dir'), code === 'ar' ? 'rtl' : 'ltr');
+          assert.equal(await page.locator('.home-greeting h1 > span').textContent(), interfaceCopy[code][0]);
+          assert.equal(await page.locator('.home-greeting h1 > strong').textContent(), state.profileName, 'Never translate names or user-entered text');
+          const phrase = await page.locator('.home-greeting-welcome-phrase').evaluate(el => el.firstChild.textContent);
+          assert.ok(homeGreetingPhrases[code].includes(phrase));
+        };
+        await assertLanguage(expectedLanguage);
+        const dailyQuoteLink = await page.locator('.home-greeting-quote a').getAttribute('href');
+        const setBrowserLanguage = code => page.evaluate(code => {
+          Object.defineProperty(navigator, 'languages', {configurable:true, get: () => [code]});
+          dispatchEvent(new Event('languagechange'));
+        }, code);
+        if (!account) {
+          await setBrowserLanguage('it');
+          await eventually(async () => await page.locator('html').getAttribute('lang') === 'it', 'Auto preference follows browser language changes');
+          await assertLanguage('it');
+        }
+        await page.locator('.home-menu-button').click();
+        const picker = page.locator('.home-sidebar-language select');
+        await picker.waitFor();
+        const originalShell = await page.locator('main').elementHandle();
+        for (const code of [...LANGUAGES.filter(code => code !== preferred), preferred]) {
+          await picker.selectOption(code);
+          await assertLanguage(code);
+          assert.equal(await picker.inputValue(), code);
+          assert.equal(await page.locator('.home-greeting-quote a').getAttribute('href'), dailyQuoteLink, 'Changing language does not change the quote source');
+        }
+        assert.equal(await originalShell.evaluate(node => node.isConnected), true, 'Language switch does not remount the application');
+        if (account) await eventually(() => transport.snapshot().state.language === preferred && transport.snapshot().state.languageSource === 'manual', 'Explicit account language syncs with provenance');
+        await setBrowserLanguage('zh');
+        await assertLanguage(preferred);
+        await page.reload({waitUntil:'domcontentloaded'});
+        if (account) await settleHydration(page, preferred, config.timeout);
+        await assertLanguage(preferred);
+        await assertPreserved(page, state, account);
+        await assertMap(page, state.levels);
+        result = { switchedLanguages:11, sameShell:true, manualSurvivesReload:true, guestFollowsBrowser:!account, userTextPreserved:true };
       } else if (task.name.endsWith('electric-home')) {
         const modal = page.locator('.home-vision-settings[open]');
         const open = async () => { await page.locator('.home-menu-button').click(); await page.locator('[data-home-menu-item="images"]').click(); await modal.waitFor(); };
@@ -860,6 +909,9 @@ function selfTest() {
   assert.equal(options(['--smoke']).languages[0], 'en');
   for (const url of ['https://example.com', 'http://127.0.0.1:4173/?token=x', 'http://user:secret@localhost:4173']) assert.throws(() => options([`--url=${url}`]));
   for (const language of LANGUAGES) {
+    assert.equal(interfaceCopy[language].filter(Boolean).length, 10);
+    assert.equal(homeGreetingPhrases[language].filter(Boolean).length, 10);
+    if (language !== 'es') for (let index = 0; index < 20; index++) assert.notEqual(homeQuoteText(language, index, '<untranslated>'), '<untranslated>');
     assert.equal(welcomeMessages[language].messages.length, 7); assert.ok(stateAccountCopy(language).cloudOnly);
     assert.ok(onboardingIntegrationCopy(language).share); for (const stop of STOPS.filter(stop => !stop.startsWith('control'))) assert.ok(guidedTourStepCopy(language, stop).title);
     assert.equal(homeVisionCopy(language).filter(Boolean).length, 6);
