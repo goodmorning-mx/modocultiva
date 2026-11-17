@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { clarityMessages, clarityTransition } from './clarityRubric';
+import { clarityMessages, clarityReminderTitles, clarityTransition, type ClarityLanguage } from './clarityRubric';
 import { activityFlowCopy, cardAudienceCopy } from './activityJourneyFlowMessages';
 import { VisualEvidenceInput } from './VisualEvidenceInput';
 import { compactActivityCopy } from './compactActivityMessages';
@@ -194,7 +194,11 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
       </li>)}
     </ol>}
     <aside className="activity-flow-target" aria-labelledby={`${id}-target`}>
-      <details><summary id={`${id}-target`}>{clarity.level} {sourceLevel} ↗ {target.level} · <strong>{target.name}</strong></summary><p className="activity-flow-description" dir="auto">{target.description}</p><p>{clarity.rule}</p></details>
+      <details>
+        <summary id={`${id}-target`}>{clarityReminderTitles[language as ClarityLanguage] ?? clarityReminderTitles.en}</summary>
+        <p>{clarity.rule}</p>
+        <p className="activity-flow-description" dir="auto">{target.description}</p>
+      </details>
     </aside>
     {state.status === 'legacyHistorical' && <p className="activity-flow-legacy">{copy.legacy}</p>}
     {stage === 1 ? (inDeck && !definitionOnly && (!state.definition || validSavedActivityDefinition(state.definition)) ? null : <form className="activity-flow-form" onSubmit={event => {
@@ -206,6 +210,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
       <textarea id={activityInputId} dir="auto" value={definition.activity} disabled={locked} required aria-describedby={`${id}-minimum`} onChange={event => editDefinition({ ...definition, activity: event.target.value })} />
       <label htmlFor={`${id}-alignment`}>{copy.alignment}</label>
       <textarea id={`${id}-alignment`} dir="auto" value={definition.target_alignment} disabled={locked} required aria-describedby={`${id}-minimum ${id}-target`} onChange={event => editDefinition({ ...definition, target_alignment: event.target.value })} />
+      <p id={`${id}-minimum`} className="activity-flow-note">{copy.minimum}</p>
       {!inDeck && !definitionOnly && <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />}
       <div className="activity-flow-actions">
         <button type="submit" disabled={locked || !onDefine || !targetMatches || !validActivityDefinition(definition) || !definitionChanged}>{copy.save}</button>
@@ -248,7 +253,6 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
         </div>
       </details>}
     </>}
-    <details className="activity-flow-help"><summary>{compact.help}</summary><p id={`${id}-minimum`}>{copy.minimum}</p><p>{copy.visual}</p><p>{copy.review}</p><p>{copy.revision}</p><p>{copy.serverOnly}</p></details>
     {busy && <p role="status">{copy.working}</p>}
     {error && <p className="activity-flow-error" role="alert">{error}</p>}
     {!targetMatches && <p className="activity-flow-error" role="alert">{copy.actionFailed}</p>}

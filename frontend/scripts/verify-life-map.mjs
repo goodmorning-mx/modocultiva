@@ -15,6 +15,7 @@ assert.equal((modeList.match(/\{ key: '/g) ?? []).length, 12, 'All 12 modes rema
 assert.ok(homeCarousel.includes('orderedHomeModes.map((mode) =>'), 'Home renders modes in the selected sort order');
 assert.ok(carousel.includes('className="home-mode-card"') && homeCarousel.includes('openMode(mode)'), 'Each mode opens its existing journey');
 assert.match(homeCarousel, /preset="panorama"[\s\S]*cardWidth=\{270\}[\s\S]*aspectRatio=\{0\.75\}[\s\S]*autoplay="drift"/);
+assert.match(homeCarousel, /speed=\{4\}/, 'Home drift uses 4 degrees per second instead of 14');
 assert.match(carousel, /const step = 360 \/ count/, 'The ring spaces cards based on item count');
 for (const [, key] of modeList.matchAll(/\{ key: '([^']+)'/g)) {
   const photo = await readFile(new URL(`../public/mode-photos/${key}.jpg`, import.meta.url));
@@ -53,8 +54,8 @@ assert.match(css, /\.home-mode-card:focus-visible/);
 assert.match(carousel, /tabIndex=\{active === index \? 0 : -1\}/);
 assert.match(css, /\.topbar--material-home\s*\{[^}]*border:\s*0[^}]*border-bottom:\s*1px/, 'Silver bar has only a bottom border');
 assert.match(css, /\.home-profile-avatar\s*\{[^}]*border-radius:\s*50%/, 'Home profile avatar is circular');
-assert.match(css, /\.home-greeting\s*\{[^}]*min-height:\s*244px/, 'Greeting header reserves room for quick actions');
-assert.match(css, /\.home-greeting h1 span\s*\{[^}]*margin-bottom:\s*14px[^}]*font-size:\s*\.82em[^}]*transform:\s*translateY\(-5px\)/, 'Only the welcome word sits slightly higher than the user name');
+assert.match(css, /\.app-shell\.app-shell--home\s*\{[^}]*block-size:\s*100dvh[^}]*overflow:\s*clip/, 'Only home fits and clips to the dynamic viewport');
+assert.match(css, /\.app-shell--home > \.welcome-view\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\)/, 'Carousel can use the remaining space without pushing controls below the fold');
 assert.match(css, /\.home-greeting h1 strong\s*\{[^}]*font-size:\s*1\.12em/, 'User name has a larger type size than the welcome word');
 assert.match(css, /\.home-greeting\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Greeting header is completely transparent');
 assert.match(css, /\.home-sort-button\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Sort arrows have a completely transparent container');

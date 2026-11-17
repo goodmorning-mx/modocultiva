@@ -224,11 +224,6 @@ async function storedDocument(page, account = false) {
 }
 async function assertPreserved(page, expected, account = false) { sameProtected(await storedDocument(page, account), expected); }
 async function openReplay(page, timeout, keyboard = false) {
-  const journeyReplay = page.locator('.journey-replay');
-  if (await journeyReplay.isVisible()) {
-    if (keyboard) await journeyReplay.press('Enter'); else await journeyReplay.click();
-    await ready(page, 'modes', timeout); return;
-  }
   const replay = page.locator('[data-tour="replay"]');
   if (!await replay.isVisible()) {
     const opener = page.locator('.home-menu-button:visible, .profile-button:visible').first();
@@ -262,6 +257,17 @@ async function selectPhysicalMode(page) {
   const carousel = page.locator('.circular-carousel[data-ready]');
   await carousel.locator('.home-mode-card[tabindex="0"]').press('Home');
   await carousel.locator('.home-mode-card[data-tour-mode="fisico"][tabindex="0"]').click();
+}
+async function assertFixedHome(page) {
+  const controls = page.locator('.circular-carousel__controls');
+  await controls.waitFor();
+  await page.mouse.move(5, 5);
+  await page.mouse.wheel(0, 900);
+  await page.evaluate(() => window.scrollTo(0, 999));
+  const bounds = await controls.boundingBox();
+  const viewport = page.viewportSize();
+  assert.ok(bounds.y >= 0 && bounds.y + bounds.height <= viewport.height + 1, 'Carousel controls fit without scrolling');
+  assert.equal(await page.evaluate(() => window.scrollY), 0, 'Home stays fixed under a wheel or programmatic scroll');
 }
 async function inspectSpotlight(page, owner) {
   const result = await page.locator('.guided-tour-layer').evaluate(layer => {
@@ -401,7 +407,8 @@ async function runCase(browser, config, task) {
   // saved map data. account-completed deliberately has no browser account flag.
   if (account && !welcomeTask) state.onboardingWelcomeCompleted = true;
   const regionalLocales = { es: 'es-MX', en: 'en-GB', zh: 'zh-Hans-CN', hi: 'hi-IN', ar: 'ar-SA', it: 'it-IT', pt: 'pt-BR', ru: 'ru-RU', de: 'de-DE', fr: 'fr-FR', da: 'da-DK' };
-  const context = await browser.newContext({ viewport: { width: task.width, height: 835 }, serviceWorkers: 'block', reducedMotion: reduced ? 'reduce' : 'no-preference', locale: regionalLocales[task.language] });
+  const height = task.name === 'fresh-journey' ? (task.width <= 390 ? 568 : task.width === 870 ? 667 : 835) : 835;
+  const context = await browser.newContext({ viewport: { width: task.width, height }, serviceWorkers: 'block', reducedMotion: reduced ? 'reduce' : 'no-preference', locale: regionalLocales[task.language] });
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
@@ -440,6 +447,12 @@ async function runCase(browser, config, task) {
         result = { tours, preserved: true, guestCounter: false, sharingPreviewTested: config.sharePreview };
       } else if (task.name === 'fresh-journey') {
         const carousel = page.locator('.circular-carousel[data-ready]');
+        await assertFixedHome(page);
+        if (task.width === 870) {
+          await page.setViewportSize({ width: 667, height: 375 });
+          await assertFixedHome(page);
+          await page.setViewportSize({ width: task.width, height });
+        }
         const active = carousel.locator('.home-mode-card[tabindex="0"]');
         const header = page.locator('.topbar--material-home');
         assert.equal(await header.evaluate(el => getComputedStyle(el).boxShadow), 'none');
@@ -452,6 +465,7 @@ async function runCase(browser, config, task) {
           const method = index % 2 ? 'press' : 'click';
           if (method === 'press') await card.press('Enter'); else await card.click();
           const dialog = page.locator('.journey-panel');
+          assert.equal(await dialog.locator('.journey-replay').count(), 0);
           assert.equal(await dialog.evaluate(el => el.style.getPropertyValue('--mode-color')), expectedColors[index]);
           assert.equal(await dialog.locator('.journey-level-link--up').isDisabled(), true);
           assert.equal(await dialog.locator('.journey-level-link--down').count(), 0);
@@ -467,7 +481,10 @@ async function runCase(browser, config, task) {
         await page.locator('.home-menu-button').click();
         await page.locator('.home-sidebar-nav button').nth(1).click();
         assert.ok(await page.locator('.crm-dashboard > .badges-gallery:last-child').isVisible());
-        result = { freshLevels: 0, allModesOpen: 12, palette: true, floatingHome: true, specialistsAndBadges: true };
+        await page.locator('.crm-focus-list button').first().click();
+        await page.locator('.journey-panel .journey-back').click();
+        await assertFixedHome(page);
+        result = { freshLevels: 0, allModesOpen: 12, palette: true, floatingHome: true, specialistsAndBadges: true, fixedHome: true };
       } else if (task.name === 'account-journey-ascent') {
         await selectPhysicalMode(page);
         const steps = page.locator('.journey-step-list button');
@@ -519,6 +536,16 @@ async function runCase(browser, config, task) {
         assert.equal(await page.locator('.journey-level-link--up').isDisabled(), true);
         assert.equal(await page.locator('#journey-slider').count(), 0);
         await steps.nth(1).click();
+        const activity = page.locator('.journey-deck-content > .journey-level-card');
+        assert.ok(await activity.evaluate(card => card.nextElementSibling.classList.contains('journey-fixed-actions')), 'The card precedes the five activity actions');
+        assert.equal(await activity.locator('.activity-journey-flow > .activity-flow-help').count(), 0);
+        const reminder = activity.locator('.activity-flow-target summary');
+        if (task.language === 'es') assert.equal(await reminder.textContent(), 'Recordatorios para pasar al siguiente nivel');
+        await reminder.click();
+        const paragraphs = activity.locator('.activity-flow-target details > p');
+        assert.equal(await paragraphs.nth(1).getAttribute('class'), 'activity-flow-description', 'The alignment comes before the target description');
+        assert.doesNotMatch(await paragraphs.nth(0).textContent(), /No basta con/i);
+        await reminder.click();
         await page.locator('.journey-global-button').click();
         await page.locator('.journey-global-dialog .cult-insight-spotlight').waitFor();
         assert.equal(transport.ideaWrites.length, 0, 'Global ideas display recommendations without notifying contacts');
@@ -526,7 +553,7 @@ async function runCase(browser, config, task) {
         await steps.nth(2).click();
         const flow = page.locator('.activity-journey-flow'); await flow.waitFor();
         assert.equal(await page.locator('.journey-community-actions').count(), 0);
-        assert.equal(await flow.locator('.activity-flow-help[open]').count(), 0);
+        assert.equal(await flow.locator(':scope > .activity-flow-help').count(), 0);
         assert.equal(await flow.locator('.card-audience-options > label').count(), 2);
         for (const label of await flow.locator('.card-audience-options > label').all()) assert.ok((await label.boundingBox()).height <= 80, 'Compact audience targets, including mobile');
         const height = (await flow.boundingBox()).height; assert.ok(height < 1350, `Compact default flow height: ${height}`);
@@ -554,10 +581,11 @@ async function runCase(browser, config, task) {
           const text = `Unsaved ${entry} draft · العربية · QA only. Never replace this with saved text.`;
           await page.locator('#activity-prompt').fill(text);
           if (entry === 'ai') { await page.locator('.mode-ai-ask').click(); await eventually(async () => await page.locator('.mode-ai-proposal-text').textContent() === PROPOSAL, 'Synthetic AI response not rendered'); }
+          assert.equal(await page.locator('#activity-prompt').inputValue(), text);
+          assert.equal(await page.locator('.journey-panel .journey-replay').count(), 0, 'Tutorial is started from the home menu, not the editor');
+          await page.locator('.journey-panel .close-journey').click();
           const beforeAi = transport.aiCalls;
           await openReplay(page, config.timeout, config.draftReplay === 'keyboard'); await walkTour(page, configuration, { sharePreview: false });
-          await eventually(async () => await page.locator('#activity-prompt').inputValue() === text, `Unsaved ${entry} context restored after the host's deferred navigation/form restoration`, config.timeout);
-          if (entry === 'ai') await eventually(async () => await page.locator('.mode-ai-proposal-text').textContent() === PROPOSAL, 'Unsaved synthetic AI proposal restored', config.timeout);
           assert.equal(transport.aiCalls, beforeAi, 'Tour does not call AI'); await assertPreserved(page, state); drafts.push(entry);
         }
         result = { drafts, replayEntry: config.draftReplay, syntheticAiResponses: transport.aiCalls, paidAiRequests: 0, preserved: true };
