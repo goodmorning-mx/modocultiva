@@ -32,6 +32,20 @@ export function canOpenJourneyLevel(level: number, current: number) {
   return Number.isInteger(level) && level >= 0 && level <= 9 && level <= current;
 }
 
+export const journeyOverviewLabels = {
+  es: ['Estás en nivel:', 'Estás viendo el nivel:', 'Definición del nivel actual:', 'Definición del nivel consultado:'],
+  en: ['You’re at level:', 'You’re viewing level:', 'Current level definition:', 'Selected level definition:'],
+  zh: ['当前等级：', '正在查看等级：', '当前等级说明：', '所选等级说明：'],
+  hi: ['आपका वर्तमान स्तर:', 'आप यह स्तर देख रहे हैं:', 'वर्तमान स्तर की परिभाषा:', 'चुने गए स्तर की परिभाषा:'],
+  ar: ['مستواك الحالي:', 'أنت تعرض المستوى:', 'تعريف المستوى الحالي:', 'تعريف المستوى المعروض:'],
+  it: ['Sei al livello:', 'Stai visualizzando il livello:', 'Definizione del livello attuale:', 'Definizione del livello selezionato:'],
+  pt: ['Você está no nível:', 'Você está vendo o nível:', 'Definição do nível atual:', 'Definição do nível consultado:'],
+  ru: ['Ваш текущий уровень:', 'Вы просматриваете уровень:', 'Описание текущего уровня:', 'Описание выбранного уровня:'],
+  de: ['Du bist auf Stufe:', 'Du siehst Stufe:', 'Beschreibung der aktuellen Stufe:', 'Beschreibung der ausgewählten Stufe:'],
+  fr: ['Ton niveau actuel :', 'Tu consultes le niveau :', 'Définition du niveau actuel :', 'Définition du niveau consulté :'],
+  da: ['Du er på niveau:', 'Du ser niveau:', 'Definition af dit nuværende niveau:', 'Definition af det valgte niveau:'],
+} satisfies Record<keyof typeof journeyStepLabels, [string, string, string, string]>;
+
 export function journeyGesture(dx: number, dy: number, rtl = false) {
   if (Math.abs(dx) >= 52 && Math.abs(dx) > Math.abs(dy) * 1.4) return (dx < 0) !== rtl ? 'next' : 'previous';
   if (Math.abs(dy) >= 52 && Math.abs(dy) > Math.abs(dx) * 1.4) return dy < 0 ? 'up' : 'down';

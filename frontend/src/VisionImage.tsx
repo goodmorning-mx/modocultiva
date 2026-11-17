@@ -16,9 +16,9 @@ const notices: Record<Language, [string, string, string, string]> = {
   da: ['Tilpasser billede…', 'Billedet kunne ikke åbnes. Prøv JPG, PNG eller WebP.', 'Billedet er for stort. Vælg en fil under 40 MB.', 'Der er ikke plads til at gemme. Dit tidligere billede er bevaret.'],
 };
 
-export function VisionImage({ value, onChange, language, title, uploadLabel, changeLabel }: {
+export function VisionImage({ value, onChange, language, title, uploadLabel, changeLabel, compact = false }: {
   value?: string; onChange: (image: string) => void; language: Language;
-  title: string; uploadLabel: string; changeLabel: string;
+  title: string; uploadLabel: string; changeLabel: string; compact?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<'decode' | 'size' | 'storage' | null>(null);
@@ -43,12 +43,12 @@ export function VisionImage({ value, onChange, language, title, uploadLabel, cha
   const hasImage = value && failedValue !== value;
   const [working, decodeError, sizeError, storageError] = notices[language];
   return <div className="vision-image" aria-busy={busy}>
-    <div className={`vision-image-stage${hasImage ? ' vision-image-stage--loaded' : ''}`}>
+    {!compact && <div className={`vision-image-stage${hasImage ? ' vision-image-stage--loaded' : ''}`}>
       {hasImage ? <>
         <img className="vision-image-backdrop" src={value} alt="" aria-hidden="true" />
         <img className="vision-image-content" src={value} alt={title} onError={() => { setFailedValue(value); setError('decode'); }} />
       </> : <h4 className="vision-image-placeholder">{title}</h4>}
-    </div>
+    </div>}
     <div className="vision-image-controls"><label className="vision-upload" aria-disabled={busy}>
       <span className="vision-upload-icon" aria-hidden="true">＋</span>
       <input type="file" accept="image/*" disabled={busy} aria-label={value ? changeLabel : uploadLabel} onChange={event => {

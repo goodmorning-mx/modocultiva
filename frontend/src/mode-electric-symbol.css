@@ -4,7 +4,6 @@
   display: block;
   overflow: hidden;
   border-radius: inherit;
-  isolation: isolate;
 }
 .mode-electric-symbol-fallback {
   position: absolute;
@@ -12,12 +11,30 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transition: opacity 0.3s;
+  mix-blend-mode: screen;
 }
-.mode-electric-stage { position: absolute; left: 50%; top: 50%; width: 480px; height: 480px; transform-origin: center; display: block; opacity: 0.7; }
-.mode-electric-symbol.is-rendered .mode-electric-symbol-fallback { opacity: 0.9; }
-.home-mode-card.home-mode-card--electric { background: linear-gradient(180deg, #08131b 15%, #07191f 65%, #041016); }
+.global-sparks { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+.global-sparks::before, .global-sparks::after {
+  content: ''; position: absolute; inset: 8%; border-radius: 50%;
+  background: radial-gradient(circle at 10% 64%, var(--spark-color, #c9ffef) 0 1px, transparent 4px),
+              radial-gradient(circle at 83% 34%, #e6fff9 0 1px, transparent 4px),
+              radial-gradient(circle at 70% 82%, var(--spark-color, #c9ffef) 0 1px, transparent 3px);
+  animation: global-spark-drift 4s ease-in-out infinite alternate;
+}
+.global-sparks::after { inset: 12% 7%; animation-delay: -2s; animation-direction: alternate-reverse; }
+.global-sparks--symbol {
+  --spark-color: #d4adff;
+  inset: 15% 17%;
+  border-radius: 50%;
+}
+@keyframes global-spark-drift {
+  from { transform: translate3d(-4%, 4%, 0) rotate(-12deg); opacity: .35; }
+  to { transform: translate3d(4%, -5%, 0) rotate(12deg); opacity: .9; }
+}
+.home-mode-card.home-mode-card--electric {
+  background: radial-gradient(ellipse 88% 66% at 50% 27%, #20483f 0%, #12312d 45%, transparent 80%), #0a1b21;
+}
 .home-mode-card--electric > :not(.mode-electric-symbol):not(.home-mode-icon) { position: relative; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {
-  .mode-electric-symbol-fallback { transition: none; }
+  .global-sparks::before, .global-sparks::after { animation: none; opacity: .5; }
 }
