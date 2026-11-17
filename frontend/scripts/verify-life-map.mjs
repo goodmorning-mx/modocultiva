@@ -7,7 +7,6 @@ const carousel = await readFile(new URL('../src/CircularCarousel.jsx', import.me
 const carouselCss = await readFile(new URL('../src/CircularCarousel.css', import.meta.url), 'utf8');
 const modeList = app.match(/const modes: Mode\[\] = \[([\s\S]*?)\n\];/)?.[1] ?? '';
 const quoteList = app.match(/const homeCultivationQuotes = \[([\s\S]*?)\n\];/)?.[1] ?? '';
-const greetingList = app.match(/const homeGreetingPhrases = \[([\s\S]*?)\n\];/)?.[1] ?? '';
 const carouselStart = app.indexOf('<CircularCarousel');
 const homeCarousel = carouselStart < 0 ? '' : app.slice(carouselStart, app.indexOf('</section>', carouselStart));
 
@@ -32,21 +31,20 @@ assert.ok(homeCarousel.includes('className="home-mode-meter"') && homeCarousel.i
 assert.ok(carousel.includes('data-tour-mode={item.id}'), 'Guided tour can target every mode card');
 assert.ok(app.includes('topbar--material-home') && app.includes('className="home-material-title">Modo Cultiva</span>'), 'Home uses a centered Material title bar');
 assert.ok(app.includes('className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)') && app.includes('profileImage ? <img src={profileImage} alt="" />'), 'Home app bar identifies the user with their profile photo and opens their profile');
-assert.ok(app.includes('<h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>'), 'Home has an expanded, styled greeting for the signed in user');
+assert.ok(app.includes('<h1><span>{homeGreeting}</span> <strong dir="auto">{displayedProfileName}</strong></h1>'), 'Home has a localized greeting and preserves name direction');
 assert.ok(app.includes('className="home-greeting-plant" viewBox="0 0 40 48"'), 'Greeting includes a minimal potted plant icon');
 assert.match(css, /\.home-greeting-heading\s*\{[^}]*margin-top:\s*4px/, 'Welcome name and plant sit high in the home header');
-assert.equal((greetingList.match(/^\s*'/gm) ?? []).length, 10, 'Home has ten friendly greeting messages');
-assert.ok(app.includes('homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]') && app.includes('className="home-greeting-welcome-phrase"') && app.includes('>👋</span>'), 'A friendly greeting and emoji appear beside the sorting arrows');
+assert.ok(app.includes('homeGreetingPhrases[language][homeGreetingIndex]') && app.includes('className="home-greeting-welcome-phrase"') && app.includes('>👋</span>'), 'A localized greeting and emoji appear beside the sorting arrows');
 assert.ok(app.includes('<div className="home-greeting-quick-space">') && app.includes('home-sort-button') && app.includes('home-greeting-welcome-phrase'), 'Greeting phrase and mode sorting control share the same row');
 assert.ok(app.includes('const homeCultivationQuotes = [') && app.includes('className="home-greeting-quote"') && app.includes('homeDailyQuote.author') && app.includes('homeDailyQuote.source'), 'Home displays the sourced daily quote directly under the user name');
-assert.ok(app.includes('— {homeDailyQuote.author} — {modeName('), 'Daily quote follows the phrase — author — mode format');
+assert.ok(app.includes('homeQuoteText(language, homeDailyQuoteIndex, homeDailyQuote.quote)') && app.includes('— <bdi>{homeDailyQuote.author}</bdi> — {modeName('), 'Daily quote follows the localized phrase — author — mode format');
 assert.equal((quoteList.match(/\{ quote:/g) ?? []).length, 20, 'Home has twenty attributed daily quotes');
 const quoteModeCounts = [...quoteList.matchAll(/modeKey: '([^']+)'/g)].reduce((counts, match) => ({ ...counts, [match[1]]: (counts[match[1]] ?? 0) + 1 }), {});
 assert.equal(Object.keys(quoteModeCounts).length, 12, 'Daily quotes cover every life mode');
 assert.ok(Math.max(...Object.values(quoteModeCounts)) - Math.min(...Object.values(quoteModeCounts)) <= 1, 'Daily quotes are balanced across the life modes');
 assert.ok(app.includes('homeSortDescending') && app.includes('levels[right.key] - levels[left.key]') && app.includes('home-sort-glyph') && app.includes('<i>↑</i><i>↓</i>'), 'Home sorts modes with an up/down arrow-only control');
 assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*grid-column:\s*1/,'Current brand logo sits on the left side of the app bar');
-assert.ok(app.includes('{view === \'welcome\' ? <><button className="home-profile-avatar"') && app.includes('className="home-menu-button"') && app.includes(': <><label className="language-picker">') && app.includes('languageFlags[code]'), 'Home uses a profile avatar and menu button while other views retain the flag language picker');
+assert.ok(app.includes('{view === \'welcome\' ? <><button className="home-profile-avatar"') && app.includes('className="home-menu-button"') && app.includes('{languagePicker()}') && app.includes('{languagePicker(true)}') && app.includes('languageFlags[code]'), 'Home and other views provide the same language picker');
 assert.ok(app.includes('className="home-sidebar" id="home-sidebar" role="dialog"') && app.includes("setView('dashboard')") && app.includes("setView('lab')") && app.includes('setConfigurationsOpen(true)'), 'Home sidebar opens as an accessible navigation panel with links to existing screens and options');
 assert.match(css, /\.home-sidebar\s*\{[^}]*width:\s*min\(320px, calc\(100vw - 40px\)\)[^}]*animation: home-sidebar-slide \.36s/, 'Sidebar is narrow and has a paced entrance animation');
 assert.match(css, /@keyframes home-sidebar-slide\s*\{ from \{ transform: translateX\(100%\)/, 'Sidebar slides in from the right');

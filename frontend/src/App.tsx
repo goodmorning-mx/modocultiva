@@ -25,6 +25,8 @@ import type { EvidenceDraft } from './visualEvidence';
 import { onboardingIntegrationCopy } from './onboardingIntegrationMessages';
 import { WelcomeIntro } from './WelcomeIntro';
 import { browserLanguage, readManualLanguage, resolveLanguagePreference, restoreLanguagePreference, normalizeLanguageState, type AppLanguage, type LanguageSource } from './languagePreference';
+import { homeGreetingPhrases, interfaceCopy } from './interfaceLanguage';
+import { homeQuoteText } from './homeQuoteTranslations';
 import { decideWelcomeIntro, markWelcomeIntroComplete, readWelcomeIntroCompletion, welcomeIntroStorageKey, type WelcomeIntroScope } from './welcomeIntroState';
 import { GuidedTour } from './GuidedTour';
 import { getGuidedTourCopy, guidedTourStepCopy, type TourStageId } from './guidedTourMessages';
@@ -150,9 +152,8 @@ const labCards: Record<string, { question: string; answer: string }> = {
 };
 
 const defaultLevels = Object.fromEntries(modes.map((mode) => [mode.key, 0]));
-const levelNames = clarityLevels.languages.es.map(item => item.name);
 const levelDescriptions = clarityLevels.languages.es.map(item => item.description);
-const defaultUserProfile = { name: 'Jofer', role: 'CEO FUNDADOR' };
+const defaultUserProfile = { name: 'Jofer' };
 const ownerEmail = 'ferrussia.joe@gmail.com';
 const planDetails: Record<PlanKey, PlanDetails> = {
   basic: { name: 'Entry', price: '$179 MXN /mes · IVA incluido', promise: 'Convierte a Modo Cultiva en parte de tu rutina.', features: ['Todo lo incluido en Acceso Libre.', 'Skin Holista.', 'Journeys ilimitados.', 'Pool completo con 10 recomendaciones por nivel.', 'Vision boards en nivel 9.', 'Configuraciones de Vida ilimitadas.', 'Modo IA limitado: hasta 20 consultas mensuales.', 'Personalización de nombre y foto de perfil.', 'Historial personal de evolución.', 'Estadísticas básicas por modo.', 'Exportación de progreso.', 'Insignia Entry.'] },
@@ -363,18 +364,6 @@ const homeCultivationQuotes = [
   { quote: 'Lo importante al invertir no es cuánto sabes, sino qué tan realistamente reconoces lo que no sabes.', author: 'Warren Buffett', modeKey: 'financiero', source: 'https://www.berkshirehathaway.com/letters/1992.html' },
   { quote: 'El margen de seguridad es la piedra angular del éxito al invertir.', author: 'Warren Buffett', modeKey: 'financiero', source: 'https://www.berkshirehathaway.com/letters/1992.html' },
   { quote: 'El deporte también puede ser una forma de crear arte.', author: 'Pierre de Coubertin', modeKey: 'ludico', source: 'https://library.olympics.com/digitalCollection/DigitalCollectionAttachmentDownloadHandler.ashx?documentId=1447367&parentDocumentId=1447366&skipCopyright=true&skipWatermark=true' },
-];
-const homeGreetingPhrases = [
-  'Hoy es un buen día para crecer.',
-  'Qué alegría tenerte por aquí.',
-  'Hoy puedes dar un paso bonito.',
-  'Tu camino florece a tu ritmo.',
-  'Un nuevo día trae nuevas posibilidades.',
-  'Vamos a cultivar algo bueno hoy.',
-  'Cada pequeño avance cuenta.',
-  'Este espacio es para ti.',
-  'Hoy empieza con una buena intención.',
-  'Me alegra acompañarte en tu camino.',
 ];
 const pullRefreshCopy: Record<Language, { loading: string; failed: string }> = {
   es: { loading: 'Actualizando Modo Cultiva', failed: 'No se pudo actualizar. Intenta de nuevo.' },
@@ -668,10 +657,17 @@ const localizedModeNames: Record<Language, Record<string, string>> = {
   da: { fisico: 'Fysisk mode', intelectual: 'Intellektuel mode', emocional: 'Følelsesmæssig mode', arquetipico: 'Arketypisk mode', espiritual: 'Spirituel mode', romantico: 'Romantisk mode', familiar: 'Familiemode', social: 'Social mode', financiero: 'Finansiel mode', profesional: 'Professionel mode', ludico: 'Ludisk mode', visionario: 'Visionær mode' },
 };
 const localizedLevelNames = Object.fromEntries(Object.entries(clarityLevels.languages).map(([lang, items]) => [lang, items.map(item => item.name)])) as Record<Language, string[]>;
-const localizedModeDescriptions: Partial<Record<Language, Record<string, string>>> = {
+const localizedModeDescriptions: Record<Language, Record<string, string>> = {
   es: Object.fromEntries(modes.map((mode) => [mode.key, mode.description])),
   en: { fisico: 'Body health and wellbeing', intelectual: 'Intellectual and cognitive development', emocional: 'Emotional balance and regulation', arquetipico: 'Character, coherence and personal essence', espiritual: 'Purpose, meaning and connection', romantico: 'Partnership and love', familiar: 'Family roots and close bonds', social: 'Friendships, support network and community', financiero: 'Money management, saving and investing', profesional: 'Career, vocation and work performance', ludico: 'Enjoyment, rest and renewed energy', visionario: 'Goals, long-term planning and legacy' },
   it: { fisico: 'Salute e benessere del corpo', intelectual: 'Sviluppo intellettuale e cognitivo', emocional: 'Gestione ed equilibrio delle emozioni', arquetipico: 'Carattere, coerenza ed essenza personale', espiritual: 'Scopo, significato e connessione', romantico: 'Relazione di coppia e amore', familiar: 'Legami familiari e radici', social: 'Amicizie, rete di sostegno e comunità', financiero: 'Gestione del denaro, risparmio e investimenti', profesional: 'Carriera, vocazione e rendimento professionale', ludico: 'Piacere, tempo libero, riposo ed energia', visionario: 'Obiettivi, pianificazione e lascito' },
+  zh: { fisico: "身体健康与活力", intelectual: "思考、学习与认知发展", emocional: "理解与调节情绪", arquetipico: "品格、价值与自我认同", espiritual: "意义、使命感与内在联结", romantico: "亲密关系与爱情", familiar: "家庭关系与根基", social: "友谊、互助网络与社区", financiero: "理财、储蓄与投资", profesional: "职业、志向与工作表现", ludico: "游戏、休息与恢复活力", visionario: "目标、长远规划与传承" },
+  hi: { fisico: "शारीरिक स्वास्थ्य और ऊर्जा", intelectual: "सीखना, सोचना और बौद्धिक विकास", emocional: "भावनाओं की पहचान और संतुलन", arquetipico: "चरित्र, मूल्य और अपनी पहचान", espiritual: "उद्देश्य, अर्थ और आंतरिक जुड़ाव", romantico: "प्रेम, निकटता और साझेदारी", familiar: "परिवार के रिश्ते और जड़ें", social: "दोस्ती, सहयोग और समुदाय", financiero: "पैसे का प्रबंधन, बचत और निवेश", profesional: "करियर, रुचि और काम में विकास", ludico: "खेल, आराम और नई ऊर्जा", visionario: "लक्ष्य, दूरगामी योजना और विरासत" },
+  ar: { fisico: "الصحة الجسدية والحيوية", intelectual: "التفكير والتعلّم والنمو المعرفي", emocional: "فهم المشاعر وتنظيمها", arquetipico: "الشخصية والقيم والهوية", espiritual: "الغاية والمعنى والتواصل الداخلي", romantico: "الحب والحميمية والشراكة", familiar: "الروابط العائلية والجذور", social: "الصداقة وشبكات الدعم والمجتمع", financiero: "إدارة المال والادخار والاستثمار", profesional: "المسار المهني والمهارات والأداء", ludico: "اللعب والراحة واستعادة الطاقة", visionario: "الأهداف والتخطيط البعيد والإرث" },
+  pt: { fisico: "Saúde e bem-estar físico", intelectual: "Aprendizado, pensamento e desenvolvimento cognitivo", emocional: "Reconhecimento e equilíbrio das emoções", arquetipico: "Caráter, valores e identidade", espiritual: "Propósito, sentido e conexão", romantico: "Amor, intimidade e vida a dois", familiar: "Laços familiares e raízes", social: "Amizades, rede de apoio e comunidade", financiero: "Gestão do dinheiro, poupança e investimentos", profesional: "Carreira, vocação e desempenho profissional", ludico: "Diversão, descanso e renovação da energia", visionario: "Metas, planejamento de longo prazo e legado" },
+  ru: { fisico: "Здоровье тела и жизненная энергия", intelectual: "Мышление, обучение и интеллектуальное развитие", emocional: "Понимание эмоций и управление ими", arquetipico: "Характер, ценности и самоопределение", espiritual: "Цель, смысл и внутренняя связь", romantico: "Любовь, близость и партнёрство", familiar: "Семейные связи и корни", social: "Дружба, взаимная поддержка и сообщество", financiero: "Деньги, сбережения и инвестиции", profesional: "Карьера, призвание и развитие в работе", ludico: "Игра, отдых и восстановление сил", visionario: "Цели, долгосрочное планирование и наследие" },
+  de: { fisico: "Körperliche Gesundheit und Wohlbefinden", intelectual: "Denken, Lernen und geistige Entwicklung", emocional: "Gefühle erkennen und regulieren", arquetipico: "Charakter, Werte und Identität", espiritual: "Sinn, Ausrichtung und innere Verbindung", romantico: "Liebe, Nähe und Partnerschaft", familiar: "Familienbeziehungen und Wurzeln", social: "Freundschaften, Unterstützung und Gemeinschaft", financiero: "Geldmanagement, Sparen und Anlegen", profesional: "Beruf, Berufung und Entwicklung bei der Arbeit", ludico: "Spiel, Erholung und neue Energie", visionario: "Ziele, langfristige Planung und Vermächtnis" },
+  fr: { fisico: "Santé et bien-être physique", intelectual: "Apprentissage, réflexion et développement cognitif", emocional: "Compréhension et équilibre des émotions", arquetipico: "Caractère, valeurs et identité", espiritual: "Sens, raison d’être et lien intérieur", romantico: "Amour, intimité et vie de couple", familiar: "Liens familiaux et racines", social: "Amitiés, entraide et communauté", financiero: "Gestion de l’argent, épargne et investissement", profesional: "Carrière, vocation et développement professionnel", ludico: "Jeu, repos et regain d’énergie", visionario: "Objectifs, vision à long terme et héritage" },
   da: { fisico: 'Sundhed og kropsligt velvære', intelectual: 'Intellektuel og kognitiv udvikling', emocional: 'Håndtering og balance af følelser', arquetipico: 'Karakter, sammenhæng og personlig essens', espiritual: 'Formål, mening og forbindelse', romantico: 'Parforhold og kærlighed', familiar: 'Familiebånd og rødder', social: 'Venskaber, netværk og fællesskab', financiero: 'Penge, opsparing og investering', profesional: 'Karriere, kald og arbejdspræstation', ludico: 'Glæde, fritid, hvile og ny energi', visionario: 'Mål, langsigtet planlægning og arv' },
 };
 const localizedJourneyModeDescriptions: Partial<Record<Language, Record<string, string>>> = {
@@ -795,6 +791,16 @@ function App() {
   };
   const tr = (key: string) => extraTranslations[key]?.[language] ?? translations[language][key] ?? translations.es[key] ?? key;
   const trf = (key: string, values: Record<string, string>) => Object.entries(values).reduce((copy, [token, value]) => copy.replace(`{${token}}`, value), tr(key));
+  const [homeGreeting, waveLabel, loginIntro, loginPrompt, alreadyRegistered, newAccount, authFailure, emailExample, foundingRole] = interfaceCopy[language];
+  const languagePicker = (inSidebar = false) => (
+    <label className={inSidebar ? 'language-picker home-sidebar-language' : 'language-picker'}>
+      <span className={inSidebar ? undefined : 'sr-only'}>{tr('chooseLanguage')}</span>
+      <select value={language} onChange={event => handleLanguageChange(event.target.value as Language)}>
+        {supportedLanguages.map(code => <option key={code} value={code} lang={code}>{languageFlags[code]} {languageNames[code]}</option>)}
+      </select>
+      <svg viewBox="0 0 12 12" width="10" height="10" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    </label>
+  );
   const insightRequestKey = (modeKey: string, level: number) => `${modeKey}-${level}`;
   const modeName = (mode: Mode) => localizedModeNames[language][mode.key] ?? mode.name;
   const modeShortName = (mode: Mode) => modeName(mode).replace(/^(Modo |Mode |模式|모드 )/i, '').replace(/\s+Mode$/i, '');
@@ -803,7 +809,7 @@ function App() {
     return keys[continent] ? tr(keys[continent]) : continent;
   };
   const specialistLocation = (location: string) => location.replace(/\bRemote\b|\bRemoto\b/gi, tr('remote'));
-  const modeDescription = (mode: Mode) => localizedModeDescriptions[language]?.[mode.key] ?? `${modeName(mode)} · ${tr('cultivationArea')}`;
+  const modeDescription = (mode: Mode) => localizedModeDescriptions[language][mode.key];
   const modeJourneyDescription = (mode: Mode) => localizedJourneyModeDescriptions[language]?.[mode.key] ?? `${modeDescription(mode)}. ${tr('journeyGrowthBenefit')}`;
   const triviaQuestion = (mode: Mode) => language === 'es' ? labCards[mode.key].question : tr('triviaQuestionPrompt');
   const triviaAnswer = (mode: Mode) => language === 'es' ? labCards[mode.key].answer : `${tr('triviaAnswerPrefix')} ${modeDescription(mode).toLowerCase()}.`;
@@ -966,7 +972,7 @@ function App() {
   const displayedProfileName = isOwnerAccount
     ? (profileName.trim() || defaultUserProfile.name)
     : (profileName.trim() === defaultUserProfile.name ? '' : profileName);
-  const displayedProfileRole = isOwnerAccount ? defaultUserProfile.role : '';
+  const displayedProfileRole = isOwnerAccount ? foundingRole : '';
   const [stateHydrated, setStateHydrated] = useState(false);
   const [hydrationAttempt, setHydrationAttempt] = useState(0);
   const [accountPhase, setAccountPhase] = useState<StateAccountPhase>('loading');
@@ -980,7 +986,7 @@ function App() {
   const [stateSyncStatus, setStateSyncStatus] = useState<'syncing' | 'synced' | 'error'>('syncing');
   const [pullDistance, setPullDistance] = useState(0);
   const [pullRefreshState, setPullRefreshState] = useState<'idle' | 'refreshing' | 'error'>('idle');
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<'authentication' | 'state' | 'stateSave' | null>(null);
   const [registering, setRegistering] = useState(false);
   const [activePlan, setActivePlan] = useState<PlanKey>(() => {
     try {
@@ -1332,98 +1338,12 @@ function App() {
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
   }, [language, languageSource]);
 
-  // The product content is intentionally kept in one component for this prototype.
-  // Translate the remaining editorial labels after each language change so that
-  // cards, dashboards, modals and the three Cult sections change together.
   useEffect(() => {
-    const phraseBook: Record<string, Record<Language, string>> = {
-      'Cultiva todos tus modos.': { es: 'Cultiva todos tus modos.', en: 'Cultivate every mode of your life.', zh: '培育你生命中的每一种模式。', hi: 'अपने जीवन के हर मोड को विकसित करें।', ar: 'ازرع كل أوضاع حياتك.', it: 'Coltiva ogni modalità della tua vita.', pt: 'Cultive todos os seus modos.', ru: 'Развивайте каждый режим своей жизни.', de: 'Kultiviere jeden Modus deines Lebens.', fr: 'Cultivez chaque mode de votre vie.', da: 'Dyrk alle dine livsmodi.' },
-      'Tu centro de cultivo.': { es: 'Tu centro de cultivo.', en: 'Your cultivation center.', zh: '你的培育中心。', hi: 'आपका विकास केंद्र।', ar: 'مركز تنميتك.', it: 'Il tuo centro di crescita.', pt: 'Seu centro de cultivo.', ru: 'Ваш центр развития.', de: 'Dein Entwicklungszentrum.', fr: 'Votre centre de développement.', da: 'Dit udviklingscenter.' },
-      'Tu progreso en una mirada': { es: 'Tu progreso en una mirada', en: 'Your progress at a glance', zh: '一眼看见你的进展', hi: 'एक नज़र में आपकी प्रगति', ar: 'تقدمك في لمحة', it: 'I tuoi progressi a colpo d’occhio', pt: 'Seu progresso em um olhar', ru: 'Ваш прогресс одним взглядом', de: 'Dein Fortschritt auf einen Blick', fr: 'Votre progression en un coup d’œil', da: 'Dit fremskridt på et øjeblik' },
-      'Nivel Cultiva': { es: 'Nivel Cultiva', en: 'Cultiva Level', zh: 'Cultiva 等级', hi: 'Cultiva स्तर', ar: 'مستوى Cultiva', it: 'Livello Cultiva', pt: 'Nível Cultiva', ru: 'Уровень Cultiva', de: 'Cultiva-Stufe', fr: 'Niveau Cultiva', da: 'Cultiva-niveau' },
-      'RESUMEN EJECUTIVO': { es: 'RESUMEN EJECUTIVO', en: 'EXECUTIVE SUMMARY', zh: '执行摘要', hi: 'कार्यकारी सारांश', ar: 'ملخص تنفيذي', it: 'SINTESI ESECUTIVA', pt: 'RESUMO EXECUTIVO', ru: 'КРАТКИЙ ОБЗОР', de: 'EXECUTIVE SUMMARY', fr: 'SYNTHÈSE', da: 'LEDelsesRESUMÉ' },
-      'MODO MÁS FUERTE': { es: 'MODO MÁS FUERTE', en: 'STRONGEST MODE', zh: '最强模式', hi: 'सबसे मजबूत मोड', ar: 'أقوى وضع', it: 'MODALITÀ PIÙ FORTE', pt: 'MODO MAIS FORTE', ru: 'САМЫЙ СИЛЬНЫЙ РЕЖИМ', de: 'STÄRKSTER MODUS', fr: 'MODE LE PLUS FORT', da: 'STÆRKESTE MODE' },
-      'MODO MENOS CULTIVADO': { es: 'MODO MENOS CULTIVADO', en: 'LEAST CULTIVATED MODE', zh: '最需要培养的模式', hi: 'सबसे कम विकसित मोड', ar: 'أقل وضع تنمية', it: 'MODALITÀ MENO COLTIVATA', pt: 'MODO MENOS CULTIVADO', ru: 'НАИМЕНЕЕ РАЗВИТЫЙ РЕЖИМ', de: 'AM WENIGSTEN ENTWICKELTER MODUS', fr: 'MODE LE MOINS CULTIVÉ', da: 'MINDST DYRKEDE MODE' },
-      'ACTIVIDADES DEFINIDAS': { es: 'ACTIVIDADES DEFINIDAS', en: 'DEFINED ACTIVITIES', zh: '已定义活动', hi: 'निर्धारित गतिविधियां', ar: 'الأنشطة المحددة', it: 'ATTIVITÀ DEFINITE', pt: 'ATIVIDADES DEFINIDAS', ru: 'ЗАДАННЫЕ АКТИВНОСТИ', de: 'DEFINIERTE AKTIVITÄTEN', fr: 'ACTIVITÉS DÉFINIES', da: 'DEFINEREDE AKTIVITETER' },
-      'PRESETS ACTIVOS': { es: 'CONFIGURACIONES DE VIDA ACTIVAS', en: 'ACTIVE LIFE PRESETS', zh: '启用的生活模式组合', hi: 'सक्रिय जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة النشطة', it: 'COMBINAZIONI DEI MODI DI VITA ATTIVE', pt: 'CONFIGURAÇÕES DE VIDA ATIVAS', ru: 'АКТИВНЫЕ СОЧЕТАНИЯ ЖИЗНЕННЫХ СФЕР', de: 'AKTIVE KOMBINATIONEN DER LEBENSBEREICHE', fr: 'COMBINAISONS ACTIVES DES MODES DE VIE', da: 'AKTIVE KOMBINATIONER AF LIVSOMRÅDER' },
-      'DISTRIBUCIÓN DE PRESENCIA': { es: 'DISTRIBUCIÓN DE PRESENCIA', en: 'PRESENCE DISTRIBUTION', zh: '存在感分布', hi: 'उपस्थिति का वितरण', ar: 'توزيع الحضور', it: 'DISTRIBUZIONE DELLA PRESENZA', pt: 'DISTRIBUIÇÃO DE PRESENÇA', ru: 'РАСПРЕДЕЛЕНИЕ ПРИСУТСТВИЯ', de: 'VERTEILUNG DER PRÄSENZ', fr: 'RÉPARTITION DE LA PRÉSENCE', da: 'FORDELING AF TILSTEDEVÆRELSE' },
-      'Áreas para cultivar': { es: 'Áreas para cultivar', en: 'Areas to cultivate', zh: '需要培育的领域', hi: 'विकसित करने के क्षेत्र', ar: 'مجالات للتنمية', it: 'Aree da coltivare', pt: 'Áreas para cultivar', ru: 'Области для развития', de: 'Bereiche zur Entwicklung', fr: 'Domaines à cultiver', da: 'Områder at dyrke' },
-      'PRÓXIMOS FOCOS': { es: 'PRÓXIMOS FOCOS', en: 'NEXT FOCUSES', zh: '下一个重点', hi: 'अगले फोकस', ar: 'التركيزات القادمة', it: 'PROSSIMI FOCUS', pt: 'PRÓXIMOS FOCOS', ru: 'СЛЕДУЮЩИЕ ФОКУСЫ', de: 'NÄCHSTE FOKUS-BEREICHE', fr: 'PROCHAINS FOCUS', da: 'NÆSTE FOKUSOMRÅDER' },
-      'Siguiente movimiento': { es: 'Siguiente movimiento', en: 'Next move', zh: '下一步行动', hi: 'अगला कदम', ar: 'الخطوة التالية', it: 'Prossima mossa', pt: 'Próximo movimento', ru: 'Следующий шаг', de: 'Nächster Schritt', fr: 'Prochaine étape', da: 'Næste skridt' },
-      'Continúa tu cultivo': { es: 'Continúa tu cultivo', en: 'Continue your cultivation', zh: '继续你的培育之旅', hi: 'अपना विकास जारी रखें', ar: 'واصل تنميتك', it: 'Continua la tua crescita', pt: 'Continue seu cultivo', ru: 'Продолжайте развитие', de: 'Setze deine Entwicklung fort', fr: 'Poursuivez votre développement', da: 'Fortsæt din udvikling' },
-      'Configuraciones guardadas': { es: 'Configuraciones guardadas', en: 'Saved configurations', zh: '已保存的配置', hi: 'सहेजे गए कॉन्फ़िगरेशन', ar: 'الإعدادات المحفوظة', it: 'Configurazioni salvate', pt: 'Configurações salvas', ru: 'Сохранённые настройки', de: 'Gespeicherte Konfigurationen', fr: 'Configurations enregistrées', da: 'Gemte konfigurationer' },
-      'Tu ruta de cultivo': { es: 'Tu ruta de cultivo', en: 'Your cultivation path', zh: '你的培育路径', hi: 'आपका विकास मार्ग', ar: 'مسار تنميتك', it: 'Il tuo percorso di crescita', pt: 'Sua rota de cultivo', ru: 'Ваш путь развития', de: 'Dein Entwicklungsweg', fr: 'Votre parcours de développement', da: 'Din udviklingsrejse' },
-      'Diseño de Actividad': { es: 'Diseño de Actividad', en: 'Activity Design', zh: '活动设计', hi: 'गतिविधि डिजाइन', ar: 'تصميم النشاط', it: 'Progettazione dell’attività', pt: 'Design da atividade', ru: 'Дизайн активности', de: 'Aktivitätsdesign', fr: 'Conception de l’activité', da: 'Aktivitetsdesign' },
-      'Pool de Actividades': { es: 'Banco de actividades', en: 'Activity bank', zh: '活动库', hi: 'गतिविधि बैंक', ar: 'بنك الأنشطة', it: 'Raccolta di attività', pt: 'Banco de atividades', ru: 'Банк занятий', de: 'Aktivitätensammlung', fr: 'Banque d’activités', da: 'Aktivitetsbank' },
-      'Construyamos tu actividad': { es: 'Construyamos tu actividad', en: 'Let’s build your activity', zh: '一起设计你的活动', hi: 'अपनी गतिविधि बनाएं', ar: 'لنصمم نشاطك', it: 'Costruiamo la tua attività', pt: 'Vamos criar sua atividade', ru: 'Создадим вашу активность', de: 'Entwickeln wir deine Aktivität', fr: 'Construisons votre activité', da: 'Lad os bygge din aktivitet' },
-      'Pedir Insights': { es: 'Ideas locales', en: 'Local ideas', zh: '本地创意', hi: 'स्थानीय विचार', ar: 'أفكار محلية', it: 'Idee locali', pt: 'Ideias locais', ru: 'Локальные идеи', de: 'Lokale Ideen', fr: 'Idées locales', da: 'Lokale idéer' },
-      'Insights Globales': { es: 'Ideas globales', en: 'Global ideas', zh: '全球创意', hi: 'वैश्विक विचार', ar: 'أفكار عالمية', it: 'Idee globali', pt: 'Ideias globais', ru: 'Глобальные идеи', de: 'Globale Ideen', fr: 'Idées globales', da: 'Globale idéer' },
-      'Insights Globales.': { es: 'Ideas globales.', en: 'Global ideas.', zh: '全球创意。', hi: 'वैश्विक विचार।', ar: 'أفكار عالمية.', it: 'Idee globali.', pt: 'Ideias globais.', ru: 'Глобальные идеи.', de: 'Globale Ideen.', fr: 'Idées globales.', da: 'Globale idéer.' },
-      'Red de Especialistas': { es: 'Red de Especialistas', en: 'Specialists Network', zh: '专家网络', hi: 'विशेषज्ञ नेटवर्क', ar: 'شبكة المتخصصين', it: 'Rete di specialisti', pt: 'Rede de especialistas', ru: 'Сеть специалистов', de: 'Expertennetzwerk', fr: 'Réseau de spécialistes', da: 'Specialistnetværk' },
-      'Galería de Skins & Filtros': { es: 'Galería de Skins & Filtros', en: 'Skins & Filters Gallery', zh: '皮肤与滤镜库', hi: 'स्किन और फ़िल्टर गैलरी', ar: 'معرض الواجهات والفلاتر', it: 'Galleria di skin e filtri', pt: 'Galeria de skins e filtros', ru: 'Галерея скинов и фильтров', de: 'Skins- und Filtergalerie', fr: 'Galerie des skins et filtres', da: 'Galleri med skins og filtre' },
-      'Presets guardados': { es: 'Configuraciones de Vida Guardadas', en: 'Saved Life Presets', zh: '已保存的生活模式组合', hi: 'सहेजे गए जीवन-मोड संयोजन', ar: 'توليفات أنماط الحياة المحفوظة', it: 'Combinazioni salvate dei modi di vita', pt: 'Configurações de Vida Guardadas', ru: 'Сохранённые сочетания жизненных сфер', de: 'Gespeicherte Kombinationen der Lebensbereiche', fr: 'Combinaisons enregistrées des modes de vie', da: 'Gemte kombinationer af livsområder' },
-      'Nuevo preset': { es: 'Nueva Configuración de Vida', en: 'New Life Preset', zh: '新的生活模式组合', hi: 'नया जीवन-मोड संयोजन', ar: 'توليفة أنماط حياة جديدة', it: 'Nuova combinazione dei modi di vita', pt: 'Nova Configuração de Vida', ru: 'Новое сочетание жизненных сфер', de: 'Neue Kombination der Lebensbereiche', fr: 'Nouvelle combinaison des modes de vie', da: 'Ny kombination af livsområder' },
-      '— Selecciona un preset —': { es: '— Selecciona una Configuración de Vida —', en: '— Select a Life Preset —', zh: '— 选择生活模式组合 —', hi: '— जीवन-मोड संयोजन चुनें —', ar: '— اختر توليفة أنماط الحياة —', it: '— Seleziona una combinazione dei modi di vita —', pt: '— Selecione uma Configuração de Vida —', ru: '— Выберите сочетание жизненных сфер —', de: '— Wähle eine Kombination der Lebensbereiche —', fr: '— Choisissez une combinaison des modes de vie —', da: '— Vælg en kombination af livsområder —' },
-      'Guardar': { es: 'Guardar', en: 'Save', zh: '保存', hi: 'सहेजें', ar: 'حفظ', it: 'Salva', pt: 'Salvar', ru: 'Сохранить', de: 'Speichern', fr: 'Enregistrer', da: 'Gem' },
-      'Cargar': { es: 'Cargar', en: 'Load', zh: '加载', hi: 'लोड करें', ar: 'تحميل', it: 'Carica', pt: 'Carregar', ru: 'Загрузить', de: 'Laden', fr: 'Charger', da: 'Indlæs' },
-      'Eliminar': { es: 'Eliminar', en: 'Delete', zh: '删除', hi: 'हटाएं', ar: 'حذف', it: 'Elimina', pt: 'Excluir', ru: 'Удалить', de: 'Löschen', fr: 'Supprimer', da: 'Slet' },
-      'Ajusta tu nivel de presencia': { es: 'Ajusta tu nivel de presencia', en: 'Adjust your presence level', zh: '调整你的存在感等级', hi: 'अपना उपस्थिति स्तर समायोजित करें', ar: 'اضبط مستوى حضورك', it: 'Regola il tuo livello di presenza', pt: 'Ajuste seu nível de presença', ru: 'Настройте уровень присутствия', de: 'Passe dein Präsenzlevel an', fr: 'Ajustez votre niveau de présence', da: 'Juster dit tilstedeværelsesniveau' },
-      'Actividad por definir': { es: 'Actividad por definir', en: 'Activity to define', zh: '待定义活动', hi: 'गतिविधि परिभाषित करें', ar: 'نشاط بحاجة إلى تعريف', it: 'Attività da definire', pt: 'Atividade a definir', ru: 'Активность нужно определить', de: 'Aktivität festlegen', fr: 'Activité à définir', da: 'Aktivitet skal defineres' },
-      'Actividad guardada en este navegador.': { es: 'Actividad guardada en este navegador.', en: 'Activity saved in this browser.', zh: '活动已保存在此浏览器中。', hi: 'गतिविधि इस ब्राउज़र में सहेजी गई है।', ar: 'تم حفظ النشاط في هذا المتصفح.', it: 'Attività salvata in questo browser.', pt: 'Atividade salva neste navegador.', ru: 'Активность сохранена в этом браузере.', de: 'Aktivität in diesem Browser gespeichert.', fr: 'Activité enregistrée dans ce navigateur.', da: 'Aktivitet gemt i denne browser.' },
-      'Modificar Actividad': { es: 'Modificar Actividad', en: 'Modify activity', zh: '修改活动', hi: 'गतिविधि संशोधित करें', ar: 'تعديل النشاط', it: 'Modifica attività', pt: 'Modificar atividade', ru: 'Изменить активность', de: 'Aktivität ändern', fr: 'Modifier l’activité', da: 'Redigér aktivitet' },
-      'Agregar Actividad': { es: 'Agregar Actividad', en: 'Add activity', zh: '添加活动', hi: 'गतिविधि जोड़ें', ar: 'إضافة نشاط', it: 'Aggiungi attività', pt: 'Adicionar atividade', ru: 'Добавить активность', de: 'Aktivität hinzufügen', fr: 'Ajouter une activité', da: 'Tilføj aktivitet' },
-      'Navegar recomendaciones': { es: 'Navegar recomendaciones', en: 'Browse recommendations', zh: '浏览推荐', hi: 'सुझाव ब्राउज़ करें', ar: 'تصفح التوصيات', it: 'Sfoglia le raccomandazioni', pt: 'Navegar pelas recomendações', ru: 'Просмотреть рекомендации', de: 'Empfehlungen durchsuchen', fr: 'Parcourir les recommandations', da: 'Gennemse anbefalinger' },
-      'Usar esta actividad': { es: 'Usar esta actividad', en: 'Use this activity', zh: '使用此活动', hi: 'इस गतिविधि का उपयोग करें', ar: 'استخدم هذا النشاط', it: 'Usa questa attività', pt: 'Usar esta atividade', ru: 'Использовать активность', de: 'Diese Aktivität nutzen', fr: 'Utiliser cette activité', da: 'Brug denne aktivitet' },
-      'Todos los modos': { es: 'Todos los modos', en: 'All modes', zh: '所有模式', hi: 'सभी मोड', ar: 'كل الأوضاع', it: 'Tutte le modalità', pt: 'Todos os modos', ru: 'Все режимы', de: 'Alle Modi', fr: 'Tous les modes', da: 'Alle modes' },
-      'Cualquier idioma': { es: 'Cualquier idioma', en: 'Any language', zh: '任何语言', hi: 'कोई भी भाषा', ar: 'أي لغة', it: 'Qualsiasi lingua', pt: 'Qualquer idioma', ru: 'Любой язык', de: 'Jede Sprache', fr: 'Toutes les langues', da: 'Ethvert sprog' },
-      'Cualquier continente': { es: 'Cualquier continente', en: 'Any continent', zh: '任何洲', hi: 'कोई भी महाद्वीप', ar: 'أي قارة', it: 'Qualsiasi continente', pt: 'Qualquer continente', ru: 'Любой континент', de: 'Jeder Kontinent', fr: 'Tous les continents', da: 'Ethvert kontinent' },
-      'No hay especialistas con estos filtros. Prueba otra combinación.': { es: 'No hay especialistas con estos filtros. Prueba otra combinación.', en: 'No specialists match these filters. Try another combination.', zh: '没有符合这些筛选条件的专家。请尝试其他组合。', hi: 'इन फ़िल्टर से कोई विशेषज्ञ नहीं मिला। दूसरा संयोजन आज़माएं।', ar: 'لا يوجد متخصصون بهذه الفلاتر. جرّب تركيبة أخرى.', it: 'Nessuno specialista corrisponde a questi filtri. Prova un’altra combinazione.', pt: 'Nenhum especialista corresponde a estes filtros. Tente outra combinação.', ru: 'По этим фильтрам специалистов нет. Попробуйте другую комбинацию.', de: 'Keine Spezialisten passen zu diesen Filtern. Versuche eine andere Kombination.', fr: 'Aucun spécialiste ne correspond à ces filtres. Essayez une autre combinaison.', da: 'Ingen specialister matcher disse filtre. Prøv en anden kombination.' },
-      'Disponible para orientación privada': { es: 'Disponible para orientación privada', en: 'Available for private guidance', zh: '可提供私人指导', hi: 'निजी मार्गदर्शन के लिए उपलब्ध', ar: 'متاح للتوجيه الخاص', it: 'Disponibile per orientamento privato', pt: 'Disponível para orientação privada', ru: 'Доступен для частного сопровождения', de: 'Für private Begleitung verfügbar', fr: 'Disponible pour un accompagnement privé', da: 'Tilgængelig for privat vejledning' },
-      'PERFILES VERIFICADOS': { es: 'PERFILES VERIFICADOS', en: 'VERIFIED PROFILES', zh: '已验证资料', hi: 'सत्यापित प्रोफ़ाइल', ar: 'ملفات موثقة', it: 'PROFILI VERIFICATI', pt: 'PERFIS VERIFICADOS', ru: 'ПРОВЕРЕННЫЕ ПРОФИЛИ', de: 'VERIFIZIERTE PROFILE', fr: 'PROFILS VÉRIFIÉS', da: 'VERIFICEREDE PROFILER' },
-      'Volver a Journey del Modo': { es: 'Volver a Journey del Modo', en: 'Back to mode journey', zh: '返回模式旅程', hi: 'मोड यात्रा पर लौटें', ar: 'العودة إلى رحلة الوضع', it: 'Torna al percorso della modalità', pt: 'Voltar à jornada do modo', ru: 'Вернуться к пути режима', de: 'Zurück zur Modus-Journey', fr: 'Retour au parcours du mode', da: 'Tilbage til mode-rejsen' },
-      'Una vista completa para recordar las áreas que te hacen ser tú. Observa tu equilibrio, elige dónde poner presencia y entra a tu dashboard cuando quieras profundizar.': { es: 'Una vista completa para recordar las áreas que te hacen ser tú. Observa tu equilibrio, elige dónde poner presencia y entra a tu dashboard cuando quieras profundizar.', en: 'A complete view of the areas that make you who you are. Observe your balance, choose where to place presence, and enter your dashboard whenever you want to go deeper.', zh: '完整查看构成你的生活领域。观察你的平衡，选择投入关注的地方，并随时进入仪表盘深入探索。', hi: 'उन क्षेत्रों का पूरा दृश्य जो आपको आप बनाते हैं। अपना संतुलन देखें, तय करें कि ध्यान कहाँ देना है और गहराई से जानने के लिए डैशबोर्ड खोलें।', ar: 'رؤية كاملة للمجالات التي تجعلك ما أنت عليه. راقب توازنك واختر أين تضع حضورك وادخل إلى لوحة التحكم عندما تريد التعمق.', it: 'Una visione completa delle aree che ti rendono te stesso. Osserva il tuo equilibrio, scegli dove portare presenza ed entra nella dashboard quando vuoi approfondire.', pt: 'Uma visão completa das áreas que fazem você ser quem é. Observe seu equilíbrio, escolha onde colocar presença e entre no painel quando quiser aprofundar.', ru: 'Полный обзор областей, которые делают вас собой. Наблюдайте за балансом, выбирайте, куда направить внимание, и открывайте панель для углубления.', de: 'Ein vollständiger Blick auf die Bereiche, die dich ausmachen. Beobachte dein Gleichgewicht, wähle deinen Fokus und öffne das Dashboard, wann immer du tiefer gehen möchtest.', fr: 'Une vue complète des domaines qui vous définissent. Observez votre équilibre, choisissez où placer votre présence et ouvrez votre tableau de bord pour aller plus loin.', da: 'Et komplet overblik over de områder, der gør dig til dig. Se din balance, vælg hvor du vil være nærværende, og åbn dashboardet, når du vil gå i dybden.' },
-      'Claridad mental y definición de rumbo': { es: 'Claridad mental y definición de rumbo', en: 'Mental clarity and direction', zh: '思路清晰与方向感', hi: 'मानसिक स्पष्टता और दिशा', ar: 'وضوح ذهني وتحديد الاتجاه', it: 'Chiarezza mentale e direzione', pt: 'Clareza mental e definição de rumo', ru: 'Ясность ума и направление', de: 'Mentale Klarheit und Richtung', fr: 'Clarté mentale et direction', da: 'Mental klarhed og retning' },
-      'Movimiento y práctica sin inversión': { es: 'Movimiento y práctica sin inversión', en: 'Movement and practice without investment', zh: '行动与无需投入的练习', hi: 'निवेश के बिना अभ्यास और行动', ar: 'الحركة والممارسة دون استثمار', it: 'Movimento e pratica senza investimento', pt: 'Movimento e prática sem investimento', ru: 'Движение и практика без вложений', de: 'Bewegung und Übung ohne Investition', fr: 'Mouvement et pratique sans investissement', da: 'Bevægelse og øvelse uden investering' },
-      'Inversión y asignación estratégica de recursos': { es: 'Inversión y asignación estratégica de recursos', en: 'Investment and strategic resource allocation', zh: '投资与战略资源分配', hi: 'निवेश और रणनीतिक संसाधन आवंटन', ar: 'الاستثمار والتخصيص الاستراتيجي للموارد', it: 'Investimento e allocazione strategica delle risorse', pt: 'Investimento e alocação estratégica de recursos', ru: 'Инвестиции и стратегическое распределение ресурсов', de: 'Investition und strategische Ressourcenverteilung', fr: 'Investissement et allocation stratégique des ressources', da: 'Investering og strategisk ressourcefordeling' },
-      'Define el resultado que quieres alcanzar': { es: 'Define el resultado que quieres alcanzar', en: 'Define the result you want to reach', zh: '定义你想实现的结果', hi: 'वह परिणाम तय करें जिसे आप पाना चाहते हैं', ar: 'حدد النتيجة التي تريد الوصول إليها', it: 'Definisci il risultato che vuoi raggiungere', pt: 'Defina o resultado que deseja alcançar', ru: 'Определите результат, которого хотите достичь', de: 'Definiere das Ergebnis, das du erreichen möchtest', fr: 'Définissez le résultat que vous souhaitez atteindre', da: 'Definér det resultat, du vil nå' },
-      'Explora recomendaciones del nivel': { es: 'Explora recomendaciones del nivel', en: 'Explore recommendations for level', zh: '探索该等级的推荐', hi: 'इस स्तर की सिफारिशें देखें', ar: 'استكشف توصيات المستوى', it: 'Esplora le raccomandazioni del livello', pt: 'Explore recomendações do nível', ru: 'Изучите рекомендации уровня', de: 'Entdecke Empfehlungen für Stufe', fr: 'Explorez les recommandations du niveau', da: 'Udforsk anbefalinger for niveau' },
-      'Cada sugerencia respeta el esfuerzo de esta etapa.': { es: 'Cada sugerencia respeta el esfuerzo de esta etapa.', en: 'Each suggestion respects the effort required at this stage.', zh: '每条建议都符合这一阶段的投入要求。', hi: 'हर सुझाव इस चरण के प्रयास का सम्मान करता है।', ar: 'كل اقتراح يراعي الجهد المطلوب في هذه المرحلة.', it: 'Ogni suggerimento rispetta l’impegno di questa fase.', pt: 'Cada sugestão respeita o esforço desta etapa.', ru: 'Каждая рекомендация соответствует усилиям этого этапа.', de: 'Jeder Vorschlag berücksichtigt den Aufwand dieser Phase.', fr: 'Chaque suggestion respecte l’effort de cette étape.', da: 'Hvert forslag respekterer indsatsen på dette trin.' },
-      'Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.': { es: 'Comparte tu contexto y consulta al Modo IA para recibir una propuesta personalizada.', en: 'Share your context and ask Mode AI for a personalized suggestion.', zh: '分享你的背景并咨询模式 AI，获取个性化建议。', hi: 'अपना संदर्भ साझा करें और व्यक्तिगत सुझाव के लिए मोड AI से पूछें।', ar: 'شارك سياقك واستشر وضع الذكاء الاصطناعي للحصول على اقتراح مخصص.', it: 'Condividi il tuo contesto e consulta Modo IA per ricevere una proposta personalizzata.', pt: 'Compartilhe seu contexto e consulte o Modo IA para receber uma proposta personalizada.', ru: 'Расскажите о своём контексте и спросите Mode AI о персональном предложении.', de: 'Teile deinen Kontext und frage Mode AI nach einem persönlichen Vorschlag.', fr: 'Partagez votre contexte et consultez le Mode IA pour une proposition personnalisée.', da: 'Del din kontekst og spørg Mode AI efter et personligt forslag.' },
-      'Tu contexto para la IA': { es: 'Tu contexto para la IA', en: 'Your context for AI', zh: '你的 AI 背景', hi: 'AI के लिए आपका संदर्भ', ar: 'سياقك للذكاء الاصطناعي', it: 'Il tuo contesto per l’IA', pt: 'Seu contexto para a IA', ru: 'Ваш контекст для ИИ', de: 'Dein Kontext für die KI', fr: 'Votre contexte pour l’IA', da: 'Din kontekst til AI' },
-      'Consultar al Modo IA': { es: 'Consultar al Modo IA', en: 'Ask Mode AI', zh: '咨询模式 AI', hi: 'मोड AI से पूछें', ar: 'استشر وضع الذكاء الاصطناعي', it: 'Consulta Modo IA', pt: 'Consultar o Modo IA', ru: 'Спросить у Mode AI', de: 'Mode AI fragen', fr: 'Consulter le Mode IA', da: 'Spørg Mode AI' },
-    };
-    const replacements = new Map<string, string>();
-    Object.entries(phraseBook).forEach(([source, values]) => replacements.set(source, values[language] ?? source));
-    modes.forEach((mode) => {
-      replacements.set(mode.name, localizedModeNames[language][mode.key] ?? mode.name);
-      replacements.set(mode.shortName, (localizedModeNames[language][mode.key] ?? mode.name).replace(/^(Modo |Mode |模式|모드 )/i, '').replace(/\s+Mode$/i, ''));
-      replacements.set(mode.description, localizedModeDescriptions[language]?.[mode.key] ?? mode.description);
-    });
-    levelNames.forEach((name, index) => replacements.set(name, localizedLevelNames[language][index] ?? name));
-    replacements.set('NIVEL', language === 'es' ? 'NIVEL' : tr('level').toUpperCase());
-    replacements.set('NIVELES', language === 'es' ? 'NIVELES' : tr('levels').toUpperCase());
-    replacements.set('MODO IA', language === 'es' ? 'MODO IA' : 'MODE AI');
-    replacements.set('Agregar actividad', tr('activity'));
-    replacements.set('Pool de actividades', tr('activityPool'));
-    replacements.set('Voltear tarjeta', language === 'es' ? 'Voltear tarjeta' : 'Flip card');
-    replacements.set('Volver a la pregunta', language === 'es' ? 'Volver a la pregunta' : 'Back to the question');
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    const nodes: Text[] = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode as Text);
-    nodes.forEach((node) => {
-      const parent = node.parentElement;
-      if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(parent.tagName)) return;
-      // These labels are already localized by React; preserve the complete mode word.
-      if (parent.closest('.overview-mode-name')) return;
-      if (parent.closest('.profile-cultiva-level')) return;
-      if (parent.closest('.badges-gallery, .activity-journey-flow, .community-panel, .public-activity-card, .state-account-boundary, .journey-social-card, .mc-welcome, .guided-tour-layer, .demo-profile-notice, .demo-profile-label, .journey-vision-completion, .clarity-goal')) return;
-      let next = node.nodeValue ?? '';
-      replacements.forEach((value, source) => {
-        if (source && next.includes(source)) next = next.split(source).join(value);
-      });
-      if (next !== node.nodeValue) node.nodeValue = next;
-    });
-  }, [language, tr]);
+    if (languageSource !== 'auto') return;
+    const followBrowser = () => setLanguage(detectBrowserLanguage());
+    window.addEventListener('languagechange', followBrowser);
+    return () => window.removeEventListener('languagechange', followBrowser);
+  }, [languageSource]);
 
   const restoreJourneyPosition = () => {
     window.requestAnimationFrame(() => {
@@ -1546,8 +1466,9 @@ function App() {
 
   const submitAuthentication = async () => {
     setAuthError(null);
+    let tokens: AuthTokens;
     try {
-      const tokens = registering
+      tokens = registering
         ? await (async () => {
             const response = await fetch(`${apiUrl}/auth/register`, {
               method: 'POST',
@@ -1559,9 +1480,14 @@ function App() {
             return payload as AuthTokens;
           })()
         : await authClient.login(loginUsername.trim(), loginPassword);
+    } catch {
+      setAuthError('authentication');
+      return;
+    }
+    try {
       completeLogin(tokens, pendingAccess?.returnView ?? 'welcome', pendingActivity);
-    } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'No fue posible autenticar la cuenta.');
+    } catch {
+      setAuthError('stateSave');
     }
   };
 
@@ -1666,7 +1592,7 @@ function App() {
         if (current() && !(error instanceof DOMException && error.name === 'AbortError')) {
           setAccountPhase('error');
           setStateSyncStatus('error');
-          setAuthError(stateAccountCopy(language).errorHint);
+          setAuthError('state');
         }
       }
     }
@@ -2514,8 +2440,10 @@ function App() {
   const orderedHomeModes = homeSortDescending
     ? [...modes].sort((left, right) => levels[right.key] - levels[left.key])
     : modes;
-  const homeDailyQuote = homeCultivationQuotes[Math.floor(Date.now() / 86_400_000) % homeCultivationQuotes.length];
-  const [homeGreetingPhrase] = useState(() => homeGreetingPhrases[Math.floor(Math.random() * homeGreetingPhrases.length)]);
+  const homeDailyQuoteIndex = Math.floor(Date.now() / 86_400_000) % homeCultivationQuotes.length;
+  const homeDailyQuote = homeCultivationQuotes[homeDailyQuoteIndex];
+  const [homeGreetingIndex] = useState(() => Math.floor(Math.random() * homeGreetingPhrases.es.length));
+  const homeGreetingPhrase = homeGreetingPhrases[language][homeGreetingIndex];
 
   useEffect(() => {
     if (!homeSidebarOpen) return;
@@ -2527,7 +2455,7 @@ function App() {
   }, [homeSidebarOpen]);
 
   return (
-    <main key={language} className={`app-shell app-shell--${skin}${view === 'welcome' ? ' app-shell--home' : ''}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
+    <main className={`app-shell app-shell--${skin}${view === 'welcome' ? ' app-shell--home' : ''}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
       <div
         className={`pull-refresh-indicator${pullDistance > 0 || pullRefreshState !== 'idle' ? ' is-visible' : ''}${pullRefreshState === 'refreshing' ? ' is-refreshing' : ''}${pullRefreshState === 'error' ? ' is-error' : ''}`}
         style={{ transform: `translate(-50%, ${pullRefreshState === 'idle' ? Math.min(pullDistance * .65, 60) - 52 : 12}px)` }}
@@ -2543,7 +2471,7 @@ function App() {
         {pullRefreshState === 'error' && <span className="pull-refresh-error-message">{pullRefreshCopy[language].failed}</span>}
       </div>
       <header className={`topbar${view === 'welcome' ? ' topbar--material-home' : ''}`}>
-        <a className="brand" href="/" aria-label="Modo Cultiva, inicio">
+        <a className="brand" href="/" aria-label={`Modo Cultiva · ${tr('home')}`}>
           <img src={logo} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
@@ -2552,7 +2480,7 @@ function App() {
         <div className="topbar-actions">
           {view === 'welcome' ? <><button className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')} title={tr('profileButton')}>
             {profileImage ? <img src={profileImage} alt="" /> : <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg>}
-          </button><button className="home-menu-button" type="button" onClick={() => setHomeSidebarOpen(true)} aria-label={tr('homeNavigation')} aria-expanded={homeSidebarOpen} aria-controls="home-sidebar" title={tr('homeNavigation')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button></> : <><label className="language-picker"><span className="sr-only">{tr('chooseLanguage')}</span><select value={language} onChange={(event) => handleLanguageChange(event.target.value as Language)} aria-label={tr('chooseLanguage')}>{supportedLanguages.map((code) => <option key={code} value={code}>{languageFlags[code]} {languageNames[code]}</option>)}</select><svg viewBox="0 0 12 12" width="10" height="10" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg></label><PwaControls language={language} />
+          </button><button className="home-menu-button" type="button" onClick={() => setHomeSidebarOpen(true)} aria-label={tr('homeNavigation')} aria-expanded={homeSidebarOpen} aria-controls="home-sidebar" title={tr('homeNavigation')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button></> : <>{languagePicker()}<PwaControls language={language} />
           <div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">
             <button type="button" role="menuitem" data-tour="replay" disabled={aiLoading} onClick={startTour}>{onboardingIntegrationCopy(language).replay} <span aria-hidden="true">↗</span></button>
             <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setCommunityTab('network'); setCommunityOpen(true); }}>{onboardingIntegrationCopy(language).network} <span aria-hidden="true">↗</span></button>
@@ -2575,6 +2503,7 @@ function App() {
             <button type="button" data-home-menu-item="replay" data-tour="replay" disabled={aiLoading} onClick={startTour}><span className="home-sidebar-icon" aria-hidden="true">↻</span><span>{onboardingIntegrationCopy(language).replay}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             {!RELEASE_FREE_ACCESS && <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('plans'); }}><span className="home-sidebar-icon" aria-hidden="true">✦</span><span>{tr('premium')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>}
           </nav>
+          {languagePicker(true)}
         </aside>
       </div>}
 
@@ -2582,17 +2511,17 @@ function App() {
         <section className="login-view" data-layer="inicio" aria-labelledby="login-title">
           <div className="login-card">
             <div className="login-brand"><img src={logo} alt="Modo Cultiva" /><span>Modo Cultiva</span></div>
-            <p className="kicker">{pendingAccess ? 'Acceso contextual' : 'Tu mapa de vida comienza aquí'}</p>
+            <p className="kicker">{pendingAccess ? 'Acceso contextual' : loginIntro}</p>
             <h1 id="login-title">{pendingAccess ? 'Desbloquea esta función.' : tr('welcome')}</h1>
-            <p className="login-copy">{pendingAccess ? `${pendingAccess.feature} forma parte del plan ${pendingAccess.plan}. Crea tu cuenta o inicia sesión para continuar.` : 'Inicia sesión para guardar tu progreso y continuar cultivando tus 12 modos de vida.'}</p>
+            <p className="login-copy">{pendingAccess ? `${pendingAccess.feature} forma parte del plan ${pendingAccess.plan}. Crea tu cuenta o inicia sesión para continuar.` : loginPrompt}</p>
             <form className="login-form" onSubmit={(event) => { event.preventDefault(); void submitAuthentication(); }}>
               {registering && <label htmlFor="login-name">{tr('name')}<input id="login-name" autoComplete="name" value={loginName} onChange={(event) => setLoginName(event.target.value)} placeholder={tr('name')} required /></label>}
-              <label htmlFor="login-username">{tr('email')}<input id="login-username" type="email" autoComplete="email" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder="tu@correo.com" required /></label>
+              <label htmlFor="login-username">{tr('email')}<input id="login-username" type="email" autoComplete="email" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder={emailExample} required /></label>
               <label htmlFor="login-password">{tr('password')}<input id="login-password" type="password" autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder={tr('password')} required minLength={8} /></label>
-              {authError && <p className="form-error" role="alert">{authError}</p>}
+              {authError && <p className="form-error" role="alert">{authError === 'state' ? stateAccountCopy(language).errorHint : authError === 'stateSave' ? stateAccountCopy(language).saveFailed : authFailure}</p>}
               <button className="login-submit" type="submit">{registering ? tr('createAccount') : tr('login')} <span>↗</span></button>
             </form>
-            <button className="login-back-link" type="button" onClick={() => { setRegistering((current) => !current); setAuthError(null); }}>{registering ? 'Ya tengo una cuenta · Iniciar sesión' : 'Crear una cuenta nueva'}</button>
+            <button className="login-back-link" type="button" onClick={() => { setRegistering((current) => !current); setAuthError(null); }}>{registering ? alreadyRegistered : newAccount}</button>
             {pendingAccess && <button className="login-back-link" type="button" onClick={() => { setPendingAccess(null); setPendingActivity(null); setInsightPreview(null); setView('welcome'); }}><span>←</span> Continuar como invitado</button>}
           </div>
         </section>
@@ -2624,12 +2553,12 @@ function App() {
                 <path d="M14 31h12" />
               </svg>
               <div className="home-greeting-copy">
-                <h1><span>Bienvenido,</span> <strong>{displayedProfileName}</strong></h1>
-                <p className="home-greeting-quote"><span>“{homeDailyQuote.quote}”</span><span className="home-greeting-quote-meta">— {homeDailyQuote.author} — {modeName(modes.find((mode) => mode.key === homeDailyQuote.modeKey) ?? modes[0])}</span><a href={homeDailyQuote.source} target="_blank" rel="noreferrer" aria-label={`${tr('homeQuoteSource')}: ${homeDailyQuote.author}`}>↗</a></p>
+                <h1><span>{homeGreeting}</span> <strong dir="auto">{displayedProfileName}</strong></h1>
+                <p className="home-greeting-quote"><span dir="auto">“{homeQuoteText(language, homeDailyQuoteIndex, homeDailyQuote.quote)}”</span><span className="home-greeting-quote-meta">— <bdi>{homeDailyQuote.author}</bdi> — {modeName(modes.find((mode) => mode.key === homeDailyQuote.modeKey) ?? modes[0])}</span><a href={homeDailyQuote.source} target="_blank" rel="noreferrer" aria-label={`${tr('homeQuoteSource')}: ${homeDailyQuote.author}`}>↗</a></p>
               </div>
             </div>
             <div className="home-greeting-quick-space">
-              <p className="home-greeting-welcome-phrase">{homeGreetingPhrase}<span className="home-greeting-emoji" role="img" aria-label="¡Hola!">👋</span></p>
+              <p className="home-greeting-welcome-phrase">{homeGreetingPhrase}<span className="home-greeting-emoji" role="img" aria-label={waveLabel}>👋</span></p>
               <button className={`home-sort-button${homeSortDescending ? ' is-active' : ''}`} type="button" aria-label={homeSortDescending ? homeSortLabels[language].reset : homeSortLabels[language].sort} aria-pressed={homeSortDescending} onClick={() => setHomeSortDescending((current) => !current)}>
                 <span className="home-sort-glyph" aria-hidden="true"><i>↑</i><i>↓</i></span>
               </button>
