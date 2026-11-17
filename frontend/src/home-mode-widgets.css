@@ -140,3 +140,54 @@
 @media (prefers-reduced-motion: reduce) { .home-sort-button, .pull-refresh-indicator, .pull-refresh-arc { transition: none; }.pull-refresh-indicator.is-refreshing .pull-refresh-spinner { animation-duration: 2.5s; } }
 @media (forced-colors: active) { .home-mode-card { border: 1px solid ButtonText; }.home-mode-meter i.is-active { background: Highlight; } }
 @media (prefers-reduced-motion: reduce) { .home-carousel-rotation { display: none !important; } }
+
+/* Fit the greeting and carousel into the visible home screen; dialogs keep their own scroll. */
+html:has(#root > .app-shell--home),
+body:has(#root > .app-shell--home) {
+  min-block-size: 0;
+  overflow: clip;
+  overscroll-behavior-y: none;
+}
+.app-shell.app-shell--home {
+  display: flex;
+  flex-direction: column;
+  block-size: 100dvh;
+  min-block-size: 0;
+  padding-block: max(4px, env(safe-area-inset-top)) max(4px, env(safe-area-inset-bottom));
+  overflow: clip;
+}
+.app-shell--home > .topbar--material-home { flex: 0 0 auto; margin-block-end: 0; }
+.app-shell--home > .welcome-view {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  flex: 1;
+  min-block-size: 0;
+  padding-block: 0;
+}
+.app-shell--home .home-greeting {
+  min-block-size: 0;
+  margin-block-end: 0;
+  padding-block: clamp(6px, 2dvh, 24px) clamp(4px, 1.5dvh, 16px);
+}
+.app-shell--home .home-greeting h1 span { margin-block-end: 4px; transform: none; }
+.app-shell--home .home-greeting-copy p { margin-block-start: 7px; }
+.app-shell--home .home-greeting-quick-space { min-block-size: 44px; padding-block-start: 4px; }
+.app-shell--home .welcome-view > .circular-carousel { block-size: 100%; min-block-size: 0; }
+.app-shell--home .home-sidebar { overflow-y: auto; overscroll-behavior-y: contain; }
+
+@media (max-height: 660px) {
+  .app-shell--home .home-greeting h1 { font-size: clamp(1.2rem, 5vw, 2.05rem); }
+  .app-shell--home .home-greeting h1 strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .app-shell--home .home-greeting-quote { font-size: .83rem !important; line-height: 1.3 !important; }
+  .app-shell--home .home-greeting-plant { inline-size: 24px; block-size: 31px; flex-basis: 24px; }
+  .app-shell--home .home-greeting-quick-space { padding-block-start: 0; }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .app-shell--home > .topbar--material-home { min-block-size: 54px; }
+  .app-shell--home > .welcome-view {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+  }
+  .app-shell--home .home-greeting { padding-inline: 4px 12px; }
+}

@@ -431,6 +431,7 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   dashboard: { es: 'Centro de Control', en: 'Control Center', zh: '控制中心', hi: 'नियंत्रण केंद्र', ar: 'مركز التحكم', it: 'Centro di controllo', pt: 'Centro de Controle', ru: 'Центр управления', de: 'Kontrollzentrum', fr: 'Centre de contrôle', da: 'Kontrolcenter' },
   pressToEnter: { es: 'Acceder al Centro de Control', en: 'Access the Control Center', zh: '进入控制中心', hi: 'नियंत्रण केंद्र खोलें', ar: 'الدخول إلى مركز التحكم', it: 'Accedi al centro di controllo', pt: 'Acessar o Centro de Controle', ru: 'Перейти в центр управления', de: 'Kontrollzentrum öffnen', fr: 'Accéder au centre de contrôle', da: 'Åbn kontrolcenteret' },
   returnToOverview: { es: 'REGRESAR', en: 'GO BACK', zh: '返回', hi: 'वापस जाएँ', ar: 'رجوع', it: 'TORNA INDIETRO', pt: 'VOLTAR', ru: 'НАЗАД', de: 'ZURÜCK', fr: 'RETOUR', da: 'TILBAGE' },
+  returnHome: { es: 'Volver al inicio', en: 'Back to home', zh: '返回首页', hi: 'होम पर लौटें', ar: 'العودة إلى الرئيسية', it: 'Torna alla home', pt: 'Voltar ao início', ru: 'На главную', de: 'Zur Startseite', fr: 'Retour à l’accueil', da: 'Tilbage til forsiden' },
   returnToControlCenter: { es: 'Volver al Centro de Control', en: 'Return to the Control Center', zh: '返回控制中心', hi: 'नियंत्रण केंद्र पर लौटें', ar: 'العودة إلى مركز التحكم', it: 'Torna al centro di controllo', pt: 'Voltar ao Centro de Controle', ru: 'Вернуться в центр управления', de: 'Zurück zum Kontrollzentrum', fr: 'Retour au centre de contrôle', da: 'Tilbage til kontrolcenteret' },
   returnMyLifeMap: { es: 'Volver a mi mapa de vida', en: 'Return to my life map', zh: '返回我的人生地图', hi: 'मेरे जीवन मानचित्र पर लौटें', ar: 'العودة إلى خريطة حياتي', it: 'Torna alla mia mappa della vita', pt: 'Voltar ao meu mapa de vida', ru: 'Вернуться к моей карте жизни', de: 'Zurück zu meiner Lebenskarte', fr: 'Revenir à ma carte de vie', da: 'Tilbage til mit livskort' },
   welcomeOverviewCopy: {
@@ -871,7 +872,6 @@ function App() {
   const [journeySlide, setJourneySlide] = useState(0);
   const [journeyStep, setJourneyStep] = useState<JourneyStep>(0);
   const journeyTouch = useRef<{ x: number; y: number; vertical: boolean } | null>(null);
-  const [journeyReturnView, setJourneyReturnView] = useState<'welcome' | 'dashboard'>('welcome');
   const [cultOpen, setCultOpen] = useState(false);
   const [activeActivity, setActiveActivity] = useState<number | null>(null);
   const [activityEntry, setActivityEntry] = useState<ActivityEntry>('custom');
@@ -1741,14 +1741,14 @@ function App() {
     };
   }, [configurationsOpen, language]);
 
-  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, journeyReturnView, cultOpen, cultTab, profileMenuOpen, configurationsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
+  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, cultOpen, cultTab, profileMenuOpen, configurationsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
   const navigationSnapshotKey = JSON.stringify(navigationSnapshot);
   const navigationSnapshotRef = useRef(navigationSnapshot);
   navigationSnapshotRef.current = navigationSnapshot;
   const restoreNavigationRef = useRef((snapshot: typeof navigationSnapshot) => {});
   restoreNavigationRef.current = (snapshot) => {
     setView(snapshot.view); setSelectedMode(snapshot.selectedMode); setActiveActivity(snapshot.activeActivity);
-    setActivityEntry(snapshot.activityEntry); setJourneySlide(snapshot.journeySlide); setJourneyStep(snapshot.journeyStep); setJourneyReturnView(snapshot.journeyReturnView);
+    setActivityEntry(snapshot.activityEntry); setJourneySlide(snapshot.journeySlide); setJourneyStep(snapshot.journeyStep);
     setCultOpen(snapshot.cultOpen); setCultTab(snapshot.cultTab); setProfileMenuOpen(snapshot.profileMenuOpen);
     setConfigurationsOpen(snapshot.configurationsOpen); setRenamingPreset(snapshot.renamingPreset);
     setCustomizingAvatar(snapshot.customizingAvatar); setProfilePreviewMode(snapshot.profilePreviewMode);
@@ -1812,7 +1812,7 @@ function App() {
         if (['reviews', 'community'].includes(tourTopic)) {
           setCommunityTab(tourTopic === 'reviews' ? 'reviews' : 'network'); setCommunityOpen(true); return;
         }
-        setSelectedMode(tourMode); setJourneyReturnView('welcome'); setJourneySlide(tourTopic === 'vision' ? 9 : tourSource);
+        setSelectedMode(tourMode); setJourneySlide(tourTopic === 'vision' ? 9 : tourSource);
         setJourneyStep(tourTopic === 'vision' ? 1 : tourTopic === 'audience' ? 3 : ['modeDescription', 'selfAssessment'].includes(tourTopic) ? 0 : 1);
         if (tourTopic === 'globalIdeas') {
           setInsightSlide(0); setInsightCycle(0); setCultTab('insights'); setCultOpen(true); return;
@@ -2051,7 +2051,6 @@ function App() {
   };
 
   const openMode = (mode: Mode) => {
-    setJourneyReturnView(view === 'dashboard' ? 'dashboard' : 'welcome');
     setSelectedMode(mode);
     setJourneySlide(levels[mode.key] ?? 0);
     setJourneyStep(0);
@@ -2061,11 +2060,11 @@ function App() {
     setActiveActivity(null);
   };
 
-  const backToDashboard = () => {
+  const returnHomeFromJourney = () => {
     setSelectedMode(null);
     setCultOpen(false);
     setActiveActivity(null);
-    setView(journeyReturnView);
+    setView('welcome');
   };
 
   const openActivity = (level: number, entry: ActivityEntry = 'custom') => {
@@ -2498,7 +2497,7 @@ function App() {
   }, [homeSidebarOpen]);
 
   return (
-    <main key={language} className={`app-shell app-shell--${skin}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
+    <main key={language} className={`app-shell app-shell--${skin}${view === 'welcome' ? ' app-shell--home' : ''}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
       <div
         className={`pull-refresh-indicator${pullDistance > 0 || pullRefreshState !== 'idle' ? ' is-visible' : ''}${pullRefreshState === 'refreshing' ? ' is-refreshing' : ''}${pullRefreshState === 'error' ? ' is-error' : ''}`}
         style={{ transform: `translate(-50%, ${pullRefreshState === 'idle' ? Math.min(pullDistance * .65, 60) - 52 : 12}px)` }}
@@ -2647,7 +2646,7 @@ function App() {
             intro={tourTopic === 'modes' ? 'none' : 'assemble'}
             cardWidth={270}
             aspectRatio={0.75}
-            speed={14}
+            speed={4}
             gap={25}
             tilt={0}
             curve={1}
@@ -2800,9 +2799,7 @@ function App() {
 
       {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className={`journey-panel${activeActivity !== null && activityEntry === 'ai' ? ' journey-panel--mode-ai' : ''}`} data-layer={activeActivity !== null ? '5' : '3'} role="dialog" aria-modal="true" aria-labelledby={activeActivity === null ? 'journey-title' : 'activity-agent-title'} style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label={tr('journeyClose')}>×</button>
-        {!tourTopic && <button className="journey-replay" type="button" disabled={aiLoading} onClick={startTour}
-          aria-label={onboardingIntegrationCopy(language).replay} title={onboardingIntegrationCopy(language).replay}>↻</button>}
-        {activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← {tr('back')} {journeyReturnView === 'dashboard' ? tr('dashboard') : tr('overview')}</button>}
+        {activeActivity === null && <button className="journey-back" type="button" onClick={returnHomeFromJourney}>← {tr('returnHome')}</button>}
         {activeActivity === null && <h2 id="journey-title" className="sr-only">{modeName(selectedMode)}</h2>}
         {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← {tr('back')}</button>}
         {activeActivity !== null ? <section className={`activity-agent activity-agent--${activityEntry}`} data-layer="5" aria-labelledby="activity-agent-title">
@@ -2881,6 +2878,13 @@ function App() {
                 <VisionImage key={selectedMode.key} value={visionImages[selectedMode.key]} onChange={image => { if (!tourTopic && currentJourneyLevel === 9) saveVisionImage(selectedMode.key, image); }} language={language} title={tr('finalVision')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} />
                 <div className="journey-vision-note"><span className="journey-vision-completion" role="status"><strong>{hasVisionImage(visionImages[selectedMode.key]) ? `✓ ${badgeCopy(language).visionDone}` : badgeCopy(language).visionPending}</strong><span>{badgeCopy(language).visionHint}</span></span></div>
               </article> : <>
+                <JourneyActivityCard key={`${selectedMode.key}-${visibleJourneyLevel}`} current={visibleJourneyLevel === currentJourneyLevel} defined={Boolean(activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`])}
+                  card={{ mode: modeName(selectedMode), level: visibleJourneyLevel, levelLabel: tr('level'), stage: localizedLevelNames[language][visibleJourneyLevel], effort: effortLabel(visibleJourneyLevel), activity: activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? tr('activityUndefined'), color: selectedMode.color, icon: selectedMode.icon, language }}
+                  reaction={activityReactions[activityReactionKey(selectedMode.key, visibleJourneyLevel, activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? '')]}
+                  flow={deckFlow ? { ...deckFlow, viewStep: displayJourneyStep, onDefine: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onDefine : undefined, onSubmit: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onSubmit : undefined } : undefined}
+                  showSocial={displayJourneyStep === 1}
+                  sharePreviewScope={tourTopic ?? 'closed'}
+                  onReact={reaction => reactToActivity(selectedMode.key, visibleJourneyLevel, reaction)} />
                 {displayJourneyStep === 1 && (tourTopic || (visibleJourneyLevel === currentJourneyLevel && deckFlow?.state.status !== 'pending' && deckFlow?.state.status !== 'approved')) && <>
                   <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}>
                     <div className="journey-activity-methods">
@@ -2900,13 +2904,6 @@ function App() {
                   {localIdeaNotice?.key === insightRequestKey(selectedMode.key, visibleJourneyLevel) && <p className="journey-local-idea-status" role="status">{localIdeaNotice.kind === 'login' ? communityCopy(language).login : localIdeaNotice.kind === 'profile' ? onboardingIntegrationCopy(language).profileRequired : localIdeaNotice.kind === 'failed' ? communityCopy(language).unavailable : localIdeaNotice.count ? `${tr('insightRequested')} · ${communityCopy(language).eligible.replace('{count}', String(localIdeaNotice.count))}` : communityCopy(language).zero}</p>}
                 </>}
                 {insightNotice && displayJourneyStep === 1 && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
-                <JourneyActivityCard key={`${selectedMode.key}-${visibleJourneyLevel}`} current={visibleJourneyLevel === currentJourneyLevel} defined={Boolean(activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`])}
-                  card={{ mode: modeName(selectedMode), level: visibleJourneyLevel, levelLabel: tr('level'), stage: localizedLevelNames[language][visibleJourneyLevel], effort: effortLabel(visibleJourneyLevel), activity: activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? tr('activityUndefined'), color: selectedMode.color, icon: selectedMode.icon, language }}
-                  reaction={activityReactions[activityReactionKey(selectedMode.key, visibleJourneyLevel, activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? '')]}
-                  flow={deckFlow ? { ...deckFlow, viewStep: displayJourneyStep, onDefine: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onDefine : undefined, onSubmit: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onSubmit : undefined } : undefined}
-                  showSocial={displayJourneyStep === 1}
-                  sharePreviewScope={tourTopic ?? 'closed'}
-                  onReact={reaction => reactToActivity(selectedMode.key, visibleJourneyLevel, reaction)} />
               </>}
             </div>
             {visibleJourneyLevel > 0 && <button className="journey-level-link journey-level-link--down" type="button" onClick={() => goJourneyLevel(visibleJourneyLevel - 1)}><span aria-hidden="true">↓</span>{tr('previousLevel')} · {formatJourneyLevel(visibleJourneyLevel - 1)}</button>}
