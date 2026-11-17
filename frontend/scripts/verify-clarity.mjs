@@ -28,7 +28,8 @@ for (const language of languages) {
 for (const level of [-1,9,10,1.5,NaN,Infinity,null,undefined,'3',true]) assert.equal(clarityTransition(level,'es'), null);
 assert.deepEqual(clarityTransition(8,'unknown'), clarityTransition(8,'es'));
 const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
-assert.equal((app.match(/<ClarityGoal /g) ?? []).length,3, 'Custom, bank and Mode AI retain the canonical target');
+assert.equal((app.match(/<ClarityGoal /g) ?? []).length,2, 'Recommended activities and AI show the canonical target');
+assert.match(app, /<ActivityJourneyFlow[^\n]+definitionOnly/, 'The manual editor uses the shared flow and canonical target');
 assert.doesNotMatch(app, /journeySlide < 9 && <ClarityGoal/, 'Do not repeat the activity target above the journey card');
 assert.ok(app.includes("nextClarity: '.journey-builder .activity-flow-target summary'"), 'Tour uses the remaining compact activity target');
 const flow = await readFile(new URL('../src/ActivityJourneyFlow.tsx', import.meta.url), 'utf8');

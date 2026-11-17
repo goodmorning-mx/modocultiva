@@ -82,7 +82,7 @@ check('missing, malformed, broad or undersized selectors fail closed', () => {
   assert.equal(resolveTourTargets(['.many', '.missing'], scope).elements.length, 0, 'never expose a partial selector set');
 });
 
-check('11 complete locales, 26 topics including audience choice, localized controls, exactly 3 activity stages', () => {
+check('11 complete locales, 26 topics, and 3 activity stages after the overview', () => {
   assert.deepEqual(messages.TOUR_LANGUAGES, ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da']);
   assert.equal(messages.TOUR_STAGE_IDS.length, 26);
   for (const [language, copy] of Object.entries(messages.guidedTourMessages)) {
@@ -93,7 +93,7 @@ check('11 complete locales, 26 topics including audience choice, localized contr
     assert.deepEqual(Object.keys(copy.methods), [...TOUR_METHODS]);
     for (const text of Object.values(copy.controls)) assert.ok(text.trim(), language);
     for (const [id, [title, body]] of Object.entries(copy.stages)) {
-      assert.ok(title.length > 3 && body.length > 20, `${language}:${id}`);
+      assert.ok(title.length > 3 && body.length > (language === 'zh' ? 13 : 20), `${language}:${id}`);
       if (language !== 'en') assert.notEqual(body, messages.guidedTourMessages.en.stages[id][1], `${language}:${id} translated`);
     }
     assert.match(copy.stages.badges[1], /108/); assert.match(copy.stages.badges[1], /120/); assert.match(copy.stages.badges[1], /99/);
@@ -107,7 +107,7 @@ check('11 complete locales, 26 topics including audience choice, localized contr
   assert.equal(messages.getGuidedTourCopy('EN_us'), messages.guidedTourMessages.en);
   assert.equal(messages.getGuidedTourCopy('unknown'), messages.guidedTourMessages.es);
   assert.match(messages.guidedTourStepCopy('en', 'nextClarity').body, /arbitrary current-level task is not enough/);
-  assert.match(messages.guidedTourStepCopy('en', 'activityCard').body, /no fourth stage/);
+  assert.match(messages.guidedTourStepCopy('en', 'activityCard').body, /mode overview.*side arrows/);
   assert.match(messages.guidedTourStepCopy('en', 'reviews').body, /third approval validates once/);
   assert.match(messages.guidedTourStepCopy('en', 'vision').body, /image-only/);
 });

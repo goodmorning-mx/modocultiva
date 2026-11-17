@@ -17,7 +17,8 @@ import { communityCopy } from './communityMessages';
 import { activityFlowCopy } from './activityJourneyFlowMessages';
 import { PublicActivityCard } from './PublicActivityCard';
 import { adaptActivityFlow } from './activityFlowAdapter';
-import type { ActivityJourneyFlowProps } from './ActivityJourneyFlow';
+import { ActivityJourneyFlow, activityFlowStage, type ActivityJourneyFlowProps } from './ActivityJourneyFlow';
+import { canOpenJourneyLevel, journeyGesture, journeyStepLabels, type JourneyStep } from './journeyDeck';
 import type { EvidenceDraft } from './visualEvidence';
 import { onboardingIntegrationCopy } from './onboardingIntegrationMessages';
 import { WelcomeIntro } from './WelcomeIntro';
@@ -45,6 +46,7 @@ import './skin-overrides.css';
 import './life-map-polish.css';
 import './profile-level.css';
 import './home-mode-widgets.css';
+import './ascending-journey.css';
 
 type HealthResponse = {
   service: string;
@@ -103,18 +105,18 @@ const allSkinKeys = new Set<Skin>(['holista', 'dj', 'nocturna', 'lucid', ...skin
 const skinInfo = (key: Skin) => skinCatalog.find((item) => item.key === key);
 
 const modes: Mode[] = [
-  { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '✦', color: '#54d6bc', accent: '#153f42' },
-  { key: 'intelectual', roman: 'II', name: 'Modo Intelectual', shortName: 'Intelectual', description: 'Desarrollo intelectual y cognitivo', icon: '◈', color: '#63c9ee', accent: '#173a55' },
-  { key: 'emocional', roman: 'III', name: 'Modo Emocional', shortName: 'Emocional', description: 'Gestión y equilibrio de sentimientos', icon: '◒', color: '#f39a7a', accent: '#5c2d38' },
-  { key: 'arquetipico', roman: 'IV', name: 'Modo Arquetípico', shortName: 'Arquetípico', description: 'Carácter, coherencia y esencia personal', icon: '✺', color: '#db9cf2', accent: '#412653' },
-  { key: 'espiritual', roman: 'V', name: 'Modo Espiritual', shortName: 'Espiritual', description: 'Propósito, sentido y conexión', icon: '☼', color: '#f4c961', accent: '#53421d' },
-  { key: 'romantico', roman: 'VI', name: 'Modo Romántico', shortName: 'Romántico', description: 'Relación de pareja y amor', icon: '♡', color: '#ef8da4', accent: '#572938' },
-  { key: 'familiar', roman: 'VII', name: 'Modo Familiar', shortName: 'Familiar', description: 'Vínculos con la familia de origen y propia', icon: '⌂', color: '#b2d77a', accent: '#31452a' },
-  { key: 'social', roman: 'VIII', name: 'Modo Social', shortName: 'Social', description: 'Amistades, red de apoyo y comunidad', icon: '◎', color: '#73d5d4', accent: '#19494b' },
-  { key: 'financiero', roman: 'IX', name: 'Modo Financiero', shortName: 'Financiero', description: 'Gestión del dinero, ahorro e inversión', icon: '◉', color: '#e5be58', accent: '#51421d' },
-  { key: 'profesional', roman: 'X', name: 'Modo Profesional', shortName: 'Profesional', description: 'Carrera, vocación y desempeño laboral', icon: '▣', color: '#8cb8f1', accent: '#263e60' },
-  { key: 'ludico', roman: 'XI', name: 'Modo Lúdico', shortName: 'Lúdico', description: 'Disfrute, ocio, descanso y recarga', icon: '✹', color: '#f3b86e', accent: '#543b22' },
-  { key: 'visionario', roman: 'XII', name: 'Modo Visionario', shortName: 'Visionario', description: 'Metas, planificación y legado', icon: '△', color: '#72e79b', accent: '#214b39' },
+  { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '✦', color: '#22C7A5', accent: '#123B36' },
+  { key: 'intelectual', roman: 'II', name: 'Modo Intelectual', shortName: 'Intelectual', description: 'Desarrollo intelectual y cognitivo', icon: '◈', color: '#3D8FD2', accent: '#172F3B' },
+  { key: 'emocional', roman: 'III', name: 'Modo Emocional', shortName: 'Emocional', description: 'Gestión y equilibrio de sentimientos', icon: '◒', color: '#D94A4A', accent: '#3B2528' },
+  { key: 'arquetipico', roman: 'IV', name: 'Modo Arquetípico', shortName: 'Arquetípico', description: 'Carácter, coherencia y esencia personal', icon: '✺', color: '#A77BDB', accent: '#2B2237' },
+  { key: 'espiritual', roman: 'V', name: 'Modo Espiritual', shortName: 'Espiritual', description: 'Propósito, sentido y conexión', icon: '☼', color: '#FFFFFF', accent: '#243445' },
+  { key: 'romantico', roman: 'VI', name: 'Modo Romántico', shortName: 'Romántico', description: 'Relación de pareja y amor', icon: '♡', color: '#D98BA9', accent: '#3B2935' },
+  { key: 'familiar', roman: 'VII', name: 'Modo Familiar', shortName: 'Familiar', description: 'Vínculos con la familia de origen y propia', icon: '⌂', color: '#B49AD6', accent: '#332C3E' },
+  { key: 'social', roman: 'VIII', name: 'Modo Social', shortName: 'Social', description: 'Amistades, red de apoyo y comunidad', icon: '◎', color: '#3FBBC3', accent: '#12363A' },
+  { key: 'financiero', roman: 'IX', name: 'Modo Financiero', shortName: 'Financiero', description: 'Gestión del dinero, ahorro e inversión', icon: '◉', color: '#D9B65D', accent: '#3B3321' },
+  { key: 'profesional', roman: 'X', name: 'Modo Profesional', shortName: 'Profesional', description: 'Carrera, vocación y desempeño laboral', icon: '▣', color: '#7A91A8', accent: '#27333D' },
+  { key: 'ludico', roman: 'XI', name: 'Modo Lúdico', shortName: 'Lúdico', description: 'Disfrute, ocio, descanso y recarga', icon: '✹', color: '#A87554', accent: '#34251F' },
+  { key: 'visionario', roman: 'XII', name: 'Modo Visionario', shortName: 'Visionario', description: 'Metas, planificación y legado', icon: '△', color: '#C7CED8', accent: '#30343A' },
 ];
 const homeCarouselControls: Record<AppLanguage, [string, string, string, string]> = {
   es: ['Modo anterior', 'Modo siguiente', 'Pausar carrusel', 'Reanudar carrusel'],
@@ -609,10 +611,10 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   activitySaved: { es: 'Actividad guardada en este navegador.', en: 'Activity saved in this browser.', zh: '活动已保存在此浏览器中。', hi: 'गतिविधि इस ब्राउज़र में सहेजी गई है।', ar: 'تم حفظ النشاط في هذا المتصفح.', it: 'Attività salvata in questo browser.', pt: 'Atividade salva neste navegador.', ru: 'Активность сохранена в этом браузере.', de: 'Aktivität in diesem Browser gespeichert.', fr: 'Activité enregistrée dans ce navigateur.', da: 'Aktivitet gemt i denne browser.' },
   activitySavedToJourney: { es: 'Actividad guardada en el journey correspondiente.', en: 'Activity saved to the corresponding journey.', zh: '活动已保存到对应的模式旅程。', hi: 'गतिविधि संबंधित मोड यात्रा में सहेजी गई है।', ar: 'تم حفظ النشاط في رحلة الوضع المقابلة.', it: 'Attività salvata nel percorso corrispondente.', pt: 'Atividade salva na jornada correspondente.', ru: 'Активность сохранена в соответствующем пути режима.', de: 'Aktivität im entsprechenden Modus-Journey gespeichert.', fr: 'Activité enregistrée dans le parcours correspondant.', da: 'Aktiviteten blev gemt i den tilsvarende mode-rejse.' },
   modifyActivity: { es: 'Modificar Actividad', en: 'Modify activity', zh: '修改活动', hi: 'गतिविधि संशोधित करें', ar: 'تعديل النشاط', it: 'Modifica attività', pt: 'Modificar atividade', ru: 'Изменить активность', de: 'Aktivität ändern', fr: 'Modifier l’activité', da: 'Redigér aktivitet' },
-  addActivity: { es: 'Agregar Actividad', en: 'Add activity', zh: '添加活动', hi: 'गतिविधि जोड़ें', ar: 'إضافة نشاط', it: 'Aggiungi attività', pt: 'Adicionar atividade', ru: 'Добавить активность', de: 'Aktivität hinzufügen', fr: 'Ajouter une activité', da: 'Tilføj aktivitet' },
-  activityPool: { es: 'Banco de actividades', en: 'Activity bank', zh: '活动库', hi: 'गतिविधि बैंक', ar: 'بنك الأنشطة', it: 'Raccolta di attività', pt: 'Banco de atividades', ru: 'Банк занятий', de: 'Aktivitätensammlung', fr: 'Banque d’activités', da: 'Aktivitetsbank' },
+  addActivity: { es: 'Definir Actividad Manualmente', en: 'Define Activity Manually', zh: '手动定义活动', hi: 'गतिविधि स्वयं तय करें', ar: 'حدّد النشاط يدويًا', it: 'Definisci l’attività manualmente', pt: 'Definir atividade manualmente', ru: 'Определить задание вручную', de: 'Aktivität manuell festlegen', fr: 'Définir l’activité manuellement', da: 'Definér aktiviteten manuelt' },
+  activityPool: { es: 'Actividades Recomendadas', en: 'Recommended Activities', zh: '推荐活动', hi: 'सुझाई गई गतिविधियाँ', ar: 'أنشطة مقترحة', it: 'Attività consigliate', pt: 'Atividades recomendadas', ru: 'Рекомендуемые задания', de: 'Empfohlene Aktivitäten', fr: 'Activités recommandées', da: 'Anbefalede aktiviteter' },
   activityPoolDescription: { es: 'El Banco de Actividades ofrece frases célebres que pueden servirte de inspiración.', en: 'The Activity Bank offers famous quotes that can serve as inspiration.', zh: '活动库提供可以带来灵感的名人名言。', hi: 'गतिविधि बैंक प्रेरणा देने वाले प्रसिद्ध उद्धरण प्रदान करता है।', ar: 'يقدّم بنك الأنشطة اقتباسات شهيرة يمكن أن تمنحك الإلهام.', it: 'La Banca delle attività offre citazioni celebri che possono ispirarti.', pt: 'O Banco de Atividades oferece frases célebres que podem servir de inspiração.', ru: 'Банк активностей предлагает известные цитаты, которые могут вдохновить вас.', de: 'Die Aktivitätensammlung bietet berühmte Zitate als Inspiration.', fr: 'La Banque d’activités propose des citations célèbres pour vous inspirer.', da: 'Aktivitetsbanken tilbyder berømte citater, der kan inspirere dig.' },
-  modeAI: { es: 'Modo IA', en: 'Mode AI', zh: '模式 AI', hi: 'मोड AI', ar: 'وضع الذكاء الاصطناعي', it: 'Modo IA', pt: 'Modo IA', ru: 'Mode AI', de: 'Mode AI', fr: 'Mode IA', da: 'Mode AI' },
+  modeAI: { es: 'Pide Sugerencias a la IA', en: 'Ask AI for Suggestions', zh: '向 AI 获取建议', hi: 'AI से सुझाव माँगें', ar: 'اطلب اقتراحات من الذكاء الاصطناعي', it: 'Chiedi suggerimenti all’IA', pt: 'Peça sugestões à IA', ru: 'Спросить совета у ИИ', de: 'KI um Vorschläge bitten', fr: 'Demander des suggestions à l’IA', da: 'Bed AI om forslag' },
   insightRequested: { es: 'Idea local solicitada', en: 'Local idea requested', zh: '已请求本地想法', hi: 'स्थानीय विचार का अनुरोध किया गया', ar: 'تم طلب فكرة محلية', it: 'Idea locale richiesta', pt: 'Ideia local solicitada', ru: 'Запрошена локальная идея', de: 'Lokale Idee angefragt', fr: 'Idée locale demandée', da: 'Lokal idé anmodet' },
   requestInsights: { es: 'Pedir Idea Local', en: 'Request a local idea', zh: '请求本地想法', hi: 'स्थानीय विचार माँगें', ar: 'اطلب فكرة محلية', it: 'Richiedi un’idea locale', pt: 'Pedir ideia local', ru: 'Запросить локальную идею', de: 'Lokale Idee anfragen', fr: 'Demander une idée locale', da: 'Bed om en lokal idé' },
   localIdeaCancelled: { es: 'Solicitud de idea local cancelada.', en: 'Local idea request cancelled.', zh: '已取消本地想法请求。', hi: 'स्थानीय विचार का अनुरोध रद्द किया गया।', ar: 'تم إلغاء طلب الفكرة المحلية.', it: 'Richiesta di idea locale annullata.', pt: 'Solicitação de ideia local cancelada.', ru: 'Запрос локальной идеи отменён.', de: 'Anfrage für lokale Idee zurückgezogen.', fr: 'Demande d’idée locale annulée.', da: 'Anmodningen om en lokal idé er annulleret.' },
@@ -867,12 +869,15 @@ function App() {
   });
   const [selectedMode, setSelectedMode] = useState<Mode | null>(null);
   const [journeySlide, setJourneySlide] = useState(0);
+  const [journeyStep, setJourneyStep] = useState<JourneyStep>(0);
+  const journeyTouch = useRef<{ x: number; y: number; vertical: boolean } | null>(null);
   const [journeyReturnView, setJourneyReturnView] = useState<'welcome' | 'dashboard'>('welcome');
   const [cultOpen, setCultOpen] = useState(false);
   const [activeActivity, setActiveActivity] = useState<number | null>(null);
   const [activityEntry, setActivityEntry] = useState<ActivityEntry>('custom');
   const [poolSelection, setPoolSelection] = useState(0);
   const [activityPrompt, setActivityPrompt] = useState('');
+  const [manualAlignment, setManualAlignment] = useState('');
   const [aiNotice, setAiNotice] = useState<string | null>(null);
   const [aiHasConsulted, setAiHasConsulted] = useState(false);
   const [aiProposal, setAiProposal] = useState('');
@@ -1059,6 +1064,7 @@ function App() {
   });
   const [presetName, setPresetName] = useState('');
   const [selectedPreset, setSelectedPreset] = useState(() => personalStorageRef.current.getItem('modoCultiva_selectedPreset') ?? '');
+  const [previewedPreset, setPreviewedPreset] = useState<Preset | null>(null);
   const [presetNotice, setPresetNotice] = useState<string | null>(null);
   const [renamingPreset, setRenamingPreset] = useState(false);
   const [presetRenameName, setPresetRenameName] = useState('');
@@ -1070,7 +1076,6 @@ function App() {
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const journeyPanelRef = useRef<HTMLElement | null>(null);
   const journeyReturnScrollTop = useRef(0);
-  const cultEmbeddedRef = useRef<HTMLElement | null>(null);
   const stateQueueRef = useRef<StateSyncQueue | null>(null);
   const stateQueueSessionRef = useRef<string | null>(null);
   const pullStartYRef = useRef<number | null>(null);
@@ -1736,14 +1741,14 @@ function App() {
     };
   }, [configurationsOpen, language]);
 
-  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyReturnView, cultOpen, cultTab, profileMenuOpen, configurationsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
+  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, journeyReturnView, cultOpen, cultTab, profileMenuOpen, configurationsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
   const navigationSnapshotKey = JSON.stringify(navigationSnapshot);
   const navigationSnapshotRef = useRef(navigationSnapshot);
   navigationSnapshotRef.current = navigationSnapshot;
   const restoreNavigationRef = useRef((snapshot: typeof navigationSnapshot) => {});
   restoreNavigationRef.current = (snapshot) => {
     setView(snapshot.view); setSelectedMode(snapshot.selectedMode); setActiveActivity(snapshot.activeActivity);
-    setActivityEntry(snapshot.activityEntry); setJourneySlide(snapshot.journeySlide); setJourneyReturnView(snapshot.journeyReturnView);
+    setActivityEntry(snapshot.activityEntry); setJourneySlide(snapshot.journeySlide); setJourneyStep(snapshot.journeyStep); setJourneyReturnView(snapshot.journeyReturnView);
     setCultOpen(snapshot.cultOpen); setCultTab(snapshot.cultTab); setProfileMenuOpen(snapshot.profileMenuOpen);
     setConfigurationsOpen(snapshot.configurationsOpen); setRenamingPreset(snapshot.renamingPreset);
     setCustomizingAvatar(snapshot.customizingAvatar); setProfilePreviewMode(snapshot.profilePreviewMode);
@@ -1753,10 +1758,10 @@ function App() {
     setPublicCardId(snapshot.publicCardId);
     if (snapshot.selectedMode && snapshot.activeActivity === null) restoreJourneyPosition();
   };
-  const tourReturnRef = useRef<{ navigation: typeof navigationSnapshot; activityPrompt: string; aiProposal: string; aiHasConsulted: boolean; aiNotice: string | null; poolSelection: number; pageScroll: number; journeyScroll: number } | null>(null);
+  const tourReturnRef = useRef<{ navigation: typeof navigationSnapshot; activityPrompt: string; manualAlignment: string; aiProposal: string; aiHasConsulted: boolean; aiNotice: string | null; poolSelection: number; pageScroll: number; journeyScroll: number } | null>(null);
   const startTour = () => {
     if (aiLoading) return;
-    if (tourIndex === null) tourReturnRef.current = { navigation: navigationSnapshotRef.current, activityPrompt, aiProposal, aiHasConsulted, aiNotice, poolSelection, pageScroll: window.scrollY, journeyScroll: journeyPanelRef.current?.scrollTop ?? 0 };
+    if (tourIndex === null) tourReturnRef.current = { navigation: navigationSnapshotRef.current, activityPrompt, manualAlignment, aiProposal, aiHasConsulted, aiNotice, poolSelection, pageScroll: window.scrollY, journeyScroll: journeyPanelRef.current?.scrollTop ?? 0 };
     setTourModeKey(null); setTourVisitedMethods([]); setTourIndex(0);
   };
   const closeTour = () => {
@@ -1767,7 +1772,7 @@ function App() {
     restoreNavigationRef.current(restore.navigation);
     // Restore form drafts AFTER the existing editor's navigation-reset effect.
     window.requestAnimationFrame(() => {
-      setActivityPrompt(restore.activityPrompt); setAiProposal(restore.aiProposal); setAiHasConsulted(restore.aiHasConsulted); setAiNotice(restore.aiNotice); setPoolSelection(restore.poolSelection);
+      setActivityPrompt(restore.activityPrompt); setManualAlignment(restore.manualAlignment); setAiProposal(restore.aiProposal); setAiHasConsulted(restore.aiHasConsulted); setAiNotice(restore.aiNotice); setPoolSelection(restore.poolSelection);
       window.scrollTo({ top: restore.pageScroll, behavior: 'instant' });
       journeyPanelRef.current?.scrollTo({ top: restore.journeyScroll, behavior: 'instant' });
     });
@@ -1779,8 +1784,8 @@ function App() {
     const controlTopic = tourTopic.startsWith('control');
     const copy = guidedTourStepCopy(language, controlTopic ? 'controlCenter' : tourTopic as TourStageId);
     const targets: Record<TourTopic, string | readonly string[]> = {
-      modes: '.welcome-view .circular-carousel', modeDescription: '.journey-intro-compact', selfAssessment: ['.level-definition--compact', '#journey-slider'], activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target summary',
-      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions > .insight-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.activity-flow-stages', evidence: '.activity-flow-stages > li:nth-child(2)', audience: '.activity-flow-audience .card-audience-options', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
+      modes: '.welcome-view .circular-carousel', modeDescription: '.journey-intro-compact', selfAssessment: '.journey-ascent-status', activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target summary',
+      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions .insight-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.journey-step-list', evidence: '.journey-step-list > li:nth-child(3)', audience: '.activity-flow-audience .card-audience-options, .journey-step-list > li:nth-child(3)', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
       reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading', specialists: '.cult-embedded-content .cult-section-heading', community: '.community-header h2', profile: '.profile-preview-identity', badges: '.achievement-heading', configurations: '#presets-title',
       controlCenter: '.crm-card--score .crm-card-heading', controlStrongest: '.crm-metric-card:nth-of-type(1)', controlLeast: '.crm-metric-card:nth-of-type(2)', controlFocus: '.crm-focus-card .crm-card-heading', controlTrivia: '.crm-trivia-card h2', replay: '[data-tour="replay"]',
     };
@@ -1788,8 +1793,8 @@ function App() {
     return { id: tourTopic, ...copy,
       ...(tourTopic === 'modes' ? { target: selection as string, nextDisabled: !tourModeKey }
         : tourTopic === 'methods' ? { methodChecklist: true, targets: [
-          { selector: '.journey-fixed-actions > button:first-child', method: 'custom' as const }, { selector: '.activity-pool-button', method: 'bank' as const },
-          { selector: '.activity-ai-button', method: 'ai' as const }, { selector: '.journey-fixed-actions > .insight-button', method: 'localContacts' as const },
+          { selector: '.journey-manual-button', method: 'custom' as const }, { selector: '.activity-pool-button', method: 'bank' as const },
+          { selector: '.activity-ai-button', method: 'ai' as const }, { selector: '.journey-fixed-actions .insight-button', method: 'localContacts' as const },
         ] }
         : Array.isArray(selection) ? { targets: selection } : { target: selection as string }),
       ...(tourTopic === 'nextClarity' ? { clarityTarget: clarityTransition(tourSource, language)!.target } : {}),
@@ -1800,19 +1805,22 @@ function App() {
         setActiveActivity(null); setSelectedMode(null); setCultOpen(false); setView('welcome');
         setHomeSidebarOpen(tourTopic === 'replay');
         if (tourTopic === 'modes' || tourTopic === 'replay') return;
-        if (controlTopic) { setView('dashboard'); return; }
+        if (controlTopic || tourTopic === 'badges') { setView('dashboard'); return; }
+        if (tourTopic === 'specialists') { setCultTab('network'); setView('cult'); return; }
         if (tourTopic === 'configurations') { setConfigurationsOpen(true); return; }
         if (tourTopic === 'profile') { setProfilePreviewMode(true); return; }
         if (['reviews', 'community'].includes(tourTopic)) {
           setCommunityTab(tourTopic === 'reviews' ? 'reviews' : 'network'); setCommunityOpen(true); return;
         }
         setSelectedMode(tourMode); setJourneyReturnView('welcome'); setJourneySlide(tourTopic === 'vision' ? 9 : tourSource);
-        if (['globalIdeas', 'specialists', 'badges'].includes(tourTopic)) {
-          setCultTab(tourTopic === 'specialists' ? 'network' : tourTopic === 'badges' ? 'badges' : 'insights'); return;
+        setJourneyStep(tourTopic === 'vision' ? 1 : tourTopic === 'audience' ? 3 : ['modeDescription', 'selfAssessment'].includes(tourTopic) ? 0 : 1);
+        if (tourTopic === 'globalIdeas') {
+          setInsightSlide(0); setInsightCycle(0); setCultTab('insights'); setCultOpen(true); return;
         }
         if (tourTopic === 'custom' || tourTopic === 'bank' || tourTopic === 'ai') {
           setActivityEntry(tourTopic === 'bank' ? 'pool' : tourTopic); setActiveActivity(tourSource); setPoolSelection(0);
           setActivityPrompt(tourTopic === 'custom' ? activityDrafts[`${tourMode.key}-${tourSource}`] ?? '' : '');
+          setManualAlignment(tourTopic === 'custom' ? activityAlignments[`${tourMode.key}-${tourSource}`] ?? '' : '');
         }
       },
     };
@@ -1820,17 +1828,29 @@ function App() {
 
   useLayoutEffect(() => {
     if (tourTopic !== 'audience' || !selectedMode) return;
-    const settings = document.querySelector<HTMLDetailsElement>('.activity-flow-published-audience');
-    if (!settings) return;
-    const wasOpen = settings.open; settings.open = true;
-    return () => { settings.open = wasOpen; };
-  }, [tourTopic, selectedMode, journeySlide]);
+    const panel = journeyPanelRef.current;
+    const settings = panel?.querySelector<HTMLDetailsElement>('.activity-flow-published-audience');
+    const wasOpen = settings?.open;
+    if (settings) settings.open = true;
+    const frame = window.requestAnimationFrame(() => {
+      panel?.querySelector('.card-audience-options')?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+    });
+    return () => { window.cancelAnimationFrame(frame); if (settings) settings.open = Boolean(wasOpen); };
+  }, [tourTopic, selectedMode, journeySlide, journeyStep, communitySubmissions]);
+
+  useEffect(() => {
+    if (tourTopic !== 'badges' || view !== 'dashboard') return;
+    const frame = window.requestAnimationFrame(() => {
+      document.querySelector('.crm-dashboard > .badges-gallery .achievement-heading')?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [tourTopic, view]);
 
   useEffect(() => {
     if (!tourTopic) return;
     const method = tourTopic === 'custom' ? 'custom' : tourTopic === 'bank' ? 'bank' : tourTopic === 'ai' ? 'ai' : tourTopic === 'localContacts' ? 'localContacts' : null;
     if (!method) return;
-    const mounted = method === 'localContacts' ? Boolean(selectedMode && document.querySelector('.journey-fixed-actions > .insight-button'))
+    const mounted = method === 'localContacts' ? Boolean(selectedMode && document.querySelector('.journey-fixed-actions .insight-button'))
       : activeActivity !== null && activityEntry === (method === 'bank' ? 'pool' : method) && Boolean(document.querySelector(`.activity-agent--${activityEntry}`));
     if (mounted) setTourVisitedMethods(current => current.includes(method) ? current : [...current, method]);
   }, [tourTopic, communityOpen, communityTab, activeActivity, activityEntry, selectedMode]);
@@ -1851,7 +1871,7 @@ function App() {
   useEffect(() => {
     const navigation = createNavigationHistory(window.history, navigationSnapshotRef.current, (snapshot) => {
       const base = snapshot.view === 'welcome' ? 0 : snapshot.view === 'lab' ? 2 : 1;
-      return base + Number(Boolean(snapshot.selectedMode)) + Number(snapshot.activeActivity !== null)
+      return base + Number(Boolean(snapshot.selectedMode)) + Number(snapshot.activeActivity !== null) + Number(snapshot.cultOpen)
         + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
         + Number(snapshot.customizingAvatar) + Number(snapshot.profilePreviewMode) + Number(Boolean(snapshot.selectedPlan))
         + Number(Boolean(snapshot.insightPreview)) + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview)) + Number(snapshot.communityOpen) + Number(Boolean(snapshot.publicCardId));
@@ -1890,7 +1910,7 @@ function App() {
 
   const personalizedInsights = useMemo(() => {
     if (selectedMode) {
-      const currentLevel = Math.min(levels[selectedMode.key] ?? 0, 8);
+      const currentLevel = Math.min(journeySlide, 8);
       const pool = globalInsightVariantsByKey[`${selectedMode.key}-${currentLevel}`] ?? [];
       if (!pool.length) return [];
       const cycleCount = Math.max(1, Math.ceil(pool.length / 12));
@@ -1905,7 +1925,7 @@ function App() {
       return localizeGlobalInsight(options[insightVariants[key] ?? 0] ?? options[0] ?? globalInsightActivities.find((insight) => insight.modeKey === mode.key && insight.level === recommendationLevel)!);
     }).filter((insight): insight is (typeof globalInsightActivities)[number] => Boolean(insight));
     return candidates;
-  }, [cultOpen, insightCycle, insightVariants, language, levels, selectedMode]);
+  }, [cultOpen, insightCycle, insightVariants, language, levels, selectedMode, journeySlide]);
   const achievementProgress = useMemo(() => badgeProgress(activityDrafts, activityCompletions, levels, visionImages), [activityDrafts, activityCompletions, levels, visionImages]);
   const earnedBadges = useMemo(() => {
     const definedCount = Object.keys(activityDrafts).length;
@@ -1948,11 +1968,6 @@ function App() {
     const timer = window.setInterval(() => setInsightSlide((current) => (current + 1) % personalizedInsights.length), 6500);
     return () => window.clearInterval(timer);
   }, [cultOpen, cultTab, personalizedInsights.length]);
-
-  const updateLevel = (key: string, level: number) => {
-    setLevels((current) => ({ ...current, [key]: level }));
-    if (selectedMode?.key === key) setJourneySlide(level);
-  };
 
   const toggleFeaturedBadge = (badgeKey: string) => {
     if (!earnedBadges.some(badge => badge.key === badgeKey)) return;
@@ -2039,9 +2054,10 @@ function App() {
     setJourneyReturnView(view === 'dashboard' ? 'dashboard' : 'welcome');
     setSelectedMode(mode);
     setJourneySlide(levels[mode.key] ?? 0);
+    setJourneyStep(0);
     setInsightCycle(0);
     setInsightSlide(0);
-    setCultOpen(true);
+    setCultOpen(false);
     setActiveActivity(null);
   };
 
@@ -2053,7 +2069,7 @@ function App() {
   };
 
   const openActivity = (level: number, entry: ActivityEntry = 'custom') => {
-    if (level === 9) return;
+    if (level === 9 || (!tourTopic && (!selectedMode || level !== levels[selectedMode.key]))) return;
     aiRequestRef.current?.abort();
     aiRequestRef.current = null;
     journeyReturnScrollTop.current = journeyPanelRef.current?.scrollTop ?? 0;
@@ -2061,6 +2077,7 @@ function App() {
     setActivityEntry(entry);
     setPoolSelection(0);
     setActivityPrompt(entry === 'custom' && selectedMode ? activityDrafts[`${selectedMode.key}-${level}`] ?? '' : '');
+    setManualAlignment(entry === 'custom' && selectedMode ? activityAlignments[`${selectedMode.key}-${level}`] ?? '' : '');
     setAiNotice(null);
     setAiHasConsulted(false);
     setAiProposal('');
@@ -2149,8 +2166,10 @@ function App() {
 
   const saveGlobalInsightActivity = () => {
     if (!cultInsightPreview) return;
+    if (selectedMode && (cultInsightPreview.modeKey !== selectedMode.key || cultInsightPreview.level !== levels[selectedMode.key])) return;
     saveActivity(cultInsightPreview.modeKey, cultInsightPreview.level, cultInsightPreview.activity);
     setCultInsightPreview(null);
+    setCultOpen(false);
     setInsightNotice(tr('activitySavedToJourney'));
   };
 
@@ -2314,8 +2333,9 @@ function App() {
       setPresetNotice(tr('presetSelectLoad'));
       return;
     }
-    setLevels({ ...defaultLevels, ...presets[selectedPreset] });
-    setPresetNotice(trf('presetLoaded', { name: selectedPreset }));
+    // A configuration is a snapshot; viewing it must not unlock journey levels.
+    setPreviewedPreset({ ...defaultLevels, ...presets[selectedPreset] });
+    setPresetNotice(null);
   };
 
   const beginPresetRename = () => {
@@ -2371,24 +2391,11 @@ function App() {
     setVisionImages(next);
   };
 
-  const selectCultTab = (tab: CultTab) => {
-    setCultTab(tab);
-    if (tab === 'insights') setInsightNotice(null);
-    window.requestAnimationFrame(() => {
-      const panel = journeyPanelRef.current;
-      const section = cultEmbeddedRef.current;
-      if (!panel || !section) return;
-      const panelRect = panel.getBoundingClientRect();
-      const sectionRect = section.getBoundingClientRect();
-      panel.scrollBy({ top: sectionRect.top - panelRect.top - 16, behavior: 'smooth' });
-    });
-  };
-
-  const renderCultSection = () => {
+  const renderCultSection = (tab: 'insights' | 'network') => {
     const promotedInsight = personalizedInsights[insightSlide] ?? personalizedInsights[0];
     const promotedMode = (promotedInsight ? modes.find((mode) => mode.key === promotedInsight.modeKey) : undefined) ?? modes[0]!;
-    return <section ref={cultEmbeddedRef} className="cult-embedded" aria-labelledby="cult-embedded-title">
-    <div className="cult-embedded-heading cult-global-hero" onPointerMove={(event) => {
+    return <section className="cult-embedded" aria-labelledby="cult-embedded-title">
+    {tab === 'network' ? <h1 id="cult-embedded-title">{tr('specialistNetwork')}</h1> : <div className="cult-embedded-heading cult-global-hero" onPointerMove={(event) => {
       if (event.pointerType !== 'mouse') return;
       const bounds = event.currentTarget.getBoundingClientRect();
       event.currentTarget.style.setProperty('--global-pointer-x', `${((event.clientX - bounds.left) / bounds.width) * 100}%`);
@@ -2419,10 +2426,9 @@ function App() {
       <h3 id="cult-embedded-title" className="cult-global-title">{tr('globalEyebrow')}</h3>
       <p className="cult-global-tagline">{tr('globalTitle')}</p>
       <p className="cult-embedded-subtitle">{tr('globalSubtitle')}</p>
-    </div></div><div className="cult-embedded-divider" aria-hidden="true"><span /><i>{tr('globalEyebrowLine')}</i><span /></div>
-     <nav className="cult-nav cult-nav--embedded" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['badges', tr('badges')], ] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => selectCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
+    </div></div>}
     <div className="cult-embedded-content">
-      {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">{tr('globalActivitiesEyebrow')}</p><h4>{tr('globalInsights')}</h4></div></div><p className="cult-section-copy">{tr('globalRecommendationsCopy')}</p><p className="demo-profile-notice">{onboardingIntegrationCopy(language).demoDetail}</p>{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art">
+      {tab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">{tr('globalActivitiesEyebrow')}</p><h4>{tr('globalInsights')}</h4></div></div><p className="cult-section-copy">{tr('globalRecommendationsCopy')}</p><p className="demo-profile-notice">{onboardingIntegrationCopy(language).demoDetail}</p>{promotedInsight && <article className="cult-insight-spotlight" style={{ '--insight-color': promotedMode.color } as CSSProperties}><div className="cult-insight-spotlight-art">
         <span className="cult-insight-orbit" aria-hidden="true">
           <svg viewBox="0 0 120 120" fill="none" focusable="false">
             <circle className="cult-insight-orbit-ring" cx="60" cy="60" r="41" />
@@ -2438,13 +2444,29 @@ function App() {
         </span>
         <small>{modeName(promotedMode)}</small>
       </div><div className="cult-insight-spotlight-copy"><div className="cult-insight-activity-top"><span>{modeName(promotedMode)} · {tr('level')} {promotedInsight.level} → {promotedInsight.level + 1}</span><small>{effortLabel(promotedInsight.level)}</small></div><h3>{promotedInsight.activity}</h3><p>{tr('globalSharedBy')} <strong>{promotedInsight.author}</strong> · {promotedInsight.location}</p><div className="cult-insight-actions"><button type="button" onClick={() => setCultInsightPreview(promotedInsight)}>{tr('globalAnalyzeSave')} <span>↗</span></button><button className="cult-insight-regenerate-button" type="button" onClick={() => regenerateGlobalInsight(promotedInsight.modeKey, promotedInsight.level)}><span aria-hidden="true">↻</span></button></div></div>{personalizedInsights.length > 1 && <div className="cult-insight-controls" aria-label={tr('globalInsights')}><button type="button" onClick={() => setInsightSlide((current) => (current - 1 + personalizedInsights.length) % personalizedInsights.length)} aria-label={tr('previous')}>←</button><div className="cult-insight-dots" aria-label={tr('globalInsights')}><span className="cult-insight-dot-list">{personalizedInsights.map((insight, index) => <button className={index === insightSlide ? 'is-active' : ''} key={`${insight.modeKey}-${insight.level}-${index}`} type="button" onClick={() => setInsightSlide(index)} aria-label={`${tr('globalInsights')} ${index + 1}`} />)}</span></div><button type="button" onClick={() => setInsightSlide((current) => (current + 1) % personalizedInsights.length)} aria-label={tr('next')}>→</button></div>}</article>}</>}
-      {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">{tr('specialistNetwork')}</p><h4>{tr('findYourNextGuide')}</h4></div><span className="cult-live-pill cult-live-pill--gold"><i /> {onboardingIntegrationCopy(language).demo}</span></div><div className="cult-filter-row"><select aria-label={tr('filterByMode')} value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">{tr('allModes')}</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{modeName(mode)}</option>)}</select><select aria-label={tr('filterByLanguage')} value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">{tr('anyLanguage')}</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label={tr('filterByLocation')} value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">{tr('anyContinent')}</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continentLabel(continent)}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name}</strong><small>{modeName(mode)} · {specialist.specialty}</small><p>{onboardingIntegrationCopy(language).demo} · {specialistLocation(specialist.location)}</p></div><div className="cult-match"><span>{specialist.match} {tr('matchLabel')}</span><small>{specialist.language} · {continentLabel(specialist.continent)}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>{tr('viewSpecialistProfile')} ↗</button></article>; }) : <div className="cult-empty-state">{tr('noSpecialistsMatch')}</div>}</div></>}
-            {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h4>Cambia la paleta de tu cultivo.</h4></div><span className="cult-live-pill"><i /> EXPERIENCIAS</span></div><section className="cult-skin-category" aria-labelledby="cult-filters-title"><div className="cult-skin-category-heading"><div><p className="kicker">Paletas de atmósfera</p><h5 id="cult-filters-title">Filtros</h5></div><span>2 EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--filters"><article className={`cult-skin-card${paletteFilter === 'nocturna' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--nocturna"><span className="skin-card-glyph skin-card-glyph--owl" aria-hidden="true">🦉</span></div><div><strong>Night Owl</strong><p>{tr('nightOwlDescription')}</p><button type="button" onClick={() => activatePaletteFilter('nocturna')}>{paletteFilter === 'nocturna' ? tr('activeNow') : tr('activateFilter')}</button></div></article><article className={`cult-skin-card cult-skin-card--lucid${paletteFilter === 'lucid' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--lucid"><span className="skin-card-glyph skin-card-glyph--dream" aria-hidden="true">◌</span></div><div><strong>Lucid</strong><p>{tr('lucidDescription')}</p><button type="button" onClick={() => activatePaletteFilter('lucid')}>{paletteFilter === 'lucid' ? tr('activeNow') : tr('activateFilter')}</button></div></article></div></section><section className="cult-skin-category" aria-labelledby="cult-skins-title"><div className="cult-skin-category-heading"><div><p className="kicker">Interfaces completas</p><h5 id="cult-skins-title">Skins</h5></div><span>{skinCatalog.length + 2} EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--skins"><article className={`cult-skin-card${skin === 'holista' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button" onClick={() => activateCultSkin('holista')}>{skin === 'holista' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'dj' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--dj"><span className="skin-card-glyph skin-card-glyph--faders" aria-hidden="true"><i /><i /><i /></span></div><div><strong>Consola DJ</strong><p>La mezcla perfecta para ecualizar la canción de tu vida.</p><button type="button" onClick={() => activateCultSkin('dj')}>{skin === 'dj' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>{skinCatalog.map((item) => <article className={`cult-skin-card cult-skin-card--${item.key}${skin === item.key ? ' cult-skin-card--active' : ''}`} key={item.key}><div className={`cult-skin-visual cult-skin-visual--${item.key}`}><span>{item.icon}</span></div><div><strong>{item.name}</strong><p>{item.description}</p><button type="button" onClick={() => activateCultSkin(item.key)}>{skin === item.key ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>)}</div></section></>}
-      {cultTab === 'badges' && <BadgesGallery language={language} tr={tr} progress={achievementProgress} featuredKeys={visibleFeaturedBadges}
-        badges={cultBadgeCatalog.map(badge => ({ ...badge, title: badgeTitle(badge.key), description: badgeDescription(badge.key), earned: earnedBadges.some(item => item.key === badge.key), featured: visibleFeaturedBadges.includes(badge.key) }))}
-        onFeature={toggleFeaturedBadge} onProfile={() => setProfilePreviewMode(true)} />}
+      {tab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">{tr('specialistNetwork')}</p><h2>{tr('findYourNextGuide')}</h2></div><span className="cult-live-pill cult-live-pill--gold"><i /> {onboardingIntegrationCopy(language).demo}</span></div><div className="cult-filter-row"><select aria-label={tr('filterByMode')} value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">{tr('allModes')}</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{modeName(mode)}</option>)}</select><select aria-label={tr('filterByLanguage')} value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">{tr('anyLanguage')}</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label={tr('filterByLocation')} value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">{tr('anyContinent')}</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continentLabel(continent)}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name}</strong><small>{modeName(mode)} · {specialist.specialty}</small><p>{onboardingIntegrationCopy(language).demo} · {specialistLocation(specialist.location)}</p></div><div className="cult-match"><span>{specialist.match} {tr('matchLabel')}</span><small>{specialist.language} · {continentLabel(specialist.continent)}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>{tr('viewSpecialistProfile')} ↗</button></article>; }) : <div className="cult-empty-state">{tr('noSpecialistsMatch')}</div>}</div></>}
     </div>
   </section>;
+  };
+
+  const currentJourneyLevel = selectedMode ? levels[selectedMode.key] ?? 0 : 0;
+  const visibleJourneyLevel = tourTopic ? journeySlide : canOpenJourneyLevel(journeySlide, currentJourneyLevel) ? journeySlide : currentJourneyLevel;
+  const deckFlow = selectedMode && visibleJourneyLevel < 9 ? activityFlow(selectedMode.key, visibleJourneyLevel) : null;
+  const maxJourneyStep = deckFlow ? activityFlowStage(visibleJourneyLevel, deckFlow.state) ?? 1 : 1;
+  const displayJourneyStep = Math.min(journeyStep, maxJourneyStep) as JourneyStep;
+  const deckLabels = journeyStepLabels[language];
+  const formatJourneyLevel = (level: number) => level.toLocaleString(language);
+  const configurationLevels = previewedPreset ?? levels;
+  useEffect(() => { if (!configurationsOpen) setPreviewedPreset(null); }, [configurationsOpen]);
+  const goJourneyLevel = (level: number) => {
+    if (!canOpenJourneyLevel(level, currentJourneyLevel)) return;
+    setJourneySlide(level); setJourneyStep(0); setInsightNotice(null);
+    journeyPanelRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+  };
+  const goJourneyStep = (step: number) => {
+    if (!Number.isInteger(step) || step < 0 || step > maxJourneyStep) return;
+    setJourneyStep(step as JourneyStep);
+    journeyPanelRef.current?.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   const dashboardSummary = useMemo(() => {
@@ -2517,6 +2539,7 @@ function App() {
             <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('welcome'); }}><span className="home-sidebar-icon" aria-hidden="true">⌂</span><span>{tr('home')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('dashboard'); }}><span className="home-sidebar-icon" aria-hidden="true">◫</span><span>{tr('controlCenter')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('lab'); }}><span className="home-sidebar-icon" aria-hidden="true">✳</span><span>{tr('triviaTitle')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" onClick={() => { setHomeSidebarOpen(false); setCultTab('network'); setView('cult'); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('specialistNetwork')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" onClick={() => { setHomeSidebarOpen(false); setProfilePreviewMode(true); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('profileButton')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" onClick={() => { setHomeSidebarOpen(false); setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" data-tour="replay" disabled={aiLoading} onClick={startTour}><span className="home-sidebar-icon" aria-hidden="true">↻</span><span>{onboardingIntegrationCopy(language).replay}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
@@ -2557,16 +2580,9 @@ function App() {
           <div className="modo-lab-grid">{modes.map((mode) => { const flipped = labFlippedCard === mode.key; return <article className={`modo-lab-card${flipped ? ' modo-lab-card--flipped' : ''}`} key={mode.key} style={{ '--lab-color': mode.color, '--lab-accent': mode.accent } as CSSProperties}><div className="modo-lab-card-inner"><div className="modo-lab-face modo-lab-front"><div className="modo-lab-card-top"><span>{mode.roman}</span><small>{tr('triviaCardLabel')} {mode.roman}</small></div><div className="modo-lab-icon">{mode.icon}</div><p className="modo-lab-label">{tr('triviaQuestionLabel')}</p><h2>{triviaQuestion(mode)}</h2><p className="modo-lab-mode">{modeName(mode)}</p><button type="button" onClick={() => setLabFlippedCard(flipped ? null : mode.key)}>{tr('triviaFlip')} <span>↗</span></button></div><div className="modo-lab-face modo-lab-back"><div className="modo-lab-card-top"><span>↺</span><small>{tr('triviaDiscovery')}</small></div><p className="modo-lab-label">{tr('triviaInfo')}</p><h2>{modeName(mode)}</h2><p className="modo-lab-answer">{triviaAnswer(mode)}</p><div className="modo-lab-description"><span>{mode.icon}</span>{modeDescription(mode)}</div><button type="button" onClick={() => setLabFlippedCard(null)}>{tr('triviaBack')} <span>↺</span></button></div></div></article>; })}</div>
         </section>
       ) : view === 'cult' ? (
-        <section className="cult-view" data-layer="6" aria-labelledby="cult-title">
-          <div className="cult-topline"><button className="cult-exit" type="button" onClick={() => setView('plans')}>← {tr('premium')}</button><span className="cult-access"><i /> {tr('globalName').toUpperCase()} · ULTIMATE MODE</span><span className="cult-layer-mark">{tr('globalName').toUpperCase()}</span></div>
-          <header className="cult-hero"><div><p className="kicker">{tr('globalEyebrow')}</p><h1 id="cult-title">{tr('globalTitle')}</h1><p>{tr('globalSubtitle')}</p></div><div className="cult-orbit-mark"><span>∞</span><small>FULL<br />ACCESS</small></div></header>
-          <nav className="cult-nav" aria-label={tr('globalSection')}>{([['insights', tr('globalInsights')], ['network', tr('specialistNetwork')], ['badges', tr('badges')], ] as [CultTab, string][]).map(([tab, label]) => <button className={cultTab === tab ? 'cult-nav-button cult-nav-button--active' : 'cult-nav-button'} type="button" key={tab} onClick={() => setCultTab(tab)}>{label}<span>↗</span></button>)}</nav>
-          <div className="cult-layout"><main className="cult-main">
-            {cultTab === 'home' && <><div className="cult-section-heading"><div><p className="kicker">Panel ULTIMATE MODE</p><h2>Todo tu potencial, en un solo nodo.</h2></div><span className="cult-live-pill"><i /> LIVE NETWORK</span></div><div className="cult-metric-grid"><article className="cult-metric cult-metric--wide"><span className="cult-metric-icon">✦</span><div><small>MODO IA · USO JUSTO</small><strong>Sin límites artificiales</strong><p>Contextualiza, consulta y establece actividades con una inteligencia que entiende tus 12 modos.</p></div><b>∞</b></article><article className="cult-metric"><small>INSIGHTS</small><strong>Global</strong><p>Conecta con estrategias de cultivo más allá de tu círculo.</p><span className="cult-metric-line" /></article><article className="cult-metric"><small>PROFESSIONAL</small><strong>Verified</strong><p>Encuentra orientación de especialistas por modo.</p><span className="cult-metric-line cult-metric-line--gold" /></article></div><div className="cult-feature-grid"><article><span>01 · TU RED</span><h3>Cultiva acompañado.</h3><p>Descubre recomendaciones comunitarias y comparte presets con tu red de apoyo.</p><button type="button" onClick={() => setCultTab('insights')}>Explorar Insights <span>→</span></button></article><article><span>02 · TU PRÓXIMO NIVEL</span><h3>Habla con experiencia.</h3><p>Solicita orientación privada y sigue el progreso de las recomendaciones profesionales.</p><button type="button" onClick={() => setCultTab('network')}>Encontrar especialistas <span>→</span></button></article></div></>}
-             {cultTab === 'insights' && <><div className="cult-section-heading"><div><p className="kicker">Actividades compartidas por la comunidad</p><h2>Insights Globales.</h2></div><span className="cult-live-pill"><i /> {globalInsightActivities.length} ACTIVIDADES</span></div><p className="cult-section-copy">Descubre las prácticas que otras personas han realizado para avanzar de un nivel al siguiente en cada Modo. Abre una tarjeta para analizarla y guardarla en tu journey.</p>{insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label="Cerrar aviso">×</button></div>}<div className="cult-insight-grid">{globalInsightActivities.map((insight) => { const displayedInsight = localizeGlobalInsight(globalInsightVariantsByKey[`${insight.modeKey}-${insight.level}`]?.[insightVariants[`${insight.modeKey}-${insight.level}`] ?? 0] ?? insight); const mode = modes.find((item) => item.key === displayedInsight.modeKey)!; return <article className="cult-insight-activity" key={`${displayedInsight.modeKey}-${displayedInsight.level}`} style={{ '--insight-color': mode.color } as CSSProperties}><div className="cult-insight-activity-top"><span>{mode.icon} {mode.name}</span><small>NIVEL {displayedInsight.level} → {displayedInsight.level + 1}</small></div><h3>{displayedInsight.activity}</h3><div className="cult-insight-actions"><button type="button" onClick={() => setCultInsightPreview(displayedInsight)}>Analizar actividad <span>↗</span></button><button className="cult-insight-regenerate-button" type="button" onClick={() => regenerateGlobalInsight(displayedInsight.modeKey, displayedInsight.level)} aria-label={tr('regenerateInsight')} title={tr('regenerateInsight')}><span aria-hidden="true">↻</span></button></div></article>; })}</div></>}
-            {cultTab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">{tr('specialistNetwork')}</p><h2>{tr('findYourNextGuide')}</h2></div><span className="cult-live-pill cult-live-pill--gold"><i /> {onboardingIntegrationCopy(language).demo}</span></div><div className="cult-filter-row"><select aria-label={tr('filterByMode')} value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">{tr('allModes')}</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{modeName(mode)}</option>)}</select><select aria-label={tr('filterByLanguage')} value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">{tr('anyLanguage')}</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label={tr('filterByLocation')} value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">{tr('anyContinent')}</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continentLabel(continent)}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name}</strong><small>{modeName(mode)} · {specialist.specialty}</small><p>{onboardingIntegrationCopy(language).demo} · {specialistLocation(specialist.location)}</p></div><div className="cult-match"><span>{specialist.match} {tr('matchLabel')}</span><small>{specialist.language} · {continentLabel(specialist.continent)}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>{tr('viewSpecialistProfile')} ↗</button></article>; }) : <div className="cult-empty-state">{tr('noSpecialistsMatch')}</div>}</div></>}
-            {cultTab === 'skins' && <><div className="cult-section-heading"><div><p className="kicker">Identidad en movimiento</p><h2>Cambia la paleta de tu cultivo.</h2></div><span className="cult-live-pill"><i /> {skinCatalog.length + 4} DISPONIBLES</span></div><section className="cult-skin-category" aria-labelledby="cult-filters-title"><div className="cult-skin-category-heading"><div><p className="kicker">Paletas de atmósfera</p><h3 id="cult-filters-title">Filtros</h3></div><span>2 EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--filters"><article className={`cult-skin-card${paletteFilter === 'nocturna' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--nocturna"><span className="skin-card-glyph skin-card-glyph--owl" aria-hidden="true">🦉</span></div><div><strong>Night Owl</strong><p>{tr('nightOwlDescription')}</p><button type="button" onClick={() => activatePaletteFilter('nocturna')}>{paletteFilter === 'nocturna' ? tr('activeNow') : tr('activateFilter')}</button></div></article><article className={`cult-skin-card cult-skin-card--lucid${paletteFilter === 'lucid' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--lucid"><span className="skin-card-glyph skin-card-glyph--dream" aria-hidden="true">◌</span></div><div><strong>Lucid</strong><p>{tr('lucidDescription')}</p><button type="button" onClick={() => activatePaletteFilter('lucid')}>{paletteFilter === 'lucid' ? tr('activeNow') : tr('activateFilter')}</button></div></article></div></section><section className="cult-skin-category" aria-labelledby="cult-skins-title"><div className="cult-skin-category-heading"><div><p className="kicker">Interfaces completas</p><h3 id="cult-skins-title">Skins</h3></div><span>{skinCatalog.length + 2} EXPERIENCIAS</span></div><div className="cult-skin-grid cult-skin-grid--skins"><article className={`cult-skin-card${skin === 'holista' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--holista"><span>◌</span></div><div><strong>Holista</strong><p>La raíz original de Modo Cultiva.</p><button type="button" onClick={() => activateCultSkin('holista')}>{skin === 'holista' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article><article className={`cult-skin-card${skin === 'dj' ? ' cult-skin-card--active' : ''}`}><div className="cult-skin-visual cult-skin-visual--dj"><span className="skin-card-glyph skin-card-glyph--faders" aria-hidden="true"><i /><i /><i /></span></div><div><strong>Consola DJ</strong><p>La mezcla perfecta para ecualizar la canción de tu vida.</p><button type="button" onClick={() => activateCultSkin('dj')}>{skin === 'dj' ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>{skinCatalog.map((item) => <article className={`cult-skin-card cult-skin-card--${item.key}${skin === item.key ? ' cult-skin-card--active' : ''}`} key={item.key}><div className={`cult-skin-visual cult-skin-visual--${item.key}`}><span>{item.icon}</span></div><div><strong>{item.name}</strong><p>{item.description}</p><button type="button" onClick={() => activateCultSkin(item.key)}>{skin === item.key ? 'Activa ahora ✓' : 'Activar skin ↗'}</button></div></article>)}</div></section></>}
-          </main><aside className="cult-rail"><div className="cult-status-card"><span className="cult-status-label">TU ESTATUS</span><div className="cult-badge">U</div><h3>ULTIMATE MODE</h3><p>{tr('globalTitle')}</p><div className="cult-status-rule" /><span className="cult-status-label">TU RED</span><strong>24 conexiones</strong><small>+6 esta semana</small></div><div className="cult-rail-card"><span className="cult-status-label">PRÓXIMO EN TU RUTA</span><strong>{modeName(modes[11])}</strong><p>3 recomendaciones esperan tu revisión.</p><button type="button" onClick={() => setCultTab('insights')}>{tr('recommendations')} →</button></div><div className="cult-quote">“No cultivas una sola versión de ti.<br /><strong>Cultivas todas.</strong>”</div></aside></div>
+        <section className="cult-view specialists-view" aria-label={tr('specialistNetwork')}>
+          <button className="cult-exit" type="button" onClick={() => setView('welcome')}>← {tr('home')}</button>
+          {renderCultSection('network')}
         </section>
       ) : view === 'welcome' ? (
         <section className={`welcome-view${skin === 'dj' ? ' welcome-view--dj' : ' welcome-view--polished'}`} data-layer="home" aria-label={tr('lifeModes')}>
@@ -2714,6 +2730,9 @@ function App() {
           <span className="configuration-orbit-core" aria-hidden="true"><span>↗</span><strong>{tr('returnMyLifeMap')}</strong><small>{tr('lifeModes')}</small></span>
           {modes.map((mode, index) => <span className="configuration-orbit-node" key={mode.key} title={`${modeShortName(mode)} · ${tr('level')} ${levels[mode.key]}`} style={{ '--orbit-angle': `${index * 30}deg`, '--orbit-color': mode.color } as CSSProperties} aria-hidden="true"><i>{mode.icon}</i><b>{levels[mode.key]}</b></span>)}
         </button></article>
+        <BadgesGallery language={language} tr={tr} progress={achievementProgress} featuredKeys={visibleFeaturedBadges}
+          badges={cultBadgeCatalog.map(badge => ({ ...badge, title: badgeTitle(badge.key), description: badgeDescription(badge.key), earned: earnedBadges.some(item => item.key === badge.key), featured: visibleFeaturedBadges.includes(badge.key) }))}
+          onFeature={toggleFeaturedBadge} onProfile={() => setProfilePreviewMode(true)} />
       </section>
       </>
       )}
@@ -2726,10 +2745,10 @@ function App() {
         <button className="close-journey" type="button" onClick={() => setConfigurationsOpen(false)} aria-label={tr('close')}>×</button>
         <div className="configuration-heading"><p className="kicker">{tr('savedConfigurationsEyebrow')}</p><h2 id="presets-title">{tr('presets')}</h2><p id="presets-description">{tr('savedPresetDescription')}</p></div>
         <div className="configuration-composition">
-          <div className="configuration-orbit" role="img" aria-label={`${tr('levelMap')}: ${modes.map((mode) => `${modeShortName(mode)} ${levels[mode.key]}`).join(', ')}`}>
+          <div className="configuration-orbit" role="img" aria-label={`${tr('levelMap')}: ${modes.map((mode) => `${modeShortName(mode)} ${configurationLevels[mode.key]}`).join(', ')}`}>
             <span className="configuration-orbit-trail" aria-hidden="true" />
-            <div className="configuration-orbit-core" aria-hidden="true"><span>✦</span><strong>{tr('currentMap')}</strong><small>{tr('lifeModes')}</small></div>
-            {modes.map((mode, index) => <span className="configuration-orbit-node" key={mode.key} title={`${modeShortName(mode)} · ${tr('level')} ${levels[mode.key]}`} style={{ '--orbit-angle': `${index * 30}deg`, '--orbit-color': mode.color } as CSSProperties} aria-hidden="true"><i>{mode.icon}</i><b>{levels[mode.key]}</b></span>)}
+            <div className="configuration-orbit-core" aria-hidden="true"><span>✦</span><strong>{previewedPreset ? selectedPreset : tr('currentMap')}</strong><small>{tr('lifeModes')}</small></div>
+            {modes.map((mode, index) => <span className="configuration-orbit-node" key={mode.key} title={`${modeShortName(mode)} · ${tr('level')} ${configurationLevels[mode.key]}`} style={{ '--orbit-angle': `${index * 30}deg`, '--orbit-color': mode.color } as CSSProperties} aria-hidden="true"><i>{mode.icon}</i><b>{configurationLevels[mode.key]}</b></span>)}
           </div>
           <div className="configuration-controls">
             <div className="configuration-save-group">
@@ -2738,7 +2757,7 @@ function App() {
             </div>
             <div className="configuration-library-group">
               <label htmlFor="preset-select"><span className="configuration-step" aria-hidden="true">02</span>{tr('savedPresets')}</label>
-              <div className="configuration-select-wrap"><select id="preset-select" value={selectedPreset} onChange={(event) => { setRenamingPreset(false); setPresetNotice(null); setSelectedPreset(event.target.value); personalStorageRef.current.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select><span aria-hidden="true">⌄</span></div>
+              <div className="configuration-select-wrap"><select id="preset-select" value={selectedPreset} onChange={(event) => { setRenamingPreset(false); setPresetNotice(null); setPreviewedPreset(null); setSelectedPreset(event.target.value); personalStorageRef.current.setItem('modoCultiva_selectedPreset', event.target.value); }}><option value="">{tr('selectPreset')}</option>{Object.keys(presets).map((name) => <option key={name} value={name}>{name}</option>)}</select><span aria-hidden="true">⌄</span></div>
               <div className="configuration-library-actions"><button className="configuration-load-action" type="button" onClick={loadPreset}>{tr('load')} <span aria-hidden="true">↗</span></button><button className="configuration-rename-action" type="button" onClick={beginPresetRename} disabled={!selectedPreset || !presets[selectedPreset]}>{tr('renameConfiguration')}</button><button className="configuration-delete-action" type="button" onClick={deletePreset}>{tr('remove')}</button></div>
               {renamingPreset && <form className="configuration-rename-editor" onSubmit={(event) => { event.preventDefault(); commitPresetRename(); }}><label htmlFor="preset-rename-name">{tr('configurationNewName')}</label><div className="configuration-name-entry"><input ref={presetRenameInputRef} id="preset-rename-name" value={presetRenameName} onChange={(event) => setPresetRenameName(event.target.value)} /><button className="configuration-save-action" type="submit">{tr('saveConfigurationName')}</button></div><button className="configuration-cancel-rename" type="button" onClick={() => setRenamingPreset(false)}>{tr('cancelRename')}</button></form>}
             </div>
@@ -2781,17 +2800,22 @@ function App() {
 
       {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className={`journey-panel${activeActivity !== null && activityEntry === 'ai' ? ' journey-panel--mode-ai' : ''}`} data-layer={activeActivity !== null ? '5' : '3'} role="dialog" aria-modal="true" aria-labelledby={activeActivity === null ? 'journey-title' : 'activity-agent-title'} style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label={tr('journeyClose')}>×</button>
+        {!tourTopic && <button className="journey-replay" type="button" disabled={aiLoading} onClick={startTour}
+          aria-label={onboardingIntegrationCopy(language).replay} title={onboardingIntegrationCopy(language).replay}>↻</button>}
         {activeActivity === null && <button className="journey-back" type="button" onClick={backToDashboard}>← {tr('back')} {journeyReturnView === 'dashboard' ? tr('dashboard') : tr('overview')}</button>}
+        {activeActivity === null && <h2 id="journey-title" className="sr-only">{modeName(selectedMode)}</h2>}
         {activeActivity !== null && <button className="journey-back activity-agent-back" type="button" onClick={() => { setActiveActivity(null); restoreJourneyPosition(); }}>← {tr('back')}</button>}
         {activeActivity !== null ? <section className={`activity-agent activity-agent--${activityEntry}`} data-layer="5" aria-labelledby="activity-agent-title">
           <p className="kicker">{modeName(selectedMode)}</p>
           {activityEntry === 'custom' ? <>
             <h2 id="activity-agent-title">{tr('addActivity')}</h2>
-            <p className="journey-description">{tr('journeyBuilderIntro')} {tr('level')} {activeActivity}.</p>
-            <ClarityGoal level={activeActivity} language={language} />
-            <div className="effort-panel"><span className="effort-label">{tr('effortParameter')}</span><strong>{effortLabel(activeActivity)}</strong><p>{levelDescription(activeActivity)}</p></div>
-            <label className="agent-input-label" htmlFor="activity-prompt">{tr('activity')}</label><textarea id="activity-prompt" value={activityPrompt} onChange={(event) => setActivityPrompt(event.target.value)} placeholder={tr('activityPlaceholder')} rows={6} />
-            <div className="agent-actions agent-actions--single"><button className="agent-save" type="button" disabled={!activityPrompt.trim()} onClick={() => saveActivity(selectedMode.key, activeActivity, activityPrompt.trim())}>{tr('useActivity')} <span>→</span></button></div>
+            <ActivityJourneyFlow {...activityFlow(selectedMode.key, activeActivity)} sourceLevel={activeActivity} language={language} definitionOnly
+              manualDraft={{ activity: activityPrompt, target_alignment: manualAlignment }}
+              onManualDraftChange={draft => { setActivityPrompt(draft.activity); setManualAlignment(draft.target_alignment); }}
+              onDefine={tourTopic || activeActivity !== currentJourneyLevel ? undefined : async (definition, signal) => {
+                await activityFlow(selectedMode.key, activeActivity).onDefine?.(definition, signal);
+                setActiveActivity(null); restoreJourneyPosition();
+              }} />
           </> : activityEntry === 'pool' ? <>
             <h2 id="activity-agent-title">{tr('activityPool')}</h2>
           <p className="journey-description">{tr('activityPoolDescription')}</p>
@@ -2803,46 +2827,98 @@ function App() {
             askLabel={tr('askAI')} useLabel={tr('useActivity')} consultingLabel={tr('consulting')} context={activityPrompt} proposal={aiProposal} hasProposal={aiHasConsulted} loading={aiLoading} notice={aiNotice}
             onContext={value => { setActivityPrompt(value); setAiHasConsulted(false); setAiProposal(''); setAiNotice(null); }} onAsk={() => { void consultModeAi(); }} onUse={saveModeAiActivity} />}
         </section> : <>
-          <div className="journey-intro-compact"><span className="journey-icon">{selectedMode.icon}</span><div><h2 id="journey-title">{modeName(selectedMode)}</h2><p className="journey-description">{modeJourneyDescription(selectedMode)}</p></div></div>
-          <div className="journey-level journey-level--compact"><div><span>{tr('currentLevelLabel')}</span><strong>{levels[selectedMode.key]}</strong></div><span className="journey-level-name">{localizedLevelNames[language][levels[selectedMode.key]]}</span></div><div className="level-definition level-definition--compact"><strong>{localizedLevelNames[language][levels[selectedMode.key]]}</strong><p>{levelDefinitionText(levels[selectedMode.key])}</p></div>
-          <label htmlFor="journey-slider">{tr('presenceLevel')}</label><input id="journey-slider" className="journey-slider" type="range" min="0" max="9" value={levels[selectedMode.key]} onChange={(event) => updateLevel(selectedMode.key, Number(event.target.value))} />
-          <section className="journey-builder" data-layer="3" aria-labelledby="journey-builder-title">
-          <div className="journey-builder-heading"><div><p className="kicker">{tr(journeySlide === 9 ? 'finalVision' : 'activityDesign')}</p><h3 id="journey-builder-title">{tr('cultivationPath')}</h3></div></div>
-          <p className="journey-builder-intro">{journeySlide === 9 ? tr('finalVisionCopy') : `${tr('journeyBuilderIntro')} ${modeName(selectedMode)}.`}</p>
-          {insightNotice && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
-          <div className="journey-carousel" aria-label={`${tr('levels')} · ${modeName(selectedMode)}`}>
-            <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.max(0, current - 1))} disabled={journeySlide === 0} aria-label={tr('previousLevel')}>←</button>
-            <div className="journey-carousel-viewport">
-              <div className="journey-level-grid journey-level-grid--carousel">
-                {journeyLevels.filter((level) => level === journeySlide).map((level) => level < 9 ? <JourneyActivityCard key={`${selectedMode.key}-${level}`} current={level === levels[selectedMode.key]} defined={Boolean(activityDrafts[`${selectedMode.key}-${level}`])}
-                  card={{ mode: modeName(selectedMode), level, levelLabel: tr('level'), stage: localizedLevelNames[language][level], effort: effortLabel(level), activity: activityDrafts[`${selectedMode.key}-${level}`] ?? tr('activityUndefined'), color: selectedMode.color, icon: selectedMode.icon, language }}
-                  reaction={activityReactions[activityReactionKey(selectedMode.key, level, activityDrafts[`${selectedMode.key}-${level}`] ?? '')]}
-                  flow={activityFlow(selectedMode.key, level)}
+          <section className="journey-builder journey-deck" aria-label={tr('cultivationPath')} dir={language === 'ar' ? 'rtl' : 'ltr'} data-journey-tour={tourTopic ?? undefined}
+            onTouchStart={event => {
+              const target = event.target as HTMLElement;
+              const touch = event.touches[0];
+              journeyTouch.current = event.touches.length === 1 && !target.closest('button, input, textarea, a, label, summary, select, video, dialog')
+                ? { x: touch.clientX, y: touch.clientY, vertical: Boolean(target.closest('.journey-ascent-status, .journey-deck-overview')) } : null;
+            }}
+            onTouchCancel={() => { journeyTouch.current = null; }}
+            onTouchEnd={event => {
+              const start = journeyTouch.current; const end = event.changedTouches[0]; journeyTouch.current = null;
+              if (!start || !end) return;
+              const gesture = journeyGesture(end.clientX - start.x, end.clientY - start.y, language === 'ar');
+              if (gesture === 'next') goJourneyStep(displayJourneyStep + 1);
+              if (gesture === 'previous') goJourneyStep(displayJourneyStep - 1);
+              if (start.vertical && gesture === 'up') goJourneyLevel(visibleJourneyLevel + 1);
+              if (start.vertical && gesture === 'down') goJourneyLevel(visibleJourneyLevel - 1);
+            }}>
+            <div className="journey-ascent-status">
+              {visibleJourneyLevel < 9 && <button className="journey-level-link journey-level-link--up" type="button"
+                disabled={!canOpenJourneyLevel(visibleJourneyLevel + 1, currentJourneyLevel)}
+                onClick={() => goJourneyLevel(visibleJourneyLevel + 1)}>
+                {visibleJourneyLevel < currentJourneyLevel ? <span aria-hidden="true">↑</span> : <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7V5a3 3 0 0 1 6 0v2" /><rect x="3.5" y="7" width="9" height="7" rx="1.5" /></svg>}
+                {visibleJourneyLevel < currentJourneyLevel ? tr('nextLevel') : deckLabels[5]} · {formatJourneyLevel(visibleJourneyLevel + 1)}
+              </button>}
+              <div className="journey-builder-heading"><p className="kicker">{tr('cultivationPath')} · {tr('level')} {formatJourneyLevel(visibleJourneyLevel)}</p></div>
+            </div>
+            <div className="journey-deck-navigation" aria-label={tr('cultivationPath')} onKeyDown={event => {
+              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+              event.preventDefault();
+              goJourneyStep(displayJourneyStep + ((event.key === 'ArrowRight') !== (language === 'ar') ? 1 : -1));
+            }}>
+              <button className="journey-step-arrow" type="button" disabled={displayJourneyStep === 0} onClick={() => goJourneyStep(displayJourneyStep - 1)} aria-label={tr('previous')}>{language === 'ar' ? '→' : '←'}</button>
+              <ol className="journey-step-list">
+                {deckLabels.slice(0, visibleJourneyLevel === 9 ? 2 : 4).map((label, step) => {
+                  const title = visibleJourneyLevel === 9 && step === 1 ? tr('finalVision') : label;
+                  return <li key={step} data-step-state={step > maxJourneyStep ? 'locked' : step === displayJourneyStep ? 'current' : step < maxJourneyStep ? 'done' : 'available'}>
+                    <button type="button" disabled={step > maxJourneyStep} aria-current={step === displayJourneyStep ? 'step' : undefined} onClick={() => goJourneyStep(step)}>
+                      <span aria-hidden="true">{step > maxJourneyStep ? '·' : step < maxJourneyStep && step !== displayJourneyStep && step > 0 ? '✓' : String(step + 1)}</span><small>{title}</small>
+                    </button>
+                  </li>;
+                })}
+              </ol>
+              <button className="journey-step-arrow" type="button" disabled={displayJourneyStep >= maxJourneyStep} onClick={() => goJourneyStep(displayJourneyStep + 1)} aria-label={tr('next')}>{language === 'ar' ? '←' : '→'}</button>
+            </div>
+            <div className="journey-deck-content" data-step={displayJourneyStep}>
+              {displayJourneyStep === 0 ? <article className="journey-deck-overview journey-intro-compact">
+                <span className="journey-icon" aria-hidden="true">{selectedMode.icon}</span>
+                <div><h3>{modeName(selectedMode)}</h3><p>{modeJourneyDescription(selectedMode)}</p>
+                <div className="journey-deck-clarity"><strong>{localizedLevelNames[language][visibleJourneyLevel]}</strong><p>{levelDefinitionText(visibleJourneyLevel)}</p></div></div>
+              </article> : visibleJourneyLevel === 9 ? <article className="journey-level-card journey-level-card--active journey-level-card--vision">
+                <div className="journey-level-card-top"><div className="journey-level-card-index"><span>{tr('level')}</span><strong>9</strong></div><span className="journey-level-card-name">{localizedLevelNames[language][9]}</span><em>{tr('finalVision')}</em></div>
+                <VisionImage key={selectedMode.key} value={visionImages[selectedMode.key]} onChange={image => { if (!tourTopic && currentJourneyLevel === 9) saveVisionImage(selectedMode.key, image); }} language={language} title={tr('finalVision')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} />
+                <div className="journey-vision-note"><span className="journey-vision-completion" role="status"><strong>{hasVisionImage(visionImages[selectedMode.key]) ? `✓ ${badgeCopy(language).visionDone}` : badgeCopy(language).visionPending}</strong><span>{badgeCopy(language).visionHint}</span></span></div>
+              </article> : <>
+                {displayJourneyStep === 1 && (tourTopic || (visibleJourneyLevel === currentJourneyLevel && deckFlow?.state.status !== 'pending' && deckFlow?.state.status !== 'approved')) && <>
+                  <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}>
+                    <div className="journey-activity-methods">
+                      <button className="journey-manual-button" type="button" onClick={() => openActivity(visibleJourneyLevel, 'custom')}>＋ {tr('addActivity')}</button>
+                      <button className="activity-pool-button" type="button" onClick={() => openActivity(visibleJourneyLevel, 'pool')}>▦ {tr('activityPool')}</button>
+                      <button className="activity-ai-button" type="button" onClick={() => openActivity(visibleJourneyLevel, 'ai')}>✦ {tr('modeAI')}</button>
+                    </div>
+                    <div className="journey-idea-methods">
+                      <button className="insight-button" type="button" disabled={!tourTopic && (localIdeaBusy || (localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0)}
+                        aria-pressed={(localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0} aria-busy={localIdeaBusy}
+                        onClick={() => requestInsight(selectedMode.key, visibleJourneyLevel)}>{localIdeaBusy ? activityFlowCopy(language).working : (localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0 ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button>
+                      <button className="journey-global-button" type="button" onClick={() => { setInsightSlide(0); setInsightCycle(0); setCultTab('insights'); setCultOpen(true); }}>
+                        <span className="journey-global-globe" aria-hidden="true"><i /></span>{deckLabels[4]}
+                      </button>
+                    </div>
+                  </div>
+                  {localIdeaNotice?.key === insightRequestKey(selectedMode.key, visibleJourneyLevel) && <p className="journey-local-idea-status" role="status">{localIdeaNotice.kind === 'login' ? communityCopy(language).login : localIdeaNotice.kind === 'profile' ? onboardingIntegrationCopy(language).profileRequired : localIdeaNotice.kind === 'failed' ? communityCopy(language).unavailable : localIdeaNotice.count ? `${tr('insightRequested')} · ${communityCopy(language).eligible.replace('{count}', String(localIdeaNotice.count))}` : communityCopy(language).zero}</p>}
+                </>}
+                {insightNotice && displayJourneyStep === 1 && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
+                <JourneyActivityCard key={`${selectedMode.key}-${visibleJourneyLevel}`} current={visibleJourneyLevel === currentJourneyLevel} defined={Boolean(activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`])}
+                  card={{ mode: modeName(selectedMode), level: visibleJourneyLevel, levelLabel: tr('level'), stage: localizedLevelNames[language][visibleJourneyLevel], effort: effortLabel(visibleJourneyLevel), activity: activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? tr('activityUndefined'), color: selectedMode.color, icon: selectedMode.icon, language }}
+                  reaction={activityReactions[activityReactionKey(selectedMode.key, visibleJourneyLevel, activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? '')]}
+                  flow={deckFlow ? { ...deckFlow, viewStep: displayJourneyStep, onDefine: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onDefine : undefined, onSubmit: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onSubmit : undefined } : undefined}
+                  showSocial={displayJourneyStep === 1}
                   sharePreviewScope={tourTopic ?? 'closed'}
-                  onReact={reaction => reactToActivity(selectedMode.key, level, reaction)} /> : <article className={`journey-level-card journey-level-card--active journey-level-card--vision${level === levels[selectedMode.key] ? ' journey-level-card--current' : ''}`} key={level}>
-                  <div className="journey-level-card-top"><div className="journey-level-card-index"><span>{tr('level')}</span><strong>{level}</strong></div><span className="journey-level-card-name">{localizedLevelNames[language][level]}</span><em>{tr('finalVision')}</em></div>
-                  <VisionImage key={selectedMode.key} value={visionImages[selectedMode.key]} onChange={image => saveVisionImage(selectedMode.key, image)} language={language} title={tr('finalVision')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} />
-                </article>)}
-              </div>
+                  onReact={reaction => reactToActivity(selectedMode.key, visibleJourneyLevel, reaction)} />
+              </>}
             </div>
-            <button className="journey-carousel-arrow" type="button" onClick={() => setJourneySlide((current) => Math.min(9, current + 1))} disabled={journeySlide === 9} aria-label={tr('nextLevel')}>→</button>
-          </div>
-          <div className="journey-carousel-footer"><div className="journey-carousel-dots" aria-label={tr('selectLevel')}>{journeyLevels.map((level) => <button className={level === journeySlide ? 'is-active' : ''} type="button" key={level} onClick={() => setJourneySlide(level)} aria-label={`${tr('levels')} ${level}`}>{level}</button>)}</div></div>
-          {journeySlide < 9 ? <>
-            <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}>
-              <button type="button" onClick={() => openActivity(journeySlide, 'custom')}>{activityDrafts[`${selectedMode.key}-${journeySlide}`] ? `✦ ${tr('modifyActivity')}` : `＋ ${tr('addActivity')}`}</button>
-              <button className="activity-pool-button" type="button" onClick={() => openActivity(journeySlide, 'pool')}>▦ {tr('activityPool')}</button>
-              <button className="activity-ai-button" type="button" onClick={() => openActivity(journeySlide, 'ai')}>✦ {tr('modeAI')}</button>
-              <button className="insight-button" type="button" disabled={!tourTopic && (localIdeaBusy || journeySlide !== levels[selectedMode.key] || (localIdeaRequests[insightRequestKey(selectedMode.key, journeySlide)]?.eligible_count ?? 0) > 0)}
-                aria-pressed={(localIdeaRequests[insightRequestKey(selectedMode.key, journeySlide)]?.eligible_count ?? 0) > 0} aria-busy={localIdeaBusy}
-                onClick={() => requestInsight(selectedMode.key, journeySlide)}>{localIdeaBusy ? activityFlowCopy(language).working : (localIdeaRequests[insightRequestKey(selectedMode.key, journeySlide)]?.eligible_count ?? 0) > 0 ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button>
-            </div>
-            {localIdeaNotice?.key === insightRequestKey(selectedMode.key, journeySlide) && <p className="journey-local-idea-status" role="status">{localIdeaNotice.kind === 'login' ? communityCopy(language).login : localIdeaNotice.kind === 'profile' ? onboardingIntegrationCopy(language).profileRequired : localIdeaNotice.kind === 'failed' ? communityCopy(language).unavailable : localIdeaNotice.count ? `${tr('insightRequested')} · ${communityCopy(language).eligible.replace('{count}', String(localIdeaNotice.count))}` : communityCopy(language).zero}</p>}
-          </> : <div className="journey-vision-note"><span className="journey-vision-completion" role="status"><strong>{hasVisionImage(visionImages[selectedMode.key]) ? `✓ ${badgeCopy(language).visionDone}` : badgeCopy(language).visionPending}</strong><span>{badgeCopy(language).visionHint}</span></span></div>}
+            {visibleJourneyLevel > 0 && <button className="journey-level-link journey-level-link--down" type="button" onClick={() => goJourneyLevel(visibleJourneyLevel - 1)}><span aria-hidden="true">↓</span>{tr('previousLevel')} · {formatJourneyLevel(visibleJourneyLevel - 1)}</button>}
           </section>
-          {renderCultSection()}
         </>}
       </section></div>}
+      {cultOpen && selectedMode && <div className="feature-preview-backdrop journey-global-backdrop" role="presentation" onClick={() => setCultOpen(false)}>
+        <section className="feature-preview journey-global-dialog" role="dialog" aria-modal="true" aria-labelledby="cult-embedded-title" onClick={event => event.stopPropagation()}>
+          <button className="close-journey" type="button" onClick={() => setCultOpen(false)} aria-label={tr('close')} autoFocus>×</button>
+          {renderCultSection('insights')}
+        </section>
+      </div>}
       {communityOpen && <CommunityPanel key={`${verifiedIdentity?.user_id ?? 'guest'}:${communityTab}`} client={communityClient} language={language} profileName={displayedProfileName} modeNames={Object.fromEntries(modes.map(mode => [mode.key, modeName(mode)]))}
         initialTab={communityTab} activityContext={selectedMode && journeySlide < 9 ? { mode: selectedMode.key, level: journeySlide } : undefined}
         shareCandidates={communityShareCandidates} onViewCard={setPublicCardId}

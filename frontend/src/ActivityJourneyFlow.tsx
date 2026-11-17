@@ -42,6 +42,11 @@ export type ActivityJourneyFlowProps = {
   onSetAudience?: (audience: CardAudience, publicConfirmed: boolean, signal: AbortSignal) => Promise<void>;
   onUnshare?: (signal: AbortSignal) => Promise<void>;
   disabled?: boolean;
+  /** The journey deck owns visible navigation. The legacy automatic view remains available. */
+  viewStep?: 1 | 2 | 3;
+  definitionOnly?: boolean;
+  manualDraft?: ActivityDefinition;
+  onManualDraftChange?: (definition: ActivityDefinition) => void;
   /** Prefer the immutable submission target while presenting an older review. */
   targetSnapshot?: { version: string; level: number; name: string; description: string };
 };
@@ -100,7 +105,7 @@ export function ActivityJourneyFlow(props: ActivityJourneyFlowProps) {
   return <ActivityJourneyFlowContent key={`${props.activityKey ?? ''}:${props.sourceLevel}`} {...props} />;
 }
 
-function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDefine, onSubmit, onDraftChange, onUploadVideo, onLoadVideo, audience = 'network', onAudienceChange, publishedAudience, sharedCardId, onSetAudience, onUnshare, disabled = false, targetSnapshot }: ActivityJourneyFlowProps) {
+function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDefine, onSubmit, onDraftChange, onUploadVideo, onLoadVideo, audience = 'network', onAudienceChange, publishedAudience, sharedCardId, onSetAudience, onUnshare, disabled = false, targetSnapshot, viewStep, definitionOnly, manualDraft, onManualDraftChange }: ActivityJourneyFlowProps) {
   const copy = activityFlowCopy(language);
   const compact = compactActivityCopy(language);
   const audienceCopy = cardAudienceCopy(language);
@@ -110,7 +115,10 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
   const targetMatches = target.level === sourceLevel + 1 && Boolean(target.description.trim());
   const id = useId();
   const [editing, setEditing] = useState(false);
-  const [definition, setDefinition] = useState<ActivityDefinition>(state.definition ?? { activity: '', target_alignment: '' });
+  const [localDefinition, setDefinition] = useState<ActivityDefinition>(state.definition ?? { activity: '', target_alignment: '' });
+  const definition = manualDraft ?? localDefinition;
+  const editDefinition = (next: ActivityDefinition) => { if (onManualDraftChange) onManualDraftChange(next); else setDefinition(next); };
+  const activityInputId = definitionOnly ? 'activity-prompt' : `${id}-activity`;
   const [draft, setDraft] = useState<EvidenceDraft>(state.evidence ?? { reflection: '' });
   const [busy, setBusy] = useState(false);
   const [visualBusy, setVisualBusy] = useState(false);
@@ -121,7 +129,9 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
   const [unshared, setUnshared] = useState(sharedCardId === null);
   const notifiedSelection = useRef<CardAudience | null>(null);
   const operation = useRef<AbortController | null>(null);
-  const stage = editing ? 1 : activityFlowStage(sourceLevel, state)!;
+  const availableStage = activityFlowStage(sourceLevel, state)!;
+  const stage = editing || definitionOnly ? 1 : Math.min(viewStep ?? availableStage, availableStage);
+  const inDeck = viewStep !== undefined;
   const validated = !editing && targetMatches && activityIsValidated(state);
   const definitionChanged = definition.activity.trim() !== state.definition?.activity.trim() || definition.target_alignment.trim() !== state.definition?.target_alignment.trim();
   const locked = disabled || busy;
@@ -176,37 +186,40 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
   };
 
   return <section className="activity-journey-flow" dir={language === 'ar' ? 'rtl' : 'ltr'} lang={language} aria-labelledby={`${id}-heading`}>
-    <h5 id={`${id}-heading`}>{copy.heading}</h5>
-    <ol className="activity-flow-stages" aria-label={copy.heading}>
+    <h5 id={`${id}-heading`} className={inDeck || definitionOnly ? 'sr-only' : undefined}>{copy.heading}</h5>
+    {!inDeck && !definitionOnly && <ol className="activity-flow-stages" aria-label={copy.heading}>
       {copy.stages.map((label, index) => <li key={index} aria-current={stage === index + 1 ? 'step' : undefined} data-complete={stage > index + 1 || (index === 2 && validated)}>
         <span className="activity-flow-stage-number" aria-hidden="true">{index + 1}</span>
         <span title={label}>{index === 2 && validated ? copy.validated : compact.stages[index]}</span>
       </li>)}
-    </ol>
+    </ol>}
     <aside className="activity-flow-target" aria-labelledby={`${id}-target`}>
       <details><summary id={`${id}-target`}>{clarity.level} {sourceLevel} ↗ {target.level} · <strong>{target.name}</strong></summary><p className="activity-flow-description" dir="auto">{target.description}</p><p>{clarity.rule}</p></details>
     </aside>
     {state.status === 'legacyHistorical' && <p className="activity-flow-legacy">{copy.legacy}</p>}
-    {stage === 1 ? <form className="activity-flow-form" onSubmit={event => {
+    {stage === 1 ? (inDeck && !definitionOnly && (!state.definition || validSavedActivityDefinition(state.definition)) ? null : <form className="activity-flow-form" onSubmit={event => {
       event.preventDefault();
       if (!validActivityDefinition(definition)) { setError(copy.minimum); return; }
       if (onDefine && targetMatches) void perform(signal => onDefine({ activity: definition.activity.trim(), target_alignment: definition.target_alignment.trim() }, signal));
     }}>
-      <label htmlFor={`${id}-activity`}>{copy.activity}</label>
-      <textarea id={`${id}-activity`} dir="auto" value={definition.activity} disabled={locked} required aria-describedby={`${id}-minimum`} onChange={event => setDefinition(previous => ({ ...previous, activity: event.target.value }))} />
+      <label htmlFor={activityInputId}>{copy.activity}</label>
+      <textarea id={activityInputId} dir="auto" value={definition.activity} disabled={locked} required aria-describedby={`${id}-minimum`} onChange={event => editDefinition({ ...definition, activity: event.target.value })} />
       <label htmlFor={`${id}-alignment`}>{copy.alignment}</label>
-      <textarea id={`${id}-alignment`} dir="auto" value={definition.target_alignment} disabled={locked} required aria-describedby={`${id}-minimum ${id}-target`} onChange={event => setDefinition(previous => ({ ...previous, target_alignment: event.target.value }))} />
-      <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />
+      <textarea id={`${id}-alignment`} dir="auto" value={definition.target_alignment} disabled={locked} required aria-describedby={`${id}-minimum ${id}-target`} onChange={event => editDefinition({ ...definition, target_alignment: event.target.value })} />
+      {!inDeck && !definitionOnly && <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />}
       <div className="activity-flow-actions">
         <button type="submit" disabled={locked || !onDefine || !targetMatches || !validActivityDefinition(definition) || !definitionChanged}>{copy.save}</button>
         {editing && <button type="button" disabled={busy} onClick={() => { setDefinition(state.definition!); setEditing(false); setError(''); }}>{copy.cancel}</button>}
       </div>
       {!onDefine && <p className="activity-flow-note">{copy.unavailable}</p>}
-    </form> : <>
+    </form>) : <>
       <details className="activity-flow-alignment"><summary>{copy.alignment}</summary><p dir="auto">{state.definition?.target_alignment}</p>
-        <button type="button" disabled={locked || !onDefine} onClick={() => { setEditing(true); setError(''); }}>{copy.edit}</button>
+        {!inDeck && <button type="button" disabled={locked || !onDefine} onClick={() => { setEditing(true); setError(''); }}>{copy.edit}</button>}
       </details>
-      {stage === 2 ? <form className="activity-flow-form" onSubmit={event => { event.preventDefault(); submit(); }}>
+      {stage === 2 && inDeck && availableStage === 3 ? <div className="activity-flow-evidence-snapshot">
+        <VisualEvidenceInput language={language} value={state.evidence?.visual} readOnly onChange={() => {}} onLoadVideo={onLoadVideo} />
+        <p dir="auto">{state.evidence?.reflection}</p>
+      </div> : stage === 2 ? <form className="activity-flow-form" onSubmit={event => { event.preventDefault(); submit(); }}>
         {state.status === 'changesRequested' && <aside className="activity-flow-feedback" role="status"><strong>{copy.feedback}</strong><p dir="auto">{state.feedback}</p></aside>}
         <VisualEvidenceInput language={language} value={draft.visual} disabled={locked} onBusyChange={setVisualBusy} onChange={visual => changeDraft({ ...draft, visual })} onUploadVideo={onUploadVideo} onLoadVideo={onLoadVideo} />
         <label htmlFor={`${id}-reflection`}>{copy.reflection}</label>
