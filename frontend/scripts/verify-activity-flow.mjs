@@ -109,6 +109,9 @@ const newCard = renderToStaticMarkup(React.createElement(JourneyActivityCard, { 
 assert.ok(newCard.includes('activity-journey-flow'));
 assert.equal((newCard.match(/<li /g) ?? []).length, 3);
 assert.equal((newCard.match(/journey-reaction--/g) ?? []).length, 5);
+const unalignedCard = renderToStaticMarkup(React.createElement(JourneyActivityCard, { card, current: true, defined: true, onReact() {}, flow: { state: { status: 'defined', definition: { activity: card.activity, target_alignment: '' } } } }));
+const socialFooter = unalignedCard.slice(unalignedCard.indexOf('class="journey-social-footer"'));
+assert.equal((socialFooter.match(/ disabled=""/g) ?? []).length, 4, 'Draft text without next-level alignment keeps all social exports disabled');
 assert.ok(!renderToStaticMarkup(React.createElement(JourneyActivityCard, { card: { ...card, level: 9 }, current: true, defined: true, onReact() {}, flow: { state: approved } })).includes('activity-journey-flow'));
 const inputHTML = renderToStaticMarkup(React.createElement(VisualEvidenceInput, { value: videoDraft.visual, onChange() {}, language: 'en' }));
 assert.ok(inputHTML.includes(messages.activityFlowCopy('en').videoStored));

@@ -57,6 +57,22 @@ const copies: Record<string, SocialCopy> = {
   da: { reaction: 'Din reaktion', reactions: ['Blad · Synes godt om', 'Jord · Grundlag', 'Vand · Omsorg', 'Sol · Inspiration', 'Rødder · Forbindelse'], share: 'Del', status: 'Status', story: 'Historie', preview: 'Klar til deling', privacy: 'Kun denne aktivitet er med. Gennemse før udgivelse; din profil og andre aktiviteter forbliver private.', download: 'Gem billede', native: 'Vælg en app', copy: 'Kopiér hele teksten', copied: 'Tekst kopieret', preparing: 'Forbereder dit billede…', error: 'Handlingen mislykkedes. Prøv at gemme billedet.', storageError: 'Reaktionen blev ikke gemt. Frigør plads og prøv igen.', close: 'Luk', excerpt: 'Billedet viser et uddrag. Kopiér hele teksten for at få alt med.', steps: { linkedin: 'Gem billedet. Åbn LinkedIn → Opret opslag → Foto. Tilføj billede og tekst.', whatsapp: 'Gem billedet. Åbn WhatsApp på telefonen → Opdateringer → Min status og vælg billedet.', instagram: 'Gem billedet. Åbn Instagram på telefonen → Din historie og vælg billedet.', facebook: 'Gem billedet. Åbn Facebook → Foto/video eller Opret historie og vælg billedet.' } },
 };
 export const socialCopy = (language: string): SocialCopy => copies[language] ?? base;
+
+const definitionCopy: Record<string, readonly [string, string]> = {
+  es: ['Usa los 5 botones de abajo para definir la actividad que te llevará al siguiente nivel', 'Define actividad para poder compartir'],
+  en: ['Use the 5 buttons below to define the activity that will take you to the next level', 'Define an activity to share'],
+  zh: ['使用下方的 5 个按钮制定帮助你迈向下一等级的活动', '先定义活动，再分享'],
+  hi: ['अगले स्तर तक ले जाने वाली गतिविधि तय करने के लिए नीचे दिए गए 5 बटन इस्तेमाल करें', 'साझा करने के लिए गतिविधि तय करें'],
+  ar: ['استخدم الأزرار الخمسة أدناه لتحديد النشاط الذي سينقلك إلى المستوى التالي', 'حدّد نشاطًا أولًا لتتمكن من مشاركته'],
+  it: ['Usa i 5 pulsanti qui sotto per definire l’attività che ti porterà al livello successivo', 'Definisci un’attività per poterla condividere'],
+  pt: ['Use os 5 botões abaixo para definir a atividade que levará você ao próximo nível', 'Defina uma atividade para compartilhar'],
+  ru: ['Используйте 5 кнопок ниже, чтобы определить задание для перехода на следующий уровень', 'Определите задание, чтобы поделиться им'],
+  de: ['Lege mit den 5 Schaltflächen unten die Aktivität fest, die dich zur nächsten Stufe bringt', 'Lege eine Aktivität fest, um sie zu teilen'],
+  fr: ['Utilise les 5 boutons ci-dessous pour définir l’activité qui te fera passer au niveau suivant', 'Définis une activité pour pouvoir la partager'],
+  da: ['Brug de 5 knapper nedenfor til at definere aktiviteten, der fører dig videre til næste niveau', 'Definér en aktivitet for at kunne dele den'],
+};
+export const activityDefinitionCopy = (language: string) => definitionCopy[language] ?? definitionCopy.en;
+
 export const platformName = (platform: SharePlatform, language: string): string => {
   const copy = socialCopy(language);
   return ({ linkedin: 'LinkedIn', whatsapp: `WhatsApp · ${copy.status}`, instagram: `Instagram · ${copy.story}`, facebook: 'Facebook' })[platform];

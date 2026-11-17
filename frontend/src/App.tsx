@@ -1785,7 +1785,7 @@ function App() {
     const copy = guidedTourStepCopy(language, controlTopic ? 'controlCenter' : tourTopic as TourStageId);
     const targets: Record<TourTopic, string | readonly string[]> = {
       modes: '.welcome-view .circular-carousel', modeDescription: '.journey-intro-compact', selfAssessment: '.journey-ascent-status', activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target summary',
-      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions .insight-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.journey-step-list', evidence: '.journey-step-list > li:nth-child(3)', audience: '.activity-flow-audience .card-audience-options, .journey-step-list > li:nth-child(3)', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
+      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions .journey-local-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.journey-step-list', evidence: '.journey-step-list > li:nth-child(3)', audience: '.activity-flow-audience .card-audience-options, .journey-step-list > li:nth-child(3)', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
       reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading', specialists: '.cult-embedded-content .cult-section-heading', community: '.community-header h2', profile: '.profile-preview-identity', badges: '.achievement-heading', configurations: '#presets-title',
       controlCenter: '.crm-card--score .crm-card-heading', controlStrongest: '.crm-metric-card:nth-of-type(1)', controlLeast: '.crm-metric-card:nth-of-type(2)', controlFocus: '.crm-focus-card .crm-card-heading', controlTrivia: '.crm-trivia-card h2', replay: '[data-tour="replay"]',
     };
@@ -1793,8 +1793,8 @@ function App() {
     return { id: tourTopic, ...copy,
       ...(tourTopic === 'modes' ? { target: selection as string, nextDisabled: !tourModeKey }
         : tourTopic === 'methods' ? { methodChecklist: true, targets: [
-          { selector: '.journey-manual-button', method: 'custom' as const }, { selector: '.activity-pool-button', method: 'bank' as const },
-          { selector: '.activity-ai-button', method: 'ai' as const }, { selector: '.journey-fixed-actions .insight-button', method: 'localContacts' as const },
+          { selector: '.journey-manual-button', method: 'custom' as const }, { selector: '.journey-recommended-button', method: 'bank' as const },
+          { selector: '.journey-ai-button', method: 'ai' as const }, { selector: '.journey-fixed-actions .journey-local-button', method: 'localContacts' as const },
         ] }
         : Array.isArray(selection) ? { targets: selection } : { target: selection as string }),
       ...(tourTopic === 'nextClarity' ? { clarityTarget: clarityTransition(tourSource, language)!.target } : {}),
@@ -1850,7 +1850,7 @@ function App() {
     if (!tourTopic) return;
     const method = tourTopic === 'custom' ? 'custom' : tourTopic === 'bank' ? 'bank' : tourTopic === 'ai' ? 'ai' : tourTopic === 'localContacts' ? 'localContacts' : null;
     if (!method) return;
-    const mounted = method === 'localContacts' ? Boolean(selectedMode && document.querySelector('.journey-fixed-actions .insight-button'))
+    const mounted = method === 'localContacts' ? Boolean(selectedMode && document.querySelector('.journey-fixed-actions .journey-local-button'))
       : activeActivity !== null && activityEntry === (method === 'bank' ? 'pool' : method) && Boolean(document.querySelector(`.activity-agent--${activityEntry}`));
     if (mounted) setTourVisitedMethods(current => current.includes(method) ? current : [...current, method]);
   }, [tourTopic, communityOpen, communityTab, activeActivity, activityEntry, selectedMode]);
@@ -2450,6 +2450,7 @@ function App() {
 
   const currentJourneyLevel = selectedMode ? levels[selectedMode.key] ?? 0 : 0;
   const visibleJourneyLevel = tourTopic ? journeySlide : canOpenJourneyLevel(journeySlide, currentJourneyLevel) ? journeySlide : currentJourneyLevel;
+  const journeyActivity = selectedMode ? activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? '' : '';
   const deckFlow = selectedMode && visibleJourneyLevel < 9 ? activityFlow(selectedMode.key, visibleJourneyLevel) : null;
   const maxJourneyStep = deckFlow ? activityFlowStage(visibleJourneyLevel, deckFlow.state) ?? 1 : 1;
   const displayJourneyStep = Math.min(journeyStep, maxJourneyStep) as JourneyStep;
@@ -2885,31 +2886,28 @@ function App() {
                 <VisionImage key={selectedMode.key} value={visionImages[selectedMode.key]} onChange={image => { if (!tourTopic && currentJourneyLevel === 9) saveVisionImage(selectedMode.key, image); }} language={language} title={tr('finalVision')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} />
                 <div className="journey-vision-note"><span className="journey-vision-completion" role="status"><strong>{hasVisionImage(visionImages[selectedMode.key]) ? `✓ ${badgeCopy(language).visionDone}` : badgeCopy(language).visionPending}</strong><span>{badgeCopy(language).visionHint}</span></span></div>
               </article> : <>
-                <JourneyActivityCard key={`${selectedMode.key}-${visibleJourneyLevel}`} current={visibleJourneyLevel === currentJourneyLevel} defined={Boolean(activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`])}
-                  card={{ mode: modeName(selectedMode), level: visibleJourneyLevel, levelLabel: tr('level'), stage: localizedLevelNames[language][visibleJourneyLevel], effort: effortLabel(visibleJourneyLevel), activity: activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? tr('activityUndefined'), color: selectedMode.color, icon: selectedMode.icon, language }}
+                <JourneyActivityCard key={`${selectedMode.key}-${visibleJourneyLevel}`} current={visibleJourneyLevel === currentJourneyLevel} defined={Boolean(journeyActivity.trim())}
+                  card={{ mode: modeName(selectedMode), level: visibleJourneyLevel, levelLabel: tr('level'), stage: localizedLevelNames[language][visibleJourneyLevel], effort: effortLabel(visibleJourneyLevel), activity: journeyActivity, color: selectedMode.color, icon: selectedMode.icon, language }}
                   reaction={activityReactions[activityReactionKey(selectedMode.key, visibleJourneyLevel, activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? '')]}
                   flow={deckFlow ? { ...deckFlow, viewStep: displayJourneyStep, onDefine: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onDefine : undefined, onSubmit: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onSubmit : undefined } : undefined}
                   showSocial={displayJourneyStep === 1}
                   sharePreviewScope={tourTopic ?? 'closed'}
-                  onReact={reaction => reactToActivity(selectedMode.key, visibleJourneyLevel, reaction)} />
-                {displayJourneyStep === 1 && (tourTopic || (visibleJourneyLevel === currentJourneyLevel && deckFlow?.state.status !== 'pending' && deckFlow?.state.status !== 'approved')) && <>
+                  onReact={reaction => reactToActivity(selectedMode.key, visibleJourneyLevel, reaction)}
+                  emptyTitle={tr('activityUndefined')}
+                  actions={displayJourneyStep === 1 && (tourTopic || (visibleJourneyLevel === currentJourneyLevel && deckFlow?.state.status !== 'pending' && deckFlow?.state.status !== 'approved')) ? <>
                   <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}>
-                    <div className="journey-activity-methods">
-                      <button className="journey-manual-button" type="button" onClick={() => openActivity(visibleJourneyLevel, 'custom')}>＋ {tr('addActivity')}</button>
-                      <button className="activity-pool-button" type="button" onClick={() => openActivity(visibleJourneyLevel, 'pool')}>▦ {tr('activityPool')}</button>
-                      <button className="activity-ai-button" type="button" onClick={() => openActivity(visibleJourneyLevel, 'ai')}>✦ {tr('modeAI')}</button>
-                    </div>
-                    <div className="journey-idea-methods">
-                      <button className="insight-button" type="button" disabled={!tourTopic && (localIdeaBusy || (localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0)}
-                        aria-pressed={(localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0} aria-busy={localIdeaBusy}
-                        onClick={() => requestInsight(selectedMode.key, visibleJourneyLevel)}>{localIdeaBusy ? activityFlowCopy(language).working : (localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0 ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button>
-                      <button className="journey-global-button" type="button" onClick={() => { setInsightSlide(0); setInsightCycle(0); setCultTab('insights'); setCultOpen(true); }}>
-                        <span className="journey-global-globe" aria-hidden="true"><i /></span>{deckLabels[4]}
-                      </button>
-                    </div>
+                    <button className="journey-manual-button journey-action-neon" type="button" onClick={() => openActivity(visibleJourneyLevel, 'custom')}>＋ {tr('addActivity')}</button>
+                    <button className="journey-recommended-button journey-action-neon" type="button" onClick={() => openActivity(visibleJourneyLevel, 'pool')}>▦ {tr('activityPool')}</button>
+                    <button className="journey-ai-button journey-action-neon" type="button" onClick={() => openActivity(visibleJourneyLevel, 'ai')}>✦ {tr('modeAI')}</button>
+                    <button className="journey-local-button journey-action-neon" type="button" disabled={!tourTopic && (localIdeaBusy || (localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0)}
+                      aria-pressed={(localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0} aria-busy={localIdeaBusy}
+                      onClick={() => requestInsight(selectedMode.key, visibleJourneyLevel)}>{localIdeaBusy ? activityFlowCopy(language).working : (localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0 ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button>
+                    <button className="journey-global-button" type="button" onClick={() => { setInsightSlide(0); setInsightCycle(0); setCultTab('insights'); setCultOpen(true); }}>
+                      <span className="journey-global-globe" aria-hidden="true"><i /></span>{deckLabels[4]}
+                    </button>
                   </div>
                   {localIdeaNotice?.key === insightRequestKey(selectedMode.key, visibleJourneyLevel) && <p className="journey-local-idea-status" role="status">{localIdeaNotice.kind === 'login' ? communityCopy(language).login : localIdeaNotice.kind === 'profile' ? onboardingIntegrationCopy(language).profileRequired : localIdeaNotice.kind === 'failed' ? communityCopy(language).unavailable : localIdeaNotice.count ? `${tr('insightRequested')} · ${communityCopy(language).eligible.replace('{count}', String(localIdeaNotice.count))}` : communityCopy(language).zero}</p>}
-                </>}
+                </> : undefined} />
                 {insightNotice && displayJourneyStep === 1 && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
               </>}
             </div>

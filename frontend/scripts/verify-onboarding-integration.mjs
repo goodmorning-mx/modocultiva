@@ -290,7 +290,7 @@ async function inspectSpotlight(page, owner) {
   for (const rect of [result.panel, ...result.holes]) assert.ok(rect.w > 0 && rect.h > 0 && rect.x >= -2 && rect.y >= -2 && rect.right <= result.width + 2 && rect.bottom <= result.height + 2, `Clipped spotlight/panel stays within viewport: ${result.id}`);
   return result;
 }
-const methodSelectors = { custom: '.journey-manual-button', bank: '.activity-pool-button', ai: '.activity-ai-button', localContacts: '.journey-fixed-actions .insight-button' };
+const methodSelectors = { custom: '.journey-manual-button', bank: '.journey-recommended-button', ai: '.journey-ai-button', localContacts: '.journey-local-button' };
 async function advance(page, current, timeout) {
   const next = STOPS[STOPS.indexOf(current) + 1];
   const button = page.locator('.guided-tour-rail button:last-child'); assert.equal(await button.isDisabled(), false, `Next available: ${current}`);
@@ -491,7 +491,29 @@ async function runCase(browser, config, task) {
         await page.locator('.crm-focus-list button').first().click();
         await page.locator('.journey-panel .journey-back').click();
         await assertFixedHome(page);
-        result = { freshLevels: 0, allModesOpen: 12, palette: true, floatingHome: true, specialistsAndBadges: true, fixedHome: true };
+        await selectPhysicalMode(page);
+        await page.locator('.journey-step-list button').nth(1).click();
+        const social = page.locator('.journey-social-footer');
+        const share = social.locator('.journey-share');
+        const buttons = share.getByRole('button');
+        assert.equal(await share.locator('button:disabled').count(), 4);
+        if (task.language === 'es') {
+          assert.equal(await share.locator('.journey-social-label').textContent(), 'Define actividad para poder compartir');
+          assert.equal(await page.locator('.journey-social-title').textContent(), 'Usa los 5 botones de abajo para definir la actividad que te llevará al siguiente nivel');
+        }
+        // A direct click event cannot open an export while the activity is undefined.
+        await buttons.first().dispatchEvent('click');
+        assert.equal(await page.locator('.activity-share-dialog').count(), 0);
+        await page.locator(methodSelectors.custom).click();
+        await page.locator('#activity-prompt').fill(ACTIVITY);
+        await page.locator('.activity-agent--custom textarea').last().fill(ALIGNMENT);
+        await page.locator('.activity-agent--custom button[type="submit"]').click();
+        await social.waitFor();
+        assert.equal(await share.locator('button:enabled').count(), 4, 'Saving the definition enables sharing without requiring evidence or publication');
+        await buttons.first().click();
+        await page.locator('.activity-share-dialog[open]').waitFor();
+        await page.locator('.activity-share-dialog[open] .share-close').click();
+        result = { freshLevels: 0, allModesOpen: 12, palette: true, floatingHome: true, specialistsAndBadges: true, fixedHome: true, shareGatedOnDefinition: true };
       } else if (task.name === 'account-journey-ascent') {
         await selectPhysicalMode(page);
         const steps = page.locator('.journey-step-list button');
@@ -552,7 +574,12 @@ async function runCase(browser, config, task) {
         assert.equal(await page.locator('#journey-slider').count(), 0);
         await steps.nth(1).click();
         const activity = page.locator('.journey-deck-content > .journey-level-card');
-        assert.ok(await activity.evaluate(card => card.nextElementSibling.classList.contains('journey-fixed-actions')), 'The card precedes the five activity actions');
+        assert.ok(await activity.evaluate(card => card.querySelector('.journey-fixed-actions') && card.nextElementSibling.classList.contains('journey-social-footer')), 'The five activity actions sit inside the card above the separate social footer');
+        const neonButtons = activity.locator('.journey-action-neon');
+        assert.equal(await neonButtons.count(), 4);
+        const neonColors = await neonButtons.evaluateAll(buttons => buttons.map(button => getComputedStyle(button).color));
+        assert.equal(new Set(neonColors).size, 1, 'All four neon actions use the same theme color');
+        assert.equal(await activity.locator('.journey-global-button .journey-global-globe').count(), 1);
         assert.equal(await activity.locator('.activity-journey-flow > .activity-flow-help').count(), 0);
         const reminder = activity.locator('.activity-flow-target summary');
         if (task.language === 'es') assert.equal(await reminder.textContent(), 'Recordatorios para pasar al siguiente nivel');
