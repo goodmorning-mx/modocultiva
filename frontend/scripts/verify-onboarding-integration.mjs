@@ -220,8 +220,9 @@ async function assertPreserved(page, expected, account = false) { sameProtected(
 async function openReplay(page, timeout, keyboard = false) {
   const replay = page.locator('[data-tour="replay"]');
   if (!await replay.isVisible()) {
-    if (keyboard) { await page.locator('.profile-button').focus(); await page.keyboard.press('Enter'); }
-    else await page.locator('.profile-button').click();
+    const opener = page.locator('.home-menu-button:visible, .profile-button:visible').first();
+    if (keyboard) await opener.press('Enter');
+    else await opener.click();
   }
   if (keyboard) { await replay.focus(); await page.keyboard.press('Enter'); } else await replay.click();
   await ready(page, 'modes', timeout);
@@ -231,29 +232,25 @@ async function closeTour(page) {
   await eventually(async () => await page.locator('.guided-tour-layer').count() === 0, 'Tour did not close');
 }
 async function assertMap(page, expectedLevels) {
-  await page.locator('.overview-stage').scrollIntoViewIfNeeded();
-  const map = await page.locator('.overview-stage').evaluate(stage => {
-    const center = stage.querySelector('.overview-identity-orb').getBoundingClientRect(); const cx = center.x + center.width / 2, cy = center.y + center.height / 2;
-    const cards = [...stage.querySelectorAll('.overview-mode')].map(element => {
-      const rect = element.getBoundingClientRect(), label = element.querySelector('.overview-mode-name'), style = getComputedStyle(label);
-      return { mode: element.dataset.tourMode, level: Number(element.querySelector('strong').textContent), x: rect.x, y: rect.y, w: rect.width, h: rect.height,
-        radius: Math.hypot(rect.x + rect.width / 2 - cx, rect.y + rect.height / 2 - cy), label: label.textContent, clipped: label.scrollWidth > label.clientWidth + 1,
-        oneLine: label.getBoundingClientRect().height <= parseFloat(style.lineHeight) + 2, visible: rect.width > 0 && rect.height > 0 && rect.left >= -1 && rect.right <= innerWidth + 1 && rect.top >= -1 && rect.bottom <= innerHeight + 1,
-        angle: element.style.getPropertyValue('--mode-angle'), layout: getComputedStyle(element).position };
-    });
-    return { cards, overflow: document.documentElement.scrollWidth > innerWidth + 1 };
-  });
-  assert.equal(map.cards.length, 12, 'All twelve independent Holista targets');
-  assert.deepEqual(map.cards.map(card => card.mode), MODES);
-  assert.equal(new Set(map.cards.map(card => card.angle)).size, 12, 'Twelve distinct circle positions');
-  const radii = map.cards.map(card => card.radius);
-  assert.ok(Math.max(...radii) - Math.min(...radii) <= 3, 'All twelve centers lie on ONE circle');
-  for (const card of map.cards) { assert.equal(card.level, expectedLevels[card.mode]); assert.ok(card.visible && card.oneLine && !card.clipped && card.label.trim(), `Visible complete single-line label: ${card.mode}`); }
-  for (let a = 0; a < 12; a++) for (let b = a + 1; b < 12; b++) {
-    const one = map.cards[a], two = map.cards[b];
-    assert.ok(Math.min(one.x + one.w, two.x + two.w) - Math.max(one.x, two.x) <= 1 || Math.min(one.y + one.h, two.y + two.h) - Math.max(one.y, two.y) <= 1, `Independent non-overlapping cards ${one.mode}/${two.mode}`);
+  const carousel = page.locator('.circular-carousel[data-ready]');
+  await carousel.scrollIntoViewIfNeeded();
+  const cards = await carousel.locator('.home-mode-card').evaluateAll(elements => elements.map(element => ({
+    mode: element.dataset.tourMode,
+    level: Number(element.querySelector('.home-mode-summary b').textContent.match(/\d+$/)?.[0]),
+    label: element.getAttribute('aria-label'),
+  })));
+  assert.deepEqual(cards.map(card => card.mode), MODES);
+  for (const card of cards) {
+    assert.equal(card.level, expectedLevels[card.mode]);
+    assert.ok(card.label);
   }
-  assert.equal(map.overflow, false, 'No horizontal page overflow'); return map;
+  assert.equal(await carousel.locator('.home-mode-card[tabindex="0"]').count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
+}
+async function selectPhysicalMode(page) {
+  const carousel = page.locator('.circular-carousel[data-ready]');
+  await carousel.locator('.home-mode-card[tabindex="0"]').press('Home');
+  await carousel.locator('.home-mode-card[data-tour-mode="fisico"][tabindex="0"]').click();
 }
 async function inspectSpotlight(page, owner) {
   const result = await page.locator('.guided-tour-layer').evaluate(layer => {
@@ -290,7 +287,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
   const seen = [], scrollEvidence = [];
   await ready(page, 'modes', configuration.timeout); seen.push('modes');
   await inspectSpotlight(page, owner); assert.equal(await page.locator('.guided-tour-rail button:last-child').isDisabled(), true, 'Choosing an actual mode is required');
-  await page.locator('.overview-mode[data-tour-mode="fisico"]').click(); await ready(page, 'modeDescription', configuration.timeout);
+  await selectPhysicalMode(page); await ready(page, 'modeDescription', configuration.timeout);
   for (const step of STOPS.slice(1)) {
     await ready(page, step, configuration.timeout); seen.push(step);
     const inspected = await inspectSpotlight(page, owner);
@@ -436,7 +433,7 @@ async function runCase(browser, config, task) {
         await closeTour(page); await assertPreserved(page, state, true);
         // Replay restores its original MC menu too. Close it before opening another surface.
         if (await page.locator('[data-tour="replay"]').isVisible()) await page.locator('.profile-button').click();
-        await page.locator('.overview-mode[data-tour-mode="fisico"]').click();
+        await selectPhysicalMode(page);
         await page.locator('.journey-panel').waitFor();
         assert.equal(await page.locator('.journey-community-actions').count(), 0, 'No redundant community callout under the activity');
         await page.locator('.profile-button').click();
@@ -449,7 +446,7 @@ async function runCase(browser, config, task) {
         await page.locator('.community-close').click(); await assertPreserved(page, state, true);
         result = { identity: task.identity, counter: task.identity === 'owner', verifiedAndHydrated: true, consentSeen, shareCtaOpensFeedChooser: true, guestArchivePreserved: true };
       } else if (task.name.includes('local-')) {
-        await page.locator('.overview-mode[data-tour-mode="fisico"]').click();
+        await selectPhysicalMode(page);
         const flow = page.locator('.activity-journey-flow'); await flow.waitFor();
         assert.equal(await page.locator('.journey-community-actions').count(), 0);
         assert.equal(await flow.locator('.activity-flow-stages > li').count(), 3);
@@ -473,7 +470,7 @@ async function runCase(browser, config, task) {
             if (config.draftReplay === 'keyboard') { await page.locator('.profile-button').focus(); await page.keyboard.press('Enter'); }
             else await page.locator('.profile-button').click();
           }
-          if (!await page.locator('.journey-panel').count()) await page.locator('.overview-mode[data-tour-mode="fisico"]').click();
+          if (!await page.locator('.journey-panel').count()) await selectPhysicalMode(page);
           else if (await page.locator('.activity-agent-back').isVisible()) { await page.locator('.activity-agent-back').click(); await page.locator('.journey-fixed-actions').waitFor(); }
           await page.locator(methodSelectors[entry]).click();
           const text = `Unsaved ${entry} draft · العربية · QA only. Never replace this with saved text.`;
