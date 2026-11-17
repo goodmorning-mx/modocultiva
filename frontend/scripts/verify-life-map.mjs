@@ -22,6 +22,9 @@ for (const [, key] of modeList.matchAll(/\{ key: '([^']+)'/g)) {
   assert.equal(photo.readUInt16BE(0), 0xffd8, `Mode ${key} has a local JPEG`);
   const symbol = await readFile(new URL(`../public/mode-symbols/${key}.png`, import.meta.url));
   assert.equal(symbol.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', `Mode ${key} has its original PNG symbol`);
+  const optimized = await readFile(new URL(`../public/mode-symbols/${key}.webp`, import.meta.url));
+  assert.equal(optimized.subarray(8, 12).toString('ascii'), 'WEBP');
+  assert.ok(optimized.length < symbol.length / 10, `Mode ${key} ships a substantially smaller Home image`);
 }
 assert.ok(homeCarousel.includes('label: `${modeName(mode)}, ${tr(\'level\')} ${level}`') && carousel.includes('aria-label={item.label}'), 'Each card keeps its full accessible name and level');
 assert.ok(homeCarousel.includes('localizedLevelNames[language][level]'), 'Cards expose the current level label');

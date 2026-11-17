@@ -1,5 +1,9 @@
 # ElectricLogo
 
+The official source stays available for reference. The Home carousel now uses
+compact WebP copies and a CSS-only particle treatment instead of the WebGL
+renderer. Neither the shader nor its dependency is imported into Home.
+
 Exact JS-CSS source retrieved from https://reactbits.dev/r/ElectricLogo-JS-CSS.json on 2026-11-17.
 Dependency: ogl@^1.0.11. License: /REACT-BITS-LICENSE.md (retained in public).
 Installed directly from the official registry without introducing shadcn/Tailwind configuration into this plain-CSS application.

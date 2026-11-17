@@ -64,6 +64,10 @@
 .home-vision-options input { accent-color: var(--mode-color); margin: 0; }
 .home-vision-options label:has(:disabled) { cursor: default; color: #a4beb7; }
 .home-vision-options small { display: block; color: #a4beb7; font-size: 0.74rem; }
+.home-vision-upload { grid-column: 2; min-width: 0; }
+.home-vision-upload .vision-image { margin: 0; }
+.home-vision-upload .vision-upload { margin: 0 !important; }
+.home-vision-upload .vision-image-notice { color: #b2cec6; font-size: .75rem; overflow-wrap: anywhere; }
 .home-vision-settings [role="alert"] { color: #ffb9a8; }
 .home-vision-settings :focus-visible { outline: 2px solid #90ecba; outline-offset: 2px; }
 

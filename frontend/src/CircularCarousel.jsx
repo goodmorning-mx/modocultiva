@@ -739,7 +739,7 @@ const CircularCarousel = ({
           className="circular-carousel__frame"
           style={{ height: axis === 'x' ? size : cardH, borderRadius: frameRadius }}
         >
-          <img
+          {!item.electric && <img
             className="circular-carousel__photo"
             src={item.src}
             onError={({ currentTarget }) => {
@@ -749,7 +749,7 @@ const CircularCarousel = ({
             draggable={false}
             decoding="async"
             style={photoStyle}
-          />
+          />}
           {back && <div className="circular-carousel__inner" />}
           <div className="circular-carousel__shade" />
         </div>
@@ -811,7 +811,7 @@ const CircularCarousel = ({
                     tabIndex={active === index ? 0 : -1}
                     style={{ ...item.style, width: cardW, height: cardH }}
                   >
-                    {item.electric && <ModeElectricSymbol src={item.src} active={active === index && effectsEnabled} />}
+                    {item.electric && <ModeElectricSymbol src={item.src} fallbackSrc={item.fallbackSrc} active={active === index && effectsEnabled && !reduced} />}
                     {item.content}
                   </button>
                 </div>

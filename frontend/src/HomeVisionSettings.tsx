@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
+import { flushSync } from 'react-dom';
 import { hasVisionImage } from './badgeProgress';
+import { VisionImage } from './VisionImage';
 import { defaultModePhoto, homeModePhoto, homeImageSource, homeVisionCopy, electricSymbolLabel, type HomeVisionCards, type HomeImageSource } from './homeVision';
 import './home-vision-settings.css';
 
@@ -9,15 +11,29 @@ type Props = {
   images: Record<string, string | undefined>;
   preferences: HomeVisionCards;
   closeLabel: string;
+  uploadLabel: string;
+  changeLabel: string;
   onChange: (mode: string, source: HomeImageSource) => boolean;
+  onUpload: (mode: string, image: string) => boolean;
   onClose: () => void;
 };
 
-export function HomeVisionSettings({ language, modes, images, preferences, closeLabel, onChange, onClose }: Props) {
+export function HomeVisionSettings({ language, modes, images, preferences, closeLabel, uploadLabel, changeLabel, onChange, onUpload, onClose }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   const id = useId();
   const [failed, setFailed] = useState(false);
-  const [title, summary, defaultLabel, visionLabel, noPhoto, saveError] = homeVisionCopy(language);
+  const [uploadMode, setUploadMode] = useState<string | null>(null);
+  const uploadArea = useRef<HTMLDivElement>(null);
+  const [title, summary, defaultLabel, visionLabel, , saveError] = homeVisionCopy(language);
+  const pickSource = (mode: string, source: HomeImageSource) => {
+    if (source === 'vision' && !hasVisionImage(images[mode])) {
+      flushSync(() => { setFailed(false); setUploadMode(mode); });
+      uploadArea.current?.querySelector<HTMLInputElement>('input[type="file"]')?.click();
+      return;
+    }
+    setUploadMode(source === 'vision' ? mode : null);
+    setFailed(!onChange(mode, source));
+  };
   useEffect(() => {
     const element = dialog.current!;
     element.showModal();
@@ -37,20 +53,22 @@ export function HomeVisionSettings({ language, modes, images, preferences, close
     {failed && <p role="alert">{saveError}</p>}
     <div className="home-vision-modes">
       {modes.map(mode => {
-        const available = hasVisionImage(images[mode.key]);
         const selected = homeImageSource(mode.key, images[mode.key], preferences);
         const fallback = defaultModePhoto(mode.key);
-        return <fieldset key={mode.key} data-mode={mode.key} style={{ '--mode-color': mode.color } as CSSProperties} aria-describedby={!available ? `${id}-${mode.key}` : undefined}>
+        return <fieldset key={mode.key} data-mode={mode.key} style={{ '--mode-color': mode.color } as CSSProperties}>
           <legend>{mode.name}</legend>
           <img src={homeModePhoto(mode.key, images[mode.key], preferences)} alt="" loading="lazy" onError={event => {
             if (event.currentTarget.getAttribute('src') !== fallback) event.currentTarget.src = fallback;
           }} />
           <div className="home-vision-options">
-            <label><input type="radio" name={`${id}-${mode.key}-source`} value="default" checked={selected === 'default'} onChange={() => setFailed(!onChange(mode.key, 'default'))} />{defaultLabel}</label>
-            <label><input type="radio" name={`${id}-${mode.key}-source`} value="vision" checked={selected === 'vision'} disabled={!available} onChange={() => setFailed(!onChange(mode.key, 'vision'))} />{visionLabel}</label>
-            {!available && <small id={`${id}-${mode.key}`}>{noPhoto}</small>}
-            <label><input type="radio" name={`${id}-${mode.key}-source`} value="electric" checked={selected === 'electric'} onChange={() => setFailed(!onChange(mode.key, 'electric'))} />{electricSymbolLabel(language)}</label>
+            <label><input type="radio" name={`${id}-${mode.key}-source`} value="default" checked={selected === 'default'} onChange={() => pickSource(mode.key, 'default')} />{defaultLabel}</label>
+            <label><input type="radio" name={`${id}-${mode.key}-source`} value="vision" checked={selected === 'vision'} onChange={() => pickSource(mode.key, 'vision')} />{visionLabel}</label>
+            <label><input type="radio" name={`${id}-${mode.key}-source`} value="electric" checked={selected === 'electric'} onChange={() => pickSource(mode.key, 'electric')} />{electricSymbolLabel(language)}</label>
           </div>
+          {(selected === 'vision' || uploadMode === mode.key) && <div className="home-vision-upload" ref={uploadMode === mode.key ? uploadArea : undefined}>
+            <VisionImage value={images[mode.key]} compact language={language} title={visionLabel} uploadLabel={uploadLabel} changeLabel={changeLabel}
+              onChange={image => setFailed(!onUpload(mode.key, image))} />
+          </div>}
         </fieldset>;
       })}
     </div>

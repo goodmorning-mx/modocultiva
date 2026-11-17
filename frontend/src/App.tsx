@@ -20,7 +20,7 @@ import { activityFlowCopy } from './activityJourneyFlowMessages';
 import { PublicActivityCard } from './PublicActivityCard';
 import { adaptActivityFlow } from './activityFlowAdapter';
 import { ActivityJourneyFlow, activityFlowStage, type ActivityJourneyFlowProps } from './ActivityJourneyFlow';
-import { canOpenJourneyLevel, journeyGesture, journeyLevelLabels, journeyStepLabels, type JourneyStep } from './journeyDeck';
+import { canOpenJourneyLevel, journeyGesture, journeyLevelLabels, journeyOverviewLabels, journeyStepLabels, type JourneyStep } from './journeyDeck';
 import type { EvidenceDraft } from './visualEvidence';
 import { onboardingIntegrationCopy } from './onboardingIntegrationMessages';
 import { WelcomeIntro } from './WelcomeIntro';
@@ -2402,8 +2402,8 @@ function App() {
     personalStorageRef.current.setItem('modoCultiva_visionImages', JSON.stringify(next));
     setVisionImages(next);
   };
-  const selectHomeVisionCard = (modeKey: string, source: HomeImageSource) => {
-    if (accountBlocked || (source === 'vision' && !hasVisionImage(visionImages[modeKey]))) return false;
+  const selectHomeVisionCard = (modeKey: string, source: HomeImageSource, uploadedImage?: string) => {
+    if (accountBlocked || (source === 'vision' && !hasVisionImage(uploadedImage ?? visionImages[modeKey]))) return false;
     const next = { ...homeVisionCards };
     if (source === 'vision') next[modeKey] = true;
     else if (source === 'electric') next[modeKey] = 'electric';
@@ -2478,6 +2478,8 @@ function App() {
   const maxJourneyStep = deckFlow ? activityFlowStage(visibleJourneyLevel, deckFlow.state) ?? 1 : 1;
   const displayJourneyStep = Math.min(journeyStep, maxJourneyStep) as JourneyStep;
   const deckLabels = journeyStepLabels[language];
+  const [currentLevelLabel, viewedLevelLabel, currentDefinitionLabel, viewedDefinitionLabel] = journeyOverviewLabels[language];
+  const viewingAnotherLevel = visibleJourneyLevel !== currentJourneyLevel;
   const [ascendLabel, unlockHint, previousLevelLabel] = journeyLevelLabels[language];
   const nextJourneyLevel = visibleJourneyLevel + 1;
   const nextJourneyLevelOpen = canOpenJourneyLevel(nextJourneyLevel, currentJourneyLevel);
@@ -2768,7 +2770,12 @@ function App() {
       )}
 
       {homeVisionSettingsOpen && !accountBlocked && <HomeVisionSettings language={language} modes={modes.map(mode => ({ key: mode.key, name: modeName(mode), color: mode.color }))}
-        images={visionImages} preferences={homeVisionCards} closeLabel={tr('close')} onChange={selectHomeVisionCard}
+        images={visionImages} preferences={homeVisionCards} closeLabel={tr('close')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} onChange={selectHomeVisionCard}
+        onUpload={(mode, image) => {
+          if (accountBlocked) return false;
+          saveVisionImage(mode, image);
+          return selectHomeVisionCard(mode, 'vision', image);
+        }}
         onClose={() => { setHomeVisionSettingsOpen(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('.home-menu-button')?.focus()); }} />}
 
       {configurationsOpen && <dialog ref={configurationsDialogRef} id="life-configurations-card" className="life-configurations-card" aria-labelledby="presets-title" aria-describedby="presets-description" tabIndex={-1} onCancel={(event) => { event.preventDefault(); if (renamingPreset) setRenamingPreset(false); else setConfigurationsOpen(false); }} onClick={(event) => {
@@ -2884,7 +2891,10 @@ function App() {
                   {!nextJourneyLevelOpen && <small><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7V5a3 3 0 0 1 6 0v2" /><rect x="3.5" y="7" width="9" height="7" rx="1.5" /></svg>{unlockHint}</small>}
                 </span>
               </button>}
-              <div className="journey-builder-heading"><p className="kicker">{tr('cultivationPath')} · {tr('level')} {formatJourneyLevel(visibleJourneyLevel)}</p></div>
+              <div className="journey-builder-heading journey-current-level">
+                <span aria-hidden="true" className="global-sparks" />
+                <p><span>{viewingAnotherLevel ? viewedLevelLabel : currentLevelLabel}</span> <strong>{formatJourneyLevel(visibleJourneyLevel)}</strong></p>
+              </div>
             </div>
             <div className="journey-deck-navigation" aria-label={tr('cultivationPath')} onKeyDown={event => {
               if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
@@ -2905,13 +2915,19 @@ function App() {
                   </li>;
                 })}
               </ol>
-              <button className="journey-step-arrow" type="button" disabled={displayJourneyStep >= maxJourneyStep} onClick={() => goJourneyStep(displayJourneyStep + 1)} aria-label={tr('next')}>{language === 'ar' ? '←' : '→'}</button>
+              <button className="journey-step-arrow journey-step-arrow--next" type="button" disabled={displayJourneyStep >= maxJourneyStep} onClick={() => goJourneyStep(displayJourneyStep + 1)} aria-label={tr('next')}>
+                {displayJourneyStep < maxJourneyStep && <span className="global-sparks" aria-hidden="true" />}
+                <span className="journey-next-glyph" aria-hidden="true">{language === 'ar' ? '←' : '→'}</span>
+              </button>
             </div>
             <div className="journey-deck-content" data-step={displayJourneyStep}>
               {displayJourneyStep === 0 ? <article className="journey-deck-overview journey-intro-compact">
                 <span className="journey-icon" aria-hidden="true">{selectedMode.icon}</span>
                 <div><h3>{modeName(selectedMode)}</h3><p>{modeJourneyDescription(selectedMode)}</p>
-                <div className="journey-deck-clarity"><strong>{localizedLevelNames[language][visibleJourneyLevel]}</strong><p>{levelDefinitionText(visibleJourneyLevel)}</p></div></div>
+                <div className="journey-deck-clarity">
+                  <h4 className="journey-definition-label">{viewingAnotherLevel ? viewedDefinitionLabel : currentDefinitionLabel}</h4>
+                  <strong>{localizedLevelNames[language][visibleJourneyLevel]}</strong><p>{levelDefinitionText(visibleJourneyLevel)}</p>
+                </div></div>
               </article> : visibleJourneyLevel === 9 ? <article className="journey-level-card journey-level-card--active journey-level-card--vision">
                 <div className="journey-level-card-top"><div className="journey-level-card-index"><span>{tr('level')}</span><strong>9</strong></div><span className="journey-level-card-name">{localizedLevelNames[language][9]}</span><em>{tr('finalVision')}</em></div>
                 <VisionImage key={selectedMode.key} value={visionImages[selectedMode.key]} onChange={image => { if (!tourTopic && currentJourneyLevel === 9) saveVisionImage(selectedMode.key, image); }} language={language} title={tr('finalVision')} uploadLabel={tr('uploadImage')} changeLabel={tr('changeImage')} />

@@ -24,6 +24,7 @@ const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-w
 const ACCESS = 'synthetic-qa-token-not-a-credential';
 CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey', 'home-vision', 'account-home-vision');
 CASES.push('electric-home', 'account-electric-home');
+CASES.push('home-upload', 'account-home-upload');
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -105,9 +106,17 @@ function serverIdentity(owner = false) {
   return { user_id: USER, organization_id: ORG, name: 'Synthetic QA person', email: owner ? configured : 'qa-person@example.invalid', roles: ['owner'], permissions: ['*'] };
 }
 function deferred() { let resolvePromise; const promise = new Promise(resolve => { resolvePromise = resolve; }); return { promise, resolve: resolvePromise }; }
-function sameProtected(actual, expected) { for (const field of protectedFields) assert.deepEqual(actual[field], expected[field], `Preserve ${field}`); }
+function sameProtected(actual, expected, uploads = false) {
+  for (const field of protectedFields) {
+    if (uploads && field === 'visionImages') {
+      const { financiero, ...others } = actual[field];
+      if (financiero) assert.match(financiero, /^data:image\//);
+      assert.deepEqual(others, expected[field], 'Preserve photos for other modes');
+    } else assert.deepEqual(actual[field], expected[field], `Preserve ${field}`);
+  }
+}
 
-async function installTransport(context, origin, state, { identity = serverIdentity(), hold = false, syntheticAi = false, localIdeaCase = '', pendingTour = false } = {}) {
+async function installTransport(context, origin, state, { identity = serverIdentity(), hold = false, syntheticAi = false, localIdeaCase = '', pendingTour = false, uploads = false } = {}) {
   let approvalCount = 1;
   const ideaWrites = []; let idea = null;
   const reads = [], writes = [], violations = [], blocked = []; let aiCalls = 0; let revision = 1; let document = clone(state);
@@ -128,7 +137,7 @@ async function installTransport(context, origin, state, { identity = serverIdent
       if (apiPath === '/state' && method === 'PUT' && authenticated) {
         const body = request.postDataJSON(); writes.push({ path: apiPath, body: clone(body) });
         if (body.expected_revision !== snapshot().revision) return reply(route, snapshot(), 409);
-        sameProtected(body.state, state); assert.deepEqual(body.state.qa_unknown, state.qa_unknown, 'Keep unknown cloud fields');
+        sameProtected(body.state, state, uploads); assert.deepEqual(body.state.qa_unknown, state.qa_unknown, 'Keep unknown cloud fields');
         document = clone(body.state); revision++; return reply(route, snapshot());
       }
       if (apiPath === '/health' && method === 'GET') return reply(route, { status: 'ok', app_env: 'synthetic-test', version: 'qa-only' });
@@ -414,6 +423,8 @@ async function runCase(browser, config, task) {
   if (localeTask) { state.language = 'en'; if (!task.name.includes('legacy-locale') && !task.name.includes('ambiguous-cache')) state.languageSource = 'auto'; }
   if (manualTask) { state.language = expectedLanguage; if (!task.name.includes('cached-manual')) state.languageSource = 'manual'; }
   const account = task.name.includes('account') || task.name === 'identity'; const reduced = task.width === 320 || task.width === 870;
+  const uploads = task.name.endsWith('home-upload');
+  if (uploads) delete state.visionImages.financiero;
   if (task.name.endsWith('electric-home')) state.homeVisionCards = { fisico: true };
   if (task.name.endsWith('home-vision')) {
     state.levels.fisico = 9;
@@ -430,7 +441,7 @@ async function runCase(browser, config, task) {
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
-  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts', localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name) });
+  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts', localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads });
   await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: 'manual', manualRecord: !localeTask, cachedManual: task.name.includes('ambiguous-cache') });
   if (task.name.endsWith('electric-home') && !account) await context.addInitScript(() => {
     if (!localStorage.getItem('__electric_seed')) {
@@ -475,12 +486,13 @@ async function runCase(browser, config, task) {
         await open();
         assert.equal(await modal.locator('[data-mode=fisico] input[value=vision]').isChecked(), true, 'Keep the old boolean preference');
         assert.equal(await modal.locator('input[value=electric]').count(), 12);
-        assert.equal(await modal.locator('input[type=file]').count(), 0);
+        assert.equal(await modal.locator('[data-mode=fisico] input[type=file]').count(), 1, 'Existing Vision can be changed');
         for (const mode of MODES) {
           await modal.locator(`[data-mode=${mode}] input[value=electric]`).check();
           assert.ok((await modal.locator(`[data-mode=${mode}]`).innerText()).includes(electricSymbolLabel(task.language)));
         }
-        assert.equal(await page.locator('.electric-logo canvas').count(), 0, 'Settings must not mount twelve renderers');
+        assert.equal(await modal.locator('input[type=file]').count(), 0, 'Symbol choices do not show upload controls');
+        assert.equal(await page.locator('.global-sparks--symbol').count(), 0, 'Settings pause decorative effects');
         await page.keyboard.press('Escape');
         const expected = Object.fromEntries(MODES.map(mode => [mode, 'electric']));
         if (account) await eventually(() => JSON.stringify(transport.snapshot().state.homeVisionCards) === JSON.stringify(expected), 'All electric preferences synced');
@@ -488,29 +500,26 @@ async function runCase(browser, config, task) {
         if (account) await settleHydration(page, expectedLanguage, config.timeout);
         const carousel = page.locator('.circular-carousel[data-ready]');
         await carousel.locator('.home-mode-card[tabindex="0"]').press('Home');
+        const sparks = carousel.locator('.global-sparks--symbol');
         if (!reduced) {
-          await page.locator('.mode-electric-symbol.is-rendered').waitFor({timeout:30000});
-          assert.equal(await page.locator('.electric-logo canvas').count(), 1, 'One WebGL context, not twelve');
-          await page.evaluate(() => { globalThis.__qaVisibility = true; document.dispatchEvent(new Event('visibilitychange')); });
-          await eventually(async () => await page.locator('.electric-logo canvas').count() === 0, 'Hidden tab releases canvas');
-          await page.evaluate(() => { globalThis.__qaVisibility = false; document.dispatchEvent(new Event('visibilitychange')); });
-          await page.locator('.mode-electric-symbol.is-rendered').waitFor({timeout:30000});
+          assert.equal(await sparks.count(), 1, 'One card has particles');
+          assert.equal(await sparks.evaluate(el => getComputedStyle(el, '::before').animationName), 'global-spark-drift');
           await page.emulateMedia({ reducedMotion: 'reduce' });
-          await eventually(async () => await page.locator('.electric-logo canvas').count() === 0, 'Live reduced motion removes animation');
+          await sparks.waitFor({state:'detached'});
           await page.emulateMedia({ reducedMotion: 'no-preference' });
-          await page.locator('.mode-electric-symbol.is-rendered').waitFor({timeout:30000});
-          if (process.env.ELECTRIC_QA_SCREENSHOT) { await delay(1800); await page.screenshot({path:process.env.ELECTRIC_QA_SCREENSHOT}); }
-          await page.locator('.electric-logo canvas').dispatchEvent('webglcontextlost');
-          await eventually(async () => await page.locator('.electric-logo canvas').count() === 0, 'Lost GPU context returns to the PNG');
-        } else assert.equal(await page.locator('.electric-logo canvas').count(), 0);
+          await sparks.waitFor();
+          if (process.env.ELECTRIC_QA_SCREENSHOT) await page.screenshot({path:process.env.ELECTRIC_QA_SCREENSHOT});
+        } else assert.equal(await sparks.count(), 0);
+        assert.equal(await carousel.locator('canvas').count(), 0);
+        assert.equal(await carousel.locator('.circular-carousel__photo').count(), 0, 'No redundant curved image tiles when all cards use symbols');
         for (const [index, mode] of MODES.entries()) {
           const button = carousel.locator(`[data-tour-mode="${mode}"][tabindex="0"]`);
           await button.waitFor();
           assert.ok((await button.getAttribute('class')).includes('home-mode-card--electric'));
-          assert.equal(await button.locator('.mode-electric-symbol-fallback').getAttribute('src'), `/mode-symbols/${mode}.png`);
+          assert.equal(await button.locator('.mode-electric-symbol-fallback').getAttribute('src'), `/mode-symbols/${mode}.webp`);
           if (index % 2) await button.press('Enter'); else if (task.width <= 390) await button.tap(); else await button.click();
           await page.locator('.journey-panel').waitFor();
-          assert.equal(await page.locator('.electric-logo canvas').count(), 0, 'Covered home releases renderer');
+          assert.equal(await sparks.count(), 0, 'Covered home pauses its effects');
           await page.locator('.close-journey').click();
           if (index < MODES.length-1) await carousel.locator('.circular-carousel__controls button').nth(1).click();
         }
@@ -521,7 +530,41 @@ async function runCase(browser, config, task) {
         await page.keyboard.press('Escape');
         if (account) await eventually(() => transport.snapshot().state.homeVisionCards?.fisico === true && !transport.snapshot().state.homeVisionCards?.intelectual, 'Restoring existing choices synced');
         await assertPreserved(page,state,account);
-        result = { electricModes:12, oldBooleanPreserved:true, selectableSources:3, persistence:account?'account':'guest', oneRenderer:!reduced, strictReducedMotion:true, allModesOpen:true, preserved:true };
+        result = { electricModes:12, oldBooleanPreserved:true, selectableSources:3, persistence:account?'account':'guest', noCanvas:true, strictReducedMotion:true, allModesOpen:true, preserved:true };
+      } else if (uploads) {
+        const modal = page.locator('.home-vision-settings[open]');
+        const open = async () => { await page.locator('.home-menu-button').click(); await page.locator('[data-home-menu-item="images"]').click(); await modal.waitFor(); };
+        const field = modal.locator('[data-mode=financiero]');
+        const current = field.locator('img');
+        const prior = await page.locator('[data-tour-mode=financiero]').getAttribute('aria-label');
+        const choose = async () => {
+          const event = page.waitForEvent('filechooser');
+          await field.locator('input[value=vision]').click();
+          return await event;
+        };
+        await open();
+        const invalid = await choose();
+        await invalid.setFiles({name:'invalid.png',mimeType:'image/png',buffer:Buffer.from('invalid')});
+        await field.locator('.vision-image-notice:not(:empty)').waitFor();
+        assert.equal(await field.locator('input[value=default]').isChecked(), true);
+        assert.equal(await current.getAttribute('src'), '/mode-photos/financiero.jpg');
+        const valid = await choose();
+        await valid.setFiles({name:'valid.png',mimeType:'image/png',buffer:Buffer.from(PNG.split(',')[1],'base64')});
+        await eventually(() => field.locator('input[value=vision]').isChecked(), 'Uploaded photo selects Vision');
+        const uploaded = await current.getAttribute('src');
+        assert.match(uploaded, /^data:image\//);
+        if (account) await eventually(() => transport.snapshot().state.visionImages.financiero === uploaded && transport.snapshot().state.homeVisionCards.financiero === true, 'Photo and choice synced');
+        await page.keyboard.press('Escape');
+        await page.reload({ waitUntil:'domcontentloaded' });
+        if (account) await settleHydration(page, expectedLanguage, config.timeout);
+        const card = page.locator('[data-tour-mode=financiero]');
+        assert.equal(await card.getAttribute('aria-label'), prior, 'Upload does not change the level');
+        const carouselPhoto = page.locator('.circular-carousel__card:has([data-tour-mode=financiero]) .circular-carousel__photo').first();
+        assert.equal(await carouselPhoto.getAttribute('src'), uploaded);
+        await open();
+        assert.equal(await field.locator('input[type=file]').count(), 1, 'Available photo can be replaced');
+        sameProtected(await storedDocument(page, account), state, true);
+        result = { uploadFromHome:true, invalidRejected:true, persistence:account?'account':'guest', levelPreserved:true };
       } else if (task.name.endsWith('home-vision')) {
         const menu = page.locator('.home-menu-button');
         const modal = page.locator('.home-vision-settings[open]');
@@ -539,8 +582,7 @@ async function runCase(browser, config, task) {
         await open();
         assert.equal(await modal.locator('h2').innerText(), homeVisionCopy(task.language)[0]);
         assert.equal(await modal.locator('fieldset').count(), 12);
-        assert.equal(await page.locator('input[type=file]').count(), 0, 'No uploading anywhere on home');
-        assert.equal(await choice('financiero', 'vision').isDisabled(), true);
+        assert.equal(await choice('financiero', 'vision').isEnabled(), true, 'Vision is available even before a photo exists');
         await choice('arquetipico', 'vision').check();
         await eventually(async () => await photo('arquetipico').getAttribute('src') === '/mode-photos/arquetipico.jpg', 'Broken image falls back');
         await choice('arquetipico', 'default').check();
@@ -566,7 +608,7 @@ async function runCase(browser, config, task) {
         assert.equal(await page.locator('.journey-level-card--vision input[type=file]').count(), 1, 'Vision still owns the uploader');
         assert.equal(await page.locator('.journey-level-card--vision .vision-image-content').getAttribute('src'), PNG, 'Restoring stock never changes the original Vision');
         await assertPreserved(page, state, account);
-        result = { menuOrder: true, twelvePhotoSettings: true, existingVisionOptIn: true, persistence: account ? 'account' : 'guest', missingAndBrokenFallback: true, levelNineUploadOnly: true, preserved: true };
+        result = { menuOrder: true, twelvePhotoSettings: true, existingVisionOptIn: true, persistence: account ? 'account' : 'guest', missingAndBrokenFallback: true, levelNineUploadStillWorks: true, preserved: true };
       } else if (task.name === 'fresh-journey') {
         const carousel = page.locator('.circular-carousel[data-ready]');
         await assertFixedHome(page);
@@ -588,6 +630,12 @@ async function runCase(browser, config, task) {
           if (method === 'press') await card.press('Enter'); else await card.click();
           const dialog = page.locator('.journey-panel');
           assert.equal(await dialog.locator('.journey-replay').count(), 0);
+          assert.equal(await dialog.locator('.journey-current-level .global-sparks').count(), 1);
+          assert.equal(await dialog.locator('.journey-step-arrow--next .global-sparks').count(), 1);
+          if (task.language === 'es') {
+            assert.equal((await dialog.locator('.journey-current-level').textContent()).trim(), 'Estás en nivel: 0');
+            assert.equal(await dialog.locator('.journey-definition-label').textContent(), 'Definición del nivel actual:');
+          }
           assert.equal(await dialog.evaluate(el => el.style.getPropertyValue('--mode-color')), expectedColors[index]);
           assert.equal(await dialog.locator('.journey-level-link--up').isDisabled(), true);
           assert.equal(await dialog.locator('.journey-level-link--down').count(), 0);
@@ -751,7 +799,7 @@ async function runCase(browser, config, task) {
     }
     assert.deepEqual(errors, [], 'No uncaught browser errors'); assert.deepEqual(transport.violations, [], 'No unexpected API mutation/external request');
     if (task.name !== 'drafts') assert.equal(transport.aiCalls, 0);
-    if (account) { sameProtected(transport.snapshot().state, state); assert.ok(transport.reads.includes('/auth/me') && transport.reads.includes('/state')); }
+    if (account) { sameProtected(transport.snapshot().state, state, uploads); assert.ok(transport.reads.includes('/auth/me') && transport.reads.includes('/state')); }
     const bundle = await page.locator('script[type="module"][src]').first().getAttribute('src');
     return { ...task, ...result, bundle, mockedStateWrites: transport.writes.length, realApiRequests: 0, errors: [] };
   } catch (error) {
@@ -772,7 +820,7 @@ function selfTest() {
   assert.equal(STOPS.length, JOURNEY_REACTIONS_ENABLED ? 30 : 29); assert.equal(new Set(STOPS).size, STOPS.length); assert.ok(STOPS.includes('audience'));
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, emocional: false, unknown: true, social: 'true' }), { fisico: true });
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, social: 'electric', unknown: 'electric' }), { fisico:true, social:'electric' });
-  assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/fisico.png');
+  assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/fisico.webp');
   assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
   assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '/mode-photos/fisico.jpg');
   assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-photos/fisico.jpg');
