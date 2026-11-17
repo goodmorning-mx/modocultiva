@@ -22,7 +22,7 @@ const MODES = ['fisico', 'intelectual', 'emocional', 'arquetipico', 'espiritual'
 const STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
 const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-ambiguous-cache-welcome', 'tour', 'identity', 'drafts', 'local-idea', 'account-local-idea', 'account-local-zero', 'account-local-failure'];
 const ACCESS = 'synthetic-qa-token-not-a-credential';
-CASES.push('account-pending-tour');
+CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey');
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -103,6 +103,7 @@ function deferred() { let resolvePromise; const promise = new Promise(resolve =>
 function sameProtected(actual, expected) { for (const field of protectedFields) assert.deepEqual(actual[field], expected[field], `Preserve ${field}`); }
 
 async function installTransport(context, origin, state, { identity = serverIdentity(), hold = false, syntheticAi = false, localIdeaCase = '', pendingTour = false } = {}) {
+  let approvalCount = 1;
   const ideaWrites = []; let idea = null;
   const reads = [], writes = [], violations = [], blocked = []; let aiCalls = 0; let revision = 1; let document = clone(state);
   const identityGate = deferred(), stateGate = deferred();
@@ -130,7 +131,7 @@ async function installTransport(context, origin, state, { identity = serverIdent
       if (apiPath === '/community/profile' && method === 'GET') return reply(route, { user_id: USER, display_name: 'Synthetic QA person', bio: '', discoverable: true });
       if (apiPath === '/community/submissions' && method === 'GET' && pendingTour) {
         const rubric = JSON.parse(readFileSync(resolve(frontend, 'src/clarity-levels.json'), 'utf8'));
-        return reply(route, { submissions: [{ id: 'synthetic-pending', author_id: USER, mode: 'fisico', source_level: 3, target_level: 4, revision_number: 1, activity: ACTIVITY, target_alignment: ALIGNMENT, status: 'pending', review_count: 1, review_quorum: 3, reviews: [], evidence: { reflection: 'Synthetic visual evidence context for the saved practice.', image: PNG }, rubric_snapshot: { version: rubric.version, source: rubric.languages[state.language][3], target: rubric.languages[state.language][4], effort: 'time_energy' }, audience: 'network', shared_card_id: '00000000-0000-4000-8000-000000000222' }] });
+        return reply(route, { submissions: [{ id: 'synthetic-pending', author_id: USER, mode: 'fisico', source_level: 3, target_level: 4, revision_number: 1, activity: ACTIVITY, target_alignment: ALIGNMENT, status: approvalCount === 3 ? 'approved' : 'pending', review_count: approvalCount, review_quorum: 3, reviews: [], evidence: { reflection: 'Synthetic visual evidence context for the saved practice.', image: PNG }, rubric_version: rubric.version, rubric_snapshot: { version: rubric.version, source: rubric.languages[state.language][3], target: rubric.languages[state.language][4], effort: 'time_energy' }, audience: 'network', shared_card_id: '00000000-0000-4000-8000-000000000222' }] });
       }
       if (apiPath === '/community/ideas' && method === 'POST' && localIdeaCase && authenticated) {
         const body = request.postDataJSON(); ideaWrites.push(body); assert.deepEqual(body, { mode: 'fisico', level: 3 });
@@ -152,7 +153,12 @@ async function installTransport(context, origin, state, { identity = serverIdent
     if (['fetch', 'xhr'].includes(request.resourceType()) || method !== 'GET') violations.push(`${method} unexpected external request`);
     blocked.push(request.resourceType()); return route.abort('blockedbyclient');
   });
-  return { reads, writes, ideaWrites, violations, blocked, identityGate, stateGate, snapshot, get aiCalls() { return aiCalls; } };
+  return { reads, writes, ideaWrites, violations, blocked, identityGate, stateGate, snapshot, get aiCalls() { return aiCalls; },
+    setApprovals(count) {
+      approvalCount = count;
+      if (count === 3) { document.levels.fisico = 4; revision++; }
+    },
+  };
 }
 
 async function seed(context, state, { account = false, cachedOwner = false, guestCompleted = false, languageSource = 'manual', cachedManual = false, manualRecord = true } = {}) {
@@ -218,6 +224,11 @@ async function storedDocument(page, account = false) {
 }
 async function assertPreserved(page, expected, account = false) { sameProtected(await storedDocument(page, account), expected); }
 async function openReplay(page, timeout, keyboard = false) {
+  const journeyReplay = page.locator('.journey-replay');
+  if (await journeyReplay.isVisible()) {
+    if (keyboard) await journeyReplay.press('Enter'); else await journeyReplay.click();
+    await ready(page, 'modes', timeout); return;
+  }
   const replay = page.locator('[data-tour="replay"]');
   if (!await replay.isVisible()) {
     const opener = page.locator('.home-menu-button:visible, .profile-button:visible').first();
@@ -266,7 +277,7 @@ async function inspectSpotlight(page, owner) {
   for (const rect of [result.panel, ...result.holes]) assert.ok(rect.w > 0 && rect.h > 0 && rect.x >= -2 && rect.y >= -2 && rect.right <= result.width + 2 && rect.bottom <= result.height + 2, `Clipped spotlight/panel stays within viewport: ${result.id}`);
   return result;
 }
-const methodSelectors = { custom: '.journey-fixed-actions > button:first-child', bank: '.activity-pool-button', ai: '.activity-ai-button', localContacts: '.journey-fixed-actions > .insight-button' };
+const methodSelectors = { custom: '.journey-manual-button', bank: '.activity-pool-button', ai: '.activity-ai-button', localContacts: '.journey-fixed-actions .insight-button' };
 async function advance(page, current, timeout) {
   const next = STOPS[STOPS.indexOf(current) + 1];
   const button = page.locator('.guided-tour-rail button:last-child'); assert.equal(await button.isDisabled(), false, `Next available: ${current}`);
@@ -277,7 +288,7 @@ async function advance(page, current, timeout) {
 async function methodRegression(page, timeout) {
   for (const [method, selector] of Object.entries(methodSelectors)) {
     await page.locator(selector).click(); await ready(page, method, timeout);
-    const surface = method === 'localContacts' ? '.journey-fixed-actions > .insight-button' : `.activity-agent--${method === 'bank' ? 'pool' : method}`;
+    const surface = method === 'localContacts' ? methodSelectors.localContacts : `.activity-agent--${method === 'bank' ? 'pool' : method}`;
     assert.equal(await page.locator(surface).isVisible(), true, `Summary button actually opens ${method}, not just a local checklist toggle`);
     for (let index = STOPS.indexOf(method); STOPS[index] !== 'methods'; index++) await advance(page, STOPS[index], timeout);
     assert.equal(await page.locator('.guided-tour-methods li[data-visited="true"]').count(), 4);
@@ -300,7 +311,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
       assert.ok((await page.locator('.journey-builder .activity-flow-target summary').innerText()).trim());
     }
     if (step === 'methods') { assert.equal(await page.locator('.guided-tour-methods li[data-visited="true"]').count(), 4); if (regress) await methodRegression(page, configuration.timeout); }
-    if (['activityCard', 'evidence', 'audience'].includes(step)) assert.equal(await page.locator('.activity-flow-stages > li').count(), 3, 'No fourth activity stage');
+    if (['activityCard', 'evidence', 'audience'].includes(step)) assert.equal(await page.locator('.journey-step-list > li').count(), 4, 'Overview and three activity stages');
     if (step === 'audience') {
       assert.equal(await page.locator('.activity-flow-audience input[value="network"]').isChecked(), true);
       assert.equal(await page.locator('.activity-flow-audience input[type="checkbox"]').count(), 0);
@@ -380,7 +391,7 @@ async function welcomeCase(page, configuration, account = false) {
 async function runCase(browser, config, task) {
   const welcomeTask = task.name.endsWith('welcome');
   const localeTask = task.name.includes('locale') || task.name.includes('ambiguous-cache'); const manualTask = task.name.includes('manual');
-  const established = task.name.startsWith('legacy-') || localeTask || manualTask || !welcomeTask; const state = fixture(task.language, established);
+  const established = task.name !== 'fresh-journey' && (task.name.startsWith('legacy-') || localeTask || manualTask || !welcomeTask); const state = fixture(task.language, established);
   const expectedLanguage = manualTask ? (task.language === 'en' ? 'es' : 'en') : task.language;
   if (localeTask) { state.language = 'en'; if (!task.name.includes('legacy-locale') && !task.name.includes('ambiguous-cache')) state.languageSource = 'auto'; }
   if (manualTask) { state.language = expectedLanguage; if (!task.name.includes('cached-manual')) state.languageSource = 'manual'; }
@@ -394,7 +405,7 @@ async function runCase(browser, config, task) {
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
-  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts', localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: task.name === 'account-pending-tour' });
+  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts', localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name) });
   await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: 'manual', manualRecord: !localeTask, cachedManual: task.name.includes('ambiguous-cache') });
   const configuration = { ...config, ...task, language: expectedLanguage, reduced }; let result;
   try {
@@ -427,6 +438,60 @@ async function runCase(browser, config, task) {
           await assertPreserved(page, state); await assertMap(page, state.levels);
         }
         result = { tours, preserved: true, guestCounter: false, sharingPreviewTested: config.sharePreview };
+      } else if (task.name === 'fresh-journey') {
+        const carousel = page.locator('.circular-carousel[data-ready]');
+        const active = carousel.locator('.home-mode-card[tabindex="0"]');
+        const header = page.locator('.topbar--material-home');
+        assert.equal(await header.evaluate(el => getComputedStyle(el).boxShadow), 'none');
+        assert.equal(await header.locator('.topbar-actions').evaluate(el => getComputedStyle(el).position), 'fixed');
+        const expectedColors = ['#22C7A5', '#3D8FD2', '#D94A4A', '#A77BDB', '#FFFFFF', '#D98BA9', '#B49AD6', '#3FBBC3', '#D9B65D', '#7A91A8', '#A87554', '#C7CED8'];
+        await active.press('Home');
+        for (const [index, mode] of MODES.entries()) {
+          const card = carousel.locator(`[data-tour-mode="${mode}"][tabindex="0"]`);
+          await card.waitFor();
+          const method = index % 2 ? 'press' : 'click';
+          if (method === 'press') await card.press('Enter'); else await card.click();
+          const dialog = page.locator('.journey-panel');
+          assert.equal(await dialog.evaluate(el => el.style.getPropertyValue('--mode-color')), expectedColors[index]);
+          assert.equal(await dialog.locator('.journey-level-link--up').isDisabled(), true);
+          assert.equal(await dialog.locator('.journey-level-link--down').count(), 0);
+          assert.equal(await dialog.locator('.journey-step-list button').nth(2).isDisabled(), true);
+          assert.equal(await dialog.locator('.journey-step-list button').nth(3).isDisabled(), true);
+          await dialog.locator('.close-journey').click();
+          if (index < MODES.length - 1) await carousel.locator('.circular-carousel__controls button').nth(1).click();
+        }
+        await page.locator('.home-menu-button').click();
+        await page.locator('.home-sidebar-nav button').nth(3).click();
+        await page.locator('.specialists-view .cult-specialist-list').waitFor();
+        await page.locator('.specialists-view .cult-exit').click();
+        await page.locator('.home-menu-button').click();
+        await page.locator('.home-sidebar-nav button').nth(1).click();
+        assert.ok(await page.locator('.crm-dashboard > .badges-gallery:last-child').isVisible());
+        result = { freshLevels: 0, allModesOpen: 12, palette: true, floatingHome: true, specialistsAndBadges: true };
+      } else if (task.name === 'account-journey-ascent') {
+        await selectPhysicalMode(page);
+        const steps = page.locator('.journey-step-list button');
+        const up = page.locator('.journey-level-link--up');
+        await steps.nth(3).click();
+        assert.equal(await page.locator('.activity-flow-review progress').getAttribute('value'), '1');
+        assert.equal(await up.isDisabled(), true);
+        transport.setApprovals(2);
+        await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+        await page.locator('.activity-flow-review progress[value="2"]').waitFor();
+        assert.equal(await up.isDisabled(), true, 'Two approvals do not unlock a new level');
+        transport.setApprovals(3); state.levels.fisico = 4;
+        await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+        await page.locator('.activity-flow-review progress[value="3"]').waitFor();
+        await up.click();
+        assert.equal(await steps.nth(0).getAttribute('aria-current'), 'step');
+        assert.equal(await steps.nth(2).isDisabled(), true, 'A new level has no evidence until its activity is defined');
+        assert.equal(await steps.nth(3).isDisabled(), true);
+        assert.equal(await up.isDisabled(), true);
+        await page.locator('.journey-level-link--down').click();
+        await steps.nth(3).click();
+        assert.equal(await page.locator('.activity-flow-review progress').getAttribute('value'), '3');
+        await assertPreserved(page, state, true);
+        result = { fourCards: true, approvalsUnlockAscent: 3, priorLevelStillVisible: true };
       } else if (task.name === 'identity') {
         await openReplay(page, config.timeout); await inspectSpotlight(page, task.identity === 'owner');
         if (task.identity === 'owner') assert.ok((await page.locator('.guided-tour-counter').innerText()).includes('30'), 'Verified owner sees the thirty-stop total');
@@ -447,20 +512,32 @@ async function runCase(browser, config, task) {
         result = { identity: task.identity, counter: task.identity === 'owner', verifiedAndHydrated: true, consentSeen, shareCtaOpensFeedChooser: true, guestArchivePreserved: true };
       } else if (task.name.includes('local-')) {
         await selectPhysicalMode(page);
+        const steps = page.locator('.journey-step-list button');
+        assert.equal(await steps.count(), 4);
+        assert.equal(await steps.nth(0).getAttribute('aria-current'), 'step');
+        assert.equal(await steps.nth(3).isDisabled(), true);
+        assert.equal(await page.locator('.journey-level-link--up').isDisabled(), true);
+        assert.equal(await page.locator('#journey-slider').count(), 0);
+        await steps.nth(1).click();
+        await page.locator('.journey-global-button').click();
+        await page.locator('.journey-global-dialog .cult-insight-spotlight').waitFor();
+        assert.equal(transport.ideaWrites.length, 0, 'Global ideas display recommendations without notifying contacts');
+        await page.locator('.journey-global-dialog > .close-journey').click();
+        await steps.nth(2).click();
         const flow = page.locator('.activity-journey-flow'); await flow.waitFor();
         assert.equal(await page.locator('.journey-community-actions').count(), 0);
-        assert.equal(await flow.locator('.activity-flow-stages > li').count(), 3);
         assert.equal(await flow.locator('.activity-flow-help[open]').count(), 0);
         assert.equal(await flow.locator('.card-audience-options > label').count(), 2);
         for (const label of await flow.locator('.card-audience-options > label').all()) assert.ok((await label.boundingBox()).height <= 80, 'Compact audience targets, including mobile');
         const height = (await flow.boundingBox()).height; assert.ok(height < 1350, `Compact default flow height: ${height}`);
-        const trigger = page.locator('.journey-fixed-actions > .insight-button');
+        await steps.nth(1).click();
+        const trigger = page.locator(methodSelectors.localContacts);
         await trigger.click(); await page.locator('.journey-local-idea-status').waitFor();
         assert.equal(await page.locator('.community-panel').count(), 0, 'Direct action never opens another section');
         assert.equal(transport.ideaWrites.length, account ? 1 : 0, 'One synthetic transport call, no anonymous sends');
         assert.equal(await trigger.getAttribute('aria-pressed'), task.name === 'account-local-idea' ? 'true' : 'false');
         assert.equal(await trigger.isDisabled(), task.name === 'account-local-idea');
-        if (process.env.ACTIVITY_QA_SCREENSHOTS) { await flow.scrollIntoViewIfNeeded(); await page.screenshot({ path: resolve(process.env.ACTIVITY_QA_SCREENSHOTS, `compact-${task.name}-${task.width}-${task.language}.png`) }); }
+        if (process.env.ACTIVITY_QA_SCREENSHOTS) { await steps.nth(2).click(); await flow.scrollIntoViewIfNeeded(); await page.screenshot({ path: resolve(process.env.ACTIVITY_QA_SCREENSHOTS, `compact-${task.name}-${task.width}-${task.language}.png`) }); }
         await assertPreserved(page, state, account);
         result = { directRequest: true, compactHeight: height, ideaCalls: transport.ideaWrites.length, dataPreserved: true };
       } else if (task.name === 'drafts') {
@@ -472,6 +549,7 @@ async function runCase(browser, config, task) {
           }
           if (!await page.locator('.journey-panel').count()) await selectPhysicalMode(page);
           else if (await page.locator('.activity-agent-back').isVisible()) { await page.locator('.activity-agent-back').click(); await page.locator('.journey-fixed-actions').waitFor(); }
+          if (!await page.locator(methodSelectors[entry]).isVisible()) await page.locator('.journey-step-list button').nth(1).click();
           await page.locator(methodSelectors[entry]).click();
           const text = `Unsaved ${entry} draft · العربية · QA only. Never replace this with saved text.`;
           await page.locator('#activity-prompt').fill(text);

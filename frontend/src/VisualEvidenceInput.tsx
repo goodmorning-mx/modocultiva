@@ -15,10 +15,11 @@ export type VisualEvidenceInputProps = {
   onLoadVideo?: LoadVideo;
   onBusyChange?: (busy: boolean) => void;
   disabled?: boolean;
+  readOnly?: boolean;
 };
 
 /** Owner-only draft input; publication audience is chosen separately by the host. */
-export function VisualEvidenceInput({ language = 'en', value, onChange, onUploadVideo, onLoadVideo, onBusyChange, disabled = false }: VisualEvidenceInputProps) {
+export function VisualEvidenceInput({ language = 'en', value, onChange, onUploadVideo, onLoadVideo, onBusyChange, disabled = false, readOnly = false }: VisualEvidenceInputProps) {
   const copy = activityFlowCopy(language);
   const id = useId();
   const operation = useRef<AbortController | null>(null);
@@ -84,13 +85,13 @@ export function VisualEvidenceInput({ language = 'en', value, onChange, onUpload
     }, 'playbackFailed');
   };
 
-  return <fieldset className="visual-evidence-input" dir={language === 'ar' ? 'rtl' : 'ltr'} aria-describedby={`${id}-rule ${id}-privacy`}>
+  return <fieldset className="visual-evidence-input" dir={language === 'ar' ? 'rtl' : 'ltr'} aria-describedby={readOnly ? undefined : `${id}-rule ${id}-privacy`}>
     <legend>{copy.stages[1]}</legend>
-    <label className="visual-evidence-picker" htmlFor={`${id}-file`}><span aria-hidden="true">＋ </span>{compactActivityCopy(language).attach}<small>MP4 / WebM · 20 MiB</small></label>
+    {!readOnly && <><label className="visual-evidence-picker" htmlFor={`${id}-file`}><span aria-hidden="true">＋ </span>{compactActivityCopy(language).attach}<small>MP4 / WebM · 20 MiB</small></label>
     <input id={`${id}-file`} aria-label={copy.choose} className="visual-evidence-file" type="file" accept="image/*,video/mp4,video/webm" disabled={disabled} onChange={event => {
       const file = event.currentTarget.files?.[0]; event.currentTarget.value = '';
       if (file) void select(file);
-    }} />
+    }} /></>}
     {photo && <figure className="visual-evidence-preview"><img src={photo} alt={copy.preview} /></figure>}
     {assetId && <div className="visual-evidence-preview">
       <p>{copy.videoStored}</p>
@@ -100,10 +101,10 @@ export function VisualEvidenceInput({ language = 'en', value, onChange, onUpload
     </div>}
     <div className="activity-flow-actions">
       {busy && <button type="button" onClick={cancel}>{copy.cancel}</button>}
-      {value && <button type="button" disabled={disabled} onClick={() => { cancel(); setError(''); onChange(undefined); }}>{copy.remove}</button>}
+      {value && !readOnly && <button type="button" disabled={disabled} onClick={() => { cancel(); setError(''); onChange(undefined); }}>{copy.remove}</button>}
     </div>
     <div role="status" aria-live="polite" aria-atomic="true">{busy ? copy.working : ''}</div>
     {error && <p className="activity-flow-error" role="alert">{error}</p>}
-    <details className="activity-flow-help"><summary>{compactActivityCopy(language).details}</summary><p id={`${id}-rule`}>{copy.visual}</p><p>{cardAudienceCopy(language).draftOwnerOnly}</p><p id={`${id}-privacy`}>{copy.privacy}</p></details>
+    {!readOnly && <details className="activity-flow-help"><summary>{compactActivityCopy(language).details}</summary><p id={`${id}-rule`}>{copy.visual}</p><p>{cardAudienceCopy(language).draftOwnerOnly}</p><p id={`${id}-privacy`}>{copy.privacy}</p></details>}
   </fieldset>;
 }
