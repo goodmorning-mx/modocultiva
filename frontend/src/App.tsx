@@ -18,7 +18,7 @@ import { activityFlowCopy } from './activityJourneyFlowMessages';
 import { PublicActivityCard } from './PublicActivityCard';
 import { adaptActivityFlow } from './activityFlowAdapter';
 import { ActivityJourneyFlow, activityFlowStage, type ActivityJourneyFlowProps } from './ActivityJourneyFlow';
-import { canOpenJourneyLevel, journeyGesture, journeyStepLabels, type JourneyStep } from './journeyDeck';
+import { canOpenJourneyLevel, journeyGesture, journeyLevelLabels, journeyStepLabels, type JourneyStep } from './journeyDeck';
 import type { EvidenceDraft } from './visualEvidence';
 import { onboardingIntegrationCopy } from './onboardingIntegrationMessages';
 import { WelcomeIntro } from './WelcomeIntro';
@@ -2454,6 +2454,9 @@ function App() {
   const maxJourneyStep = deckFlow ? activityFlowStage(visibleJourneyLevel, deckFlow.state) ?? 1 : 1;
   const displayJourneyStep = Math.min(journeyStep, maxJourneyStep) as JourneyStep;
   const deckLabels = journeyStepLabels[language];
+  const [ascendLabel, unlockHint, previousLevelLabel] = journeyLevelLabels[language];
+  const nextJourneyLevel = visibleJourneyLevel + 1;
+  const nextJourneyLevelOpen = canOpenJourneyLevel(nextJourneyLevel, currentJourneyLevel);
   const formatJourneyLevel = (level: number) => level.toLocaleString(language);
   const configurationLevels = previewedPreset ?? levels;
   useEffect(() => { if (!configurationsOpen) setPreviewedPreset(null); }, [configurationsOpen]);
@@ -2843,10 +2846,11 @@ function App() {
             }}>
             <div className="journey-ascent-status">
               {visibleJourneyLevel < 9 && <button className="journey-level-link journey-level-link--up" type="button"
-                disabled={!canOpenJourneyLevel(visibleJourneyLevel + 1, currentJourneyLevel)}
-                onClick={() => goJourneyLevel(visibleJourneyLevel + 1)}>
-                {visibleJourneyLevel < currentJourneyLevel ? <span aria-hidden="true">↑</span> : <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7V5a3 3 0 0 1 6 0v2" /><rect x="3.5" y="7" width="9" height="7" rx="1.5" /></svg>}
-                {visibleJourneyLevel < currentJourneyLevel ? tr('nextLevel') : deckLabels[5]} · {formatJourneyLevel(visibleJourneyLevel + 1)}
+                disabled={!nextJourneyLevelOpen} onClick={() => goJourneyLevel(nextJourneyLevel)}>
+                <span className="journey-level-link-icon" aria-hidden="true">↑</span>
+                <span className="journey-level-link-copy"><strong>{nextJourneyLevelOpen ? ascendLabel : tr('nextLevel')} · {formatJourneyLevel(nextJourneyLevel)}</strong>
+                  {!nextJourneyLevelOpen && <small><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7V5a3 3 0 0 1 6 0v2" /><rect x="3.5" y="7" width="9" height="7" rx="1.5" /></svg>{unlockHint}</small>}
+                </span>
               </button>}
               <div className="journey-builder-heading"><p className="kicker">{tr('cultivationPath')} · {tr('level')} {formatJourneyLevel(visibleJourneyLevel)}</p></div>
             </div>
@@ -2859,9 +2863,12 @@ function App() {
               <ol className="journey-step-list">
                 {deckLabels.slice(0, visibleJourneyLevel === 9 ? 2 : 4).map((label, step) => {
                   const title = visibleJourneyLevel === 9 && step === 1 ? tr('finalVision') : label;
-                  return <li key={step} data-step-state={step > maxJourneyStep ? 'locked' : step === displayJourneyStep ? 'current' : step < maxJourneyStep ? 'done' : 'available'}>
-                    <button type="button" disabled={step > maxJourneyStep} aria-current={step === displayJourneyStep ? 'step' : undefined} onClick={() => goJourneyStep(step)}>
-                      <span aria-hidden="true">{step > maxJourneyStep ? '·' : step < maxJourneyStep && step !== displayJourneyStep && step > 0 ? '✓' : String(step + 1)}</span><small>{title}</small>
+                  const numbered = step > 0 && visibleJourneyLevel < 9;
+                  const done = numbered && step < maxJourneyStep;
+                  return <li key={step} data-step-state={step > maxJourneyStep ? 'locked' : step === displayJourneyStep ? 'current' : done ? 'done' : 'available'}>
+                    <button type="button" disabled={step > maxJourneyStep} aria-current={step === displayJourneyStep ? (numbered ? 'step' : 'true') : undefined} onClick={() => goJourneyStep(step)}>
+                      {numbered && <span className="journey-step-number">{formatJourneyLevel(step)}{done && <i className="journey-step-check" aria-hidden="true">✓</i>}</span>}
+                      <small>{title}</small>
                     </button>
                   </li>;
                 })}
@@ -2906,7 +2913,9 @@ function App() {
                 {insightNotice && displayJourneyStep === 1 && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
               </>}
             </div>
-            {visibleJourneyLevel > 0 && <button className="journey-level-link journey-level-link--down" type="button" onClick={() => goJourneyLevel(visibleJourneyLevel - 1)}><span aria-hidden="true">↓</span>{tr('previousLevel')} · {formatJourneyLevel(visibleJourneyLevel - 1)}</button>}
+            {visibleJourneyLevel > 0 && <button className="journey-level-link journey-level-link--down" type="button" onClick={() => goJourneyLevel(visibleJourneyLevel - 1)}>
+              <span className="journey-level-link-icon" aria-hidden="true">↓</span><strong>{previousLevelLabel} · {formatJourneyLevel(visibleJourneyLevel - 1)}</strong>
+            </button>}
           </section>
         </>}
       </section></div>}
