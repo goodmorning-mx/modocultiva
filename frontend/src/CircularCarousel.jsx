@@ -1,4 +1,6 @@
-// Adapted from the React Bits Circular Carousel source supplied for this change.
+/*! React Bits Circular Carousel, copyright (c) 2026 David Haz.
+ * Modified for Modo Cultiva. See /REACT-BITS-LICENSE.md.
+ */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import './CircularCarousel.css';
@@ -227,8 +229,7 @@ const CircularCarousel = ({
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
-  const dragSign = layout.inward ? -1 : 1;
-  const directionSign = (direction === 'right' ? 1 : -1) * dragSign;
+  const directionSign = direction === 'right' ? 1 : -1;
 
   useEffect(() => {
     stateRef.current.dir = directionSign;
@@ -419,7 +420,7 @@ const CircularCarousel = ({
         ring.style.transform = `rotateX(${-angle}deg)`;
       } else if (s.layout.inward) {
         camera.style.transform = `translate3d(0, 0, ${s.perspective - 1}px) rotateX(${s.tilt + state.pitch}deg) rotateY(${state.yaw}deg)`;
-        ring.style.transform = `rotateY(${angle}deg)`;
+        ring.style.transform = `rotateY(${-angle}deg)`;
       } else {
         camera.style.transform = `translate3d(0, 0, ${-R}px) rotateX(${s.tilt + state.pitch}deg) rotateY(${state.yaw}deg)`;
         ring.style.transform = `rotateY(${angle}deg)`;
@@ -435,7 +436,7 @@ const CircularCarousel = ({
         if (s.axis === 'x') {
           transform = `rotateX(${-base}deg) translateZ(${r}px)`;
         } else if (s.layout.inward) {
-          transform = `rotateY(${base}deg) translateZ(${-r}px)`;
+          transform = `rotateY(${-base}deg) translateZ(${-r}px)`;
         } else {
           transform = `rotateY(${base}deg) translateZ(${r}px)`;
           if (s.layout.billboard) transform += ` rotateY(${-(base + angle)}deg)`;
@@ -508,8 +509,8 @@ const CircularCarousel = ({
       event.preventDefault();
       const perPixel = 180 / (Math.PI * s.radius * state.fit);
       state.target = null;
-      state.angle -= delta * perPixel * (s.layout.inward ? -1 : 1);
-      state.velocity = -delta * perPixel * (s.layout.inward ? -1 : 1) * 30;
+      state.angle -= delta * perPixel;
+      state.velocity = -delta * perPixel * 30;
       state.holdUntil = performance.now() + 1600;
       clearTimeout(state.wheelTimer);
       state.wheelTimer = setTimeout(() => {
@@ -630,7 +631,7 @@ const CircularCarousel = ({
       } catch {}
     }
     const perPixel = 180 / (Math.PI * s.radius * state.fit);
-    state.angle = press.angle + (delta - press.origin) * perPixel * (s.layout.inward ? -1 : 1);
+    state.angle = press.angle + (delta - press.origin) * perPixel;
     const now = performance.now();
     press.samples.push({ time: now, angle: state.angle });
     while (press.samples.length > 2 && now - press.samples[0].time > 110) press.samples.shift();
