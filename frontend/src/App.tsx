@@ -3,6 +3,8 @@ import CircularCarousel from './CircularCarousel';
 import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
 import { VisionImage } from './VisionImage';
+import { HomeVisionSettings } from './HomeVisionSettings';
+import { cleanHomeVisionCards, defaultModePhoto, homeModePhoto, homeVisionCopy, type HomeVisionCards } from './homeVision';
 import { JourneyActivityCard } from './JourneyActivityCard';
 import { ModeAiStudio } from './ModeAiStudio';
 import { ClarityGoal } from './ClarityGoal';
@@ -32,7 +34,7 @@ import { CommunityPanel, type CommunityShareCandidate, type CommunityTab } from 
 import './onboarding-integration.css';
 import { modeAiMessage, readModeAiProposal } from './modeAiMessages';
 import { CultivaLeaf, CULTIVA_LEAF_SHAPE } from './CultivaLeaf';
-import { activityReactionKey, cleanReactions, type ActivityReactions, type Reaction } from './journeySocial';
+import { activityReactionKey, cleanReactions, JOURNEY_REACTIONS_ENABLED, type ActivityReactions, type Reaction } from './journeySocial';
 import { calculateCultivaLevel, CULTIVA_MAX_LEVEL } from './cultivaLevel';
 import { BadgesGallery } from './BadgesGallery';
 import { BadgeMedal } from './BadgeMedal';
@@ -79,7 +81,8 @@ type PaletteFilter = 'none' | 'nocturna' | 'lucid';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
 type PoolActivity = { title: string; description: string };
 type TourTopic = TourStageId | 'controlStrongest' | 'controlLeast' | 'controlFocus' | 'controlTrivia';
-const tourTopics: readonly TourTopic[] = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
+const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'] satisfies TourTopic[])
+  .filter(topic => JOURNEY_REACTIONS_ENABLED || topic !== 'reactions');
 type AccessRequest = { feature: string; plan: 'Cuenta' | 'Entry' | 'Gold' | 'Ultimate Mode'; returnView: View };
 type PendingActivity = { level: number; entry: ActivityEntry };
 type PlanKey = 'basic' | 'gold' | 'ultimate';
@@ -994,6 +997,7 @@ function App() {
   const [specialistPreview, setSpecialistPreview] = useState<Specialist | null>(null);
   const [profilePreviewMode, setProfilePreviewMode] = useState<boolean>(false);
   const [configurationsOpen, setConfigurationsOpen] = useState(false);
+  const [homeVisionSettingsOpen, setHomeVisionSettingsOpen] = useState(false);
   const configurationsDialogRef = useRef<HTMLDialogElement | null>(null);
   const configurationsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
@@ -1055,6 +1059,10 @@ function App() {
       return {};
     }
   });
+  const [homeVisionCards, setHomeVisionCards] = useState<HomeVisionCards>(() => {
+    try { return cleanHomeVisionCards(JSON.parse(personalStorageRef.current.getItem('modoCultiva_homeVisionCards') ?? '{}')); }
+    catch { return {}; }
+  });
   const [presets, setPresets] = useState<Record<string, Preset>>(() => {
     try {
       return JSON.parse(personalStorageRef.current.getItem('modoCultiva_presets') ?? '{}');
@@ -1101,7 +1109,7 @@ function App() {
   const communityClient = useMemo(() => authTokens?.access_token && stateHydrated
     ? createCommunityClient(apiUrl, authTokens.access_token) : null, [authTokens?.access_token, stateHydrated]);
   const localIdeaSession = useRef(communityClient); localIdeaSession.current = communityClient;
-  const persistedDocument: StateObject = { profileName, profileImage, levels, activityDrafts, activityAlignments, activityCompletions, activityReactions, insightRequests, presets, visionImages, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language, languageSource, onboardingWelcomeCompleted };
+  const persistedDocument: StateObject = { profileName, profileImage, levels, activityDrafts, activityAlignments, activityCompletions, activityReactions, insightRequests, presets, visionImages, homeVisionCards, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language, languageSource, onboardingWelcomeCompleted };
   const persistedDocumentRef = useRef(persistedDocument);
   const committedDocumentRef = useRef<StateObject | null>(null);
   const guestDocumentRef = useRef(cloneStateValue(persistedDocument));
@@ -1140,7 +1148,7 @@ function App() {
 
   const normalizeLanguageDocument = (state: StateObject): StateObject => normalizeLanguageState(state, detectBrowserLanguage());
   const normalizeCanonicalSnapshot = (snapshot: StateSnapshot): StateSnapshot => snapshot.state && typeof snapshot.state === 'object' && !Array.isArray(snapshot.state)
-    ? { ...snapshot, state: normalizeLanguageDocument(snapshot.state) } : snapshot;
+    ? { ...snapshot, state: { ...normalizeLanguageDocument(snapshot.state), homeVisionCards: cleanHomeVisionCards(snapshot.state.homeVisionCards) } } : snapshot;
 
   const reconcileCanonicalState = (base: StateObject, remote: StateObject, snapshot: StateSnapshot) => {
     // Close the canonical-ack / pending React-commit window synchronously.
@@ -1156,6 +1164,7 @@ function App() {
     if ('insightRequests' in remote) setInsightRequests(current => field('insightRequests', current));
     if ('presets' in remote) setPresets(current => field('presets', current));
     if ('visionImages' in remote) setVisionImages(current => field('visionImages', current));
+    if ('homeVisionCards' in remote) setHomeVisionCards(current => cleanHomeVisionCards(field('homeVisionCards', current)));
     if ('skin' in remote) setSkin(current => field('skin', current));
     if ('paletteFilter' in remote) setPaletteFilter(current => field('paletteFilter', current));
     if ('activePlan' in remote) setActivePlan(current => field('activePlan', current));
@@ -1434,6 +1443,7 @@ function App() {
     insightRequests: state.insightRequests && typeof state.insightRequests === 'object' ? state.insightRequests : {},
     presets: state.presets && typeof state.presets === 'object' ? state.presets : {},
     visionImages: state.visionImages && typeof state.visionImages === 'object' ? state.visionImages : {},
+    homeVisionCards: cleanHomeVisionCards(state.homeVisionCards),
     featuredBadges: Array.isArray(state.featuredBadges) ? state.featuredBadges : [],
     selectedPreset: typeof state.selectedPreset === 'string' && state.presets && typeof state.presets === 'object' && Object.prototype.hasOwnProperty.call(state.presets, state.selectedPreset) ? state.selectedPreset : '',
     ...restoreLanguagePreference(state.language, state.languageSource, detectBrowserLanguage(), personalStorageRef.current.getItem('modoCultiva_manualLanguage_v1')),
@@ -1451,6 +1461,7 @@ function App() {
     setActivityCompletions(remoteCompletions);
     setActivityReactions(cleanReactions(state.activityReactions)); setInsightRequests(state.insightRequests as Record<string, boolean>);
     setPresets(state.presets as Record<string, Preset>); setVisionImages(state.visionImages as Record<string, string>);
+    setHomeVisionCards(cleanHomeVisionCards(state.homeVisionCards));
     setFeaturedBadges(state.featuredBadges as string[]); setSelectedPreset(state.selectedPreset as string);
     setLanguage(state.language as Language); setLanguageSource(state.languageSource === 'manual' ? 'manual' : 'auto'); setSkin(state.skin as Skin); setPaletteFilter(state.paletteFilter as PaletteFilter);
     setActivePlan(state.activePlan as PlanKey); setOnboardingWelcomeCompleted(state.onboardingWelcomeCompleted === true);
@@ -1523,6 +1534,7 @@ function App() {
     setStateHydrated(false);
     setVerifiedIdentity(null);
     setWelcomeScope(null); setTourIndex(null);
+    setHomeVisionSettingsOpen(false);
     setSelectedMode(null);
     setCultOpen(false);
     setActiveActivity(null);
@@ -1699,7 +1711,7 @@ function App() {
       window.removeEventListener('pagehide', pagehide);
       window.removeEventListener('online', online);
     };
-  }, [activePlan, activityDrafts, activityAlignments, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, insightRequests, language, languageSource, levels, onboardingWelcomeCompleted, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
+  }, [activePlan, activityDrafts, activityAlignments, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, homeVisionCards, insightRequests, language, languageSource, levels, onboardingWelcomeCompleted, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1741,7 +1753,7 @@ function App() {
     };
   }, [configurationsOpen, language]);
 
-  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, cultOpen, cultTab, profileMenuOpen, configurationsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
+  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, cultOpen, cultTab, profileMenuOpen, configurationsOpen, homeVisionSettingsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
   const navigationSnapshotKey = JSON.stringify(navigationSnapshot);
   const navigationSnapshotRef = useRef(navigationSnapshot);
   navigationSnapshotRef.current = navigationSnapshot;
@@ -1751,6 +1763,7 @@ function App() {
     setActivityEntry(snapshot.activityEntry); setJourneySlide(snapshot.journeySlide); setJourneyStep(snapshot.journeyStep);
     setCultOpen(snapshot.cultOpen); setCultTab(snapshot.cultTab); setProfileMenuOpen(snapshot.profileMenuOpen);
     setConfigurationsOpen(snapshot.configurationsOpen); setRenamingPreset(snapshot.renamingPreset);
+    setHomeVisionSettingsOpen(snapshot.homeVisionSettingsOpen);
     setCustomizingAvatar(snapshot.customizingAvatar); setProfilePreviewMode(snapshot.profilePreviewMode);
     setSelectedPlan(snapshot.selectedPlan); setInsightPreview(snapshot.insightPreview);
     setCultInsightPreview(snapshot.cultInsightPreview); setSpecialistPreview(snapshot.specialistPreview);
@@ -1800,7 +1813,7 @@ function App() {
       ...(tourTopic === 'nextClarity' ? { clarityTarget: clarityTransition(tourSource, language)!.target } : {}),
       onEnter: ({ signal }) => {
         if (signal.aborted) return;
-        setCommunityOpen(false); setConfigurationsOpen(false); setProfilePreviewMode(false); setCustomizingAvatar(false);
+        setCommunityOpen(false); setConfigurationsOpen(false); setHomeVisionSettingsOpen(false); setProfilePreviewMode(false); setCustomizingAvatar(false);
         setCultInsightPreview(null); setSpecialistPreview(null); setInsightPreview(null); setSelectedPlan(null); setProfileMenuOpen(false);
         setActiveActivity(null); setSelectedMode(null); setCultOpen(false); setView('welcome');
         setHomeSidebarOpen(tourTopic === 'replay');
@@ -1872,7 +1885,7 @@ function App() {
     const navigation = createNavigationHistory(window.history, navigationSnapshotRef.current, (snapshot) => {
       const base = snapshot.view === 'welcome' ? 0 : snapshot.view === 'lab' ? 2 : 1;
       return base + Number(Boolean(snapshot.selectedMode)) + Number(snapshot.activeActivity !== null) + Number(snapshot.cultOpen)
-        + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
+        + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.homeVisionSettingsOpen) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
         + Number(snapshot.customizingAvatar) + Number(snapshot.profilePreviewMode) + Number(Boolean(snapshot.selectedPlan))
         + Number(Boolean(snapshot.insightPreview)) + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview)) + Number(snapshot.communityOpen) + Number(Boolean(snapshot.publicCardId));
     }, (snapshot) => restoreNavigationRef.current(snapshot), (left, right) => {
@@ -1880,7 +1893,7 @@ function App() {
       const location = (snapshot: typeof navigationSnapshot) => [
         snapshot.view, snapshot.selectedMode?.key, snapshot.activeActivity,
         snapshot.selectedMode || snapshot.view === 'cult' ? [snapshot.cultOpen, snapshot.cultTab] : null,
-        snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.configurationsOpen && snapshot.renamingPreset,
+        snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.homeVisionSettingsOpen, snapshot.configurationsOpen && snapshot.renamingPreset,
         snapshot.customizingAvatar, snapshot.profilePreviewMode, snapshot.selectedPlan,
         snapshot.insightPreview, snapshot.cultInsightPreview, snapshot.specialistPreview, snapshot.communityOpen, snapshot.communityTab, snapshot.publicCardId,
       ];
@@ -2389,6 +2402,15 @@ function App() {
     personalStorageRef.current.setItem('modoCultiva_visionImages', JSON.stringify(next));
     setVisionImages(next);
   };
+  const selectHomeVisionCard = (modeKey: string, useVision: boolean) => {
+    if (accountBlocked || (useVision && !hasVisionImage(visionImages[modeKey]))) return false;
+    const next = { ...homeVisionCards };
+    if (useVision) next[modeKey] = true;
+    else delete next[modeKey];
+    if (!writeStoredJson(personalStorageRef.current, 'modoCultiva_homeVisionCards', next)) return false;
+    setHomeVisionCards(next);
+    return true;
+  };
 
   const renderCultSection = (tab: 'insights' | 'network') => {
     const promotedInsight = personalizedInsights[insightSlide] ?? personalizedInsights[0];
@@ -2539,13 +2561,14 @@ function App() {
         <aside className="home-sidebar" id="home-sidebar" role="dialog" aria-modal="true" aria-labelledby="home-sidebar-title" onClick={(event) => event.stopPropagation()}>
           <div className="home-sidebar-heading"><div><span className="home-sidebar-eyebrow">Modo Cultiva</span><h2 id="home-sidebar-title">{tr('homeNavigation')}</h2></div><button className="home-sidebar-close" type="button" onClick={() => setHomeSidebarOpen(false)} aria-label={tr('close')}>×</button></div>
           <nav className="home-sidebar-nav" aria-label={tr('homeNavigation')}>
-            <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('welcome'); }}><span className="home-sidebar-icon" aria-hidden="true">⌂</span><span>{tr('home')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('dashboard'); }}><span className="home-sidebar-icon" aria-hidden="true">◫</span><span>{tr('controlCenter')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('lab'); }}><span className="home-sidebar-icon" aria-hidden="true">✳</span><span>{tr('triviaTitle')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" onClick={() => { setHomeSidebarOpen(false); setCultTab('network'); setView('cult'); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('specialistNetwork')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" onClick={() => { setHomeSidebarOpen(false); setProfilePreviewMode(true); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('profileButton')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" onClick={() => { setHomeSidebarOpen(false); setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" data-tour="replay" disabled={aiLoading} onClick={startTour}><span className="home-sidebar-icon" aria-hidden="true">↻</span><span>{onboardingIntegrationCopy(language).replay}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="home" onClick={() => { setHomeSidebarOpen(false); setView('welcome'); }}><span className="home-sidebar-icon" aria-hidden="true">⌂</span><span>{tr('home')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="profile" onClick={() => { setHomeSidebarOpen(false); setProfilePreviewMode(true); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('profileButton')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="configurations" onClick={() => { setHomeSidebarOpen(false); setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="images" aria-haspopup="dialog" onClick={() => { setHomeSidebarOpen(false); setHomeVisionSettingsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">▧</span><span>{homeVisionCopy(language)[0]}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="dashboard" onClick={() => { setHomeSidebarOpen(false); setView('dashboard'); }}><span className="home-sidebar-icon" aria-hidden="true">◫</span><span>{tr('controlCenter')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="specialists" onClick={() => { setHomeSidebarOpen(false); setCultTab('network'); setView('cult'); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('specialistNetwork')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="trivia" onClick={() => { setHomeSidebarOpen(false); setView('lab'); }}><span className="home-sidebar-icon" aria-hidden="true">✳</span><span>{tr('triviaTitle')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="replay" data-tour="replay" disabled={aiLoading} onClick={startTour}><span className="home-sidebar-icon" aria-hidden="true">↻</span><span>{onboardingIntegrationCopy(language).replay}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             {!RELEASE_FREE_ACCESS && <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('plans'); }}><span className="home-sidebar-icon" aria-hidden="true">✦</span><span>{tr('premium')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>}
           </nav>
         </aside>
@@ -2614,7 +2637,8 @@ function App() {
               const level = levels[mode.key];
               return {
                 id: mode.key,
-                src: `/mode-photos/${mode.key}.jpg`,
+                src: homeModePhoto(mode.key, visionImages[mode.key], homeVisionCards),
+                fallbackSrc: defaultModePhoto(mode.key),
                 label: `${modeName(mode)}, ${tr('level')} ${level}`,
                 style: { '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties,
                 content: <>
@@ -2739,6 +2763,10 @@ function App() {
       </section>
       </>
       )}
+
+      {homeVisionSettingsOpen && !accountBlocked && <HomeVisionSettings language={language} modes={modes.map(mode => ({ key: mode.key, name: modeName(mode), color: mode.color }))}
+        images={visionImages} preferences={homeVisionCards} closeLabel={tr('close')} onChange={selectHomeVisionCard}
+        onClose={() => { setHomeVisionSettingsOpen(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('.home-menu-button')?.focus()); }} />}
 
       {configurationsOpen && <dialog ref={configurationsDialogRef} id="life-configurations-card" className="life-configurations-card" aria-labelledby="presets-title" aria-describedby="presets-description" tabIndex={-1} onCancel={(event) => { event.preventDefault(); if (renamingPreset) setRenamingPreset(false); else setConfigurationsOpen(false); }} onClick={(event) => {
         if (event.target !== event.currentTarget) return;
@@ -2891,6 +2919,7 @@ function App() {
                   reaction={activityReactions[activityReactionKey(selectedMode.key, visibleJourneyLevel, activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? '')]}
                   flow={deckFlow ? { ...deckFlow, viewStep: displayJourneyStep, onDefine: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onDefine : undefined, onSubmit: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onSubmit : undefined } : undefined}
                   showSocial={displayJourneyStep === 1}
+                  showReactions={JOURNEY_REACTIONS_ENABLED}
                   sharePreviewScope={tourTopic ?? 'closed'}
                   onReact={reaction => reactToActivity(selectedMode.key, visibleJourneyLevel, reaction)}
                   emptyTitle={tr('activityUndefined')}

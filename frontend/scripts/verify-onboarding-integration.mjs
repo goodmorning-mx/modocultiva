@@ -19,10 +19,10 @@ const require = createRequire(import.meta.url);
 const LANGUAGES = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da'];
 const WIDTHS = [320, 390, 870, 1440];
 const MODES = ['fisico', 'intelectual', 'emocional', 'arquetipico', 'espiritual', 'romantico', 'familiar', 'social', 'financiero', 'profesional', 'ludico', 'visionario'];
-const STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
+const TOUR_STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
 const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-ambiguous-cache-welcome', 'tour', 'identity', 'drafts', 'local-idea', 'account-local-idea', 'account-local-zero', 'account-local-failure'];
 const ACCESS = 'synthetic-qa-token-not-a-credential';
-CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey');
+CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey', 'home-vision', 'account-home-vision');
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -53,6 +53,9 @@ const timing = sourceModule('src/welcomeIntroState.ts');
 const { stateAccountCopy } = sourceModule('src/stateAccountMessages.ts');
 const { onboardingIntegrationCopy } = sourceModule('src/onboardingIntegrationMessages.ts');
 const { guidedTourStepCopy } = sourceModule('src/guidedTourMessages.ts');
+const { JOURNEY_REACTIONS_ENABLED } = sourceModule('src/journeySocial.ts');
+const { cleanHomeVisionCards, homeModePhoto, homeVisionCopy } = sourceModule('src/homeVision.ts');
+const STOPS = TOUR_STOPS.filter(stop => JOURNEY_REACTIONS_ENABLED || stop !== 'reactions');
 
 function options(argv) {
   const result = { url: process.env.ONBOARDING_URL ?? 'http://127.0.0.1:4173', languages: LANGUAGES, widths: WIDTHS, cases: CASES, replays: 2, workers: 2, timeout: 12000, methodRegressions: true, sharePreview: true, draftReplay: 'pointer' };
@@ -202,7 +205,7 @@ async function ready(page, step, timeout = 12000) {
     const current = await page.locator('.guided-tour-layer').evaluateAll(elements => elements.map(element => ({ step: element.dataset.tourStep, phase: element.dataset.tourPhase })));
     if (current[0]?.step === step && current[0]?.phase === 'unavailable') throw new Error(`Target unavailable: ${step}`);
     return current.length === 1 && current[0].step === step && current[0].phase === 'ready';
-  }, `Expected ready App spotlight ${step} (rebuild preview if its bundle predates the 30-stop audience integration)`, timeout);
+  }, `Expected ready App spotlight ${step}`, timeout);
 }
 async function settleHydration(page, language, timeout) {
   let consentSeen = false;
@@ -351,7 +354,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
     }
     await advance(page, step, configuration.timeout);
   }
-  assert.deepEqual(seen, STOPS, 'Exactly the thirty intended tour stops');
+  assert.deepEqual(seen, STOPS, 'Exactly the intended tour stops');
   return { stops: seen.length, methods: 4, longScrollStops: scrollEvidence };
 }
 
@@ -409,6 +412,11 @@ async function runCase(browser, config, task) {
   if (localeTask) { state.language = 'en'; if (!task.name.includes('legacy-locale') && !task.name.includes('ambiguous-cache')) state.languageSource = 'auto'; }
   if (manualTask) { state.language = expectedLanguage; if (!task.name.includes('cached-manual')) state.languageSource = 'manual'; }
   const account = task.name.includes('account') || task.name === 'identity'; const reduced = task.width === 320 || task.width === 870;
+  if (task.name.endsWith('home-vision')) {
+    state.levels.fisico = 9;
+    state.visionImages = { fisico: PNG, arquetipico: 'data:image/png;base64,AAAA' };
+    state.activityReactions = { 'fisico-3-abcdef0123456789': 'leaf' };
+  }
   if (task.name.includes('local-')) state.insightRequests = { 'fisico-3': true }; // Old cache is not authoritative delivery.
   // Other test cases represent a genuinely completed introduction, not merely
   // saved map data. account-completed deliberately has no browser account flag.
@@ -452,6 +460,51 @@ async function runCase(browser, config, task) {
           await assertPreserved(page, state); await assertMap(page, state.levels);
         }
         result = { tours, preserved: true, guestCounter: false, sharingPreviewTested: config.sharePreview };
+      } else if (task.name.endsWith('home-vision')) {
+        const menu = page.locator('.home-menu-button');
+        const modal = page.locator('.home-vision-settings[open]');
+        const photo = mode => page.locator(`.circular-carousel__card:has([data-tour-mode="${mode}"]) .circular-carousel__photo`).first();
+        const choice = (mode, value) => modal.locator(`[data-mode="${mode}"] input[value="${value}"]`);
+        const open = async () => {
+          await menu.click();
+          assert.deepEqual(await page.locator('#home-sidebar [data-home-menu-item]').evaluateAll(items => items.map(item => item.dataset.homeMenuItem)),
+            ['home', 'profile', 'configurations', 'images', 'dashboard', 'specialists', 'trivia', 'replay']);
+          await page.locator('[data-home-menu-item="images"]').click();
+          await modal.waitFor();
+        };
+        await assertFixedHome(page);
+        assert.equal(await photo('fisico').getAttribute('src'), '/mode-photos/fisico.jpg', 'Existing vision does not opt anyone in');
+        await open();
+        assert.equal(await modal.locator('h2').innerText(), homeVisionCopy(task.language)[0]);
+        assert.equal(await modal.locator('fieldset').count(), 12);
+        assert.equal(await page.locator('input[type=file]').count(), 0, 'No uploading anywhere on home');
+        assert.equal(await choice('financiero', 'vision').isDisabled(), true);
+        await choice('arquetipico', 'vision').check();
+        await eventually(async () => await photo('arquetipico').getAttribute('src') === '/mode-photos/arquetipico.jpg', 'Broken image falls back');
+        await choice('arquetipico', 'default').check();
+        await choice('fisico', 'vision').check();
+        await page.keyboard.press('Escape');
+        await modal.waitFor({ state: 'detached' });
+        assert.equal(await photo('fisico').getAttribute('src'), PNG);
+        assert.equal(await photo('financiero').getAttribute('src'), '/mode-photos/financiero.jpg');
+        if (account) await eventually(() => transport.snapshot().state.homeVisionCards?.fisico === true, 'Account preference does not sync');
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        if (account) await settleHydration(page, expectedLanguage, config.timeout);
+        assert.equal(await photo('fisico').getAttribute('src'), PNG, 'Selection survives reload');
+        await open();
+        assert.equal(await choice('fisico', 'vision').isChecked(), true);
+        await choice('fisico', 'default').check();
+        await page.goBack();
+        await modal.waitFor({ state: 'detached' });
+        assert.equal(await photo('fisico').getAttribute('src'), '/mode-photos/fisico.jpg');
+        if (account) await eventually(() => JSON.stringify(transport.snapshot().state.homeVisionCards) === '{}', 'Restoring stock does not sync');
+        await selectPhysicalMode(page);
+        await page.locator('.journey-step-list button').nth(1).click();
+        await page.locator('.journey-level-card--vision').waitFor();
+        assert.equal(await page.locator('.journey-level-card--vision input[type=file]').count(), 1, 'Vision still owns the uploader');
+        assert.equal(await page.locator('.journey-level-card--vision .vision-image-content').getAttribute('src'), PNG, 'Restoring stock never changes the original Vision');
+        await assertPreserved(page, state, account);
+        result = { menuOrder: true, twelvePhotoSettings: true, existingVisionOptIn: true, persistence: account ? 'account' : 'guest', missingAndBrokenFallback: true, levelNineUploadOnly: true, preserved: true };
       } else if (task.name === 'fresh-journey') {
         const carousel = page.locator('.circular-carousel[data-ready]');
         await assertFixedHome(page);
@@ -482,11 +535,11 @@ async function runCase(browser, config, task) {
           if (index < MODES.length - 1) await carousel.locator('.circular-carousel__controls button').nth(1).click();
         }
         await page.locator('.home-menu-button').click();
-        await page.locator('.home-sidebar-nav button').nth(3).click();
+        await page.locator('[data-home-menu-item="specialists"]').click();
         await page.locator('.specialists-view .cult-specialist-list').waitFor();
         await page.locator('.specialists-view .cult-exit').click();
         await page.locator('.home-menu-button').click();
-        await page.locator('.home-sidebar-nav button').nth(1).click();
+        await page.locator('[data-home-menu-item="dashboard"]').click();
         assert.ok(await page.locator('.crm-dashboard > .badges-gallery:last-child').isVisible());
         await page.locator('.crm-focus-list button').first().click();
         await page.locator('.journey-panel .journey-back').click();
@@ -494,6 +547,7 @@ async function runCase(browser, config, task) {
         await selectPhysicalMode(page);
         await page.locator('.journey-step-list button').nth(1).click();
         const social = page.locator('.journey-social-footer');
+        assert.equal(await social.locator('.journey-reactions').count(), JOURNEY_REACTIONS_ENABLED ? 1 : 0);
         const share = social.locator('.journey-share');
         const buttons = share.getByRole('button');
         assert.equal(await share.locator('button:disabled').count(), 4);
@@ -546,7 +600,7 @@ async function runCase(browser, config, task) {
         result = { fourCards: true, approvalsUnlockAscent: 3, priorLevelStillVisible: true };
       } else if (task.name === 'identity') {
         await openReplay(page, config.timeout); await inspectSpotlight(page, task.identity === 'owner');
-        if (task.identity === 'owner') assert.ok((await page.locator('.guided-tour-counter').innerText()).includes('30'), 'Verified owner sees the thirty-stop total');
+        if (task.identity === 'owner') assert.ok((await page.locator('.guided-tour-counter').innerText()).includes(STOPS.length.toLocaleString(expectedLanguage)), 'Verified owner sees the current stop total');
         await closeTour(page); await assertPreserved(page, state, true);
         // Replay restores its original MC menu too. Close it before opening another surface.
         if (await page.locator('[data-tour="replay"]').isVisible()) await page.locator('.profile-button').click();
@@ -653,15 +707,20 @@ async function runCase(browser, config, task) {
 }
 
 function selfTest() {
-  assert.equal(STOPS.length, 30); assert.equal(new Set(STOPS).size, 30); assert.ok(STOPS.includes('audience'));
+  assert.equal(STOPS.length, JOURNEY_REACTIONS_ENABLED ? 30 : 29); assert.equal(new Set(STOPS).size, STOPS.length); assert.ok(STOPS.includes('audience'));
+  assert.deepEqual(cleanHomeVisionCards({ fisico: true, emocional: false, unknown: true, social: 'true' }), { fisico: true });
+  assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
+  assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '/mode-photos/fisico.jpg');
+  assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-photos/fisico.jpg');
   assert.equal(options(['--smoke']).languages[0], 'en');
   for (const url of ['https://example.com', 'http://127.0.0.1:4173/?token=x', 'http://user:secret@localhost:4173']) assert.throws(() => options([`--url=${url}`]));
   for (const language of LANGUAGES) {
     assert.equal(welcomeMessages[language].messages.length, 7); assert.ok(stateAccountCopy(language).cloudOnly);
     assert.ok(onboardingIntegrationCopy(language).share); for (const stop of STOPS.filter(stop => !stop.startsWith('control'))) assert.ok(guidedTourStepCopy(language, stop).title);
+    assert.equal(homeVisionCopy(language).filter(Boolean).length, 6);
     const document = fixture(language); assert.equal(Object.keys(document.levels).length, 12); sameProtected(clone(document), document);
   }
-  emit({ selfTest: 'PASS', languages: 11, widths: WIDTHS, tourStops: 30, cases: CASES, safety: 'loopback preview only; all API requests intercepted; no dependencies installed' });
+  emit({ selfTest: 'PASS', languages: 11, widths: WIDTHS, tourStops: STOPS.length, cases: CASES, safety: 'loopback preview only; all API requests intercepted; no dependencies installed' });
 }
 async function main() {
   const config = options(process.argv.slice(2));

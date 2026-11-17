@@ -1,0 +1,72 @@
+.home-vision-settings {
+  box-sizing: border-box;
+  width: min(44rem, calc(100% - 24px));
+  max-block-size: calc(100dvh - 24px);
+  padding: clamp(1rem, 3vw, 1.75rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: #e5f3ed;
+  background: radial-gradient(ellipse at 0 0, #1a3838, transparent 70%), #0b2029;
+  border: 1px solid #39685f;
+  border-radius: 20px;
+  box-shadow: 0 20px 70px #0009;
+}
+
+.home-vision-settings::backdrop {
+  background: #051014cf;
+  backdrop-filter: blur(5px);
+}
+
+.home-vision-settings header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-block-end: 1.1rem;
+}
+
+.home-vision-settings h2 { margin: 0 0 0.35rem; font-size: clamp(1.3rem, 4vw, 1.7rem); }
+.home-vision-settings header p { margin: 0; color: #b2cec6; font-size: 0.9rem; line-height: 1.5; }
+
+.home-vision-close {
+  flex: 0 0 44px;
+  height: 44px;
+  border: 1px solid #4b706a;
+  border-radius: 50%;
+  color: inherit;
+  background: #112d33;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.home-vision-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.home-vision-modes fieldset {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: start;
+  gap: 0.6rem;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--mode-color) 36%, #17323b);
+  border-radius: 13px;
+  background: #0c252e;
+}
+
+.home-vision-modes legend { padding-inline: 0.35rem; color: color-mix(in srgb, var(--mode-color) 70%, white); font-size: 0.86rem; font-weight: 650; }
+.home-vision-modes img { width: 56px; height: 69px; object-fit: cover; border-radius: 8px; background: #102830; }
+.home-vision-options label { display: flex; align-items: center; gap: 0.45rem; min-block-size: 44px; font-size: 0.84rem; line-height: 1.25; cursor: pointer; }
+.home-vision-options input { accent-color: var(--mode-color); margin: 0; }
+.home-vision-options label:has(:disabled) { cursor: default; color: #a4beb7; }
+.home-vision-options small { display: block; color: #a4beb7; font-size: 0.74rem; }
+.home-vision-settings [role="alert"] { color: #ffb9a8; }
+.home-vision-settings :focus-visible { outline: 2px solid #90ecba; outline-offset: 2px; }
+
+@media (max-width: 570px) {
+  .home-vision-modes { grid-template-columns: minmax(0, 1fr); }
+}

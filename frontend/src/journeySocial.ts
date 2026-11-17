@@ -1,4 +1,6 @@
 export const REACTIONS = ['leaf', 'soil', 'water', 'sun', 'roots'] as const;
+// Temporarily hide the controls and tour stop; stored reactions remain intact.
+export const JOURNEY_REACTIONS_ENABLED = false;
 export type Reaction = typeof REACTIONS[number];
 export type ActivityReactions = Record<string, Reaction>;
 export const SHARE_PLATFORMS = ['linkedin', 'whatsapp', 'instagram', 'facebook'] as const;
