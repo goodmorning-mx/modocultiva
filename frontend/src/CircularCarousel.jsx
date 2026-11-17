@@ -2,6 +2,7 @@
  * Modified for Modo Cultiva. See /REACT-BITS-LICENSE.md.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import ModeElectricSymbol from './ModeElectricSymbol';
 
 import './CircularCarousel.css';
 
@@ -98,6 +99,7 @@ const CircularCarousel = ({
   label,
   controls,
   paused = false,
+  effectsEnabled = true,
   preset = 'cylinder',
   intro = 'rise',
   cardWidth = 220,
@@ -803,12 +805,13 @@ const CircularCarousel = ({
                   {layout.backfaces && tiles.map(tile => renderTile(item, tile, true))}
                   <button
                     type="button"
-                    className="home-mode-card"
+                    className={`home-mode-card${item.electric ? ' home-mode-card--electric' : ''}`}
                     data-tour-mode={item.id}
                     aria-label={item.label}
                     tabIndex={active === index ? 0 : -1}
                     style={{ ...item.style, width: cardW, height: cardH }}
                   >
+                    {item.electric && <ModeElectricSymbol src={item.src} active={active === index && effectsEnabled} />}
                     {item.content}
                   </button>
                 </div>

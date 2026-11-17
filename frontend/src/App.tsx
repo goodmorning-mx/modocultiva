@@ -4,7 +4,7 @@ import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
 import { VisionImage } from './VisionImage';
 import { HomeVisionSettings } from './HomeVisionSettings';
-import { cleanHomeVisionCards, defaultModePhoto, homeModePhoto, homeVisionCopy, type HomeVisionCards } from './homeVision';
+import { cleanHomeVisionCards, defaultModePhoto, homeModePhoto, homeVisionCopy, type HomeVisionCards, type HomeImageSource } from './homeVision';
 import { JourneyActivityCard } from './JourneyActivityCard';
 import { ModeAiStudio } from './ModeAiStudio';
 import { ClarityGoal } from './ClarityGoal';
@@ -2402,10 +2402,11 @@ function App() {
     personalStorageRef.current.setItem('modoCultiva_visionImages', JSON.stringify(next));
     setVisionImages(next);
   };
-  const selectHomeVisionCard = (modeKey: string, useVision: boolean) => {
-    if (accountBlocked || (useVision && !hasVisionImage(visionImages[modeKey]))) return false;
+  const selectHomeVisionCard = (modeKey: string, source: HomeImageSource) => {
+    if (accountBlocked || (source === 'vision' && !hasVisionImage(visionImages[modeKey]))) return false;
     const next = { ...homeVisionCards };
-    if (useVision) next[modeKey] = true;
+    if (source === 'vision') next[modeKey] = true;
+    else if (source === 'electric') next[modeKey] = 'electric';
     else delete next[modeKey];
     if (!writeStoredJson(personalStorageRef.current, 'modoCultiva_homeVisionCards', next)) return false;
     setHomeVisionCards(next);
@@ -2632,6 +2633,7 @@ function App() {
             </div>
           </div>
           <CircularCarousel
+            effectsEnabled={!selectedMode && !homeVisionSettingsOpen && !homeSidebarOpen && !profilePreviewMode && !configurationsOpen && !welcomeScope && tourIndex === null}
             label={tr('lifeModes')}
             items={orderedHomeModes.map((mode) => {
               const level = levels[mode.key];
@@ -2639,6 +2641,7 @@ function App() {
                 id: mode.key,
                 src: homeModePhoto(mode.key, visionImages[mode.key], homeVisionCards),
                 fallbackSrc: defaultModePhoto(mode.key),
+                electric: homeVisionCards[mode.key] === 'electric',
                 label: `${modeName(mode)}, ${tr('level')} ${level}`,
                 style: { '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties,
                 content: <>
