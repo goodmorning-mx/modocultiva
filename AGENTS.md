@@ -5,6 +5,7 @@
 - `dev` is the integrated development branch.
 - Create feature branches from `dev`.
 - Open normal pull requests toward `dev`.
+- For Modo Cultiva changes, finish in DEV by default: pass the relevant checks, merge the reviewed PR into `dev`, and verify the new version at `https://dev.modocultiva.goodmorning.mx/`. An open PR or a merge alone is not a verified deployment. Use the existing development deployment workflow and report any blocker.
 - Open release pull requests from `dev` to `main`.
 - Do not push directly to `main`.
 
