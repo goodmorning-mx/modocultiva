@@ -1024,11 +1024,11 @@ async function runCase(browser, config, task) {
           const asset = { emocional: 'emocional-electrico.svg?v=3', intelectual: 'intelectual-electrico.svg', espiritual: 'espiritual-electrico.svg', profesional: 'profesional-electrico.svg', fisico: 'visionario.webp', visionario: 'fisico.webp', ludico: 'ludico-electrico.svg?v=2' }[mode] ?? `${mode}.webp`;
           assert.equal(await artwork.getAttribute('src'), `/mode-symbols/${asset}`);
           await eventually(() => artwork.evaluate(img => img.complete && img.naturalWidth > 0), 'Premium artwork loaded');
-          const smaller = ['intelectual', 'visionario', 'social', 'financiero', 'romantico'].includes(mode);
+          const scale = { intelectual: .536, visionario: .8375, arquetipico: .67, espiritual: .67, familiar: .67, profesional: .67, social: .67, financiero: .67, romantico: .67 }[mode] ?? 1;
           assert.equal(await artwork.evaluate(img => {
             const matrix = getComputedStyle(img).transform;
             return matrix === 'none' ? 1 : new DOMMatrix(matrix).a;
-          }), smaller ? .67 : 1, 'Only the five requested electric Home artworks are resized via layout');
+          }), scale, 'Electric Home artwork uses its assigned scale without resizing the card');
           if (mode === 'ludico' || mode === 'emocional') assert.ok(await artwork.evaluate((img, mode) => {
             const playful = mode === 'ludico';
             const [width, height] = playful ? [160, 136] : [120, 112];
