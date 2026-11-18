@@ -10,6 +10,7 @@ export function cleanHomeVisionCards(value: unknown): HomeVisionCards {
 }
 
 export const defaultModePhoto = (mode: string) => `/mode-photos/${mode}.jpg`;
+export const EMOTIONAL_ELECTRIC_ART = '/mode-symbols/emocional-electrico.svg?v=2';
 export function customModeSymbol(mode: string) {
   if (mode === 'emocional') return '/mode-symbols/emocional-orbitas.svg';
   if (mode === 'ludico') return '/mode-symbols/ludico-mando.svg';
@@ -17,7 +18,7 @@ export function customModeSymbol(mode: string) {
 
 export function modeSymbol(mode: string) {
   if (mode === 'ludico') return '/mode-symbols/ludico-electrico.svg?v=2';
-  if (mode === 'emocional') return '/mode-symbols/emocional-electrico.svg';
+  if (mode === 'emocional') return EMOTIONAL_ELECTRIC_ART;
   const artwork = mode === 'fisico' ? 'visionario' : mode === 'visionario' ? 'fisico' : mode;
   return customModeSymbol(mode) ?? `/mode-symbols/${artwork}.webp`;
 }

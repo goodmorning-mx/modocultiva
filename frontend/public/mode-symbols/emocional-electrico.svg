@@ -1,18 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 112">
   <defs>
-    <radialGradient id="ruby" cx=".38" cy=".25" r=".75">
-      <stop stop-color="#ffcdca"/>
-      <stop offset=".32" stop-color="#e87579"/>
-      <stop offset=".74" stop-color="#9f353f"/>
-      <stop offset="1" stop-color="#35141c"/>
+    <radialGradient id="ruby" cx=".35" cy=".22" r=".78">
+      <stop stop-color="#fff0e9"/>
+      <stop offset=".14" stop-color="#ff827b"/>
+      <stop offset=".34" stop-color="#ff3542"/>
+      <stop offset=".68" stop-color="#b60929"/>
+      <stop offset="1" stop-color="#370415"/>
     </radialGradient>
     <linearGradient id="edge" x2=".45" y2="1">
-      <stop stop-color="#fff6f2"/>
-      <stop offset=".52" stop-color="#fe9b9b"/>
-      <stop offset="1" stop-color="#f76169"/>
+      <stop stop-color="#fff9f3"/>
+      <stop offset=".31" stop-color="#ff735f"/>
+      <stop offset=".57" stop-color="#ff283d"/>
+      <stop offset=".81" stop-color="#ff5265"/>
+      <stop offset="1" stop-color="#ffdbd3"/>
     </linearGradient>
     <filter id="plasma" x="-30%" y="-40%" width="160%" height="180%" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="2.25"/>
+      <feGaussianBlur stdDeviation="2.8"/>
     </filter>
     <path id="outer-wave" d="M10 91C-1 81 14 55 45 36c31-20 63-26 70-13 3 6-1 15-10 20"/>
     <path id="inner-wave" d="M114 47c8 9-5 29-28 43-30 18-65 22-76 11-3-3-4-7-2-13"/>
@@ -20,12 +23,12 @@
   </defs>
   <g transform="translate(19.8 18.48) scale(.67)">
     <g fill="none" stroke-linecap="round">
-      <g stroke="#ff7079" stroke-width="5.4" filter="url(#plasma)">
+      <g stroke="#ff1734" stroke-width="7" opacity=".95" filter="url(#plasma)">
         <use href="#outer-wave"/><use href="#inner-wave"/>
       </g>
-      <use href="#echo" stroke="#ef8389" stroke-width="1.1" opacity=".72"/>
-      <use href="#outer-wave" stroke="url(#edge)" stroke-width="2.1"/>
-      <use href="#outer-wave" stroke="#fff3ed" stroke-width="1" stroke-dasharray="19 14 35 15"/>
+      <use href="#echo" stroke="#ff455a" stroke-width="1.4" opacity=".84"/>
+      <use href="#outer-wave" stroke="#ff344d" stroke-width="3.2"/>
+      <use href="#outer-wave" stroke="#fff8f0" stroke-width="1.35" stroke-dasharray="24 10 35 12"/>
     </g>
     <g stroke="url(#edge)" stroke-width="2.9" stroke-linecap="round">
       <path d="M25 8v96M60 8v96M95 8v96" fill="none"/>
@@ -37,13 +40,14 @@
       </g>
     </g>
     <g fill="none" stroke="#fff5f1" stroke-linecap="round">
-      <path d="M40 34c3-9 12-14 21-14M8 58c2-7 8-12 14-13M84 48c5-4 11-6 17-4" stroke-width="1.6" opacity=".9"/>
-      <use href="#inner-wave" stroke="url(#edge)" stroke-width="2.4"/>
-      <use href="#inner-wave" stroke-width="1" stroke-dasharray="17 11 27 15"/>
-      <path d="M12 36l6-5-2 6 6-3M104 91l-6 5 4 1-6 4" stroke-width="1.15"/>
+      <path d="M39 34c3-9 12-15 21-15M8 57c2-7 8-12 14-13M84 48c5-4 11-6 17-4" stroke-width="2.25"/>
+      <use href="#inner-wave" stroke="#ff3c58" stroke-width="5.2" filter="url(#plasma)"/>
+      <use href="#inner-wave" stroke="url(#edge)" stroke-width="3.4"/>
+      <use href="#inner-wave" stroke="#fff9f4" stroke-width="1.55" stroke-dasharray="21 7 32 12"/>
+      <path d="M12 36l6-5-2 6 6-3M104 91l-6 5 4 1-6 4" stroke-width="1.45"/>
     </g>
     <g fill="#fff2eb">
-      <circle cx="21" cy="18" r="1.7"/><circle cx="105" cy="43" r="1.55"/><circle cx="114" cy="47" r="1.8"/><circle cx="112" cy="101" r="1.4"/>
+      <circle cx="21" cy="18" r="1.9"/><circle cx="105" cy="43" r="1.65"/><circle cx="114" cy="47" r="2.15"/><circle cx="112" cy="101" r="1.6"/>
       <path d="M10 85l1.3 4.7 4.7 1.3-4.7 1.3L10 97l-1.3-4.7L4 91l4.7-1.3Z"/>
     </g>
   </g>
