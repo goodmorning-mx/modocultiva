@@ -13,6 +13,9 @@
   object-fit: contain;
   mix-blend-mode: screen;
 }
+.mode-electric-symbol-fallback[src^="/mode-symbols/"] {
+  transform: var(--home-electric-transform, none);
+}
 .global-sparks { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .global-sparks::before, .global-sparks::after {
   content: ''; position: absolute; inset: 8%; border-radius: 50%;
@@ -26,13 +29,20 @@
   --spark-color: color-mix(in srgb, var(--mode-color) 70%, white);
   inset: 15% 17%;
   border-radius: 50%;
+  transform: var(--home-electric-transform, none);
 }
 :is([data-tour-mode="ludico"], [data-tour-mode="emocional"]) .global-sparks--symbol {
   transform: scale(.67);
 }
-:is([data-tour-mode="intelectual"], [data-tour-mode="visionario"], [data-tour-mode="social"], [data-tour-mode="financiero"], [data-tour-mode="romantico"])
-  :is(.mode-electric-symbol-fallback[src^="/mode-symbols/"], .global-sparks--symbol) {
-  transform: scale(.67);
+:is([data-tour-mode="arquetipico"], [data-tour-mode="espiritual"], [data-tour-mode="familiar"], [data-tour-mode="profesional"],
+    [data-tour-mode="social"], [data-tour-mode="financiero"], [data-tour-mode="romantico"]) {
+  --home-electric-transform: scale(.67);
+}
+[data-tour-mode="visionario"] {
+  --home-electric-transform: scale(.8375); /* .67 × 1.25 */
+}
+[data-tour-mode="intelectual"] {
+  --home-electric-transform: scale(.536); /* .67 × .80 */
 }
 @keyframes global-spark-drift {
   from { transform: translate3d(-4%, 4%, 0) rotate(-12deg); opacity: .35; }
