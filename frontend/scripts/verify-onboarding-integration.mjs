@@ -1258,8 +1258,9 @@ async function runCase(browser, config, task) {
         assert.equal(await down.locator('.global-sparks').count(), 0);
         const bounds = await frame.boundingBox(), upper = await up.boundingBox(), lower = await down.boundingBox(), forward = await next.boundingBox();
         assert.ok(upper.y + upper.height <= bounds.y && lower.y >= bounds.y + bounds.height, 'Level controls are outside the central card');
-        assert.equal(upper.width, lower.width);
-        assert.equal(upper.height, lower.height);
+        // Layout dimensions remain stable while the modal entrance is animating.
+        const controlDimensions = button => button.evaluate(element => [element.offsetWidth, element.offsetHeight]);
+        assert.deepEqual(await controlDimensions(up), await controlDimensions(down));
         assert.ok(task.language === 'ar' ? forward.x + forward.width <= bounds.x : forward.x >= bounds.x + bounds.width, 'Next floats in the side rail');
         assert.equal(await next.locator('svg.journey-boomerang').count(), 1);
         assert.equal(await next.locator('.global-sparks').count(), 1);
