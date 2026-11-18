@@ -3,6 +3,8 @@ import { clarityMessages, clarityReminderTitles, clarityTransition, displayClari
 import { activityFlowCopy, cardAudienceCopy } from './activityJourneyFlowMessages';
 import { VisualEvidenceInput } from './VisualEvidenceInput';
 import { compactActivityCopy } from './compactActivityMessages';
+import { journeyOverviewLabels } from './journeyDeck';
+import { JourneyDefinitionDivider } from './JourneyDefinitionDivider';
 import { cardPublicationFields, normalizeCardAudience, evidenceDraftProblem, evidenceInputFromDraft, isEvidenceAbort, type CardAudience, type EvidenceDraft, type EvidenceInput, type LoadVideo, type UploadVideo } from './visualEvidence';
 import './activity-journey-flow.css';
 
@@ -200,6 +202,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
       <details>
         <summary id={`${id}-target`}>{clarityReminderTitles[language as ClarityLanguage] ?? clarityReminderTitles.en}</summary>
         <p>{clarity.rule}</p>
+        <JourneyDefinitionDivider as="h6" label={(journeyOverviewLabels[language as keyof typeof journeyOverviewLabels] ?? journeyOverviewLabels.en)[3]} />
         <p className="activity-flow-description" dir="auto">{target.description}</p>
       </details>
     </aside>
