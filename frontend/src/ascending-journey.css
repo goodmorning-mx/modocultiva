@@ -136,6 +136,7 @@
   background: radial-gradient(ellipse at center, color-mix(in srgb, var(--mode-color) 25%, #102932), #0b2028);
 }
 .journey-definition-caption > span:not(.global-sparks) { position: relative; }
+.activity-flow-target .journey-definition-label { margin-block: 14px 10px; }
 .journey-deck-clarity strong { color: var(--mode-color); font-size: .85rem; }
 .journey-deck-clarity p { margin-top: 4px; font-size: .83rem; }
 .journey-deck .journey-social-card, .journey-deck .journey-level-card--vision { width: 100%; min-height: 0; margin: 0; }

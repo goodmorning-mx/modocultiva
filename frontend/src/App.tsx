@@ -57,6 +57,7 @@ import './life-map-polish.css';
 import './profile-level.css';
 import './home-mode-widgets.css';
 import './ascending-journey.css';
+import { JourneyDefinitionDivider } from './JourneyDefinitionDivider';
 
 type HealthResponse = {
   service: string;
@@ -2334,7 +2335,7 @@ function App() {
   const maxJourneyStep = deckFlow ? activityFlowStage(visibleJourneyLevel, deckFlow.state) ?? 1 : 1;
   const displayJourneyStep = Math.min(journeyStep, maxJourneyStep) as JourneyStep;
   const deckLabels = journeyStepLabels[language];
-  const [currentLevelLabel, viewedLevelLabel, currentDefinitionLabel, viewedDefinitionLabel] = journeyOverviewLabels[language];
+  const [currentLevelLabel, viewedLevelLabel, thisDefinitionLabel] = journeyOverviewLabels[language];
   const viewingAnotherLevel = visibleJourneyLevel !== currentJourneyLevel;
   const [ascendLabel, unlockHint, previousLevelLabel] = journeyLevelLabels[language];
   const nextJourneyLevel = visibleJourneyLevel + 1;
@@ -2803,12 +2804,7 @@ function App() {
                 <span className="journey-icon" aria-hidden="true">{modeMark(selectedMode)}</span>
                 <div><h3>{modeName(selectedMode)}</h3><p>{modeJourneyDescription(selectedMode)}</p>
                 <div className="journey-deck-clarity">
-                  <h4 className="journey-definition-label">
-                    <span className="journey-definition-caption">
-                      <span className="global-sparks" aria-hidden="true" />
-                      <span>{viewingAnotherLevel ? viewedDefinitionLabel : currentDefinitionLabel}</span>
-                    </span>
-                  </h4>
+                  <JourneyDefinitionDivider label={thisDefinitionLabel} />
                   <strong>{localizedLevelNames[language][visibleJourneyLevel]}</strong><p>{levelDefinitionText(visibleJourneyLevel)}</p>
                 </div></div>
               </article> : visibleJourneyLevel === 9 ? <article className="journey-level-card journey-level-card--active journey-level-card--vision">

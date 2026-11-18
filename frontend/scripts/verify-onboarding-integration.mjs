@@ -1195,7 +1195,7 @@ async function runCase(browser, config, task) {
           assert.equal(separator.animation, reduced ? 'none' : 'global-spark-drift');
           if (task.language === 'es') {
             assert.equal((await dialog.locator('.journey-current-level').textContent()).trim(), 'Estás en nivel: 0');
-            assert.equal(await dialog.locator('.journey-definition-label').textContent(), 'Definición del nivel actual:');
+            assert.equal(await dialog.locator('.journey-definition-label').textContent(), 'Definición de este nivel:');
           }
           assert.equal(await dialog.evaluate(el => el.style.getPropertyValue('--mode-color')), expectedColors[index]);
           assert.equal(await dialog.locator('.journey-level-link--up').isDisabled(), true);
@@ -1366,6 +1366,11 @@ async function runCase(browser, config, task) {
         if (task.language === 'es') assert.equal(await reminder.textContent(), 'Recordatorios para pasar al siguiente nivel');
         await reminder.click();
         const paragraphs = activity.locator('.activity-flow-target details > p');
+        const divider = activity.locator('.activity-flow-target details > p + .journey-definition-label');
+        assert.equal(await divider.count(), 1, 'The neon divider follows the alignment rule');
+        assert.equal(await divider.locator('.global-sparks').count(), 1);
+        assert.equal(await activity.locator('.journey-definition-label + .activity-flow-description').count(), 1, 'The divider introduces the definition');
+        if (task.language === 'es') assert.equal(await divider.textContent(), 'Definición del siguiente nivel:');
         assert.equal(await paragraphs.nth(1).getAttribute('class'), 'activity-flow-description', 'The alignment comes before the target description');
         assert.doesNotMatch(await paragraphs.nth(0).textContent(), /No basta con/i);
         await reminder.click();

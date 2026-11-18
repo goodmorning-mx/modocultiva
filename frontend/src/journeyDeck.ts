@@ -45,17 +45,17 @@ export function canOpenJourneyLevel(level: number, current: number) {
 }
 
 export const journeyOverviewLabels = {
-  es: ['Estás en nivel:', 'Estás viendo el nivel:', 'Definición del nivel actual:', 'Definición del nivel consultado:'],
-  en: ['You’re at level:', 'You’re viewing level:', 'Current level definition:', 'Selected level definition:'],
-  zh: ['当前等级：', '正在查看等级：', '当前等级说明：', '所选等级说明：'],
-  hi: ['आपका वर्तमान स्तर:', 'आप यह स्तर देख रहे हैं:', 'वर्तमान स्तर की परिभाषा:', 'चुने गए स्तर की परिभाषा:'],
-  ar: ['مستواك الحالي:', 'أنت تعرض المستوى:', 'تعريف المستوى الحالي:', 'تعريف المستوى المعروض:'],
-  it: ['Sei al livello:', 'Stai visualizzando il livello:', 'Definizione del livello attuale:', 'Definizione del livello selezionato:'],
-  pt: ['Você está no nível:', 'Você está vendo o nível:', 'Definição do nível atual:', 'Definição do nível consultado:'],
-  ru: ['Ваш текущий уровень:', 'Вы просматриваете уровень:', 'Описание текущего уровня:', 'Описание выбранного уровня:'],
-  de: ['Du bist auf Stufe:', 'Du siehst Stufe:', 'Beschreibung der aktuellen Stufe:', 'Beschreibung der ausgewählten Stufe:'],
-  fr: ['Ton niveau actuel :', 'Tu consultes le niveau :', 'Définition du niveau actuel :', 'Définition du niveau consulté :'],
-  da: ['Du er på niveau:', 'Du ser niveau:', 'Definition af dit nuværende niveau:', 'Definition af det valgte niveau:'],
+  es: ['Estás en nivel:', 'Estás viendo el nivel:', 'Definición de este nivel:', 'Definición del siguiente nivel:'],
+  en: ['You’re at level:', 'You’re viewing level:', 'Definition of this level:', 'Definition of the next level:'],
+  zh: ['当前等级：', '正在查看等级：', '此等级的说明：', '下一级的说明：'],
+  hi: ['आपका वर्तमान स्तर:', 'आप यह स्तर देख रहे हैं:', 'इस स्तर की परिभाषा:', 'अगले स्तर की परिभाषा:'],
+  ar: ['مستواك الحالي:', 'أنت تعرض المستوى:', 'تعريف هذا المستوى:', 'تعريف المستوى التالي:'],
+  it: ['Sei al livello:', 'Stai visualizzando il livello:', 'Definizione di questo livello:', 'Definizione del prossimo livello:'],
+  pt: ['Você está no nível:', 'Você está vendo o nível:', 'Definição deste nível:', 'Definição do próximo nível:'],
+  ru: ['Ваш текущий уровень:', 'Вы просматриваете уровень:', 'Описание этого уровня:', 'Описание следующего уровня:'],
+  de: ['Du bist auf Stufe:', 'Du siehst Stufe:', 'Beschreibung dieser Stufe:', 'Beschreibung der nächsten Stufe:'],
+  fr: ['Ton niveau actuel :', 'Tu consultes le niveau :', 'Définition de ce niveau :', 'Définition du niveau suivant :'],
+  da: ['Du er på niveau:', 'Du ser niveau:', 'Definition af dette niveau:', 'Definition af næste niveau:'],
 } satisfies Record<keyof typeof journeyStepLabels, [string, string, string, string]>;
 
 export function journeyGesture(dx: number, dy: number, rtl = false) {
