@@ -748,14 +748,23 @@ async function runCase(browser, config, task) {
         await assertJourneyNumbers(steps, task.language);
         const previous = page.locator('.journey-step-arrow--previous');
         assert.equal(await previous.count(), 0);
+        const assertStepLabelsFit = () => steps.locator('small').evaluateAll(labels => labels.map(label => {
+          const range = document.createRange();
+          range.selectNodeContents(label);
+          const lines = range.getClientRects();
+          const text = range.getBoundingClientRect();
+          const button = label.closest('button').getBoundingClientRect();
+          const list = label.closest('ol').getBoundingClientRect();
+          return lines.length === 1
+            && text.left >= button.left && text.right <= button.right
+            && text.top >= button.top && text.bottom <= button.bottom
+            && button.left >= list.left && button.right <= list.right;
+        }));
+        assert.deepEqual(await assertStepLabelsFit(), [true, true, true, true], 'No clipped or wrapped labels in the overview');
         for (const step of [1, 2, 3]) {
           await steps.nth(step).click();
           assert.equal(await previous.isVisible(), true, `Previous is visible in step ${step}`);
-          assert.deepEqual(await steps.locator('small').evaluateAll(labels => labels.map(label => {
-            const range = document.createRange();
-            range.selectNodeContents(label);
-            return range.getClientRects().length === 1 && label.scrollWidth <= label.clientWidth + 1;
-          })), [true, true, true, true], 'Tab text stays inside each button on one line');
+          assert.deepEqual(await assertStepLabelsFit(), [true, true, true, true], 'Tab text stays inside each button on one line');
         }
         await previous.click();
         assert.equal(await steps.nth(2).getAttribute('aria-current'), 'step');
@@ -763,6 +772,10 @@ async function runCase(browser, config, task) {
         await previous.click();
         assert.equal(await previous.count(), 0);
         assert.equal(await steps.nth(0).evaluate(button => button === document.activeElement), true);
+        await steps.nth(1).click();
+        await previous.press(task.language === 'ar' ? 'ArrowRight' : 'ArrowLeft');
+        assert.equal(await previous.count(), 0, 'Keyboard navigation also hides Previous when it reaches the overview');
+        assert.equal(await steps.nth(0).evaluate(button => button === document.activeElement), true, 'Keyboard focus moves to the overview');
         if (task.language === 'es') {
           assert.match(await up.textContent(), /Siguiente nivel · 4.*Se desbloquea al validar tu actividad/s);
           assert.match(await page.locator('.journey-level-link--down').textContent(), /Ver nivel anterior · 2/);
@@ -928,7 +941,7 @@ async function main() {
   catch { playwright = require(resolve(dirname(process.execPath), '..', 'node_modules', 'playwright')); }
   const tasks = [];
   for (const name of config.cases) {
-    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-')) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
+    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || name === 'account-journey-ascent') for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
     else for (const [index, width] of config.widths.entries()) {
       const language = config.languages[index % config.languages.length];
       if (name === 'identity') for (const identity of ['normal', 'forged', 'owner']) tasks.push({ name, width, language, identity });
