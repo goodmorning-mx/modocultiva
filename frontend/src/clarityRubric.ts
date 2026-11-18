@@ -2,6 +2,20 @@ import rubric from './clarity-levels.json';
 
 export type ClarityLanguage = keyof typeof rubric.languages;
 export const CLARITY_VERSION = rubric.version;
+type ClarityStep = (typeof rubric.languages.es)[number];
+
+/** A display-only translation. Match the version and the complete original
+ * entry before using a sibling locale of the same rubric. Leave unknown or
+ * older snapshots unchanged so a review is never silently reinterpreted. */
+export function displayClarityStep(step: ClarityStep, version: string, language: string): ClarityStep {
+  const destination = rubric.languages[language as ClarityLanguage]?.[step.level];
+  if (version !== CLARITY_VERSION || !destination || !Number.isInteger(step.level)) return step;
+  const canonical = Object.values(rubric.languages).some(entries => {
+    const original = entries[step.level];
+    return original?.level === step.level && original.name === step.name && original.description === step.description;
+  });
+  return canonical ? destination : step;
+}
 export function clarityTransition(level: number, language: string) {
   if (!Number.isInteger(level) || level < 0 || level > 8) return null;
   const entries = rubric.languages[language as ClarityLanguage] ?? rubric.languages.es;

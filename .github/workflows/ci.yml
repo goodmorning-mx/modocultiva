@@ -24,6 +24,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run verify:pwa
       - run: npm run verify:navigation
+      - run: npm run verify:localization
       - run: npm run verify:configurations
       - run: npm run verify:activities
       - run: npm run verify:global
