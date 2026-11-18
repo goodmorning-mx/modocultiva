@@ -17,6 +17,15 @@ export const journeyStepLabels = {
   da: ['Modusoversigt', 'Aktivitet', 'Dokumentation', 'Godkendelse', 'Bed om en global idé'],
 } as const;
 
+// Keep the three tabs readable within a single row on the narrowest cards.
+export function journeyCompactStepLabel(language: keyof typeof journeyStepLabels, step: number, fallback: string) {
+  if (language === 'ru' && step === 2) return 'Фото/видео';
+  if (language === 'da' && step === 2) return 'Bevis';
+  if (language === 'da' && step === 3) return 'Vurdering';
+  if (language === 'de' && step === 3) return 'Prüfung';
+  return fallback;
+}
+
 export const journeyLevelLabels = {
   es: ['Subir al siguiente nivel', 'Se desbloquea al validar tu actividad', 'Ver nivel anterior'],
   en: ['Go up to the next level', 'Unlocks once your activity is validated', 'View previous level'],

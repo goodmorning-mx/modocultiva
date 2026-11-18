@@ -20,7 +20,7 @@ import { activityFlowCopy } from './activityJourneyFlowMessages';
 import { PublicActivityCard } from './PublicActivityCard';
 import { adaptActivityFlow } from './activityFlowAdapter';
 import { ActivityJourneyFlow, activityFlowStage, type ActivityJourneyFlowProps } from './ActivityJourneyFlow';
-import { canOpenJourneyLevel, journeyGesture, journeyLevelLabels, journeyOverviewLabels, journeyStepLabels, JOURNEY_SUBMISSION_AUDIENCE_ENABLED, type JourneyStep } from './journeyDeck';
+import { canOpenJourneyLevel, journeyCompactStepLabel, journeyGesture, journeyLevelLabels, journeyOverviewLabels, journeyStepLabels, JOURNEY_SUBMISSION_AUDIENCE_ENABLED, type JourneyStep } from './journeyDeck';
 import type { EvidenceDraft } from './visualEvidence';
 import { onboardingIntegrationCopy } from './onboardingIntegrationMessages';
 import { WelcomeIntro } from './WelcomeIntro';
@@ -2352,6 +2352,16 @@ function App() {
     setJourneyStep(step as JourneyStep);
     journeyPanelRef.current?.scrollTo({ top: 0, behavior: 'auto' });
   };
+  const navigateJourneyStep = (step: number) => {
+    if (step < 0 || step > maxJourneyStep) return;
+    goJourneyStep(step);
+    requestAnimationFrame(() => {
+      const panel = journeyPanelRef.current;
+      const target = step === 0 ? panel?.querySelector<HTMLElement>('.journey-step-arrow--next')
+        : panel?.querySelector<HTMLElement>('.journey-step-list [aria-current="step"], .journey-deck-content');
+      if (step === 0 || step === maxJourneyStep) target?.focus({ preventScroll: true });
+    });
+  };
 
   const dashboardSummary = useMemo(() => {
     const values = Object.values(levels);
@@ -2744,51 +2754,51 @@ function App() {
               if (start.vertical && gesture === 'up') goJourneyLevel(visibleJourneyLevel + 1);
               if (start.vertical && gesture === 'down') goJourneyLevel(visibleJourneyLevel - 1);
             }}>
-            <div className="journey-ascent-status">
-              {visibleJourneyLevel < 9 && <button className="journey-level-link journey-level-link--up" type="button"
+            {visibleJourneyLevel < 9 && <button className="journey-level-link journey-level-link--up" type="button"
                 disabled={!nextJourneyLevelOpen} onClick={() => goJourneyLevel(nextJourneyLevel)}>
-                <span className="journey-level-link-icon" aria-hidden="true">↑</span>
+                {nextJourneyLevelOpen && <span className="global-sparks" aria-hidden="true" />}
+                <span className="journey-level-link-icon" aria-hidden="true">{nextJourneyLevelOpen ? '↑' :
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M5 7V5a3 3 0 0 1 6 0v2" /><rect x="3.5" y="7" width="9" height="7" rx="1.5" /></svg>}
+                </span>
                 <span className="journey-level-link-copy"><strong>{nextJourneyLevelOpen ? ascendLabel : tr('nextLevel')} · {formatJourneyLevel(nextJourneyLevel)}</strong>
-                  {!nextJourneyLevelOpen && <small><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7V5a3 3 0 0 1 6 0v2" /><rect x="3.5" y="7" width="9" height="7" rx="1.5" /></svg>{unlockHint}</small>}
+                  {!nextJourneyLevelOpen && <small>{unlockHint}</small>}
                 </span>
               </button>}
+            <div className="journey-deck-stage" onKeyDown={event => {
+              if (!(event.target instanceof Element) || !event.target.closest('.journey-step-arrow, .journey-step-list')) return;
+              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+              event.preventDefault();
+              navigateJourneyStep(displayJourneyStep + ((event.key === 'ArrowRight') !== (language === 'ar') ? 1 : -1));
+            }}>
+              {displayJourneyStep > 0 && <button className="journey-step-arrow journey-step-arrow--previous" type="button"
+                onClick={() => navigateJourneyStep(displayJourneyStep - 1)} aria-label={tr('previous')}>
+                <svg className="journey-boomerang" viewBox="0 0 36 88" fill="currentColor" aria-hidden="true"><path d="M5 3c-2-3-5 0-3 3l20 38L2 82c-2 4 1 7 4 4l26-37c2-3 2-7 0-10L5 3Z"/></svg>
+              </button>}
+            <div className="journey-deck-frame">
+            <div className="journey-ascent-status">
               <div className="journey-builder-heading journey-current-level">
                 <span aria-hidden="true" className="global-sparks" />
                 <p><span>{viewingAnotherLevel ? viewedLevelLabel : currentLevelLabel}</span> <strong>{formatJourneyLevel(visibleJourneyLevel)}</strong></p>
               </div>
             </div>
-            <div className="journey-deck-navigation" aria-label={tr('cultivationPath')} onKeyDown={event => {
-              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-              event.preventDefault();
-              const targetStep = displayJourneyStep + ((event.key === 'ArrowRight') !== (language === 'ar') ? 1 : -1);
-              if (targetStep === 0 && displayJourneyStep === 1) {
-                event.currentTarget.querySelector<HTMLButtonElement>('.journey-step-list button')?.focus({ preventScroll: true });
-              }
-              goJourneyStep(targetStep);
-            }}>
-              {displayJourneyStep > 0 && <button className="journey-step-arrow journey-step-arrow--previous" type="button" onClick={event => {
-                goJourneyStep(displayJourneyStep - 1);
-                if (displayJourneyStep === 1) event.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.journey-step-list button')?.focus({ preventScroll: true });
-              }} aria-label={tr('previous')}>{language === 'ar' ? '→' : '←'}</button>}
+            {displayJourneyStep > 0 && visibleJourneyLevel < 9 && <nav className="journey-deck-navigation" aria-label={tr('cultivationPath')}>
               <ol className="journey-step-list">
-                {deckLabels.slice(0, visibleJourneyLevel === 9 ? 2 : 4).map((label, step) => {
-                  const title = visibleJourneyLevel === 9 && step === 1 ? tr('finalVision') : label;
-                  const numbered = step > 0 && visibleJourneyLevel < 9;
-                  const done = numbered && step < maxJourneyStep;
-                  return <li key={step} data-step-state={step > maxJourneyStep ? 'locked' : step === displayJourneyStep ? 'current' : done ? 'done' : 'available'}>
-                    <button type="button" disabled={step > maxJourneyStep} aria-current={step === displayJourneyStep ? (numbered ? 'step' : 'true') : undefined} onClick={() => goJourneyStep(step)}>
-                      {numbered && <span className="journey-step-number">{formatJourneyLevel(step)}{done && <i className="journey-step-check" aria-hidden="true">✓</i>}</span>}
-                      <small>{title}</small>
+                {deckLabels.slice(1, 4).map((label, index) => {
+                  const step = index + 1;
+                  const done = step < maxJourneyStep;
+                  const compactLabel = journeyCompactStepLabel(language, step, label);
+                  return <li key={step} data-journey-step={step} data-step-state={step > maxJourneyStep ? 'locked' : step === displayJourneyStep ? 'current' : done ? 'done' : 'available'}>
+                    <button type="button" disabled={step > maxJourneyStep} aria-current={step === displayJourneyStep ? 'step' : undefined}
+                      aria-label={compactLabel === label ? undefined : `${formatJourneyLevel(step)} ${label}`}
+                      title={compactLabel === label ? undefined : label} onClick={() => goJourneyStep(step)}>
+                      <span className="journey-step-number">{formatJourneyLevel(step)}{done && <i className="journey-step-check" aria-hidden="true">✓</i>}</span>
+                      <small>{compactLabel}</small>
                     </button>
                   </li>;
                 })}
               </ol>
-              <button className="journey-step-arrow journey-step-arrow--next" type="button" disabled={displayJourneyStep >= maxJourneyStep} onClick={() => goJourneyStep(displayJourneyStep + 1)} aria-label={tr('next')}>
-                {displayJourneyStep < maxJourneyStep && <span className="global-sparks" aria-hidden="true" />}
-                <span className="journey-next-glyph" aria-hidden="true">{language === 'ar' ? '←' : '→'}</span>
-              </button>
-            </div>
-            <div className="journey-deck-content" data-step={displayJourneyStep}>
+            </nav>}
+            <div className="journey-deck-content" data-step={displayJourneyStep} tabIndex={-1}>
               {displayJourneyStep === 0 ? <article className="journey-deck-overview journey-intro-compact">
                 <span className="journey-icon" aria-hidden="true">{modeMark(selectedMode)}</span>
                 <div><h3>{modeName(selectedMode)}</h3><p>{modeJourneyDescription(selectedMode)}</p>
@@ -2831,6 +2841,13 @@ function App() {
                 </> : undefined} />
                 {insightNotice && displayJourneyStep === 1 && <div className="insight-notice" role="status">✦ {tr(insightNotice.key)}{insightNotice.author && <>: <bdi>{insightNotice.author}</bdi>.</>}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
               </>}
+            </div>
+            </div>
+            <button className="journey-step-arrow journey-step-arrow--next" type="button" disabled={displayJourneyStep >= maxJourneyStep}
+              onClick={() => navigateJourneyStep(displayJourneyStep + 1)} aria-label={tr('next')}>
+              <svg className="journey-boomerang" viewBox="0 0 36 88" fill="currentColor" aria-hidden="true"><path d="M5 3c-2-3-5 0-3 3l20 38L2 82c-2 4 1 7 4 4l26-37c2-3 2-7 0-10L5 3Z"/></svg>
+              {displayJourneyStep < maxJourneyStep && <span className="global-sparks" aria-hidden="true" />}
+            </button>
             </div>
             {visibleJourneyLevel > 0 && <button className="journey-level-link journey-level-link--down" type="button" onClick={() => goJourneyLevel(visibleJourneyLevel - 1)}>
               <span className="journey-level-link-icon" aria-hidden="true">↓</span><strong>{previousLevelLabel} · {formatJourneyLevel(visibleJourneyLevel - 1)}</strong>
