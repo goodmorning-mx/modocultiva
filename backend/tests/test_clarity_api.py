@@ -7,13 +7,15 @@ from app import main
 from app.clarity import clarity_transition
 
 
-@pytest.mark.parametrize("path", ["/ai/mode/public", "/ai/mode"])
+@pytest.mark.parametrize("path", ["/ai/mode/public", "/ai/mode", "/ai/mode/contextual", "/ai/mode/public/contextual"])
 @pytest.mark.parametrize("language", ["es", "en", "zh", "hi", "ar", "it", "pt", "ru", "de", "fr", "da"])
 @pytest.mark.parametrize("level", [0, 3, 6, 8])
 def test_ai_uses_official_next_level_not_client_target(path, language, level, monkeypatch):
     prompts = []
 
-    async def fake_respond(identity, conversation_id, prompt, model):
+    async def fake_respond(identity, conversation_id, prompt, model, *, retain_history):
+        assert retain_history is False
+        assert conversation_id is None
         prompts.append(prompt)
         return "A test proposal; no provider request was made.", "synthetic-conversation"
 

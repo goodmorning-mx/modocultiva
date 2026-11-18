@@ -7,6 +7,9 @@ import { HomeVisionSettings } from './HomeVisionSettings';
 import { cleanHomeVisionCards, customModeSymbol, defaultModePhoto, homeImageSource, homeModePhoto, homeVisionCopy, type HomeVisionCards, type HomeImageSource } from './homeVision';
 import { JourneyActivityCard } from './JourneyActivityCard';
 import { ModeAiStudio } from './ModeAiStudio';
+import { LifeContextDeck, type LifeEdits } from './LifeContextDeck';
+import { cleanLifeContext, hasLifeAnswers, lifeAiContext, lifeComplete, type LifeContext } from './lifeContext';
+import { lifeContextCopy } from './lifeContextCopy';
 import { ClarityGoal } from './ClarityGoal';
 import clarityLevels from './clarity-levels.json';
 import { createStateSyncQueue, type StateSnapshot, type StateSyncQueue } from './stateSyncQueue';
@@ -939,6 +942,13 @@ function App() {
   const specialistLanguageTag = (nativeName: string) => APP_LANGUAGES[specialistLanguages.indexOf(nativeName)];
   const [profilePreviewMode, setProfilePreviewMode] = useState<boolean>(false);
   const [configurationsOpen, setConfigurationsOpen] = useState(false);
+  const [lifeEditor, setLifeEditor] = useState<{ mode?: string; aiLevel?: number } | null>(null);
+  const [useModeLifeContext, setUseModeLifeContext] = useState(false);
+  const [useOtherLifeContexts, setUseOtherLifeContexts] = useState(false);
+  const [lifeContext, setLifeContext] = useState<LifeContext>(() => {
+    try { return cleanLifeContext(JSON.parse(personalStorageRef.current.getItem('modoCultiva_lifeContext') ?? '{}')); }
+    catch { return {}; }
+  });
   const [homeVisionSettingsOpen, setHomeVisionSettingsOpen] = useState(false);
   const configurationsDialogRef = useRef<HTMLDialogElement | null>(null);
   const configurationsTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -1052,7 +1062,7 @@ function App() {
   const communityClient = useMemo(() => authTokens?.access_token && stateHydrated
     ? createCommunityClient(apiUrl, authTokens.access_token) : null, [authTokens?.access_token, stateHydrated]);
   const localIdeaSession = useRef(communityClient); localIdeaSession.current = communityClient;
-  const persistedDocument: StateObject = { profileName, profileImage, levels, activityDrafts, activityAlignments, activityCompletions, activityReactions, insightRequests, presets, visionImages, homeVisionCards, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language, languageSource, onboardingWelcomeCompleted };
+  const persistedDocument: StateObject = { profileName, profileImage, levels, activityDrafts, activityAlignments, activityCompletions, activityReactions, insightRequests, presets, visionImages, homeVisionCards, lifeContext, skin, paletteFilter, activePlan, featuredBadges, selectedPreset, language, languageSource, onboardingWelcomeCompleted };
   const persistedDocumentRef = useRef(persistedDocument);
   const committedDocumentRef = useRef<StateObject | null>(null);
   const guestDocumentRef = useRef(cloneStateValue(persistedDocument));
@@ -1091,7 +1101,7 @@ function App() {
 
   const normalizeLanguageDocument = (state: StateObject): StateObject => normalizeLanguageState(state, detectBrowserLanguage());
   const normalizeCanonicalSnapshot = (snapshot: StateSnapshot): StateSnapshot => snapshot.state && typeof snapshot.state === 'object' && !Array.isArray(snapshot.state)
-    ? { ...snapshot, state: { ...normalizeLanguageDocument(snapshot.state), homeVisionCards: cleanHomeVisionCards(snapshot.state.homeVisionCards) } } : snapshot;
+    ? { ...snapshot, state: { ...normalizeLanguageDocument(snapshot.state), homeVisionCards: cleanHomeVisionCards(snapshot.state.homeVisionCards), lifeContext: cleanLifeContext(snapshot.state.lifeContext) } } : snapshot;
 
   const reconcileCanonicalState = (base: StateObject, remote: StateObject, snapshot: StateSnapshot) => {
     // Close the canonical-ack / pending React-commit window synchronously.
@@ -1108,6 +1118,7 @@ function App() {
     if ('presets' in remote) setPresets(current => field('presets', current));
     if ('visionImages' in remote) setVisionImages(current => field('visionImages', current));
     if ('homeVisionCards' in remote) setHomeVisionCards(current => cleanHomeVisionCards(field('homeVisionCards', current)));
+    if ('lifeContext' in remote) setLifeContext(current => cleanLifeContext(field('lifeContext', current)));
     if ('skin' in remote) setSkin(current => field('skin', current));
     if ('paletteFilter' in remote) setPaletteFilter(current => field('paletteFilter', current));
     if ('activePlan' in remote) setActivePlan(current => field('activePlan', current));
@@ -1301,6 +1312,7 @@ function App() {
     presets: state.presets && typeof state.presets === 'object' ? state.presets : {},
     visionImages: state.visionImages && typeof state.visionImages === 'object' ? state.visionImages : {},
     homeVisionCards: cleanHomeVisionCards(state.homeVisionCards),
+    lifeContext: cleanLifeContext(state.lifeContext),
     featuredBadges: Array.isArray(state.featuredBadges) ? state.featuredBadges : [],
     selectedPreset: typeof state.selectedPreset === 'string' && state.presets && typeof state.presets === 'object' && Object.prototype.hasOwnProperty.call(state.presets, state.selectedPreset) ? state.selectedPreset : '',
     ...restoreLanguagePreference(state.language, state.languageSource, detectBrowserLanguage(), personalStorageRef.current.getItem('modoCultiva_manualLanguage_v1')),
@@ -1319,6 +1331,9 @@ function App() {
     setActivityReactions(cleanReactions(state.activityReactions)); setInsightRequests(state.insightRequests as Record<string, boolean>);
     setPresets(state.presets as Record<string, Preset>); setVisionImages(state.visionImages as Record<string, string>);
     setHomeVisionCards(cleanHomeVisionCards(state.homeVisionCards));
+    setLifeContext(cleanLifeContext(state.lifeContext));
+    setLifeEditor(null);
+    setUseModeLifeContext(false); setUseOtherLifeContexts(false);
     setFeaturedBadges(state.featuredBadges as string[]); setSelectedPreset(state.selectedPreset as string);
     setLanguage(state.language as Language); setLanguageSource(state.languageSource === 'manual' ? 'manual' : 'auto'); setSkin(state.skin as Skin); setPaletteFilter(state.paletteFilter as PaletteFilter);
     setActivePlan(state.activePlan as PlanKey); setOnboardingWelcomeCompleted(state.onboardingWelcomeCompleted === true);
@@ -1574,7 +1589,7 @@ function App() {
       window.removeEventListener('pagehide', pagehide);
       window.removeEventListener('online', online);
     };
-  }, [activePlan, activityDrafts, activityAlignments, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, homeVisionCards, insightRequests, language, languageSource, levels, onboardingWelcomeCompleted, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
+  }, [activePlan, activityDrafts, activityAlignments, activityCompletions, activityReactions, authTokens?.access_token, featuredBadges, homeVisionCards, insightRequests, language, languageSource, levels, lifeContext, onboardingWelcomeCompleted, paletteFilter, presets, profileImage, profileName, selectedPreset, skin, stateHydrated, visionImages]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1616,7 +1631,7 @@ function App() {
     };
   }, [configurationsOpen, language]);
 
-  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, cultOpen, cultTab, profileMenuOpen, configurationsOpen, homeVisionSettingsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
+  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, cultOpen, cultTab, profileMenuOpen, configurationsOpen, homeVisionSettingsOpen, lifeEditor, useModeLifeContext, useOtherLifeContexts, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
   const navigationSnapshotKey = JSON.stringify(navigationSnapshot);
   const navigationSnapshotRef = useRef(navigationSnapshot);
   navigationSnapshotRef.current = navigationSnapshot;
@@ -1627,6 +1642,7 @@ function App() {
     setCultOpen(snapshot.cultOpen); setCultTab(snapshot.cultTab); setProfileMenuOpen(snapshot.profileMenuOpen);
     setConfigurationsOpen(snapshot.configurationsOpen); setRenamingPreset(snapshot.renamingPreset);
     setHomeVisionSettingsOpen(snapshot.homeVisionSettingsOpen);
+    setLifeEditor(snapshot.lifeEditor); setUseModeLifeContext(snapshot.useModeLifeContext); setUseOtherLifeContexts(snapshot.useOtherLifeContexts);
     setCustomizingAvatar(snapshot.customizingAvatar); setProfilePreviewMode(snapshot.profilePreviewMode);
     setSelectedPlan(snapshot.selectedPlan);
     setCultInsightPreview(snapshot.cultInsightPreview); setSpecialistPreview(snapshot.specialistPreview);
@@ -1674,7 +1690,7 @@ function App() {
       ...(tourTopic === 'nextClarity' ? { clarityTarget: clarityTransition(tourSource, language)!.target } : {}),
       onEnter: ({ signal }) => {
         if (signal.aborted) return;
-        setCommunityOpen(false); setConfigurationsOpen(false); setHomeVisionSettingsOpen(false); setProfilePreviewMode(false); setCustomizingAvatar(false);
+        setCommunityOpen(false); setConfigurationsOpen(false); setHomeVisionSettingsOpen(false); setLifeEditor(null); setProfilePreviewMode(false); setCustomizingAvatar(false);
         setCultInsightPreview(null); setSpecialistPreview(null); setSelectedPlan(null); setProfileMenuOpen(false);
         setActiveActivity(null); setSelectedMode(null); setCultOpen(false); setView('welcome');
         setHomeSidebarOpen(tourTopic === 'replay');
@@ -1743,7 +1759,7 @@ function App() {
     const navigation = createNavigationHistory(window.history, navigationSnapshotRef.current, (snapshot) => {
       const base = snapshot.view === 'welcome' ? 0 : snapshot.view === 'lab' ? 2 : 1;
       return base + Number(Boolean(snapshot.selectedMode)) + Number(snapshot.activeActivity !== null) + Number(snapshot.cultOpen)
-        + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.homeVisionSettingsOpen) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
+        + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.homeVisionSettingsOpen) + Number(Boolean(snapshot.lifeEditor)) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
         + Number(snapshot.customizingAvatar) + Number(snapshot.profilePreviewMode) + Number(Boolean(snapshot.selectedPlan))
         + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview)) + Number(snapshot.communityOpen) + Number(Boolean(snapshot.publicCardId));
     }, (snapshot) => restoreNavigationRef.current(snapshot), (left, right) => {
@@ -1751,7 +1767,7 @@ function App() {
       const location = (snapshot: typeof navigationSnapshot) => [
         snapshot.view, snapshot.selectedMode?.key, snapshot.activeActivity,
         snapshot.selectedMode || snapshot.view === 'cult' ? [snapshot.cultOpen, snapshot.cultTab] : null,
-        snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.homeVisionSettingsOpen, snapshot.configurationsOpen && snapshot.renamingPreset,
+        snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.homeVisionSettingsOpen, snapshot.lifeEditor, snapshot.configurationsOpen && snapshot.renamingPreset,
         snapshot.customizingAvatar, snapshot.profilePreviewMode, snapshot.selectedPlan,
         snapshot.cultInsightPreview, snapshot.specialistPreview, snapshot.communityOpen, snapshot.communityTab, snapshot.publicCardId,
       ];
@@ -1966,18 +1982,54 @@ function App() {
     saveActivity(selectedMode.key, activeActivity, `${activity.title}. ${activity.description}`);
   };
 
+  const openModeAi = (level: number) => {
+    if (!selectedMode || (!tourTopic && level !== levels[selectedMode.key])) return;
+    if (!tourTopic && !lifeComplete(lifeContext[selectedMode.key])) { setLifeEditor({ mode: selectedMode.key, aiLevel: level }); return; }
+    setUseModeLifeContext(!tourTopic);
+    setUseOtherLifeContexts(false);
+    openActivity(level, 'ai');
+  };
+  const finishLifeEditor = (withContext: boolean) => {
+    if (lifeEditor?.aiLevel !== undefined && selectedMode?.key === lifeEditor.mode) {
+      setUseModeLifeContext(withContext); setUseOtherLifeContexts(false);
+      openActivity(lifeEditor.aiLevel, 'ai');
+    }
+    setLifeEditor(null);
+  };
+  const saveLifeEditor = (edits: LifeEdits) => {
+    if (accountBlocked) return false;
+    if (Object.keys(edits).length) {
+      const next = cleanLifeContext(lifeContext);
+      for (const [key, fields] of Object.entries(edits)) {
+        const answers = { ...next[key] };
+        for (const field of Object.keys(fields) as (keyof typeof fields)[]) {
+          const value = fields[field];
+          if (value === null || value === undefined || (value !== '' && !value.trim())) delete answers[field];
+          else answers[field] = value.trim();
+        }
+        if (Object.keys(answers).length) next[key] = answers;
+        else delete next[key];
+      }
+      if (!writeStoredJson(personalStorageRef.current, 'modoCultiva_lifeContext', next)) return false;
+      setLifeContext(next);
+    }
+    finishLifeEditor(true);
+    return true;
+  };
   const consultModeAi = async () => {
     if (aiRequestRef.current || aiLoading) return;
     if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
       openPlan('gold', 'modeAI');
       return;
     }
-    if (!activityPrompt.trim()) {
+    if (!selectedMode || activeActivity === null || tourTopic) return;
+    const context = lifeAiContext(activityPrompt, lifeContext, selectedMode.key, useOtherLifeContexts
+      ? useModeLifeContext ? 'holistic' : 'others' : useModeLifeContext ? 'current' : 'none');
+    if (!context) {
       setAiNotice('context');
       setAiHasConsulted(false);
       return;
     }
-    if (!selectedMode || activeActivity === null) return;
     const controller = new AbortController();
     aiRequestRef.current = controller;
     setAiLoading(true);
@@ -1985,7 +2037,7 @@ function App() {
     setAiProposal(null);
     setAiNotice(null);
     try {
-      const response = await fetch(`${apiUrl}${isAuthenticated ? '/ai/mode' : '/ai/mode/public'}`, {
+      const response = await fetch(`${apiUrl}${isAuthenticated ? '/ai/mode/contextual' : '/ai/mode/public/contextual'}`, {
         method: 'POST',
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json', ...(authTokens?.access_token ? { Authorization: `Bearer ${authTokens.access_token}` } : {}) },
@@ -1996,7 +2048,7 @@ function App() {
           level_name: localizedLevelNames[language][activeActivity],
           level_description: levelDescription(activeActivity),
           effort: effortLabel(activeActivity),
-          context: activityPrompt.trim(),
+          context,
           user_name: profileName,
         }),
       });
@@ -2377,6 +2429,9 @@ function App() {
   }, [activityDrafts, levels, presets]);
 
   const accountBlocked = signingOut || (isAuthenticated && (!stateHydrated || !verifiedIdentity || activeSessionRef.current !== authTokens?.access_token));
+  const lifeCopy = lifeContextCopy(language);
+  const hasCurrentLifeContext = Boolean(selectedMode && hasLifeAnswers(lifeContext[selectedMode.key]));
+  const hasOtherLifeContexts = Object.keys(lifeContext).some(key => key !== selectedMode?.key && hasLifeAnswers(lifeContext[key]));
   const orderedHomeModes = homeSortDescending
     ? [...modes].sort((left, right) => levels[right.key] - levels[left.key])
     : modes;
@@ -2433,9 +2488,8 @@ function App() {
         <aside className="home-sidebar" id="home-sidebar" role="dialog" aria-modal="true" aria-labelledby="home-sidebar-title" onClick={(event) => event.stopPropagation()}>
           <div className="home-sidebar-heading"><div><span className="home-sidebar-eyebrow">Modo Cultiva</span><h2 id="home-sidebar-title">{tr('homeNavigation')}</h2></div><button className="home-sidebar-close" type="button" onClick={() => setHomeSidebarOpen(false)} aria-label={tr('close')}>×</button></div>
           <nav className="home-sidebar-nav" aria-label={tr('homeNavigation')}>
-            <button type="button" data-home-menu-item="home" onClick={() => { setHomeSidebarOpen(false); setView('welcome'); }}><span className="home-sidebar-icon" aria-hidden="true">⌂</span><span>{tr('home')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" data-home-menu-item="profile" onClick={() => { setHomeSidebarOpen(false); setProfilePreviewMode(true); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('profileButton')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" data-home-menu-item="configurations" onClick={() => { setHomeSidebarOpen(false); setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="life-context" aria-haspopup="dialog" onClick={() => { setHomeSidebarOpen(false); setLifeEditor({}); }}><span className="home-sidebar-icon" aria-hidden="true">▤</span><span>{lifeCopy.title}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" data-home-menu-item="images" aria-haspopup="dialog" onClick={() => { setHomeSidebarOpen(false); setHomeVisionSettingsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">▧</span><span>{homeVisionCopy(language)[0]}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" data-home-menu-item="dashboard" onClick={() => { setHomeSidebarOpen(false); setView('dashboard'); }}><span className="home-sidebar-icon" aria-hidden="true">◫</span><span>{tr('controlCenter')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" data-home-menu-item="specialists" onClick={() => { setHomeSidebarOpen(false); setCultTab('network'); setView('cult'); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('specialistNetwork')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
@@ -2508,7 +2562,7 @@ function App() {
             </div>
           </div>
           <CircularCarousel
-            effectsEnabled={!selectedMode && !homeVisionSettingsOpen && !homeSidebarOpen && !profilePreviewMode && !configurationsOpen && !welcomeScope && tourIndex === null}
+            effectsEnabled={!selectedMode && !homeVisionSettingsOpen && !lifeEditor && !homeSidebarOpen && !profilePreviewMode && !configurationsOpen && !welcomeScope && tourIndex === null}
             label={tr('lifeModes')}
             items={orderedHomeModes.map((mode) => {
               const level = levels[mode.key];
@@ -2653,6 +2707,10 @@ function App() {
         }}
         onClose={() => { setHomeVisionSettingsOpen(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('.home-menu-button')?.focus()); }} />}
 
+      {!accountBlocked && lifeEditor && <LifeContextDeck language={language} modes={modes.map(mode => ({ key: mode.key, name: modeName(mode), color: mode.color }))}
+        context={lifeContext} initialMode={lifeEditor.mode} fromAi={lifeEditor.aiLevel !== undefined}
+        closeLabel={tr('close')} nextLabel={tr('next')} previousLabel={tr('previous')}
+        onSave={saveLifeEditor} onClose={() => setLifeEditor(null)} onSkip={() => finishLifeEditor(false)} />}
       {configurationsOpen && <dialog ref={configurationsDialogRef} id="life-configurations-card" className="life-configurations-card" aria-labelledby="presets-title" aria-describedby="presets-description" tabIndex={-1} onCancel={(event) => { event.preventDefault(); if (renamingPreset) setRenamingPreset(false); else setConfigurationsOpen(false); }} onClick={(event) => {
         if (event.target !== event.currentTarget) return;
         const bounds = event.currentTarget.getBoundingClientRect();
@@ -2738,6 +2796,13 @@ function App() {
             level={activeActivity} levelLabel={tr('level')} stage={localizedLevelNames[language][activeActivity]} considerLabel={tr('considerThis')} effort={effortLabel(activeActivity)} effortDescription={tr(`effort${effortByLevel[activeActivity]}`)}
             question={trf('journeyAiQuestion', { level: String(activeActivity) })} contextLabel={tr('context')} placeholder={tr('activityPlaceholder')} activityLabel={tr('activity')} readyLabel={tr('proposalReady')} waiting={tr('journeyAiWaiting')}
             askLabel={tr('askAI')} useLabel={tr('useActivity')} consultingLabel={tr('consulting')} context={activityPrompt} proposal={aiProposal?.text ?? ''} proposalLanguage={aiProposal?.language} hasProposal={aiHasConsulted} loading={aiLoading} notice={aiNotice ? modeAiMessage(language, aiNotice) : null}
+            lifeContextControls={!tourTopic && <div className="life-context-ai">
+              {hasCurrentLifeContext && <label><input type="checkbox" checked={useModeLifeContext} disabled={aiLoading} onChange={event => setUseModeLifeContext(event.target.checked)} />{lifeCopy.useCurrent}</label>}
+              {hasOtherLifeContexts && <label><input type="checkbox" checked={useOtherLifeContexts} disabled={aiLoading} onChange={event => setUseOtherLifeContexts(event.target.checked)} />{lifeCopy.includeOthers}</label>}
+              <p>{hasOtherLifeContexts ? lifeCopy.privacy : lifeCopy.holistic}</p>
+              {!hasOtherLifeContexts && hasCurrentLifeContext && <p>{lifeCopy.privacy}</p>}
+              <button type="button" disabled={aiLoading} onClick={() => setLifeEditor({ mode: selectedMode.key })}>{lifeCopy.title}</button>
+            </div>}
             onContext={value => { setActivityPrompt(value); setAiHasConsulted(false); setAiProposal(null); setAiNotice(null); }} onAsk={() => { void consultModeAi(); }} onUse={saveModeAiActivity} />}
         </section> : <>
           <section className="journey-builder journey-deck" aria-label={tr('cultivationPath')} dir={language === 'ar' ? 'rtl' : 'ltr'} data-journey-tour={tourTopic ?? undefined}
@@ -2836,7 +2901,7 @@ function App() {
                     <button className="journey-global-button journey-action-neon" type="button" onClick={() => { setInsightSlide(0); setInsightCycle(0); setCultTab('insights'); setCultOpen(true); }}>
                       <span className="journey-global-globe" aria-hidden="true" /> {deckLabels[4]}
                     </button>
-                    <button className="journey-ai-button" type="button" onClick={() => openActivity(visibleJourneyLevel, 'ai')}>
+                    <button className="journey-ai-button" type="button" onClick={() => openModeAi(visibleJourneyLevel)}>
                       <span className="global-sparks" aria-hidden="true" /><span>✦ {tr('modeAI')}</span>
                     </button>
                   </div>

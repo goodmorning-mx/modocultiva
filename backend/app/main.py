@@ -156,10 +156,10 @@ guest_identity = SimpleNamespace(
 )
 
 
-async def _respond(identity: AuthIdentity, conversation_id: str | None, prompt: str, model: str | None) -> tuple[str, str]:
+async def _respond(identity: AuthIdentity, conversation_id: str | None, prompt: str, model: str | None, *, retain_history: bool = True) -> tuple[str, str]:
     conversation_id = conversation_id or str(uuid4())
     key = (identity.organization_id, identity.user_id, conversation_id)
-    conversation = conversations.setdefault(key, Conversation(id=conversation_id))
+    conversation = conversations.setdefault(key, Conversation(id=conversation_id)) if retain_history else Conversation(id=conversation_id)
     context = RequestContext(identity.user_id, identity.organization_id, "modocultiva", frozenset(identity.permissions))
     message = await _agent_service().respond(
         conversation=conversation, prompt=prompt, context=context, model=model or settings.openai_model,
@@ -436,6 +436,7 @@ async def public_agent_chat(payload: AgentChatInput) -> dict[str, str]:
 
 
 @app.post("/ai/mode", response_model=ModeAIResponse)
+@app.post("/ai/mode/contextual", response_model=ModeAIResponse)
 async def consult_mode_ai(request: ModeAIRequest, identity: AuthIdentity = Depends(identity_required)) -> ModeAIResponse:
     prompt = (
         f"Eres Modo IA, el acompañante de desarrollo humano de Modo Cultiva. Responde en el idioma {request.language}, con calidez "
@@ -448,13 +449,14 @@ async def consult_mode_ai(request: ModeAIRequest, identity: AuthIdentity = Depen
         f"Descripción: {request.level_description}\nEsfuerzo: {request.effort}\n"
         f"Persona: {request.user_name or identity.name or 'Persona usuaria'}\nContexto o pregunta: {request.context}"
     )
-    content, conversation_id = await _respond(identity, f"mode-{request.mode_name}-{request.level}", prompt, settings.openai_model)
+    content, conversation_id = await _respond(identity, None, prompt, settings.openai_model, retain_history=False)
     if not content.strip():
         raise HTTPException(status_code=502, detail="Modo IA devolvió una respuesta vacía.")
     return ModeAIResponse(proposal=content.strip(), model=settings.openai_model, conversation_id=conversation_id)
 
 
 @app.post("/ai/mode/public", response_model=ModeAIResponse)
+@app.post("/ai/mode/public/contextual", response_model=ModeAIResponse)
 async def public_consult_mode_ai(request: ModeAIRequest) -> ModeAIResponse:
     """Temporary public release endpoint; secrets remain server-side and usage is metered."""
     return await _public_mode_ai(request)
@@ -472,7 +474,7 @@ async def _public_mode_ai(request: ModeAIRequest) -> ModeAIResponse:
         f"Descripción: {request.level_description}\nEsfuerzo: {request.effort}\n"
         f"Persona: {request.user_name or guest_identity.name}\nContexto o pregunta: {request.context}"
     )
-    content, conversation_id = await _respond(guest_identity, f"mode-public-{request.mode_name}-{request.level}", prompt, settings.openai_model)
+    content, conversation_id = await _respond(guest_identity, None, prompt, settings.openai_model, retain_history=False)
     if not content.strip():
         raise HTTPException(status_code=502, detail="Modo IA devolvió una respuesta vacía.")
     return ModeAIResponse(proposal=content.strip(), model=settings.openai_model, conversation_id=conversation_id)

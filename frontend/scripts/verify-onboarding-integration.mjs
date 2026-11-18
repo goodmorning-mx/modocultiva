@@ -25,6 +25,7 @@ const ACCESS = 'synthetic-qa-token-not-a-credential';
 CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey', 'home-vision', 'account-home-vision');
 CASES.push('electric-home', 'account-electric-home');
 CASES.push('home-upload', 'account-home-upload');
+CASES.push('life-context', 'account-life-context');
 CASES.push('guest-language-switch', 'account-language-switch');
 CASES.push('mode-editorial');
 CASES.push('global-editorial');
@@ -78,6 +79,7 @@ const { journeyModeTranslations, triviaModeQuestions } = sourceModule('src/modeE
 const { getBankActivities, bankSources } = sourceModule('src/quoteActivityCatalog.ts');
 const { activityQuoteText } = sourceModule('src/activityQuoteTranslations.ts');
 const { modeAiMessage } = sourceModule('src/modeAiMessages.ts');
+const { cleanLifeContext, lifeAiContext, lifeComplete, LIFE_FIELDS } = sourceModule('src/lifeContext.ts');
 const { globalIdeaTitle } = sourceModule('src/globalIdeaPractices.ts');
 const { globalIdeaBio } = sourceModule('src/globalIdeaBios.ts');
 const { specialistProfileCopy, specialistExampleCopy, specialistProfileIds } = sourceModule('src/specialistProfilesEditorial.ts');
@@ -210,7 +212,7 @@ async function installTransport(context, origin, state, { identity = serverIdent
       if (apiPath === '/community/ideas' && method === 'GET') return reply(route, { requests: idea ? [idea] : [] });
       const empty = { '/community/submissions': { submissions: [] }, '/community/review-inbox': { submissions: [] }, '/community/members': { members: [], limit: 50 }, '/community/feed': { cards: [] }, '/community/ideas': { requests: [] }, '/community/notifications': { notifications: [] }, '/community/reuse-requests': { requests: [] } };
       if (method === 'GET' && Object.hasOwn(empty, apiPath)) return reply(route, empty[apiPath]);
-      if (syntheticAi && method === 'POST' && ['/ai/mode', '/ai/mode/public'].includes(apiPath)) { aiPayloads.push(request.postDataJSON()); return reply(route, { proposal: PROPOSAL }); }
+      if (syntheticAi && method === 'POST' && ['/ai/mode/contextual', '/ai/mode/public/contextual'].includes(apiPath)) { aiPayloads.push(request.postDataJSON()); return reply(route, { proposal: PROPOSAL }); }
       violations.push(`${method} ${apiPath}`); return reply(route, { detail: 'Synthetic verifier refuses unexpected API operations.' }, 503);
     }
     // Only static preview traffic may escape the interceptor. An unrecognized
@@ -507,6 +509,7 @@ async function runCase(browser, config, task) {
   const uploads = task.name.endsWith('home-upload');
   const switchesLanguage = task.name.endsWith('language-switch');
   const modeEditorial = task.name === 'mode-editorial';
+  const lifeContextCase = task.name.endsWith('life-context');
   const globalEditorial = task.name === 'global-editorial';
   const specialistEditorial = task.name === 'specialist-editorial';
   const premiumAccess = task.name === 'premium-access-fixture';
@@ -533,12 +536,12 @@ async function runCase(browser, config, task) {
   // saved map data. account-completed deliberately has no browser account flag.
   if (account && !welcomeTask) state.onboardingWelcomeCompleted = true;
   const regionalLocales = { es: 'es-MX', en: 'en-GB', zh: 'zh-Hans-CN', hi: 'hi-IN', ar: 'ar-SA', it: 'it-IT', pt: 'pt-BR', ru: 'ru-RU', de: 'de-DE', fr: 'fr-FR', da: 'da-DK' };
-  const height = ['fresh-journey', 'tour'].includes(task.name) ? (task.width <= 390 ? 568 : task.width === 870 ? 667 : 835) : 835;
+  const height = ['fresh-journey', 'tour'].includes(task.name) || lifeContextCase ? (task.width <= 390 ? 568 : task.width === 870 ? 667 : 835) : 835;
   const context = await browser.newContext({ viewport: { width: task.width, height }, hasTouch: task.width <= 390, serviceWorkers: 'block', reducedMotion: reduced ? 'reduce' : 'no-preference', locale: regionalLocales[task.language] });
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
-  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads, communitySurfaces: communitySurfaces || publicSurface });
+  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial || lifeContextCase, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads, communitySurfaces: communitySurfaces || publicSurface });
   await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: editorialCase ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !editorialCase, cachedManual: task.name.includes('ambiguous-cache') });
   const iosGuide = installGuide && task.width <= 390;
   if (iosGuide) await context.addInitScript(() => {
@@ -991,6 +994,7 @@ async function runCase(browser, config, task) {
         const activity = page.locator('.journey-social-body');
         assert.ok((await activity.textContent()).includes(`${item.title}. ${item.description}`));
         await page.locator('.journey-ai-button').click();
+        await page.locator('.life-context-skip').click();
         await page.locator('.mode-ai-ask').click();
         const notice = page.locator('.mode-ai-notice');
         assert.equal(await notice.textContent(), modeAiMessage(alternate, 'context'));
@@ -1164,7 +1168,7 @@ async function runCase(browser, config, task) {
         const open = async () => {
           await menu.click();
           assert.deepEqual(await page.locator('#home-sidebar [data-home-menu-item]').evaluateAll(items => items.map(item => item.dataset.homeMenuItem)),
-            ['home', 'profile', 'configurations', 'images', 'dashboard', 'specialists', 'trivia', 'replay']);
+            ['configurations', 'life-context', 'images', 'dashboard', 'specialists', 'trivia', 'replay']);
           await page.locator('[data-home-menu-item="images"]').click();
           await modal.waitFor();
         };
@@ -1442,6 +1446,74 @@ async function runCase(browser, config, task) {
         if (process.env.ACTIVITY_QA_SCREENSHOTS) { await steps.nth(1).click(); await flow.scrollIntoViewIfNeeded(); await page.screenshot({ path: resolve(process.env.ACTIVITY_QA_SCREENSHOTS, `compact-${task.name}-${task.width}-${task.language}.png`) }); }
         await assertPreserved(page, state, account);
         result = { directRequest: true, compactHeight: height, ideaCalls: transport.ideaWrites.length, dataPreserved: true };
+      } else if (lifeContextCase) {
+        const dialog = page.locator('.life-context-dialog[open]');
+        const card = dialog.locator('.life-context-card');
+        const ai = page.locator('.journey-ai-button');
+        const contextInputs = page.locator('.life-context-ai input');
+        const current = 'Synthetic current-mode foundation';
+        const other = 'Synthetic other-mode goal';
+        const openMenu = async () => {
+          await page.locator('.home-menu-button').click();
+          await page.locator('[data-home-menu-item="life-context"]').click();
+          await dialog.waitFor();
+        };
+        await openMenu();
+        assert.equal(await dialog.locator('select option').count(), 12);
+        assert.equal(await card.locator('textarea').count(), 4);
+        assert.equal(await card.getAttribute('data-mode'), 'fisico');
+        if (task.width <= 390) {
+          const title = await card.locator('h3').boundingBox();
+          const x = title.x + title.width / 2;
+          const y = title.y + title.height / 2;
+          const dx = task.language === 'ar' ? 90 : -90;
+          const touch = await context.newCDPSession(page);
+          const dispatch = (type, points) => touch.send('Input.dispatchTouchEvent', { type, touchPoints: points });
+          await dispatch('touchStart', [{ x, y }]);
+          await dispatch('touchMove', [{ x: x + dx / 2, y }]);
+          await dispatch('touchMove', [{ x: x + dx, y }]);
+          await dispatch('touchEnd', []);
+          await touch.detach();
+        } else await dialog.locator('.life-context-nav button:last-child').click();
+        await card.and(dialog.locator('[data-mode=intelectual]')).waitFor();
+        assert.equal(await card.getAttribute('data-mode'), 'intelectual');
+        await card.locator('[data-field=goals]').fill(other);
+        await dialog.locator('.life-context-save').click();
+        await dialog.waitFor({ state: 'detached' });
+        await selectPhysicalMode(page);
+        await page.locator('.journey-step-arrow--next').click();
+        await ai.click();
+        assert.equal(await card.getAttribute('data-mode'), 'fisico', 'AI directs to its own mode, not the last edited card');
+        await dialog.locator('.life-context-skip').click();
+        await page.locator('#activity-prompt').fill('Synthetic question only');
+        await page.locator('.mode-ai-ask').click();
+        await eventually(() => transport.aiPayloads.length === 1, 'Skip still allows an AI request');
+        assert.equal(transport.aiPayloads[0].context, 'Synthetic question only');
+        await page.locator('.activity-agent-back').click();
+        await ai.click();
+        await card.locator('[data-field=principles]').fill(current);
+        for (const checkbox of (await card.locator('input[type=checkbox]').all()).slice(1)) await checkbox.check();
+        await dialog.locator('.life-context-save').click();
+        assert.equal(await contextInputs.first().isChecked(), true);
+        assert.equal(await contextInputs.last().isChecked(), false);
+        await page.locator('.mode-ai-ask').click();
+        await eventually(() => transport.aiPayloads.length === 2, 'Saved context is sufficient for a suggestion');
+        assert.ok(transport.aiPayloads[1].context.includes(current) && !transport.aiPayloads[1].context.includes(other));
+        await contextInputs.last().check();
+        await page.locator('.mode-ai-ask').click();
+        await eventually(() => transport.aiPayloads.length === 3, 'Holistic request');
+        assert.ok(transport.aiPayloads[2].context.includes(current) && transport.aiPayloads[2].context.includes(other));
+        if (account) await eventually(() => transport.snapshot().state.lifeContext?.fisico?.principles === current, 'Account sync retains life context');
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        if (account) await settleHydration(page, expectedLanguage, config.timeout);
+        await selectPhysicalMode(page);
+        await page.locator('.journey-step-arrow--next').click();
+        await ai.click();
+        await page.locator('.mode-ai-studio').waitFor();
+        assert.equal(await dialog.count(), 0, 'Completed context persists and no longer prompts');
+        assert.equal(await contextInputs.last().isChecked(), false, 'Holistic scope is not remembered');
+        await assertPreserved(page, state, account);
+        result = { modes: 12, fieldsPerCard: 4, skip: true, scopeOptIn: true, persisted: true, dataPreserved: true };
       } else if (task.name === 'drafts') {
         const drafts = [];
         for (const entry of ['custom', 'ai']) {
@@ -1453,6 +1525,7 @@ async function runCase(browser, config, task) {
           else if (await page.locator('.activity-agent-back').isVisible()) { await page.locator('.activity-agent-back').click(); await page.locator('.journey-fixed-actions').waitFor(); }
           if (!await page.locator(methodSelectors[entry]).isVisible()) await page.locator('.journey-step-arrow--next').click();
           await page.locator(methodSelectors[entry]).click();
+          if (entry === 'ai') await page.locator('.life-context-skip').click();
           const text = `Unsaved ${entry} draft · العربية · QA only. Never replace this with saved text.`;
           await page.locator('#activity-prompt').fill(text);
           if (entry === 'ai') { await page.locator('.mode-ai-ask').click(); await eventually(async () => await page.locator('.mode-ai-proposal-text').textContent() === PROPOSAL, 'Synthetic AI response not rendered'); }
@@ -1467,7 +1540,7 @@ async function runCase(browser, config, task) {
       }
     }
     assert.deepEqual(errors, [], 'No uncaught browser errors'); assert.deepEqual(transport.violations, [], 'No unexpected API mutation/external request');
-    if (task.name !== 'drafts' && !modeEditorial) assert.equal(transport.aiCalls, 0);
+    if (task.name !== 'drafts' && !modeEditorial && !lifeContextCase) assert.equal(transport.aiCalls, 0);
     if (account) { sameProtected(transport.snapshot().state, state, uploads); assert.ok(transport.reads.includes('/auth/me') && transport.reads.includes('/state')); }
     const bundle = await page.locator('script[type="module"][src]').first().getAttribute('src');
     return { ...task, ...result, bundle, mockedStateWrites: transport.writes.length, realApiRequests: 0, errors: [] };
@@ -1486,6 +1559,14 @@ async function runCase(browser, config, task) {
 }
 
 function selfTest() {
+  const allContext = cleanLifeContext(Object.fromEntries(MODES.map(mode => [mode, Object.fromEntries(LIFE_FIELDS.map(field => [field, 'x'.repeat(500)]))])));
+  assert.equal(Object.keys(allContext).length, 12);
+  assert.equal(allContext.fisico.vision.length, 320);
+  assert.equal(lifeComplete({ principles: '', vision: '', goals: '', strategy: '' }), true);
+  assert.equal(lifeComplete({ principles: '' }), false);
+  const holistic = lifeAiContext('q'.repeat(5000), allContext, 'fisico', 'holistic');
+  assert.ok(holistic.length <= 4000 && MODES.every(mode => holistic.includes(`(${mode})`)));
+  assert.equal(lifeAiContext('question', allContext, 'fisico', 'none'), 'question');
   assert.equal(STOPS.length, 28 + Number(JOURNEY_REACTIONS_ENABLED) + Number(JOURNEY_SUBMISSION_AUDIENCE_ENABLED));
   assert.equal(new Set(STOPS).size, STOPS.length); assert.equal(STOPS.includes('audience'), JOURNEY_SUBMISSION_AUDIENCE_ENABLED);
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, emocional: false, unknown: true, social: 'true', ludico:'stock' }), { fisico: true, ludico:'stock' });
