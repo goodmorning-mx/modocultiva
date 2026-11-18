@@ -1702,7 +1702,8 @@ function App() {
 
   useLayoutEffect(() => {
     if (tourTopic !== 'methods' || !selectedMode) return;
-    journeyPanelRef.current?.querySelector('.journey-fixed-actions')?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+    // Keep enough room above a stacked row of options for the tutorial card.
+    journeyPanelRef.current?.querySelector('.journey-fixed-actions')?.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' });
   }, [tourTopic, selectedMode, journeySlide, journeyStep, activeActivity, cultOpen]);
 
   useLayoutEffect(() => {
