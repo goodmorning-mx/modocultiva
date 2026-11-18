@@ -58,7 +58,7 @@ export function HomeVisionSettings({ language, modes, images, preferences, close
         const fallback = defaultModePhoto(mode.key);
         return <fieldset key={mode.key} data-mode={mode.key} style={{ '--mode-color': mode.color } as CSSProperties}>
           <legend>{mode.name}</legend>
-          {selected === 'electric' ? <PremiumModeArtwork src={homeModePhoto(mode.key, images[mode.key], preferences)} fallbackSrc={fallback} color={mode.color} lazy /> : <img src={homeModePhoto(mode.key, images[mode.key], preferences)} alt="" loading="lazy" onError={event => {
+          {selected === 'electric' ? <PremiumModeArtwork src={homeModePhoto(mode.key, images[mode.key], preferences)} fallbackSrc={fallback} color={mode.color} className="home-vision-symbol-preview" lazy /> : <img src={homeModePhoto(mode.key, images[mode.key], preferences)} alt="" loading="lazy" onError={event => {
             if (event.currentTarget.getAttribute('src') !== fallback) event.currentTarget.src = fallback;
           }} />}
           <div className="home-vision-options">
