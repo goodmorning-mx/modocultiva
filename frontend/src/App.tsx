@@ -27,6 +27,7 @@ import { WelcomeIntro } from './WelcomeIntro';
 import { browserLanguage, readManualLanguage, resolveLanguagePreference, restoreLanguagePreference, normalizeLanguageState, type AppLanguage, type LanguageSource } from './languagePreference';
 import { homeGreetingPhrases, interfaceCopy } from './interfaceLanguage';
 import { homeQuoteText } from './homeQuoteTranslations';
+import { journeyModeTranslations, triviaModeQuestions } from './modeEditorial';
 import { decideWelcomeIntro, markWelcomeIntroComplete, readWelcomeIntroCompletion, welcomeIntroStorageKey, type WelcomeIntroScope } from './welcomeIntroState';
 import { GuidedTour } from './GuidedTour';
 import { getGuidedTourCopy, guidedTourStepCopy, type TourStageId } from './guidedTourMessages';
@@ -34,7 +35,7 @@ import type { GuidedTourStep, TourMethod } from './guidedTourCore';
 import { clarityTransition } from './clarityRubric';
 import { CommunityPanel, type CommunityShareCandidate, type CommunityTab } from './CommunityPanel';
 import './onboarding-integration.css';
-import { modeAiMessage, readModeAiProposal } from './modeAiMessages';
+import { modeAiMessage, readModeAiProposal, type ModeAiNotice } from './modeAiMessages';
 import { CultivaLeaf, CULTIVA_LEAF_SHAPE } from './CultivaLeaf';
 import { activityReactionKey, cleanReactions, JOURNEY_REACTIONS_ENABLED, type ActivityReactions, type Reaction } from './journeySocial';
 import { calculateCultivaLevel, CULTIVA_MAX_LEVEL } from './cultivaLevel';
@@ -670,7 +671,8 @@ const localizedModeDescriptions: Record<Language, Record<string, string>> = {
   fr: { fisico: "Santé et bien-être physique", intelectual: "Apprentissage, réflexion et développement cognitif", emocional: "Compréhension et équilibre des émotions", arquetipico: "Caractère, valeurs et identité", espiritual: "Sens, raison d’être et lien intérieur", romantico: "Amour, intimité et vie de couple", familiar: "Liens familiaux et racines", social: "Amitiés, entraide et communauté", financiero: "Gestion de l’argent, épargne et investissement", profesional: "Carrière, vocation et développement professionnel", ludico: "Jeu, repos et regain d’énergie", visionario: "Objectifs, vision à long terme et héritage" },
   da: { fisico: 'Sundhed og kropsligt velvære', intelectual: 'Intellektuel og kognitiv udvikling', emocional: 'Håndtering og balance af følelser', arquetipico: 'Karakter, sammenhæng og personlig essens', espiritual: 'Formål, mening og forbindelse', romantico: 'Parforhold og kærlighed', familiar: 'Familiebånd og rødder', social: 'Venskaber, netværk og fællesskab', financiero: 'Penge, opsparing og investering', profesional: 'Karriere, kald og arbejdspræstation', ludico: 'Glæde, fritid, hvile og ny energi', visionario: 'Mål, langsigtet planlægning og arv' },
 };
-const localizedJourneyModeDescriptions: Partial<Record<Language, Record<string, string>>> = {
+const localizedJourneyModeDescriptions: Record<Language, Record<string, string>> = {
+  ...journeyModeTranslations,
   es: {
     fisico: 'Cuidar tu salud física sostiene tu energía, autonomía y bienestar diario. Trabajarlo ayuda a prevenir desgaste y te da más capacidad para disfrutar y avanzar en las demás áreas.',
     intelectual: 'Cultivar tu curiosidad y pensamiento amplía lo que puedes comprender y crear. Te ayuda a aprender mejor, tomar decisiones con criterio y adaptarte a los cambios.',
@@ -810,9 +812,11 @@ function App() {
   };
   const specialistLocation = (location: string) => location.replace(/\bRemote\b|\bRemoto\b/gi, tr('remote'));
   const modeDescription = (mode: Mode) => localizedModeDescriptions[language][mode.key];
-  const modeJourneyDescription = (mode: Mode) => localizedJourneyModeDescriptions[language]?.[mode.key] ?? `${modeDescription(mode)}. ${tr('journeyGrowthBenefit')}`;
-  const triviaQuestion = (mode: Mode) => language === 'es' ? labCards[mode.key].question : tr('triviaQuestionPrompt');
-  const triviaAnswer = (mode: Mode) => language === 'es' ? labCards[mode.key].answer : `${tr('triviaAnswerPrefix')} ${modeDescription(mode).toLowerCase()}.`;
+  const modeJourneyDescription = (mode: Mode) => localizedJourneyModeDescriptions[language][mode.key];
+  const triviaQuestion = (mode: Mode) => language === 'es'
+    ? labCards[mode.key].question
+    : triviaModeQuestions[language][mode.key as keyof typeof triviaModeQuestions.en];
+  const triviaAnswer = (mode: Mode) => language === 'es' ? labCards[mode.key].answer : modeJourneyDescription(mode);
   const levelDescription = (level: number) => localizedLevelDescriptions[language][level] ?? levelDescriptions[level];
   const levelDefinitionText = (level: number) => levelDescription(level).replace(/^.*?(?:\s+—\s+|\s+–\s+|\s+-\s+|——)/u, '');
   const activityDescription = (level: number) => {
@@ -887,19 +891,20 @@ function App() {
   const [poolSelection, setPoolSelection] = useState(0);
   const [activityPrompt, setActivityPrompt] = useState('');
   const [manualAlignment, setManualAlignment] = useState('');
-  const [aiNotice, setAiNotice] = useState<string | null>(null);
+  const [aiNotice, setAiNotice] = useState<ModeAiNotice | null>(null);
   const [aiHasConsulted, setAiHasConsulted] = useState(false);
-  const [aiProposal, setAiProposal] = useState('');
+  const [aiProposal, setAiProposal] = useState<{ text: string; language: Language } | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const aiRequestRef = useRef<AbortController | null>(null);
+  // A locale change updates the controls, not the consultation already requested.
   useEffect(() => () => {
     aiRequestRef.current?.abort();
     aiRequestRef.current = null;
     setAiLoading(false);
     setAiHasConsulted(false);
-    setAiProposal('');
+    setAiProposal(null);
     setAiNotice(null);
-  }, [selectedMode?.key, activeActivity, activityEntry, language]);
+  }, [selectedMode?.key, activeActivity, activityEntry]);
   const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>(() => {
     try {
       return JSON.parse(personalStorageRef.current.getItem('modoCultiva_activityDrafts') ?? '{}');
@@ -1697,7 +1702,7 @@ function App() {
     setPublicCardId(snapshot.publicCardId);
     if (snapshot.selectedMode && snapshot.activeActivity === null) restoreJourneyPosition();
   };
-  const tourReturnRef = useRef<{ navigation: typeof navigationSnapshot; activityPrompt: string; manualAlignment: string; aiProposal: string; aiHasConsulted: boolean; aiNotice: string | null; poolSelection: number; pageScroll: number; journeyScroll: number } | null>(null);
+  const tourReturnRef = useRef<{ navigation: typeof navigationSnapshot; activityPrompt: string; manualAlignment: string; aiProposal: typeof aiProposal; aiHasConsulted: boolean; aiNotice: ModeAiNotice | null; poolSelection: number; pageScroll: number; journeyScroll: number } | null>(null);
   const startTour = () => {
     if (aiLoading) return;
     if (tourIndex === null) tourReturnRef.current = { navigation: navigationSnapshotRef.current, activityPrompt, manualAlignment, aiProposal, aiHasConsulted, aiNotice, poolSelection, pageScroll: window.scrollY, journeyScroll: journeyPanelRef.current?.scrollTop ?? 0 };
@@ -2018,7 +2023,7 @@ function App() {
     setManualAlignment(entry === 'custom' && selectedMode ? activityAlignments[`${selectedMode.key}-${level}`] ?? '' : '');
     setAiNotice(null);
     setAiHasConsulted(false);
-    setAiProposal('');
+    setAiProposal(null);
     setAiLoading(false);
     window.requestAnimationFrame(() => {
       journeyPanelRef.current?.scrollTo({ top: 0, behavior: 'auto' });
@@ -2042,7 +2047,7 @@ function App() {
       return;
     }
     if (!activityPrompt.trim()) {
-      setAiNotice(modeAiMessage(language, 'context'));
+      setAiNotice('context');
       setAiHasConsulted(false);
       return;
     }
@@ -2051,7 +2056,7 @@ function App() {
     aiRequestRef.current = controller;
     setAiLoading(true);
     setAiHasConsulted(false);
-    setAiProposal('');
+    setAiProposal(null);
     setAiNotice(null);
     try {
       const response = await fetch(`${apiUrl}${isAuthenticated ? '/ai/mode' : '/ai/mode/public'}`, {
@@ -2073,14 +2078,14 @@ function App() {
       const proposal = readModeAiProposal(data);
       if (!response.ok || !proposal) throw new Error('No valid activity proposal');
       if (controller.signal.aborted) return;
-      setAiProposal(proposal);
+      setAiProposal({ text: proposal, language });
       setAiHasConsulted(true);
       setAiNotice(null);
     } catch {
       if (controller.signal.aborted) return;
       setAiHasConsulted(false);
-      setAiProposal('');
-      setAiNotice(modeAiMessage(language, 'failed'));
+      setAiProposal(null);
+      setAiNotice('failed');
     } finally {
       if (aiRequestRef.current === controller) {
         aiRequestRef.current = null;
@@ -2095,11 +2100,11 @@ function App() {
       openPlan('gold', 'Modo IA');
       return;
     }
-    if (aiLoading || !aiHasConsulted || !aiProposal.trim()) {
-      setAiNotice(modeAiMessage(language, 'first'));
+    if (aiLoading || !aiHasConsulted || !aiProposal) {
+      setAiNotice('first');
       return;
     }
-    saveActivity(selectedMode.key, activeActivity, aiProposal);
+    saveActivity(selectedMode.key, activeActivity, aiProposal.text);
   };
 
   const saveGlobalInsightActivity = () => {
@@ -2793,8 +2798,8 @@ function App() {
           </> : <ModeAiStudio language={language} brand={tr('modeAI')} title={tr('buildActivity')} description={trf('modeAiDescription', { mode: modeName(selectedMode), level: String(activeActivity) })} modeIcon={selectedMode.icon} clarityGoal={<ClarityGoal level={activeActivity} language={language} />}
             level={activeActivity} levelLabel={tr('level')} stage={localizedLevelNames[language][activeActivity]} considerLabel={tr('considerThis')} effort={effortLabel(activeActivity)} effortDescription={tr(`effort${effortByLevel[activeActivity]}`)}
             question={trf('journeyAiQuestion', { level: String(activeActivity) })} contextLabel={tr('context')} placeholder={tr('activityPlaceholder')} activityLabel={tr('activity')} readyLabel={tr('proposalReady')} waiting={tr('journeyAiWaiting')}
-            askLabel={tr('askAI')} useLabel={tr('useActivity')} consultingLabel={tr('consulting')} context={activityPrompt} proposal={aiProposal} hasProposal={aiHasConsulted} loading={aiLoading} notice={aiNotice}
-            onContext={value => { setActivityPrompt(value); setAiHasConsulted(false); setAiProposal(''); setAiNotice(null); }} onAsk={() => { void consultModeAi(); }} onUse={saveModeAiActivity} />}
+            askLabel={tr('askAI')} useLabel={tr('useActivity')} consultingLabel={tr('consulting')} context={activityPrompt} proposal={aiProposal?.text ?? ''} proposalLanguage={aiProposal?.language} hasProposal={aiHasConsulted} loading={aiLoading} notice={aiNotice ? modeAiMessage(language, aiNotice) : null}
+            onContext={value => { setActivityPrompt(value); setAiHasConsulted(false); setAiProposal(null); setAiNotice(null); }} onAsk={() => { void consultModeAi(); }} onUse={saveModeAiActivity} />}
         </section> : <>
           <section className="journey-builder journey-deck" aria-label={tr('cultivationPath')} dir={language === 'ar' ? 'rtl' : 'ltr'} data-journey-tour={tourTopic ?? undefined}
             onTouchStart={event => {

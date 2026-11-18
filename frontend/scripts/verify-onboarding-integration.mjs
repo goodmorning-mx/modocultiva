@@ -26,6 +26,7 @@ CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey', 'h
 CASES.push('electric-home', 'account-electric-home');
 CASES.push('home-upload', 'account-home-upload');
 CASES.push('guest-language-switch', 'account-language-switch');
+CASES.push('mode-editorial');
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -62,6 +63,10 @@ const { cleanHomeVisionCards, homeModePhoto, homeVisionCopy } = sourceModule('sr
 const { electricSymbolLabel } = sourceModule('src/homeVision.ts');
 const { interfaceCopy, homeGreetingPhrases } = sourceModule('src/interfaceLanguage.ts');
 const { homeQuoteText } = sourceModule('src/homeQuoteTranslations.ts');
+const { journeyModeTranslations, triviaModeQuestions } = sourceModule('src/modeEditorial.ts');
+const { getBankActivities, bankSources } = sourceModule('src/quoteActivityCatalog.ts');
+const { activityQuoteText } = sourceModule('src/activityQuoteTranslations.ts');
+const { modeAiMessage } = sourceModule('src/modeAiMessages.ts');
 const STOPS = TOUR_STOPS.filter(stop => (JOURNEY_REACTIONS_ENABLED || stop !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || stop !== 'audience'));
 
 function options(argv) {
@@ -123,7 +128,7 @@ function sameProtected(actual, expected, uploads = false) {
 async function installTransport(context, origin, state, { identity = serverIdentity(), hold = false, syntheticAi = false, localIdeaCase = '', pendingTour = false, uploads = false } = {}) {
   let approvalCount = 1;
   const ideaWrites = []; let idea = null;
-  const reads = [], writes = [], violations = [], blocked = []; let aiCalls = 0; let revision = 1; let document = clone(state);
+  const reads = [], writes = [], violations = [], blocked = [], aiPayloads = []; let revision = 1; let document = clone(state);
   const identityGate = deferred(), stateGate = deferred();
   if (!hold) { identityGate.resolve(); stateGate.resolve(); }
   const snapshot = () => ({ state: clone(document), revision: `synthetic-qa-revision-${revision}`, validationReceipts: {}, legacyCompletionSlots: [] });
@@ -161,7 +166,7 @@ async function installTransport(context, origin, state, { identity = serverIdent
       if (apiPath === '/community/ideas' && method === 'GET') return reply(route, { requests: idea ? [idea] : [] });
       const empty = { '/community/submissions': { submissions: [] }, '/community/review-inbox': { submissions: [] }, '/community/members': { members: [], limit: 50 }, '/community/feed': { cards: [] }, '/community/ideas': { requests: [] }, '/community/notifications': { notifications: [] }, '/community/reuse-requests': { requests: [] } };
       if (method === 'GET' && Object.hasOwn(empty, apiPath)) return reply(route, empty[apiPath]);
-      if (syntheticAi && method === 'POST' && ['/ai/mode', '/ai/mode/public'].includes(apiPath)) { aiCalls++; return reply(route, { proposal: PROPOSAL }); }
+      if (syntheticAi && method === 'POST' && ['/ai/mode', '/ai/mode/public'].includes(apiPath)) { aiPayloads.push(request.postDataJSON()); return reply(route, { proposal: PROPOSAL }); }
       violations.push(`${method} ${apiPath}`); return reply(route, { detail: 'Synthetic verifier refuses unexpected API operations.' }, 503);
     }
     // Only static preview traffic may escape the interceptor. An unrecognized
@@ -171,7 +176,7 @@ async function installTransport(context, origin, state, { identity = serverIdent
     if (['fetch', 'xhr'].includes(request.resourceType()) || method !== 'GET') violations.push(`${method} unexpected external request`);
     blocked.push(request.resourceType()); return route.abort('blockedbyclient');
   });
-  return { reads, writes, ideaWrites, violations, blocked, identityGate, stateGate, snapshot, get aiCalls() { return aiCalls; },
+  return { reads, writes, ideaWrites, violations, blocked, identityGate, stateGate, snapshot, aiPayloads, get aiCalls() { return aiPayloads.length; },
     setApprovals(count) {
       approvalCount = count;
       if (count === 3) { document.levels.fisico = 4; revision++; }
@@ -429,6 +434,7 @@ async function runCase(browser, config, task) {
   const account = task.name.includes('account') || task.name === 'identity'; const reduced = task.width === 320 || task.width === 870;
   const uploads = task.name.endsWith('home-upload');
   const switchesLanguage = task.name.endsWith('language-switch');
+  const modeEditorial = task.name === 'mode-editorial';
   if (switchesLanguage) {
     state.profileName = 'Cultiva todos tus modos.';
     if (account) state.languageSource = 'manual';
@@ -450,8 +456,8 @@ async function runCase(browser, config, task) {
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
-  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts', localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads });
-  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: 'manual', manualRecord: !localeTask && !switchesLanguage, cachedManual: task.name.includes('ambiguous-cache') });
+  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads });
+  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: modeEditorial ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !modeEditorial, cachedManual: task.name.includes('ambiguous-cache') });
   if (task.name.endsWith('electric-home') && !account) await context.addInitScript(() => {
     if (!localStorage.getItem('__electric_seed')) {
       localStorage.setItem('modo-cultiva:guest-cache:v1:modoCultiva_homeVisionCards', JSON.stringify({fisico:true}));
@@ -530,6 +536,97 @@ async function runCase(browser, config, task) {
         await assertPreserved(page, state, account);
         await assertMap(page, state.levels);
         result = { switchedLanguages:11, sameShell:true, manualSurvivesReload:true, guestFollowsBrowser:!account, userTextPreserved:true };
+      } else if (modeEditorial) {
+        const code = task.language;
+        const alternate = code === 'es' ? 'fr' : 'es';
+        const documentLanguage = language => language === 'zh' ? 'zh-CN' : language;
+        const setBrowserLanguage = async language => {
+          await page.evaluate(language => {
+            Object.defineProperty(navigator, 'languages', { configurable: true, get: () => [language] });
+            dispatchEvent(new Event('languagechange'));
+          }, language);
+          await eventually(async () => await page.locator('html').getAttribute('lang') === documentLanguage(language), `Browser switch to ${language}`);
+        };
+        assert.equal(await page.locator('html').getAttribute('lang'), documentLanguage(code));
+        await page.locator('.home-menu-button').click();
+        await page.locator('[data-home-menu-item="trivia"]').click();
+        const trivia = page.locator('.modo-lab-grid');
+        await trivia.waitFor();
+        const questions = await trivia.locator('.modo-lab-front h2').allTextContents();
+        const answers = await trivia.locator('.modo-lab-answer').allTextContents();
+        assert.equal(questions.length, MODES.length);
+        assert.equal(new Set(questions).size, MODES.length);
+        assert.equal(new Set(answers).size, MODES.length);
+        if (code !== 'es') assert.deepEqual(questions, MODES.map(mode => triviaModeQuestions[code][mode]));
+        const firstTrivia = trivia.locator('.modo-lab-card').first();
+        await firstTrivia.locator('.modo-lab-front button').click();
+        assert.ok(await firstTrivia.evaluate(card => card.classList.contains('modo-lab-card--flipped')));
+        await setBrowserLanguage(alternate);
+        assert.notEqual(await firstTrivia.locator('.modo-lab-answer').textContent(), answers[0]);
+        assert.ok(await firstTrivia.evaluate(card => card.classList.contains('modo-lab-card--flipped')), 'Changing the language does not flip a card back');
+        await setBrowserLanguage(code);
+        await page.locator('.modo-lab-dashboard-back').click();
+        await page.locator('.dashboard-back').click();
+        const carousel = page.locator('.circular-carousel[data-ready]');
+        const active = carousel.locator('.home-mode-card[tabindex="0"]');
+        const journey = page.locator('.journey-panel');
+        const descriptions = [];
+        await active.press('Home');
+        for (const [index, mode] of MODES.entries()) {
+          await carousel.locator(`[data-tour-mode="${mode}"][tabindex="0"]`).press('Enter');
+          const description = await journey.locator('.journey-deck-overview h3 + p').textContent();
+          descriptions.push(description);
+          if (code in journeyModeTranslations) assert.equal(description, journeyModeTranslations[code][mode]);
+          if (code !== 'es') assert.equal(description, answers[index]);
+          await journey.locator('.close-journey').click();
+          if (index < MODES.length - 1) await carousel.locator('.circular-carousel__controls button').nth(1).click();
+        }
+        assert.equal(new Set(descriptions).size, MODES.length);
+        await selectPhysicalMode(page);
+        await page.locator('.journey-step-list button').nth(1).click();
+        await page.locator('.journey-recommended-button').click();
+        const bank = page.locator('.bank-presentation');
+        const assertBank = async (language, slide) => {
+          const item = getBankActivities('fisico', state.levels.fisico, language)[slide];
+          const quote = bank.locator('.bank-quote-page blockquote');
+          assert.equal(await quote.getAttribute('lang'), language);
+          assert.equal(await quote.textContent(), activityQuoteText(item.quote, language));
+          assert.equal(await bank.locator('.bank-attribution cite').textContent(), bankSources[item.quote.source].author);
+          assert.equal(await bank.locator('.bank-source a').getAttribute('href'), bankSources[item.quote.source].url);
+          assert.equal(await bank.locator('.bank-source p[lang="en"]').textContent(), `“${item.quote.en}”`);
+          assert.ok((await bank.locator('.bank-pagination [aria-current="true"]').getAttribute('aria-label')).endsWith(item.title));
+          return item;
+        };
+        await assertBank(code, 0);
+        await bank.locator('.bank-pagination button').nth(1).click();
+        await assertBank(code, 1);
+        await setBrowserLanguage(alternate);
+        const item = await assertBank(alternate, 1);
+        await bank.locator('.bank-use').click();
+        const activity = page.locator('.journey-social-body');
+        assert.ok((await activity.textContent()).includes(`${item.title}. ${item.description}`));
+        await page.locator('.journey-ai-button').click();
+        await page.locator('.mode-ai-ask').click();
+        const notice = page.locator('.mode-ai-notice');
+        assert.equal(await notice.textContent(), modeAiMessage(alternate, 'context'));
+        await setBrowserLanguage(code);
+        assert.equal(await notice.textContent(), modeAiMessage(code, 'context'));
+        const prompt = 'Texto de la persona · Keep my input exactly as entered.';
+        await page.locator('#activity-prompt').fill(prompt);
+        await page.locator('.mode-ai-ask').click();
+        const proposal = page.locator('.mode-ai-proposal-text');
+        assert.equal(await proposal.textContent(), PROPOSAL);
+        assert.equal(await proposal.getAttribute('lang'), code);
+        assert.equal(transport.aiPayloads[0].language, code);
+        assert.equal(transport.aiPayloads[0].context, prompt);
+        await setBrowserLanguage(alternate);
+        assert.equal(await page.locator('#activity-prompt').inputValue(), prompt);
+        assert.equal(await proposal.textContent(), PROPOSAL);
+        assert.equal(await proposal.getAttribute('lang'), code, 'Retain the original language of an existing suggestion');
+        await page.locator('.mode-ai-ask').click();
+        await eventually(async () => await proposal.count() === 1 && await proposal.getAttribute('lang') === alternate, 'New suggestion uses the current language');
+        assert.equal(transport.aiPayloads[1].language, alternate);
+        result = { modeDescriptions: descriptions.length, triviaCards: questions.length, bankOriginalRetained: true, localizedSavedRecommendation: true, aiLanguageAndDraftVerified: true };
       } else if (task.name.endsWith('electric-home')) {
         const modal = page.locator('.home-vision-settings[open]');
         const open = async () => { await page.locator('.home-menu-button').click(); await page.locator('[data-home-menu-item="images"]').click(); await modal.waitFor(); };
@@ -892,7 +989,7 @@ async function runCase(browser, config, task) {
       }
     }
     assert.deepEqual(errors, [], 'No uncaught browser errors'); assert.deepEqual(transport.violations, [], 'No unexpected API mutation/external request');
-    if (task.name !== 'drafts') assert.equal(transport.aiCalls, 0);
+    if (task.name !== 'drafts' && !modeEditorial) assert.equal(transport.aiCalls, 0);
     if (account) { sameProtected(transport.snapshot().state, state, uploads); assert.ok(transport.reads.includes('/auth/me') && transport.reads.includes('/state')); }
     const bundle = await page.locator('script[type="module"][src]').first().getAttribute('src');
     return { ...task, ...result, bundle, mockedStateWrites: transport.writes.length, realApiRequests: 0, errors: [] };
@@ -928,6 +1025,14 @@ function selfTest() {
     assert.equal(welcomeMessages[language].messages.length, 7); assert.ok(stateAccountCopy(language).cloudOnly);
     assert.ok(onboardingIntegrationCopy(language).share); for (const stop of STOPS.filter(stop => !stop.startsWith('control'))) assert.ok(guidedTourStepCopy(language, stop).title);
     assert.equal(homeVisionCopy(language).filter(Boolean).length, 6);
+    if (language !== 'es') {
+      assert.deepEqual(Object.keys(triviaModeQuestions[language]).sort(), [...MODES].sort());
+      assert.equal(new Set(Object.values(triviaModeQuestions[language])).size, MODES.length);
+    }
+    if (language !== 'es' && language !== 'en') {
+      assert.deepEqual(Object.keys(journeyModeTranslations[language]).sort(), [...MODES].sort());
+      assert.equal(new Set(Object.values(journeyModeTranslations[language])).size, MODES.length);
+    }
     const document = fixture(language); assert.equal(Object.keys(document.levels).length, 12); sameProtected(clone(document), document);
   }
   emit({ selfTest: 'PASS', languages: 11, widths: WIDTHS, tourStops: STOPS.length, cases: CASES, safety: 'loopback preview only; all API requests intercepted; no dependencies installed' });
@@ -941,7 +1046,7 @@ async function main() {
   catch { playwright = require(resolve(dirname(process.execPath), '..', 'node_modules', 'playwright')); }
   const tasks = [];
   for (const name of config.cases) {
-    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || name === 'account-journey-ascent') for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
+    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || ['account-journey-ascent', 'mode-editorial'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
     else for (const [index, width] of config.widths.entries()) {
       const language = config.languages[index % config.languages.length];
       if (name === 'identity') for (const identity of ['normal', 'forged', 'owner']) tasks.push({ name, width, language, identity });

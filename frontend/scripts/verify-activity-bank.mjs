@@ -1,12 +1,19 @@
 import assert from 'node:assert/strict';
 import { loadTypeScriptModule } from './load-typescript-module.mjs';
 const { getBankActivities, bankPairings, bankQuotes, bankSources } = await loadTypeScriptModule(new URL('../src/quoteActivityCatalog.ts', import.meta.url));
+const { activityQuoteText } = await loadTypeScriptModule(new URL('../src/activityQuoteTranslations.ts', import.meta.url));
 const languages = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da'];
 assert.equal(Object.keys(bankPairings).length, 12);
 assert.equal(new Set(bankQuotes.map(q => q.id)).size, bankQuotes.length);
 for (const q of bankQuotes) {
   assert.ok(q.en && q.es && q.locator && bankSources[q.source], `Missing provenance: ${q.id}`);
   assert.equal(new URL(bankSources[q.source].url).protocol, 'https:');
+  for (const language of languages) {
+    const text = activityQuoteText(q, language);
+    assert.ok(text?.trim(), `Missing excerpt: ${q.id}/${language}`);
+    if (language === 'en' || language === 'es') assert.equal(text, q[language]);
+    else assert.notEqual(text, q.en, `Untranslated excerpt: ${q.id}/${language}`);
+  }
 }
 let checked = 0;
 for (const mode of Object.keys(bankPairings)) {
@@ -43,3 +50,4 @@ for (const mode of Object.keys(bankPairings)) {
 }
 console.log(`[activity-bank] ${checked} localized recommendations checked; 12 modes, 10 levels, 10 choices; provenance, uniqueness, duration and invalid-input checks passed`);
 console.log('[activity-bank] Next-clarity direction, measured growth, optimization/delegation and teaching transition anchors passed');
+console.log(`[activity-bank] ${bankQuotes.length * languages.length} localized excerpts checked against the attributed originals`);

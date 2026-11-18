@@ -30,12 +30,22 @@ guardan ya traducidos.
   recarga, persistencia de la procedencia, identidad, mapa y configuraciones,
   y que cambiar de idioma no reemplace ni traduzca contenido de usuario.
 
+## Contenido de los modos y de las actividades
+
+- Journey cuenta con descripciones extensas propias de los doce modos en
+  los once idiomas. En Trivia, cada modo tiene una pregunta y una respuesta
+  específicas en cada idioma.
+- Las 28 citas de Recomendaciones tienen traducción editorial en el idioma
+  activo. Se conservan el original en inglés, su autor y el enlace a la
+  fuente. El selector de citas anuncia el título traducido del ejercicio.
+- Modo IA traduce los avisos al mostrarlos. No borra el contexto ni la
+  propuesta al cambiar el idioma: cada consulta usa el idioma activo cuando
+  se envía, y el resultado conserva su idioma original.
+
 ## Pendientes para cerrar el objetivo
 
 | Superficie | Evidencia y siguiente verificación |
 | --- | --- |
-| Journey y Trivia | Versiones extensas específicas del modo y preguntas/respuestas usan contenido genérico fuera del español (Journey también tiene inglés). Completar el contenido y comprobar los 12 recorridos y tarjetas de Trivia por idioma. |
-| Recomendaciones y Modo IA | Las recomendaciones ya tienen ejercicios traducidos; una cita externa en inglés es deliberadamente original. Revisar una presentación fiel en todos los idiomas, texto para lectores de pantalla y conservación del idioma al guardar y al consultar IA. |
 | Modo Global y especialistas | Algunos datos de demostración, especialidades, ciudades, biografías y títulos de ejemplo siguen en español o se sustituyen por una descripción genérica. Distinguir contenido editorial traducible de nombres, idiomas nativos y contenido del usuario. |
 | Planes y accesos especiales | La rama desactivada por la configuración de acceso gratuito aún contiene copy literal. Auditar también errores, accesibilidad y variantes de conexión. |
 | Interfaces restantes | Revisar pantallas y diálogos visibles de Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, instalación, evidencias y notificaciones; comprobar texto visible y accesible, no solo claves. |
