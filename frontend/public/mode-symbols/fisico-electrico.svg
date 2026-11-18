@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 152">
+  <defs>
+    <linearGradient id="jade" x2=".5" y2="1"><stop stop-color="#effff8"/><stop offset=".36" stop-color="#7fe9cd"/><stop offset=".7" stop-color="#239e8c"/><stop offset="1" stop-color="#0d514d"/></linearGradient>
+    <linearGradient id="charge" x2=".75" y2="1"><stop stop-color="#fff"/><stop offset=".49" stop-color="#94f7db"/><stop offset="1" stop-color="#fff"/></linearGradient>
+    <filter id="halo" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="3.3"/></filter>
+    <path id="wing" d="M71 48c-11-4-8-20-19-20H17c-5 0-5 4-1 7 3 14 12 22 26 24l-5 2c8 5 17 5 24 3 8-2 11-8 10-16Z"/>
+    <path id="snake-a" d="M63 71c-13-10-24 7-7 14l42 14c13 4 10 13 0 17l-32 10c-8 3-7 9 1 12"/>
+    <path id="snake-b" d="M97 71c13-10 24 7 7 14L62 99c-13 4-10 13 0 17l32 10c8 3 7 9-1 12"/>
+    <path id="orbit" d="M15 93C12 78 40 54 80 43c35-10 65-8 68 5 5 17-27 43-65 54-28 9-56 9-64-1"/>
+  </defs>
+  <g fill="none" stroke-linecap="round">
+    <use href="#orbit" stroke="#83ffe1" stroke-width="6" filter="url(#halo)" opacity=".65"/>
+    <use href="#orbit" stroke="#b2ffee" stroke-width="1.3" opacity=".7"/>
+    <path d="M24 37c20-12 66-7 99 11 18 10 26 25 24 36-5 17-33 26-57 24" stroke="#5be3cc" stroke-width="1.25" opacity=".65"/>
+  </g>
+  <g fill="url(#jade)" stroke-linejoin="round" stroke="#e4fff5" stroke-width="1.15">
+    <use href="#wing" stroke="#96ffdd" stroke-width="9" opacity=".72" filter="url(#halo)"/>
+    <use href="#wing" transform="translate(160) scale(-1 1)" stroke="#96ffdd" stroke-width="9" opacity=".72" filter="url(#halo)"/>
+    <use href="#wing"/><use href="#wing" transform="translate(160) scale(-1 1)"/>
+    <circle cx="80" cy="24" r="10"/>
+    <path d="M76 32h8l-4 111Z"/>
+  </g>
+  <g fill="none" stroke-linecap="round">
+    <path d="M25 37c5 11 17 14 29 15m-18-7c4 9 14 12 22 13m77-21c-5 11-17 14-29 15m18-7c-4 9-14 12-22 13" stroke="#ecfffa" stroke-width="1.5" opacity=".7"/>
+    <use href="#snake-a" stroke="#7ef9db" stroke-width="9" opacity=".78" filter="url(#halo)"/>
+    <use href="#snake-b" stroke="#7ef9db" stroke-width="9" opacity=".78" filter="url(#halo)"/>
+    <use href="#snake-a" stroke="url(#charge)" stroke-width="5"/>
+    <use href="#snake-b" stroke="#0d3436" stroke-width="8"/>
+    <use href="#snake-b" stroke="url(#charge)" stroke-width="5"/>
+    <path d="M19 101c11 10 38 9 64 1 25-8 48-22 58-37" stroke="#e4fff5" stroke-width="1.3" stroke-dasharray="12 12 24 18" opacity=".85"/>
+  </g>
+  <g fill="#f4fffb">
+    <circle cx="19" cy="101" r="2.05"/><circle cx="141" cy="65" r="2.1"/><circle cx="130" cy="39" r="1.6"/><circle cx="48" cy="31" r="1.4"/><circle cx="115" cy="113" r="1.55"/>
+    <path d="M21 61l1.8 4.2L27 67l-4.2 1.8L21 73l-1.8-4.2L15 67l4.2-1.8Zm112 21 1.5 3.5L138 87l-3.5 1.5L133 92l-1.5-3.5L128 87l3.5-1.5Z"/>
+  </g>
+</svg>
