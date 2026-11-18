@@ -4,7 +4,7 @@ import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
 import { VisionImage } from './VisionImage';
 import { HomeVisionSettings } from './HomeVisionSettings';
-import { cleanHomeVisionCards, customModeSymbol, defaultModePhoto, homeModePhoto, homeVisionCopy, type HomeVisionCards, type HomeImageSource } from './homeVision';
+import { cleanHomeVisionCards, customModeSymbol, defaultModePhoto, homeImageSource, homeModePhoto, homeVisionCopy, type HomeVisionCards, type HomeImageSource } from './homeVision';
 import { JourneyActivityCard } from './JourneyActivityCard';
 import { ModeAiStudio } from './ModeAiStudio';
 import { ClarityGoal } from './ClarityGoal';
@@ -2264,7 +2264,7 @@ function App() {
     const next = { ...homeVisionCards };
     if (source === 'vision') next[modeKey] = true;
     else if (source === 'electric') next[modeKey] = 'electric';
-    else delete next[modeKey];
+    else next[modeKey] = 'stock';
     if (!writeStoredJson(personalStorageRef.current, 'modoCultiva_homeVisionCards', next)) return false;
     setHomeVisionCards(next);
     return true;
@@ -2516,7 +2516,7 @@ function App() {
                 id: mode.key,
                 src: homeModePhoto(mode.key, visionImages[mode.key], homeVisionCards),
                 fallbackSrc: defaultModePhoto(mode.key),
-                electric: homeVisionCards[mode.key] === 'electric',
+                electric: homeImageSource(mode.key, visionImages[mode.key], homeVisionCards) === 'electric',
                 label: `${modeName(mode)}, ${tr('level')} ${level}`,
                 style: { '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties,
                 content: <>
