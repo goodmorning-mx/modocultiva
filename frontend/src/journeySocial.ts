@@ -81,5 +81,5 @@ export const platformName = (platform: SharePlatform, language: string): string 
 };
 
 // Explicit allowlist: never pass the account, access tokens, location URL, or other activities.
-export type ActivityShare = { mode: string; level: number; levelLabel: string; stage: string; effort: string; activity: string; color: string; icon: string; language: string };
+export type ActivityShare = { mode: string; level: number; levelLabel: string; stage: string; effort: string; activity: string; color: string; icon: string; iconSrc?: string; language: string };
 export const shareCaption = (card: ActivityShare) => `${card.mode} · ${card.levelLabel} ${card.level}\n${card.activity}\n\nModo Cultiva`;

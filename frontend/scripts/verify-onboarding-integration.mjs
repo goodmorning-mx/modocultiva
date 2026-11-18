@@ -1020,9 +1020,18 @@ async function runCase(browser, config, task) {
           await button.waitFor();
           assert.ok((await button.getAttribute('class')).includes('home-mode-card--electric'));
           const artwork = button.locator('.mode-electric-symbol-fallback');
-          const asset = { fisico: 'visionario.webp', visionario: 'fisico.webp', emocional: 'emocional-orbitas.svg' }[mode] ?? `${mode}.webp`;
+          const customAssets = { emocional: 'emocional-orbitas.svg', ludico: 'ludico-mando.svg' };
+          const asset = { ...customAssets, fisico: 'visionario.webp', visionario: 'fisico.webp' }[mode] ?? `${mode}.webp`;
           assert.equal(await artwork.getAttribute('src'), `/mode-symbols/${asset}`);
           await eventually(() => artwork.evaluate(img => img.complete && img.naturalWidth > 0), 'Premium artwork loaded');
+          if (mode === 'ludico') assert.ok(await artwork.evaluate(img => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 160; canvas.height = 136;
+            const layer = canvas.getContext('2d');
+            layer.drawImage(img, 0, 0, 160, 136);
+            const alpha = (x, y) => layer.getImageData(x, y, 1, 1).data[3];
+            return alpha(80, 55) === 0 && alpha(45, 63) === 0 && alpha(80, 25) > 200 && alpha(59, 63) > 200;
+          }), 'The Lúdico controller is line art: transparent inside with an outlined body and button');
           assert.ok(await artwork.evaluate(img => {
             const palette = getComputedStyle(img).getPropertyValue('--mode-color').trim();
             const filter = img.parentElement.querySelector('filter');
@@ -1034,9 +1043,10 @@ async function runCase(browser, config, task) {
           if (mode === 'fisico') assert.equal(await icon.textContent(), '△');
           if (mode === 'visionario') assert.equal(await icon.textContent(), '✦');
           if (mode === 'arquetipico') assert.equal(await icon.textContent(), '✺');
-          if (mode === 'emocional') assert.equal(await icon.locator('img').getAttribute('src'), '/mode-symbols/emocional-orbitas.svg');
+          if (customAssets[mode]) assert.equal(await icon.locator('img').getAttribute('src'), `/mode-symbols/${customAssets[mode]}`);
           if (index % 2) await button.press('Enter'); else if (task.width <= 390) await button.tap(); else await button.click();
           await page.locator('.journey-panel').waitFor();
+          if (mode === 'ludico') assert.equal(await page.locator('.journey-panel .journey-icon img').getAttribute('src'), '/mode-symbols/ludico-mando.svg');
           assert.equal(await sparks.count(), 0, 'Covered home pauses its effects');
           await page.locator('.close-journey').click();
           if (index < MODES.length-1) await carousel.locator('.circular-carousel__controls button').nth(1).click();
@@ -1386,6 +1396,7 @@ function selfTest() {
   assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/visionario.webp');
   assert.equal(homeModePhoto('visionario', PNG, { visionario:'electric' }), '/mode-symbols/fisico.webp');
   assert.equal(homeModePhoto('emocional', PNG, { emocional:'electric' }), '/mode-symbols/emocional-orbitas.svg');
+  assert.equal(homeModePhoto('ludico', PNG, { ludico:'electric' }), '/mode-symbols/ludico-mando.svg');
   assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
   assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '/mode-photos/fisico.jpg');
   assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-photos/fisico.jpg');

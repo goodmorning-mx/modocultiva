@@ -10,10 +10,14 @@ export function cleanHomeVisionCards(value: unknown): HomeVisionCards {
 }
 
 export const defaultModePhoto = (mode: string) => `/mode-photos/${mode}.jpg`;
-export function modeSymbol(mode: string) {
+export function customModeSymbol(mode: string) {
   if (mode === 'emocional') return '/mode-symbols/emocional-orbitas.svg';
+  if (mode === 'ludico') return '/mode-symbols/ludico-mando.svg';
+}
+
+export function modeSymbol(mode: string) {
   const artwork = mode === 'fisico' ? 'visionario' : mode === 'visionario' ? 'fisico' : mode;
-  return `/mode-symbols/${artwork}.webp`;
+  return customModeSymbol(mode) ?? `/mode-symbols/${artwork}.webp`;
 }
 export function homeImageSource(mode: string, image: string | undefined, preferences: HomeVisionCards): HomeImageSource {
   if (preferences[mode] === 'electric') return 'electric';

@@ -4,7 +4,7 @@ import { PwaControls } from './PwaControls';
 import { ActivityBank } from './ActivityBank';
 import { VisionImage } from './VisionImage';
 import { HomeVisionSettings } from './HomeVisionSettings';
-import { cleanHomeVisionCards, defaultModePhoto, homeModePhoto, homeVisionCopy, modeSymbol, type HomeVisionCards, type HomeImageSource } from './homeVision';
+import { cleanHomeVisionCards, customModeSymbol, defaultModePhoto, homeModePhoto, homeVisionCopy, type HomeVisionCards, type HomeImageSource } from './homeVision';
 import { JourneyActivityCard } from './JourneyActivityCard';
 import { ModeAiStudio } from './ModeAiStudio';
 import { ClarityGoal } from './ClarityGoal';
@@ -127,12 +127,13 @@ const modes: Mode[] = [
   { key: 'social', roman: 'VIII', name: 'Modo Social', shortName: 'Social', description: 'Amistades, red de apoyo y comunidad', icon: '◎', color: '#3FBBC3', accent: '#12363A' },
   { key: 'financiero', roman: 'IX', name: 'Modo Financiero', shortName: 'Financiero', description: 'Gestión del dinero, ahorro e inversión', icon: '◉', color: '#D9B65D', accent: '#3B3321' },
   { key: 'profesional', roman: 'X', name: 'Modo Profesional', shortName: 'Profesional', description: 'Carrera, vocación y desempeño laboral', icon: '▣', color: '#7A91A8', accent: '#27333D' },
-  { key: 'ludico', roman: 'XI', name: 'Modo Lúdico', shortName: 'Lúdico', description: 'Disfrute, ocio, descanso y recarga', icon: '✹', color: '#A87554', accent: '#34251F' },
+  { key: 'ludico', roman: 'XI', name: 'Modo Lúdico', shortName: 'Lúdico', description: 'Disfrute, ocio, descanso y recarga', icon: '🎮', color: '#A87554', accent: '#34251F' },
   { key: 'visionario', roman: 'XII', name: 'Modo Visionario', shortName: 'Visionario', description: 'Metas, planificación y legado', icon: '✦', color: '#C7CED8', accent: '#30343A' },
 ];
-const modeMark = (mode: Mode) => mode.key === 'emocional'
-  ? <img className="mode-orbits-mark" src={modeSymbol(mode.key)} alt="" />
-  : mode.icon;
+const modeMark = (mode: Mode) => {
+  const src = customModeSymbol(mode.key);
+  return src ? <img className="mode-custom-mark" src={src} alt="" /> : mode.icon;
+};
 const homeCarouselControls: Record<AppLanguage, [string, string, string, string]> = {
   es: ['Modo anterior', 'Modo siguiente', 'Pausar carrusel', 'Reanudar carrusel'],
   en: ['Previous mode', 'Next mode', 'Pause carousel', 'Resume carousel'],
@@ -2806,7 +2807,7 @@ function App() {
                 <div className="journey-vision-note"><span className="journey-vision-completion" role="status"><strong>{hasVisionImage(visionImages[selectedMode.key]) ? `✓ ${badgeCopy(language).visionDone}` : badgeCopy(language).visionPending}</strong><span>{badgeCopy(language).visionHint}</span></span></div>
               </article> : <>
                 <JourneyActivityCard key={`${selectedMode.key}-${visibleJourneyLevel}`} current={visibleJourneyLevel === currentJourneyLevel} defined={Boolean(journeyActivity.trim())}
-                  card={{ mode: modeName(selectedMode), level: visibleJourneyLevel, levelLabel: tr('level'), stage: localizedLevelNames[language][visibleJourneyLevel], effort: effortLabel(visibleJourneyLevel), activity: journeyActivity, color: selectedMode.color, icon: selectedMode.icon, language }} modeMark={modeMark(selectedMode)}
+                  card={{ mode: modeName(selectedMode), level: visibleJourneyLevel, levelLabel: tr('level'), stage: localizedLevelNames[language][visibleJourneyLevel], effort: effortLabel(visibleJourneyLevel), activity: journeyActivity, color: selectedMode.color, icon: selectedMode.icon, iconSrc: customModeSymbol(selectedMode.key), language }} modeMark={modeMark(selectedMode)}
                   reaction={activityReactions[activityReactionKey(selectedMode.key, visibleJourneyLevel, activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? '')]}
                   flow={deckFlow ? { ...deckFlow, viewStep: displayJourneyStep, onDefine: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onDefine : undefined, onSubmit: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onSubmit : undefined } : undefined}
                   showSocial={displayJourneyStep === 1}

@@ -26,7 +26,22 @@ export async function createActivityImage(card: ActivityShare, platform: SharePl
   ctx.strokeStyle = `${accent}60`; ctx.strokeRect(38, 38, 1004, h - 76);
   ctx.fillStyle = '#d7ebe4'; ctx.font = '600 27px Manrope, sans-serif';
   ctx.fillText('Modo Cultiva', 92, 134);
-  ctx.fillStyle = accent; ctx.font = '56px sans-serif'; ctx.fillText(card.icon, 920, 140);
+  let drewModeMark = false;
+  // Only load application-owned symbols; user photos never enter the export.
+  if (card.iconSrc && /^\/mode-symbols\/[a-z-]+\.svg$/.test(card.iconSrc)) {
+    const mark = new Image();
+    mark.src = card.iconSrc;
+    try {
+      await mark.decode();
+      const width = 62;
+      const height = width * mark.naturalHeight / mark.naturalWidth;
+      ctx.drawImage(mark, 916, 114 - height / 2, width, height);
+      drewModeMark = true;
+    } catch { /* A missing asset still has a glyph fallback. */ }
+  }
+  if (!drewModeMark) {
+    ctx.fillStyle = accent; ctx.font = '56px sans-serif'; ctx.fillText(card.icon, 920, 140);
+  }
   const rtl = card.language === 'ar';
   ctx.direction = rtl ? 'rtl' : 'ltr'; ctx.textAlign = rtl ? 'right' : 'left';
   const x = rtl ? 988 : 92;

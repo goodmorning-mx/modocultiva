@@ -89,7 +89,7 @@ export function JourneyActivityCard({ card, modeMark = card.icon, current, defin
   const [notice, setNotice] = useState('');
   const headingId = useId();
   // A strict public allowlist: flow state/private proof must never reach exporters.
-  const publicCard: ActivityShare = { mode: card.mode, level: card.level, levelLabel: card.levelLabel, stage: card.stage, effort: card.effort, activity: card.activity, color: card.color, icon: card.icon, language: card.language };
+  const publicCard: ActivityShare = { mode: card.mode, level: card.level, levelLabel: card.levelLabel, stage: card.stage, effort: card.effort, activity: card.activity, color: card.color, icon: card.icon, iconSrc: card.iconSrc, language: card.language };
   return <><article className={`journey-level-card journey-level-card--active journey-social-card${current ? ' journey-level-card--current' : ''}${hasActivity ? '' : ' journey-social-card--empty'}`} style={{ '--mode-color': card.color } as CSSProperties} aria-labelledby={headingId} dir={card.language === 'ar' ? 'rtl' : 'ltr'}>
     <div className="journey-social-art" aria-hidden="true"><span>{modeMark}</span><svg viewBox="0 0 440 220" fill="none"><path d="M440 12C310 28 346 132 182 220M440 45C323 49 352 145 222 220M440 80C356 83 365 163 267 220M440 116C391 113 392 170 312 220" stroke="currentColor" /></svg></div>
     <header className="journey-social-heading"><div className="journey-social-mode"><span aria-hidden="true">{modeMark}</span><span>{card.mode}</span></div><div className="journey-social-level"><span>{card.levelLabel}</span><strong>{card.level.toLocaleString(card.language)}</strong></div></header>
