@@ -15,6 +15,7 @@ assert.ok(homeCarousel.includes('orderedHomeModes.map((mode) =>'), 'Home renders
 assert.ok(carousel.includes('className={`home-mode-card') && homeCarousel.includes('openMode(mode)'), 'Each mode opens its existing journey');
 assert.match(homeCarousel, /preset="panorama"[\s\S]*cardWidth=\{270\}[\s\S]*aspectRatio=\{0\.75\}[\s\S]*autoplay="drift"/);
 assert.match(homeCarousel, /speed=\{4\}/, 'Home drift uses 4 degrees per second instead of 14');
+assert.match(homeCarousel, /swipeCoastCards=\{0\.35\}/, 'Home keeps a firm limit on post-swipe carry');
 assert.match(carousel, /const step = 360 \/ count/, 'The ring spaces cards based on item count');
 for (const [, key] of modeList.matchAll(/\{ key: '([^']+)'/g)) {
   const photo = await readFile(new URL(`../public/mode-photos/${key}.jpg`, import.meta.url));

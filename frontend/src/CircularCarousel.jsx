@@ -114,6 +114,7 @@ const CircularCarousel = ({
   direction = 'left',
   draggable = true,
   momentum = 0.6,
+  swipeCoastCards,
   snap = true,
   pauseOnHover = true,
   focusOnClick = true,
@@ -221,6 +222,7 @@ const CircularCarousel = ({
     interval: Math.max(0.5, interval),
     draggable,
     momentum: clamp(momentum, 0, 1),
+    swipeCoastCards: Number.isFinite(swipeCoastCards) ? clamp(swipeCoastCards, 0, .5) : null,
     snap,
     pauseOnHover,
     parallax: reduced ? 0 : clamp(parallax, 0, 1),
@@ -654,6 +656,17 @@ const CircularCarousel = ({
     const last = press.samples[press.samples.length - 1];
     const span = (last.time - first.time) / 1000;
     const velocity = !s.reduced && span > 0.008 ? clamp((last.angle - first.angle) / span, -1400, 1400) : 0;
+    if (s.swipeCoastCards !== null) {
+      const now = performance.now();
+      const limit = s.step * s.swipeCoastCards;
+      const carry = event.type === 'pointercancel' || now - last.time > 110 ? 0 : clamp(velocity * .075, -limit, limit);
+      // Settle at a nearby card without carrying the flick velocity into the spring.
+      state.velocity = 0;
+      state.holdUntil = now + 2800;
+      if (s.snap) state.target = Math.round((state.angle + carry) / s.step) * s.step;
+      wakeRef.current();
+      return;
+    }
     state.velocity = velocity;
     if (Math.abs(velocity) > 60) state.dir = Math.sign(velocity);
     const coasting = s.autoplay === 'drift' && !(s.pauseOnHover && state.hover && event.pointerType === 'mouse');
