@@ -1019,7 +1019,22 @@ async function runCase(browser, config, task) {
           const button = carousel.locator(`[data-tour-mode="${mode}"][tabindex="0"]`);
           await button.waitFor();
           assert.ok((await button.getAttribute('class')).includes('home-mode-card--electric'));
-          assert.equal(await button.locator('.mode-electric-symbol-fallback').getAttribute('src'), `/mode-symbols/${mode}.webp`);
+          const artwork = button.locator('.mode-electric-symbol-fallback');
+          const asset = { fisico: 'visionario.webp', visionario: 'fisico.webp', emocional: 'emocional-orbitas.svg' }[mode] ?? `${mode}.webp`;
+          assert.equal(await artwork.getAttribute('src'), `/mode-symbols/${asset}`);
+          await eventually(() => artwork.evaluate(img => img.complete && img.naturalWidth > 0), 'Premium artwork loaded');
+          assert.ok(await artwork.evaluate(img => {
+            const palette = getComputedStyle(img).getPropertyValue('--mode-color').trim();
+            const filter = img.parentElement.querySelector('filter');
+            const channels = [1, 3, 5].map(offset => parseInt(palette.slice(offset, offset + 2), 16) / 255);
+            return getComputedStyle(img).filter.includes(filter.id)
+              && ['R', 'G', 'B'].every((key, i) => Number(filter.querySelector(`feFunc${key}`).getAttribute('tableValues').split(' ')[3]) === channels[i]);
+          }), 'The electric artwork uses the color of its destination mode');
+          const icon = button.locator('.home-mode-icon');
+          if (mode === 'fisico') assert.equal(await icon.textContent(), '△');
+          if (mode === 'visionario') assert.equal(await icon.textContent(), '✦');
+          if (mode === 'arquetipico') assert.equal(await icon.textContent(), '✺');
+          if (mode === 'emocional') assert.equal(await icon.locator('img').getAttribute('src'), '/mode-symbols/emocional-orbitas.svg');
           if (index % 2) await button.press('Enter'); else if (task.width <= 390) await button.tap(); else await button.click();
           await page.locator('.journey-panel').waitFor();
           assert.equal(await sparks.count(), 0, 'Covered home pauses its effects');
@@ -1368,7 +1383,9 @@ function selfTest() {
   assert.equal(new Set(STOPS).size, STOPS.length); assert.equal(STOPS.includes('audience'), JOURNEY_SUBMISSION_AUDIENCE_ENABLED);
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, emocional: false, unknown: true, social: 'true' }), { fisico: true });
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, social: 'electric', unknown: 'electric' }), { fisico:true, social:'electric' });
-  assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/fisico.webp');
+  assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/visionario.webp');
+  assert.equal(homeModePhoto('visionario', PNG, { visionario:'electric' }), '/mode-symbols/fisico.webp');
+  assert.equal(homeModePhoto('emocional', PNG, { emocional:'electric' }), '/mode-symbols/emocional-orbitas.svg');
   assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
   assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '/mode-photos/fisico.jpg');
   assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-photos/fisico.jpg');

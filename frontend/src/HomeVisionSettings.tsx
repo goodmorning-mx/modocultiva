@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { flushSync } from 'react-dom';
 import { hasVisionImage } from './badgeProgress';
 import { VisionImage } from './VisionImage';
+import { PremiumModeArtwork } from './PremiumModeArtwork';
 import { defaultModePhoto, homeModePhoto, homeImageSource, homeVisionCopy, electricSymbolLabel, type HomeVisionCards, type HomeImageSource } from './homeVision';
 import './home-vision-settings.css';
 
@@ -57,9 +58,9 @@ export function HomeVisionSettings({ language, modes, images, preferences, close
         const fallback = defaultModePhoto(mode.key);
         return <fieldset key={mode.key} data-mode={mode.key} style={{ '--mode-color': mode.color } as CSSProperties}>
           <legend>{mode.name}</legend>
-          <img src={homeModePhoto(mode.key, images[mode.key], preferences)} alt="" loading="lazy" onError={event => {
+          {selected === 'electric' ? <PremiumModeArtwork src={homeModePhoto(mode.key, images[mode.key], preferences)} fallbackSrc={fallback} color={mode.color} className="home-vision-symbol-preview" lazy /> : <img src={homeModePhoto(mode.key, images[mode.key], preferences)} alt="" loading="lazy" onError={event => {
             if (event.currentTarget.getAttribute('src') !== fallback) event.currentTarget.src = fallback;
-          }} />
+          }} />}
           <div className="home-vision-options">
             <label><input type="radio" name={`${id}-${mode.key}-source`} value="default" checked={selected === 'default'} onChange={() => pickSource(mode.key, 'default')} />{defaultLabel}</label>
             <label><input type="radio" name={`${id}-${mode.key}-source`} value="vision" checked={selected === 'vision'} onChange={() => pickSource(mode.key, 'vision')} />{visionLabel}</label>

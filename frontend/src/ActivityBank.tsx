@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { bankSources, getBankActivities, type BankLanguage } from './quoteActivityCatalog';
 import { activityQuoteText } from './activityQuoteTranslations';
 
@@ -17,7 +17,7 @@ const captions: Record<BankLanguage, [string, string, string, string, string, st
   da: ['En idé at leve efter', 'Din næste praksis', 'Et forslag fra Modo Cultiva', 'Redaktionel oversættelse · uddrag', 'Kilde og originaltekst', 'Se anbefaling'],
 };
 type Props = {
-  modeKey: string; modeName: string; modeIcon: string; level: number;
+  modeKey: string; modeName: string; modeIcon: ReactNode; level: number;
   language: BankLanguage; selection: number; onSelect: (index: number) => void;
   onUse: () => void; activityLabel: string; effortLabel: string; useLabel: string;
   previousLabel: string; nextLabel: string; recommendationsLabel: string;
