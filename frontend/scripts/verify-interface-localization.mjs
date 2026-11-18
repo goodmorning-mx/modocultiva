@@ -62,7 +62,7 @@ for (const source of sources) {
   visit(source);
 }
 assert.deepEqual(unexpected, [], 'Visible JSX and accessible labels should not contain hard-coded copy');
-for (const key of ['dashboardTitle', 'badges', 'login', 'activityPool', 'close']) {
+for (const key of ['dashboardTitle', 'badges', 'login', 'activityPool', 'activityPoolButton', 'close']) {
   assert.ok(keys.has(key), `The audit must visit actual ${key} usage`);
 }
 for (const key of keys) {
