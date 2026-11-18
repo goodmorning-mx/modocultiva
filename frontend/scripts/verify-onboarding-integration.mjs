@@ -589,7 +589,9 @@ async function runCase(browser, config, task) {
         const alternate = code === 'fr' ? 'ar' : 'fr';
         await selectPhysicalMode(page);
         await page.locator('.journey-step-list button').nth(1).click();
-        await page.locator('.journey-recommended-button').click();
+        const recommendation = page.locator('.journey-recommended-button');
+        const originalFeature = (await recommendation.textContent()).replace(/^[^\p{L}]+/u, '');
+        await recommendation.click();
         await page.locator('.bank-use').click();
         const plans = page.locator('.plans-view');
         const dialog = page.locator('.plan-detail-modal');
@@ -617,11 +619,12 @@ async function runCase(browser, config, task) {
         await page.locator('#login-name').waitFor();
         const login = page.locator('.login-view');
         assert.equal(await login.locator('h1').textContent(), planAccessCopy(alternate).contextualTitle);
-        const names = { fr: 'Activités recommandées', ar: 'الأنشطة الموصى بها' };
+        const names = { fr: 'Activités recommandées', ar: 'أنشطة مقترحة' };
         assert.ok((await login.locator('.login-copy').textContent()).includes('Entry'));
         assert.ok((await login.locator('.login-copy').textContent()).includes(names[alternate]), 'The gated feature is named in the current language');
         await setLocale(code);
         assert.equal(await login.locator('h1').textContent(), planAccessCopy(code).contextualTitle);
+        assert.ok((await login.locator('.login-copy').textContent()).includes(originalFeature), 'The feature retains its name when the original locale is restored');
         await login.getByRole('button', {name: planAccessCopy(code).continueGuest}).click();
         await page.locator('.welcome-view').waitFor();
         await assertPreserved(page, state);
