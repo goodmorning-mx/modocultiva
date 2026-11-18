@@ -19,6 +19,7 @@ const { reconcileState, cloneStateValue: clone } = (await pure('stateReconcile')
 const { stateAccountCopy, stateAccountMessageValues } = (await pure('stateAccountMessages')).module;
 const { resolveLanguagePreference, restoreLanguagePreference, normalizeLanguageState } = (await pure('languagePreference')).module;
 const { cleanHomeVisionCards } = (await pure('homeVision')).module;
+const { cleanLifeContext } = (await pure('lifeContext')).module;
 const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('App.tsx', app, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 function expression(name) {
@@ -31,7 +32,7 @@ function expression(name) {
   visit(ast); assert.ok(found, `Actual App helper ${name}`); return found;
 }
 const actual = (name, bindings) => {
-  const scope = { cleanHomeVisionCards, ...bindings };
+  const scope = { cleanHomeVisionCards, cleanLifeContext, ...bindings };
   return new Function(...Object.keys(scope), compile(`return (${expression(name)});`))(...Object.values(scope));
 };
 const tick = () => new Promise(resolve => setImmediate(resolve));
@@ -40,6 +41,15 @@ const levels = Object.fromEntries(modes.map((mode, index) => [mode.key, index % 
 const state = { profileName: 'Synthetic', levels, presets: { Saved: clone(levels) }, selectedPreset: 'Saved', activityDrafts: { 'fisico-3': 'Original activity' }, activityCompletions: { historical: 'canonical-only' }, visionImages: { fisico: 'synthetic-image' }, language: 'da', futureField: { keep: true } };
 const snapshot = (value, revision) => ({ state: clone(value), revision, validationReceipts: { server: true }, legacyCompletionSlots: ['fisico-1'] });
 const initial = snapshot(state, 'A');
+{
+  const old = { ...clone(state), lifeContext: { fisico: { vision: 'Starting vision' } } };
+  const local = { ...clone(old), lifeContext: { fisico: { vision: 'Updated vision' } } };
+  const remote = { ...clone(old), lifeContext: { ...old.lifeContext, intelectual: { goals: 'A milestone' } } };
+  const merged = reconcileState(old, local, remote);
+  assert.deepEqual(merged.lifeContext, { fisico: { vision: 'Updated vision' }, intelectual: { goals: 'A milestone' } });
+  assert.deepEqual(merged.levels, levels);
+  assert.deepEqual(merged.presets, state.presets);
+}
 const scopeA = { organizationId: 'synthetic-org', accountId: 'synthetic-A' }, scopeB = { ...scopeA, accountId: 'synthetic-B' };
 const entries = new Map();
 const storage = { getItem: key => entries.get(key) ?? null, setItem: (key, value) => entries.set(key, value), removeItem: key => entries.delete(key) };
