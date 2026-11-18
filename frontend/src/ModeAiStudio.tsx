@@ -16,7 +16,7 @@ type Props = {
   level: number; levelLabel: string; stage: string; considerLabel: string; effort: string; effortDescription: string;
   question: string; contextLabel: string; placeholder: string; activityLabel: string; readyLabel: string; waiting: string;
   askLabel: string; useLabel: string; consultingLabel: string;
-  context: string; proposal: string; hasProposal: boolean; loading: boolean; notice: string | null;
+  context: string; proposal: string; proposalLanguage?: string; hasProposal: boolean; loading: boolean; notice: string | null;
   onContext: (value: string) => void; onAsk: () => void; onUse: () => void;
 };
 
@@ -40,7 +40,7 @@ export function ModeAiStudio(props: Props) {
         <section className="mode-ai-context" aria-labelledby={contextId}>
           <div className="mode-ai-section-heading"><span className="mode-ai-step" aria-hidden="true">01</span><label id={contextId} htmlFor="activity-prompt">{props.contextLabel}</label></div>
           <p className="mode-ai-question" id={questionId}>{props.question}</p>
-          <textarea id="activity-prompt" value={props.context} onChange={event => props.onContext(event.target.value)} placeholder={props.placeholder} aria-describedby={questionId} disabled={props.loading} rows={5} />
+          <textarea id="activity-prompt" value={props.context} onChange={event => props.onContext(event.target.value)} placeholder={props.placeholder} aria-describedby={questionId} disabled={props.loading} rows={5} dir="auto" />
           <button className="agent-ask mode-ai-ask" type="button" disabled={props.loading} onClick={props.onAsk}><span aria-hidden="true">✧</span>{props.loading ? props.consultingLabel : props.askLabel}<span aria-hidden="true">↗</span></button>
           {props.notice && <p className="mode-ai-notice" role="status">{props.notice}</p>}
           <aside className="mode-ai-consideration"><span>{props.considerLabel}</span><strong>{props.effort}</strong><p>{props.effortDescription}</p></aside>
@@ -48,7 +48,7 @@ export function ModeAiStudio(props: Props) {
         <section className={`mode-ai-proposal${ready ? ' mode-ai-proposal--ready' : ''}`} aria-labelledby={proposalId}>
           <div className="mode-ai-section-heading"><span className="mode-ai-step" aria-hidden="true">02</span><h3 id={proposalId}>{ready ? props.readyLabel : props.activityLabel}</h3><span className="mode-ai-proposal-star" aria-hidden="true">✧</span></div>
           <div className="mode-ai-result" aria-busy={props.loading}>
-            {props.loading ? <div className="mode-ai-generating"><StudioMark quiet /><p role="status">{props.consultingLabel}</p><div className="mode-ai-skeleton" aria-hidden="true"><i /><i /><i /></div></div> : ready ? <p ref={proposalRef} className="mode-ai-proposal-text" dir="auto" tabIndex={0}>{props.proposal}</p> : <div className="mode-ai-empty"><div className="mode-ai-empty-art" aria-hidden="true"><span /><span /><span>✧</span></div><p>{props.waiting}</p></div>}
+            {props.loading ? <div className="mode-ai-generating"><StudioMark quiet /><p role="status">{props.consultingLabel}</p><div className="mode-ai-skeleton" aria-hidden="true"><i /><i /><i /></div></div> : ready ? <p ref={proposalRef} className="mode-ai-proposal-text" lang={props.proposalLanguage} dir="auto" tabIndex={0}>{props.proposal}</p> : <div className="mode-ai-empty"><div className="mode-ai-empty-art" aria-hidden="true"><span /><span /><span>✧</span></div><p>{props.waiting}</p></div>}
           </div>
           <button className="agent-save mode-ai-use" type="button" disabled={props.loading || !ready} onClick={props.onUse}>{props.useLabel}<span aria-hidden="true">↗</span></button>
         </section>
