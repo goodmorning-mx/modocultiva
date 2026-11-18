@@ -28,6 +28,7 @@ CASES.push('home-upload', 'account-home-upload');
 CASES.push('guest-language-switch', 'account-language-switch');
 CASES.push('mode-editorial');
 CASES.push('global-editorial');
+CASES.push('specialist-editorial');
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -70,6 +71,7 @@ const { activityQuoteText } = sourceModule('src/activityQuoteTranslations.ts');
 const { modeAiMessage } = sourceModule('src/modeAiMessages.ts');
 const { globalIdeaTitle } = sourceModule('src/globalIdeaPractices.ts');
 const { globalIdeaBio } = sourceModule('src/globalIdeaBios.ts');
+const { specialistProfileCopy, specialistExampleCopy, specialistProfileIds } = sourceModule('src/specialistProfilesEditorial.ts');
 const STOPS = TOUR_STOPS.filter(stop => (JOURNEY_REACTIONS_ENABLED || stop !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || stop !== 'audience'));
 
 function options(argv) {
@@ -439,6 +441,8 @@ async function runCase(browser, config, task) {
   const switchesLanguage = task.name.endsWith('language-switch');
   const modeEditorial = task.name === 'mode-editorial';
   const globalEditorial = task.name === 'global-editorial';
+  const specialistEditorial = task.name === 'specialist-editorial';
+  const editorialCase = modeEditorial || globalEditorial || specialistEditorial;
   if (switchesLanguage) {
     state.profileName = 'Cultiva todos tus modos.';
     if (account) state.languageSource = 'manual';
@@ -461,7 +465,7 @@ async function runCase(browser, config, task) {
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
   const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads });
-  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: modeEditorial || globalEditorial ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !modeEditorial && !globalEditorial, cachedManual: task.name.includes('ambiguous-cache') });
+  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: editorialCase ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !editorialCase, cachedManual: task.name.includes('ambiguous-cache') });
   if (task.name.endsWith('electric-home') && !account) await context.addInitScript(() => {
     if (!localStorage.getItem('__electric_seed')) {
       localStorage.setItem('modo-cultiva:guest-cache:v1:modoCultiva_homeVisionCards', JSON.stringify({fisico:true}));
@@ -540,6 +544,60 @@ async function runCase(browser, config, task) {
         await assertPreserved(page, state, account);
         await assertMap(page, state.levels);
         result = { switchedLanguages:11, sameShell:true, manualSurvivesReload:true, guestFollowsBrowser:!account, userTextPreserved:true };
+      } else if (specialistEditorial) {
+        const code = task.language;
+        const alternate = code === 'fr' ? 'ar' : 'fr';
+        const setBrowserLanguage = async language => {
+          await page.evaluate(language => {
+            Object.defineProperty(navigator, 'languages', { configurable: true, get: () => [language] });
+            dispatchEvent(new Event('languagechange'));
+          }, language);
+          await eventually(async () => await page.locator('html').getAttribute('lang') === (language === 'zh' ? 'zh-CN' : language), 'Specialist view follows browser language');
+        };
+        await page.locator('.home-menu-button').click();
+        await page.locator('[data-home-menu-item="specialists"]').click();
+        const profiles = page.locator('.cult-specialist-list article');
+        await profiles.first().waitFor();
+        assert.equal(await profiles.count(), specialistProfileIds.length);
+        const specialties = await profiles.locator('.cult-specialist-copy small').allTextContents();
+        for (const [index, id] of specialistProfileIds.entries()) assert.ok(specialties[index].endsWith(specialistProfileCopy(code, id).specialty));
+        await profiles.first().locator('button').click();
+        const profile = page.locator('.specialist-profile-modal');
+        const assertCurated = async language => {
+          const expected = specialistProfileCopy(language, 'sofia');
+          assert.equal(await profile.locator('h2').textContent(), 'Sofía Méndez');
+          assert.ok((await profile.locator('.specialist-profile-heading p').textContent()).startsWith(expected.specialty));
+          assert.equal(await profile.locator('.specialist-profile-copy p').textContent(), expected.trajectory);
+          assert.equal(await profile.locator('blockquote').textContent(), `“${expected.message}”`);
+          assert.equal(await profile.locator('.specialist-preset h3').textContent(), expected.presetName);
+          assert.equal(await profile.locator('.specialist-profile-meta bdi').textContent(), 'Español');
+        };
+        await assertCurated(code);
+        await setBrowserLanguage(alternate);
+        await assertCurated(alternate);
+        await profile.locator('.close-journey').click();
+        await setBrowserLanguage(code);
+        const filters = page.locator('.cult-filter-row select');
+        await filters.nth(0).selectOption('visionario');
+        await filters.nth(1).selectOption('中文');
+        await filters.nth(2).selectOption('Asia');
+        assert.equal(await profiles.count(), 1);
+        assert.equal(await filters.nth(1).locator('option:checked').getAttribute('lang'), 'zh');
+        const exampleName = await profiles.first().locator('.cult-specialist-copy strong').textContent();
+        await profiles.first().locator('button').click();
+        const assertExample = async language => {
+          const expected = specialistExampleCopy(language, 'visionario', 'mode');
+          assert.equal(await profile.locator('h2').textContent(), exampleName);
+          assert.ok((await profile.locator('.specialist-profile-heading p').textContent()).startsWith(expected.specialty));
+          assert.equal(await profile.locator('.specialist-profile-copy p').textContent(), expected.trajectory);
+          assert.equal(await profile.locator('.specialist-profile-meta bdi[lang="zh"]').textContent(), '中文');
+        };
+        await assertExample(code);
+        await setBrowserLanguage(alternate);
+        await assertExample(alternate);
+        await profile.locator('.close-journey').click();
+        assert.deepEqual(await filters.evaluateAll(selects => selects.map(select => select.value)), ['visionario', '中文', 'Asia']);
+        result = { profileCards: specialties.length, localizedCuratedDetails: true, localizedFilteredExample: true, preservedLanguageAndRegionFilters: true };
       } else if (globalEditorial) {
         const code = task.language;
         const alternate = code === 'es' ? 'fr' : 'es';
@@ -1078,6 +1136,14 @@ function selfTest() {
       assert.deepEqual(Object.keys(journeyModeTranslations[language]).sort(), [...MODES].sort());
       assert.equal(new Set(Object.values(journeyModeTranslations[language])).size, MODES.length);
     }
+    for (const id of specialistProfileIds) {
+      const copy = specialistProfileCopy(language, id);
+      assert.equal(Object.values(copy).filter(text => text?.trim()).length, 4, `Missing copy for ${language}/${id}`);
+      if (language !== 'es') assert.notEqual(copy.trajectory, specialistProfileCopy('es', id).trajectory);
+    }
+    const exampleTopics = MODES.map(mode => specialistExampleCopy(language, mode, mode).specialty);
+    assert.ok(exampleTopics.every(Boolean));
+    assert.equal(new Set(exampleTopics).size, MODES.length);
     const document = fixture(language); assert.equal(Object.keys(document.levels).length, 12); sameProtected(clone(document), document);
   }
   emit({ selfTest: 'PASS', languages: 11, widths: WIDTHS, tourStops: STOPS.length, cases: CASES, safety: 'loopback preview only; all API requests intercepted; no dependencies installed' });
@@ -1091,7 +1157,7 @@ async function main() {
   catch { playwright = require(resolve(dirname(process.execPath), '..', 'node_modules', 'playwright')); }
   const tasks = [];
   for (const name of config.cases) {
-    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || ['account-journey-ascent', 'mode-editorial', 'global-editorial'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
+    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || ['account-journey-ascent', 'mode-editorial', 'global-editorial', 'specialist-editorial'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
     else for (const [index, width] of config.widths.entries()) {
       const language = config.languages[index % config.languages.length];
       if (name === 'identity') for (const identity of ['normal', 'forged', 'owner']) tasks.push({ name, width, language, identity });

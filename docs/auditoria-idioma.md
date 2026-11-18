@@ -45,15 +45,37 @@ guardan ya traducidos.
   variantes y las seis biografías de demostración. El carrusel y su ficha
   comparten la misma idea incluso si cambia el idioma, y se guarda el
   texto que muestra la ficha, sin traducir después lo que ya se guardó.
+- La Red de Especialistas usa fichas de ejemplo traducidas: especialidades,
+  trayectorias, mensajes y títulos de configuraciones. Los nombres propios
+  y los nombres nativos de los idiomas permanecen estables, igual que el
+  perfil abierto y los filtros al cambiar el idioma de interfaz.
 
 ## Pendientes para cerrar el objetivo
 
 | Superficie | Evidencia y siguiente verificación |
 | --- | --- |
-| Red de Especialistas | Las especialidades, biografías y nombres de configuraciones de demostración siguen en español. Traducir los datos de ejemplo, respetando los nombres propios y los nombres nativos de los idiomas del filtro. |
 | Planes y accesos especiales | La rama desactivada por la configuración de acceso gratuito aún contiene copy literal. Auditar también errores, accesibilidad y variantes de conexión. |
 | Interfaces restantes | Revisar pantallas y diálogos visibles de Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, instalación, evidencias y notificaciones; comprobar texto visible y accesible, no solo claves. |
 | Persistencia entre sesiones | Ejecutar matriz de idiomas en bienvenida y navegación, recarga, navegador distinto y cambio de cuenta. Comprobar que la preferencia de una cuenta no contamine a otra ni al invitado. |
+
+## Cómo se mide el avance
+
+El porcentaje indica cuántos de los diez bloques de auditoría están
+verificados y publicados en DEV; no se pondera por horas, número de textos
+ni avance parcial. Estado después de publicar Modo Global (50 %):
+
+| Bloque | Estado |
+| --- | --- |
+| Inicio y detección/selección del idioma | Verificado |
+| Bienvenida y tutorial completo, en los 11 idiomas | Pendiente de verificación completa |
+| Acceso normal y cabecera del perfil | Verificado |
+| Journey y Trivia | Verificado |
+| Actividades Recomendadas y Modo IA | Verificado |
+| Modo Global | Verificado |
+| Red de Especialistas | Pendiente |
+| Planes, accesos especiales e instalación | Pendiente |
+| Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, evidencias y notificaciones | Pendiente |
+| Aislamiento de preferencias entre invitado, cuentas y navegadores | Pendiente de verificación completa |
 
 El objetivo sigue abierto hasta contrastar el recorrido completo en la
 aplicación y comprobar el despliegue en DEV. No hay cambios en producción,
