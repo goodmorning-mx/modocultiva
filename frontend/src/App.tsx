@@ -28,6 +28,8 @@ import { browserLanguage, readManualLanguage, resolveLanguagePreference, restore
 import { homeGreetingPhrases, interfaceCopy } from './interfaceLanguage';
 import { homeQuoteText } from './homeQuoteTranslations';
 import { journeyModeTranslations, triviaModeQuestions } from './modeEditorial';
+import { globalIdeaBio } from './globalIdeaBios';
+import { globalIdeaTitle, type GlobalIdeaMode } from './globalIdeaPractices';
 import { decideWelcomeIntro, markWelcomeIntroComplete, readWelcomeIntroCompletion, welcomeIntroStorageKey, type WelcomeIntroScope } from './welcomeIntroState';
 import { GuidedTour } from './GuidedTour';
 import { getGuidedTourCopy, guidedTourStepCopy, type TourStageId } from './guidedTourMessages';
@@ -67,7 +69,7 @@ type ApiState =
   | { status: 'error'; message: string };
 
 type Mode = {
-  key: string;
+  key: GlobalIdeaMode;
   roman: string;
   name: string;
   shortName: string;
@@ -82,7 +84,6 @@ type Preset = Record<string, number>;
 type Skin = 'holista' | 'dj' | 'nocturna' | 'lucid' | 'zen' | 'mission' | 'rpg' | 'botanical' | 'arcade' | 'arcana' | 'urban' | 'ocean' | 'fashion' | 'minimal';
 type PaletteFilter = 'none' | 'nocturna' | 'lucid';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
-type PoolActivity = { title: string; description: string };
 type TourTopic = TourStageId | 'controlStrongest' | 'controlLeast' | 'controlFocus' | 'controlTrivia';
 const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'] satisfies TourTopic[])
   .filter(topic => (JOURNEY_REACTIONS_ENABLED || topic !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || topic !== 'audience'));
@@ -163,10 +164,8 @@ const planDetails: Record<PlanKey, PlanDetails> = {
 };
 // Release switch: keep plan data and UI implementation intact while access is temporarily free.
 const RELEASE_FREE_ACCESS = true;
-const journeyLevels = Array.from({ length: 10 }, (_, level) => level);
 const effortByLevel = ['Bajo', 'Bajo', 'Bajo', 'Medio', 'Medio', 'Medio', 'Alto', 'Alto', 'Alto', 'Visión final'];
 const effortLabelByLevel = ['EXIGENCIA BAJA (Tiempo)', 'EXIGENCIA BAJA (Tiempo)', 'EXIGENCIA BAJA (Tiempo)', 'EXIGENCIA MEDIA (Tiempo + Energía)', 'EXIGENCIA MEDIA (Tiempo + Energía)', 'EXIGENCIA MEDIA (Tiempo + Energía)', 'EXIGENCIA ALTA (Tiempo + Energía + Dinero)', 'EXIGENCIA ALTA (Tiempo + Energía + Dinero)', 'EXIGENCIA ALTA (Tiempo + Energía + Dinero)', 'VISIÓN FINAL'];
-const effortDescription: Record<string, string> = { Bajo: 'Esta etapa requiere principalmente tiempo: observar, comprender y crear espacio constante para el modo.', Medio: 'Esta etapa requiere tiempo y energía: sostener una práctica activa, tomar decisiones y mantener continuidad.', Alto: 'Esta etapa requiere tiempo, energía y dinero: asignar recursos, ampliar capacidades y sostener una operación más compleja.', 'Visión final': 'Esta etapa integra los recursos desarrollados para consolidar una visión completa.' };
 const localizedEffortDescriptions: Record<Language, Record<string, string>> = {
   es: { low: 'Esta etapa requiere principalmente tiempo: observar, comprender y crear espacio constante para el modo.', medium: 'Esta etapa requiere tiempo y energía: sostener una práctica activa, tomar decisiones y mantener continuidad.', high: 'Esta etapa requiere tiempo, energía y dinero: asignar recursos, ampliar capacidades y sostener una operación más compleja.', vision: 'Esta etapa integra los recursos desarrollados para consolidar una visión completa.' },
   en: { low: 'This stage primarily requires time: observing, understanding and creating consistent space for the mode.', medium: 'This stage requires time and energy: sustaining active practice, making decisions and maintaining continuity.', high: 'This stage requires time, energy and money: allocating resources, expanding capabilities and sustaining greater complexity.', vision: 'This stage integrates the resources developed to consolidate a complete vision.' },
@@ -181,61 +180,6 @@ const localizedEffortDescriptions: Record<Language, Record<string, string>> = {
   da: { low: 'Dette trin kræver primært tid: at observere, forstå og skabe vedvarende plads til tilstanden.', medium: 'Dette trin kræver tid og energi: at fastholde en aktiv praksis, træffe beslutninger og bevare kontinuiteten.', high: 'Dette trin kræver tid, energi og penge: at fordele ressourcer, udvide evner og opretholde en mere kompleks drift.', vision: 'Dette trin samler de udviklede ressourcer til en samlet vision.' },
 };
 const activityEntryLabel: Record<ActivityEntry, string> = { custom: 'Agregar actividad', pool: 'Pool de actividades', ai: 'Modo IA' };
-const poolActivityTitles: Record<string, string[]> = {
-  fisico: ['Registrar durante tres días cómo se siente tu cuerpo al despertar.', 'Anotar qué alimentos te dan energía y cuáles te apagan.', 'Elegir una señal corporal que quieras escuchar con más atención.', 'Caminar 20 minutos tres veces esta semana y registrar tu respiración.', 'Preparar dos comidas sencillas que apoyen tu energía diaria.', 'Crear una rutina semanal de movimiento y descanso que puedas sostener.', 'Invertir en una evaluación, clase o herramienta que impulse tu salud.', 'Diseñar un sistema medible de entrenamiento, nutrición y recuperación.', 'Trabajar con un especialista para convertir tu bienestar en una práctica maestra.'],
-  intelectual: ['Anotar qué temas despiertan tu curiosidad hoy.', 'Elegir un libro, podcast o curso breve para explorar esta semana.', 'Definir una pregunta intelectual que quieras responder en 30 días.', 'Leer 20 minutos y escribir tres ideas que puedas explicar con tus palabras.', 'Practicar dos sesiones semanales de lectura, escritura o resolución de problemas.', 'Participar en un club gratuito de ajedrez, lectura o conversación.', 'Inscribirte en un workshop o curso que eleve tu siguiente capacidad.', 'Construir un sistema de estudio con métricas, revisión y bloques protegidos.', 'Convertir tu conocimiento en una mentoría, publicación o programa para otros.'],
-  emocional: ['Nombrar qué emociones aparecen con más frecuencia en tu día.', 'Registrar durante una semana qué situaciones cambian tu estado interno.', 'Elegir una emoción y definir qué necesitas aprender de ella.', 'Practicar una pausa de respiración antes de responder en una conversación difícil.', 'Crear un ritual semanal para procesar lo que sientes sin juzgarlo.', 'Conversar con alguien de confianza usando escucha y límites claros.', 'Invertir en terapia, un taller o una práctica guiada de regulación emocional.', 'Diseñar un sistema de seguimiento para reconocer detonantes y respuestas.', 'Acompañar a otros desde tu experiencia sin dejar de cuidar tus propios límites.'],
-  arquetipico: ['Escribir tres rasgos que hoy sientes auténticamente tuyos.', 'Observar durante una semana cuándo actúas para agradar o esconderte.', 'Elegir un principio que quieras convertir en brújula personal.', 'Cumplir una pequeña promesa que te hayas hecho y registrar cómo cambia tu confianza.', 'Practicar una decisión coherente con tus valores cada semana.', 'Pedir retroalimentación honesta a alguien que conozca tu forma de actuar.', 'Invertir en un proceso de identidad, liderazgo o desarrollo personal.', 'Crear un ritual de revisión para alinear decisiones, valores y comportamiento.', 'Convertir tu coherencia en una influencia que ayude a otros a vivir con intención.'],
-  espiritual: ['Observar qué momentos del día te conectan con sentido.', 'Registrar tres preguntas sobre propósito, fe o trascendencia.', 'Elegir una práctica breve de silencio, oración o contemplación.', 'Reservar 15 minutos diarios para una práctica espiritual sin pantalla.', 'Participar semanalmente en una comunidad o espacio de conexión.', 'Crear un ritual personal para agradecer, servir o volver a tu centro.', 'Invertir en un retiro, guía o formación que profundice tu camino.', 'Diseñar un sistema de práctica espiritual que acompañe tus decisiones.', 'Compartir una visión de sentido que inspire servicio y comunidad.'],
-  romantico: ['Escribir qué significa para ti sentirte amado y presente.', 'Observar qué patrones repites al acercarte o alejarte de alguien.', 'Definir una cualidad que quieras cultivar en tus vínculos amorosos.', 'Proponer una cita sin pantallas y escuchar con curiosidad genuina.', 'Crear un ritual semanal de conexión, cuidado y conversación honesta.', 'Practicar una conversación sobre deseos, límites y acuerdos.', 'Invertir en terapia de pareja, un taller o una experiencia significativa.', 'Diseñar un sistema de cuidado que proteja tiempo, intimidad y reparación.', 'Convertir tu relación en una fuente consciente de crecimiento compartido.'],
-  familiar: ['Reconocer qué vínculo familiar necesita hoy más presencia.', 'Registrar qué historias familiares influyen en tus decisiones actuales.', 'Elegir una forma concreta de acercarte o poner un límite sano.', 'Llamar a un familiar y tener una conversación sin multitarea.', 'Establecer un ritual semanal de convivencia o apoyo mutuo.', 'Organizar una actividad familiar que reúna a distintas generaciones.', 'Invertir en una experiencia, mediación o espacio que repare un vínculo.', 'Crear acuerdos familiares claros para cuidar tiempo, responsabilidades y límites.', 'Convertir tu historia familiar en una fuente de pertenencia y aprendizaje.'],
-  social: ['Mapear quiénes forman hoy tu red de apoyo.', 'Anotar qué tipo de amistad o comunidad te gustaría cultivar.', 'Elegir una persona con quien quieras reconectar.', 'Enviar un mensaje sincero y proponer una caminata o café.', 'Participar cada semana en una actividad grupal que disfrutes.', 'Ofrecer una habilidad o ayuda concreta a alguien de tu comunidad.', 'Invertir en una membresía, evento o formación que amplíe tu red.', 'Diseñar un sistema de encuentros, colaboración y reciprocidad.', 'Crear una comunidad donde otros también puedan encontrar apoyo.'],
-  financiero: ['Observar durante una semana en qué se va tu dinero.', 'Clasificar tus gastos y notar qué compras reflejan tus prioridades.', 'Definir una meta financiera pequeña y concreta para este mes.', 'Registrar todos tus gastos durante siete días sin cambiar nada todavía.', 'Crear un presupuesto semanal y revisarlo en una fecha fija.', 'Automatizar un ahorro pequeño y revisar tus decisiones con calma.', 'Invertir en educación financiera, asesoría o una herramienta de control.', 'Construir un sistema de ahorro, inversión y revisión de riesgos.', 'Usar tu prosperidad para crear opciones, apoyar a otros y dejar legado.'],
-  profesional: ['Escribir qué parte de tu trabajo te da más energía.', 'Identificar qué habilidad profesional está pidiendo tu siguiente etapa.', 'Definir un resultado laboral que quieras alcanzar en 30 días.', 'Bloquear dos sesiones de trabajo profundo para una prioridad concreta.', 'Pedir retroalimentación y aplicar un ajuste visible a tu trabajo.', 'Crear un portafolio, proyecto o caso que muestre tu mejor capacidad.', 'Invertir en una certificación, mentoría o herramienta estratégica.', 'Diseñar un sistema de prioridades, métricas y delegación.', 'Convertir tu experiencia en liderazgo, innovación y oportunidades para otros.'],
-  ludico: ['Anotar qué actividades te devuelven ligereza y energía.', 'Observar durante una semana cuándo descansas de verdad.', 'Elegir una experiencia sencilla que quieras recuperar.', 'Reservar una hora sin productividad para jugar, crear o pasear.', 'Crear un ritual semanal de ocio que proteja tu recarga.', 'Invitar a alguien a una actividad que despierte tu curiosidad.', 'Invertir en una experiencia, equipo o clase que amplíe tu disfrute.', 'Diseñar un sistema de descanso, juego y exploración sostenible.', 'Hacer de tu capacidad de disfrutar una fuente de creatividad compartida.'],
-  visionario: ['Escribir una imagen de la vida que te gustaría estar viviendo.', 'Registrar qué futuro te emociona y qué futuro ya no quieres repetir.', 'Elegir una meta de 90 días que te acerque a esa visión.', 'Convertir tu meta en una acción semanal con fecha y evidencia.', 'Revisar cada semana tus avances y ajustar el rumbo.', 'Compartir tu visión con alguien que pueda ayudarte a sostenerla.', 'Invertir recursos en una herramienta, mentoría o experiencia de expansión.', 'Construir un tablero de metas, métricas y decisiones estratégicas.', 'Convertir tu visión en legado, dirección y posibilidades para otros.'],
-};
-const poolRecommendationTemplates = [
-  (base: string) => base,
-  (base: string) => `Observar un momento concreto relacionado con esto: ${base.toLowerCase()}`,
-  (base: string) => `Convertir esta intención en una nota breve: ${base.toLowerCase()}`,
-  (base: string) => `Elegir una señal de avance y practicarla a partir de esto: ${base.toLowerCase()}`,
-  (base: string) => `Probar una versión de 10 minutos de esta práctica: ${base.toLowerCase()}`,
-  (base: string) => `Compartir este propósito con alguien de confianza y comenzar así: ${base.toLowerCase()}`,
-  (base: string) => `Repetir esta práctica en dos momentos distintos: ${base.toLowerCase()}`,
-  (base: string) => `Registrar qué funcionó después de realizar esto: ${base.toLowerCase()}`,
-  (base: string) => `Ajustar esta práctica a tu semana real: ${base.toLowerCase()}`,
-  (base: string) => `Cerrar la semana con una reflexión sobre esto: ${base.toLowerCase()}`,
-];
-const getPoolActivities = (modeKey: string, level: number): PoolActivity[] => {
-  const title = poolActivityTitles[modeKey]?.[level] ?? 'Definir una práctica concreta para este modo.';
-  const effort = effortByLevel[level];
-  return poolRecommendationTemplates.map((template, index) => ({
-    title: template(title),
-    description: index === 0 ? effortDescription[effort] : `Define evidencia de avance, un ajuste y el siguiente paso. ${effortDescription[effort]}.`,
-  }));
-};
-const localizedActivityActions: Record<Language, string[]> = {
-  es: ['Observar una señal cotidiana', 'Registrar lo que ocurre durante una semana', 'Elegir una intención concreta', 'Practicar durante 20 minutos', 'Crear un ritual semanal', 'Compartir la práctica con alguien', 'Invertir en una guía o herramienta', 'Diseñar un sistema de seguimiento', 'Convertir la práctica en una contribución', 'Revisar el aprendizaje y ajustar el rumbo'],
-  en: ['Notice one daily signal', 'Track what happens for a week', 'Choose one concrete intention', 'Practice for 20 minutes', 'Create a weekly ritual', 'Share the practice with someone', 'Invest in guidance or a tool', 'Design a tracking system', 'Turn the practice into a contribution', 'Review the learning and adjust direction'],
-  zh: ['观察一个日常信号', '记录一周发生的变化', '选择一个具体意图', '练习二十分钟', '建立每周仪式', '与他人分享这项实践', '投入于指导或工具', '设计一个追踪系统', '把实践转化为贡献', '回顾学习并调整方向'],
-  hi: ['एक दैनिक संकेत देखें', 'एक सप्ताह की घटनाएं दर्ज करें', 'एक ठोस इरादा चुनें', '20 मिनट अभ्यास करें', 'साप्ताहिक रिवाज़ बनाएं', 'किसी के साथ अभ्यास साझा करें', 'मार्गदर्शन या उपकरण में निवेश करें', 'ट्रैकिंग प्रणाली बनाएं', 'अभ्यास को योगदान में बदलें', 'सीख की समीक्षा करके दिशा बदलें'],
-  ar: ['لاحظ إشارة يومية', 'سجل ما يحدث خلال أسبوع', 'اختر نية واضحة', 'مارس لمدة عشرين دقيقة', 'أنشئ طقساً أسبوعياً', 'شارك الممارسة مع شخص', 'استثمر في إرشاد أو أداة', 'صمم نظام متابعة', 'حوّل الممارسة إلى مساهمة', 'راجع التعلم وعدّل الاتجاه'],
-  it: ['Osserva un segnale quotidiano', 'Registra ciò che accade per una settimana', 'Scegli un’intenzione concreta', 'Pratica per venti minuti', 'Crea un rituale settimanale', 'Condividi la pratica con qualcuno', 'Investi in una guida o uno strumento', 'Progetta un sistema di monitoraggio', 'Trasforma la pratica in un contributo', 'Rivedi l’apprendimento e correggi la rotta'],
-  pt: ['Observe um sinal cotidiano', 'Registre o que acontece por uma semana', 'Escolha uma intenção concreta', 'Pratique por vinte minutos', 'Crie um ritual semanal', 'Compartilhe a prática com alguém', 'Invista em orientação ou ferramenta', 'Crie um sistema de acompanhamento', 'Transforme a prática em contribuição', 'Revise o aprendizado e ajuste o rumo'],
-  ru: ['Заметьте ежедневный сигнал', 'Записывайте происходящее неделю', 'Выберите конкретное намерение', 'Практикуйтесь двадцать минут', 'Создайте еженедельный ритуал', 'Поделитесь практикой с кем-то', 'Вложитесь в наставника или инструмент', 'Создайте систему отслеживания', 'Превратите практику в вклад', 'Пересмотрите опыт и скорректируйте путь'],
-  de: ['Beobachte ein tägliches Signal', 'Halte eine Woche lang fest, was geschieht', 'Wähle eine konkrete Absicht', 'Übe zwanzig Minuten', 'Schaffe ein wöchentliches Ritual', 'Teile die Praxis mit jemandem', 'Investiere in Anleitung oder ein Werkzeug', 'Entwirf ein Nachverfolgungssystem', 'Mache die Praxis zu einem Beitrag', 'Prüfe das Lernen und passe den Kurs an'],
-  fr: ['Observez un signal quotidien', 'Notez ce qui se passe pendant une semaine', 'Choisissez une intention concrète', 'Pratiquez vingt minutes', 'Créez un rituel hebdomadaire', 'Partagez la pratique avec quelqu’un', 'Investissez dans un guide ou un outil', 'Concevez un système de suivi', 'Transformez la pratique en contribution', 'Relisez l’apprentissage et ajustez la direction'],
-  da: ['Læg mærke til et dagligt signal', 'Registrer hvad der sker i en uge', 'Vælg en konkret intention', 'Øv dig i tyve minutter', 'Skab et ugentligt ritual', 'Del praksissen med nogen', 'Invester i vejledning eller et værktøj', 'Design et system til opfølgning', 'Gør praksissen til et bidrag', 'Gennemgå læringen og juster retningen'],
-};
-const localizedPoolActivities = (modeKey: string, level: number, language: Language): PoolActivity[] => {
-  if (language === 'es') return getPoolActivities(modeKey, level);
-  const actions = localizedActivityActions[language];
-  return actions.map((action, index) => ({
-    title: action,
-    description: `${localizedLevelNames[language][level]} · ${index === 0 ? 'Tiempo' : index < 6 ? 'Tiempo + Energía' : 'Tiempo + Energía + Inversión'}`,
-  }));
-};
 const insightAuthors = [
   ['Sofía Méndez', 'Ciudad de Guatemala', 'América Central', 'Español'],
   ['Marcus Lee', 'Austin · Remote', 'América del Norte', 'English'],
@@ -244,14 +188,6 @@ const insightAuthors = [
   ['Nadia Chen', 'Vancouver · Remote', 'América del Norte', '中文 · Chino'],
   ['Camila Torres', 'Bogotá · Remote', 'América del Sur', 'Español'],
 ] as const;
-const insightAuthorBios: Record<string, string> = {
-  'Sofía Méndez': 'Cultivo liderazgo con propósito para que el trabajo también sea un espacio de presencia y coherencia.',
-  'Marcus Lee': 'Diseño sistemas financieros que convierten claridad, libertad y visión en decisiones cotidianas.',
-  'Elena Costa': 'Acompaño conversaciones honestas para que los vínculos puedan crecer con cuidado y límites sanos.',
-  'Diego Ríos': 'Creo en los pequeños rituales sostenidos que transforman una intención en una forma de vida.',
-  'Nadia Chen': 'Exploro cómo aprender, conectar y crear puede abrir nuevas posibilidades para una vida más amplia.',
-  'Camila Torres': 'Cultivo comunidad y movimiento para que cada persona encuentre una ruta propia de expansión.',
-};
 const insightAuthorBadges: Record<string, string[]> = {
   'Sofía Méndez': ['level-up', 'three-moves'],
   'Marcus Lee': ['preset-maker', 'global-eye'],
@@ -271,23 +207,23 @@ const makeInsightPreset = (modeKey: string, activityLevel: number, seed: number)
   ...makePreset(seed),
   [modeKey]: Math.min(9, activityLevel + 1),
 });
-const globalInsightActivities = modes.flatMap((mode) => journeyLevels.filter((level) => level < 9).map((level) => {
-  const authorIndex = (modes.indexOf(mode) * 9 + level) % insightAuthors.length;
-  const author = insightAuthors[authorIndex];
-  return { variant: 0, modeKey: mode.key, level, activity: getPoolActivities(mode.key, level)[0].title, author: author[0], location: author[1], continent: author[2], language: author[3], bio: insightAuthorBios[author[0]], badges: insightAuthorBadges[author[0]] ?? [], presetName: `${author[0]} · Ruta de presencia`, preset: makeInsightPreset(mode.key, level, authorIndex + level) };
-}));
-type GlobalInsight = (typeof globalInsightActivities)[number];
+type GlobalInsight = {
+  variant: number; modeKey: GlobalIdeaMode; level: number;
+  author: typeof insightAuthors[number][0]; location: string;
+  badges: string[]; preset: Preset;
+};
 const globalInsightVariantsByKey: Record<string, GlobalInsight[]> = {};
 modes.forEach((mode, modeIndex) => {
-  journeyLevels.filter((level) => level < 9).forEach((level) => {
-    const key = `${mode.key}-${level}`;
-    globalInsightVariantsByKey[key] = Array.from({ length: 12 }, (_, variant) => {
+  for (let level = 0; level < 9; level++) {
+    globalInsightVariantsByKey[`${mode.key}-${level}`] = Array.from({ length: 12 }, (_, variant) => {
       const authorIndex = (modeIndex * 9 + level + variant) % insightAuthors.length;
-      const author = insightAuthors[authorIndex];
-      const activities = getPoolActivities(mode.key, level);
-      return { variant, modeKey: mode.key, level, activity: activities[variant % activities.length].title, author: author[0], location: author[1], continent: author[2], language: author[3], bio: insightAuthorBios[author[0]], badges: insightAuthorBadges[author[0]] ?? [], presetName: `${author[0]} · Ruta de presencia`, preset: makeInsightPreset(mode.key, level, authorIndex + level + variant) };
+      const [author, location] = insightAuthors[authorIndex];
+      return {
+        variant, modeKey: mode.key, level, author, location, badges: insightAuthorBadges[author] ?? [],
+        preset: makeInsightPreset(mode.key, level, authorIndex + level + variant),
+      };
     });
-  });
+  }
 });
 type Specialist = { name: string; modeKey: string; specialty: string; location: string; continent: string; language: string; match: string; trajectory: string; message: string; presetName: string; modeLevels: Record<string, number> };
 const specialistLanguages = ['Español', 'English', '中文', 'हिन्दी', 'العربية', 'Italiano', 'Português', 'Русский', 'Deutsch', 'Français', 'Dansk'];
@@ -823,27 +759,7 @@ function App() {
     const tier = level <= 2 ? 'low' : level <= 5 ? 'medium' : level <= 8 ? 'high' : 'vision';
     return localizedEffortDescriptions[language]?.[tier] ?? localizedEffortDescriptions.es[tier];
   };
-  const localizeGlobalInsight = (insight: GlobalInsight): GlobalInsight => ({
-    ...insight,
-    activity: (() => { const localized = localizedPoolActivities(insight.modeKey, insight.level, language); return localized[(insight.variant ?? 0) % localized.length]?.title ?? insight.activity; })(),
-    bio: localizedInsightBio(insight.author),
-    presetName: `${insight.author} · ${tr('presenceRoute')}`,
-  });
-  const localizedInsightBio = (author: string) => {
-    if (language === 'es') return insightAuthorBios[author] ?? '';
-    const english: Record<string, string> = {
-      'Sofía Méndez': 'I cultivate purposeful leadership so work can also become a space for presence and coherence.',
-      'Marcus Lee': 'I design financial systems that turn clarity, freedom and vision into everyday decisions.',
-      'Elena Costa': 'I support honest conversations so relationships can grow with care and healthy boundaries.',
-      'Diego Ríos': 'I believe sustained small rituals can transform an intention into a way of life.',
-      'Nadia Chen': 'I explore how learning, connection and creation can open new possibilities for a wider life.',
-      'Camila Torres': 'I cultivate community and movement so each person can find their own path of expansion.',
-    };
-    const fallback: Record<Language, string> = {
-      en: 'A community member sharing a practice that supported their progress.', zh: '分享支持其成长实践的社区成员。', hi: 'अपनी प्रगति में सहायक अभ्यास साझा करने वाला समुदाय सदस्य।', ar: 'عضو في المجتمع يشارك ممارسة ساعدته على التقدم.', it: 'Una persona della comunità condivide una pratica che ha sostenuto il suo percorso.', pt: 'Uma pessoa da comunidade compartilha uma prática que apoiou seu avanço.', ru: 'Участник сообщества делится практикой, которая помогла ему двигаться дальше.', de: 'Ein Community-Mitglied teilt eine Praxis, die den eigenen Fortschritt unterstützt hat.', fr: 'Un membre de la communauté partage une pratique qui a soutenu son parcours.', da: 'Et fællesskabsmedlem deler en praksis, der støttede deres fremgang.', es: '',
-    };
-    return language === 'en' ? (english[author] ?? fallback.en) : fallback[language];
-  };
+  const insightActivity = (insight: GlobalInsight) => globalIdeaTitle(language, insight.modeKey, insight.level, insight.variant);
   const badgeTitle = (key: string) => key === 'completionist' ? 'Completionist' : key === 'maxed' ? 'Maxed' : tr(({ 'first-step': 'badgeTitleFirstStep', 'three-moves': 'badgeTitleThreeMoves', 'level-up': 'badgeTitleLevelUp', 'full-spectrum': 'badgeTitleFullSpectrum', 'global-eye': 'badgeTitleGlobalEye', visionary: 'badgeTitleVisionary', 'preset-maker': 'badgeTitlePresetMaker', 'skin-shift': 'badgeTitleSkinShift' } as Record<string, string>)[key] ?? key);
   const badgeDescription = (key: string) => key === 'completionist' || key === 'maxed' ? badgeCopy(language)[key] : tr(({ 'first-step': 'badgeDescFirstStep', 'three-moves': 'badgeDescThreeMoves', 'level-up': 'badgeDescLevelUp', 'full-spectrum': 'badgeDescFullSpectrum', 'global-eye': 'badgeDescGlobalEye', visionary: 'badgeDescVisionary', 'preset-maker': 'badgeDescPresetMaker', 'skin-shift': 'badgeDescSkinShift' } as Record<string, string>)[key] ?? key);
   const effortLabel = (level: number) => {
@@ -957,7 +873,7 @@ function App() {
       return {};
     }
   });
-  const [insightNotice, setInsightNotice] = useState<string | null>(null);
+  const [insightNotice, setInsightNotice] = useState<{ key: 'activitySavedToJourney' | 'regenerateInsight'; author?: GlobalInsight['author'] } | null>(null);
   const [apiState, setApiState] = useState<ApiState>({ status: 'loading' });
   const [view, setView] = useState<View>('welcome');
   const [homeSidebarOpen, setHomeSidebarOpen] = useState(false);
@@ -1004,7 +920,7 @@ function App() {
   const [pendingAccess, setPendingAccess] = useState<AccessRequest | null>(null);
   const [pendingActivity, setPendingActivity] = useState<PendingActivity | null>(null);
   const [insightPreview, setInsightPreview] = useState<{ modeKey: string; level: number } | null>(null);
-  const [cultInsightPreview, setCultInsightPreview] = useState<(typeof globalInsightActivities)[number] | null>(null);
+  const [cultInsightPreview, setCultInsightPreview] = useState<GlobalInsight | null>(null);
   const [specialistPreview, setSpecialistPreview] = useState<Specialist | null>(null);
   const [profilePreviewMode, setProfilePreviewMode] = useState<boolean>(false);
   const [configurationsOpen, setConfigurationsOpen] = useState(false);
@@ -1857,19 +1773,18 @@ function App() {
       const currentLevel = Math.min(journeySlide, 8);
       const pool = globalInsightVariantsByKey[`${selectedMode.key}-${currentLevel}`] ?? [];
       if (!pool.length) return [];
-      const cycleCount = Math.max(1, Math.ceil(pool.length / 12));
-      const start = (insightCycle % cycleCount) * 12;
-      return Array.from({ length: Math.min(12, pool.length) }, (_, index) => localizeGlobalInsight(pool[(start + index) % pool.length]));
+      const start = insightCycle % pool.length;
+      return Array.from({ length: Math.min(12, pool.length) }, (_, index) => pool[(start + index) % pool.length]);
     }
     const candidates = modes.map((mode) => {
       const currentLevel = levels[mode.key] ?? 0;
       const recommendationLevel = Math.min(currentLevel + 1, 8);
       const key = `${mode.key}-${recommendationLevel}`;
       const options = globalInsightVariantsByKey[key] ?? [];
-      return localizeGlobalInsight(options[insightVariants[key] ?? 0] ?? options[0] ?? globalInsightActivities.find((insight) => insight.modeKey === mode.key && insight.level === recommendationLevel)!);
-    }).filter((insight): insight is (typeof globalInsightActivities)[number] => Boolean(insight));
+      return options[insightVariants[key] ?? 0] ?? options[0];
+    }).filter((insight): insight is GlobalInsight => Boolean(insight));
     return candidates;
-  }, [cultOpen, insightCycle, insightVariants, language, levels, selectedMode, journeySlide]);
+  }, [insightCycle, insightVariants, levels, selectedMode, journeySlide]);
   const achievementProgress = useMemo(() => badgeProgress(activityDrafts, activityCompletions, levels, visionImages), [activityDrafts, activityCompletions, levels, visionImages]);
   const earnedBadges = useMemo(() => {
     const definedCount = Object.keys(activityDrafts).length;
@@ -1908,10 +1823,10 @@ function App() {
   }, [cultTab, cultOpen, selectedMode?.key]);
 
   useEffect(() => {
-    if (cultTab !== 'insights' || !cultOpen || personalizedInsights.length < 2) return;
+    if (cultTab !== 'insights' || !cultOpen || cultInsightPreview || personalizedInsights.length < 2) return;
     const timer = window.setInterval(() => setInsightSlide((current) => (current + 1) % personalizedInsights.length), 6500);
     return () => window.clearInterval(timer);
-  }, [cultOpen, cultTab, personalizedInsights.length]);
+  }, [cultOpen, cultTab, cultInsightPreview, personalizedInsights.length]);
 
   const toggleFeaturedBadge = (badgeKey: string) => {
     if (!earnedBadges.some(badge => badge.key === badgeKey)) return;
@@ -2110,17 +2025,16 @@ function App() {
   const saveGlobalInsightActivity = () => {
     if (!cultInsightPreview) return;
     if (selectedMode && (cultInsightPreview.modeKey !== selectedMode.key || cultInsightPreview.level !== levels[selectedMode.key])) return;
-    saveActivity(cultInsightPreview.modeKey, cultInsightPreview.level, cultInsightPreview.activity);
+    saveActivity(cultInsightPreview.modeKey, cultInsightPreview.level, insightActivity(cultInsightPreview));
     setCultInsightPreview(null);
     setCultOpen(false);
-    setInsightNotice(tr('activitySavedToJourney'));
+    setInsightNotice({ key: 'activitySavedToJourney' });
   };
 
   const regenerateGlobalInsight = (modeKey: string, level: number) => {
     if (selectedMode?.key === modeKey) {
-      setInsightCycle((current) => current + 1);
+      setInsightCycle((current) => current + insightSlide + 1);
       setInsightSlide(0);
-      setInsightNotice(`${tr('regenerateInsight')}: 12.`);
       return;
     }
     const key = `${modeKey}-${level}`;
@@ -2130,7 +2044,7 @@ function App() {
     const nextVariant = (currentVariant + 1) % options.length;
     const nextInsight = options[nextVariant];
     setInsightVariants((current) => ({ ...current, [key]: nextVariant }));
-    setInsightNotice(`${tr('regenerateInsight')}: ${nextInsight.author}.`);
+    setInsightNotice({ key: 'regenerateInsight', author: nextInsight.author });
   };
 
   const requestInsight = (modeKey: string, level: number) => {
@@ -2397,7 +2311,7 @@ function App() {
           <span className="cult-insight-orbit-glyph">{promotedMode.icon}</span>
         </span>
         <small>{modeName(promotedMode)}</small>
-      </div><div className="cult-insight-spotlight-copy"><div className="cult-insight-activity-top"><span>{modeName(promotedMode)} · {tr('level')} {promotedInsight.level} → {promotedInsight.level + 1}</span><small>{effortLabel(promotedInsight.level)}</small></div><h3>{promotedInsight.activity}</h3><p>{tr('globalSharedBy')} <strong>{promotedInsight.author}</strong> · {promotedInsight.location}</p><div className="cult-insight-actions"><button type="button" onClick={() => setCultInsightPreview(promotedInsight)}>{tr('globalAnalyzeSave')} <span>↗</span></button><button className="cult-insight-regenerate-button" type="button" onClick={() => regenerateGlobalInsight(promotedInsight.modeKey, promotedInsight.level)}><span aria-hidden="true">↻</span></button></div></div>{personalizedInsights.length > 1 && <div className="cult-insight-controls" aria-label={tr('globalInsights')}><button type="button" onClick={() => setInsightSlide((current) => (current - 1 + personalizedInsights.length) % personalizedInsights.length)} aria-label={tr('previous')}>←</button><div className="cult-insight-dots" aria-label={tr('globalInsights')}><span className="cult-insight-dot-list">{personalizedInsights.map((insight, index) => <button className={index === insightSlide ? 'is-active' : ''} key={`${insight.modeKey}-${insight.level}-${index}`} type="button" onClick={() => setInsightSlide(index)} aria-label={`${tr('globalInsights')} ${index + 1}`} />)}</span></div><button type="button" onClick={() => setInsightSlide((current) => (current + 1) % personalizedInsights.length)} aria-label={tr('next')}>→</button></div>}</article>}</>}
+      </div><div className="cult-insight-spotlight-copy"><div className="cult-insight-activity-top"><span>{modeName(promotedMode)} · {tr('level')} {formatJourneyLevel(promotedInsight.level)} {language === 'ar' ? '←' : '→'} {formatJourneyLevel(promotedInsight.level + 1)}</span><small>{effortLabel(promotedInsight.level)}</small></div><h3>{insightActivity(promotedInsight)}</h3><p>{tr('globalSharedBy')} <strong><bdi>{promotedInsight.author}</bdi></strong> · {specialistLocation(promotedInsight.location)}</p><div className="cult-insight-actions"><button type="button" onClick={() => setCultInsightPreview(promotedInsight)}>{tr('globalAnalyzeSave')} <span>↗</span></button><button className="cult-insight-regenerate-button" type="button" aria-label={tr('regenerateInsight')} onClick={() => regenerateGlobalInsight(promotedInsight.modeKey, promotedInsight.level)}><span aria-hidden="true">↻</span></button></div></div>{personalizedInsights.length > 1 && <div className="cult-insight-controls" aria-label={tr('globalInsights')}><button type="button" onClick={() => setInsightSlide((current) => (current - 1 + personalizedInsights.length) % personalizedInsights.length)} aria-label={tr('previous')}>{language === 'ar' ? '→' : '←'}</button><div className="cult-insight-dots" aria-label={tr('globalInsights')}><span className="cult-insight-dot-list">{personalizedInsights.map((insight, index) => <button className={index === insightSlide ? 'is-active' : ''} key={`${insight.modeKey}-${insight.level}-${index}`} type="button" onClick={() => setInsightSlide(index)} aria-label={`${tr('globalInsights')} ${formatJourneyLevel(index + 1)}`} aria-current={index === insightSlide ? 'true' : undefined} />)}</span></div><button type="button" onClick={() => setInsightSlide((current) => (current + 1) % personalizedInsights.length)} aria-label={tr('next')}>{language === 'ar' ? '←' : '→'}</button></div>}</article>}</>}
       {tab === 'network' && <><div className="cult-section-heading"><div><p className="kicker">{tr('specialistNetwork')}</p><h2>{tr('findYourNextGuide')}</h2></div><span className="cult-live-pill cult-live-pill--gold"><i /> {onboardingIntegrationCopy(language).demo}</span></div><div className="cult-filter-row"><select aria-label={tr('filterByMode')} value={specialistModeFilter} onChange={(event) => setSpecialistModeFilter(event.target.value)}><option value="all">{tr('allModes')}</option>{modes.map((mode) => <option key={mode.key} value={mode.key}>{modeName(mode)}</option>)}</select><select aria-label={tr('filterByLanguage')} value={specialistLanguageFilter} onChange={(event) => setSpecialistLanguageFilter(event.target.value)}><option value="all">{tr('anyLanguage')}</option>{specialistLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select><select aria-label={tr('filterByLocation')} value={specialistContinentFilter} onChange={(event) => setSpecialistContinentFilter(event.target.value)}><option value="all">{tr('anyContinent')}</option>{specialistContinents.map((continent) => <option key={continent} value={continent}>{continentLabel(continent)}</option>)}</select></div><div className="cult-specialist-list">{filteredSpecialists.length ? filteredSpecialists.map((specialist) => { const mode = modes.find((item) => item.key === specialist.modeKey)!; return <article key={specialist.name}><div className="cult-specialist-avatar">{specialist.name.slice(0, 1)}</div><div className="cult-specialist-copy"><strong>{specialist.name}</strong><small>{modeName(mode)} · {specialist.specialty}</small><p>{onboardingIntegrationCopy(language).demo} · {specialistLocation(specialist.location)}</p></div><div className="cult-match"><span>{specialist.match} {tr('matchLabel')}</span><small>{specialist.language} · {continentLabel(specialist.continent)}</small></div><button type="button" onClick={() => setSpecialistPreview(specialist)}>{tr('viewSpecialistProfile')} ↗</button></article>; }) : <div className="cult-empty-state">{tr('noSpecialistsMatch')}</div>}</div></>}
     </div>
   </section>;
@@ -2746,7 +2660,7 @@ function App() {
 
       {insightPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setInsightPreview(null)}><section className="feature-preview" role="dialog" aria-modal="true" aria-labelledby="insight-preview-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setInsightPreview(null)} aria-label="Cerrar vista previa">×</button><p className="kicker">Vista previa · Layer de Insights</p><h2 id="insight-preview-title">Pedir Insights</h2><p className="journey-description">Comparte una duda con personas que ya recorrieron este nivel y recibe una estrategia desde la experiencia de la comunidad.</p><div className="insight-preview-card"><span>INSIGHT DE NIVEL {insightPreview.level}</span><strong>{modes.find((mode) => mode.key === insightPreview.modeKey)?.name}</strong><p>“¿Qué práctica te ayudó a avanzar de este nivel al siguiente?”</p><small>La solicitud se habilita al crear una cuenta Gold.</small></div><button className="feature-preview-cta" type="button" onClick={() => { setInsightPreview(null); openPlan('gold', 'Insights locales'); }}>Ver acceso Gold <span>→</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setInsightPreview(null)}>Seguir explorando como invitado</button></section></div>}
 
-      {cultInsightPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setCultInsightPreview(null)}><section className="feature-preview cult-insight-modal" style={{ '--insight-color': modes.find((mode) => mode.key === cultInsightPreview.modeKey)?.color ?? '#70ed9c' } as CSSProperties} role="dialog" aria-modal="true" aria-labelledby="cult-insight-modal-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setCultInsightPreview(null)} aria-label={tr('close')}>×</button><p className="demo-profile-notice">{onboardingIntegrationCopy(language).demoDetail}</p><h2 id="cult-insight-modal-title">{cultInsightPreview.activity.split(' · ')[0]}</h2><div className="insight-modal-meta"><span>{tr('level')} {cultInsightPreview.level} → {cultInsightPreview.level + 1}</span><span>{effortLabel(cultInsightPreview.level)}</span></div><div className="insight-preset-card"><span>{tr('presetOf')} {cultInsightPreview.author.toUpperCase()}</span><strong>{cultInsightPreview.presetName}</strong><p>{tr('insightPresetDescription')}</p><blockquote className="insight-author-bio">“{cultInsightPreview.bio}”</blockquote><div className="insight-profile-badges"><span>{tr('featuredBadges')}</span><div>{cultInsightPreview.badges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key); return badge ? <b key={key} title={badgeTitle(key)}>{badge.icon} {badgeTitle(key)}</b> : null; })}</div></div><div className="insight-preset-levels">{modes.map((mode) => <span key={mode.key}>{modeShortName(mode)} <b>{cultInsightPreview.preset[mode.key]}</b></span>)}</div></div><button className="feature-preview-cta" type="button" onClick={saveGlobalInsightActivity}>{tr('useInMap')} <span>＋</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setCultInsightPreview(null)}>{tr('exploreInsights')}</button></section></div>}
+      {cultInsightPreview && <div className="feature-preview-backdrop global-idea-detail-backdrop" role="presentation" onClick={() => setCultInsightPreview(null)}><section className="feature-preview cult-insight-modal" style={{ '--insight-color': modes.find((mode) => mode.key === cultInsightPreview.modeKey)?.color ?? '#70ed9c' } as CSSProperties} role="dialog" aria-modal="true" aria-labelledby="cult-insight-modal-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setCultInsightPreview(null)} aria-label={tr('close')} autoFocus>×</button><p className="demo-profile-notice">{onboardingIntegrationCopy(language).demoDetail}</p><h2 id="cult-insight-modal-title">{insightActivity(cultInsightPreview)}</h2><div className="insight-modal-meta"><span>{tr('level')} {formatJourneyLevel(cultInsightPreview.level)} {language === 'ar' ? '←' : '→'} {formatJourneyLevel(cultInsightPreview.level + 1)}</span><span>{effortLabel(cultInsightPreview.level)}</span></div><div className="insight-preset-card"><span>{tr('presetOf')} <bdi>{cultInsightPreview.author.toUpperCase()}</bdi></span><strong><bdi>{cultInsightPreview.author}</bdi> · {tr('presenceRoute')}</strong><p>{tr('insightPresetDescription')}</p><blockquote className="insight-author-bio">“{globalIdeaBio(language, cultInsightPreview.author)}”</blockquote><div className="insight-profile-badges"><span>{tr('featuredBadges')}</span><div>{cultInsightPreview.badges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key); return badge ? <b key={key} title={badgeTitle(key)}>{badge.icon} {badgeTitle(key)}</b> : null; })}</div></div><div className="insight-preset-levels">{modes.map((mode) => <span key={mode.key}>{modeShortName(mode)} <b>{formatJourneyLevel(cultInsightPreview.preset[mode.key])}</b></span>)}</div></div><button className="feature-preview-cta" type="button" onClick={saveGlobalInsightActivity}>{tr('useInMap')} <span>＋</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setCultInsightPreview(null)}>{tr('exploreInsights')}</button></section></div>}
 
       {specialistPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setSpecialistPreview(null)}><section className="feature-preview specialist-profile-modal" role="dialog" aria-modal="true" aria-labelledby="specialist-profile-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setSpecialistPreview(null)} aria-label={tr('closeProfile')}>×</button><p className="kicker">{onboardingIntegrationCopy(language).demo} · {tr('specialistNetwork')}</p><div className="specialist-profile-heading"><div className="cult-specialist-avatar">{specialistPreview.name.slice(0, 1)}</div><div><h2 id="specialist-profile-title">{specialistPreview.name}</h2><p>{specialistPreview.specialty} · {specialistLocation(specialistPreview.location)}</p></div><span>{specialistPreview.match} {tr('matchLabel')}</span></div><p className="demo-profile-notice">{onboardingIntegrationCopy(language).demoDetail} {onboardingIntegrationCopy(language).serviceUnavailable}</p><div className="specialist-profile-meta"><span>{specialistPreview.language}</span><span>{continentLabel(specialistPreview.continent)}</span><span>{modeName(modes.find((mode) => mode.key === specialistPreview.modeKey)!)}</span></div><div className="specialist-profile-copy"><span className="crm-eyebrow">{tr('trajectory')}</span><p>{specialistPreview.trajectory}</p><blockquote>“{specialistPreview.message}”</blockquote></div><div className="specialist-preset"><div><span className="crm-eyebrow">{tr('specialistPreset')}</span><h3>{specialistPreview.presetName}</h3></div><span className="crm-card-caption">{tr('twelveModesLevels')}</span></div><div className="specialist-level-grid">{modes.map((mode) => <div key={mode.key} style={{ '--mode-color': mode.color } as CSSProperties}><span>{mode.icon}</span><strong>{modeShortName(mode)}</strong><b>{specialistPreview.modeLevels[mode.key]}</b></div>)}</div><button className="feature-preview-cta" type="button" onClick={() => setSpecialistPreview(null)}>{tr('closeProfile')} <span>×</span></button></section></div>}
 
@@ -2903,7 +2817,7 @@ function App() {
                   </div>
                   {localIdeaNotice?.key === insightRequestKey(selectedMode.key, visibleJourneyLevel) && <p className="journey-local-idea-status" role="status">{localIdeaNotice.kind === 'login' ? communityCopy(language).login : localIdeaNotice.kind === 'profile' ? onboardingIntegrationCopy(language).profileRequired : localIdeaNotice.kind === 'failed' ? communityCopy(language).unavailable : localIdeaNotice.count ? `${tr('insightRequested')} · ${communityCopy(language).eligible.replace('{count}', String(localIdeaNotice.count))}` : communityCopy(language).zero}</p>}
                 </> : undefined} />
-                {insightNotice && displayJourneyStep === 1 && <div className="insight-notice" role="status">✦ {insightNotice}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
+                {insightNotice && displayJourneyStep === 1 && <div className="insight-notice" role="status">✦ {tr(insightNotice.key)}{insightNotice.author && <>: <bdi>{insightNotice.author}</bdi>.</>}<button type="button" onClick={() => setInsightNotice(null)} aria-label={tr('closeNotice')}>×</button></div>}
               </>}
             </div>
             {visibleJourneyLevel > 0 && <button className="journey-level-link journey-level-link--down" type="button" onClick={() => goJourneyLevel(visibleJourneyLevel - 1)}>
@@ -2913,7 +2827,7 @@ function App() {
         </>}
       </section></div>}
       {cultOpen && selectedMode && <div className="feature-preview-backdrop journey-global-backdrop" role="presentation" onClick={() => setCultOpen(false)}>
-        <section className="feature-preview journey-global-dialog" role="dialog" aria-modal="true" aria-labelledby="cult-embedded-title" onClick={event => event.stopPropagation()}>
+        <section className="feature-preview journey-global-dialog" role="dialog" aria-modal={!cultInsightPreview} aria-labelledby="cult-embedded-title" inert={Boolean(cultInsightPreview)} onClick={event => event.stopPropagation()}>
           <button className="close-journey" type="button" onClick={() => setCultOpen(false)} aria-label={tr('close')} autoFocus>×</button>
           {renderCultSection('insights')}
         </section>

@@ -11,6 +11,7 @@
     "verify:navigation": "node scripts/verify-navigation-history.mjs",
     "verify:configurations": "node scripts/verify-life-configurations.mjs",
     "verify:activities": "node scripts/verify-activity-bank.mjs",
+    "verify:global": "node scripts/verify-global-ideas.mjs",
     "verify:level": "node scripts/verify-cultiva-level.mjs",
     "verify:social": "node scripts/verify-journey-social.mjs",
     "verify:ai": "node scripts/verify-mode-ai.mjs",

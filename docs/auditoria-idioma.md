@@ -41,12 +41,16 @@ guardan ya traducidos.
 - Modo IA traduce los avisos al mostrarlos. No borra el contexto ni la
   propuesta al cambiar el idioma: cada consulta usa el idioma activo cuando
   se envía, y el resultado conserva su idioma original.
+- Modo Global traduce las 108 prácticas (12 modos × 9 niveles), sus
+  variantes y las seis biografías de demostración. El carrusel y su ficha
+  comparten la misma idea incluso si cambia el idioma, y se guarda el
+  texto que muestra la ficha, sin traducir después lo que ya se guardó.
 
 ## Pendientes para cerrar el objetivo
 
 | Superficie | Evidencia y siguiente verificación |
 | --- | --- |
-| Modo Global y especialistas | Algunos datos de demostración, especialidades, ciudades, biografías y títulos de ejemplo siguen en español o se sustituyen por una descripción genérica. Distinguir contenido editorial traducible de nombres, idiomas nativos y contenido del usuario. |
+| Red de Especialistas | Las especialidades, biografías y nombres de configuraciones de demostración siguen en español. Traducir los datos de ejemplo, respetando los nombres propios y los nombres nativos de los idiomas del filtro. |
 | Planes y accesos especiales | La rama desactivada por la configuración de acceso gratuito aún contiene copy literal. Auditar también errores, accesibilidad y variantes de conexión. |
 | Interfaces restantes | Revisar pantallas y diálogos visibles de Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, instalación, evidencias y notificaciones; comprobar texto visible y accesible, no solo claves. |
 | Persistencia entre sesiones | Ejecutar matriz de idiomas en bienvenida y navegación, recarga, navegador distinto y cambio de cuenta. Comprobar que la preferencia de una cuenta no contamine a otra ni al invitado. |

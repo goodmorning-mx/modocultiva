@@ -156,6 +156,9 @@
 .journey-global-globe i::after { content: ''; position: absolute; inset: 11px auto auto -1px; width: 4px; height: 4px; border-radius: 50%; background: #b2ffed; box-shadow: 0 0 6px currentColor; }
 @keyframes journey-orbit { to { transform: rotate(1turn); } }
 .journey-global-dialog.feature-preview { width: min(100%, 860px); padding: 40px clamp(12px, 3vw, 28px) 20px; max-height: calc(100dvh - 32px); overflow: auto; }
+.feature-preview-backdrop.global-idea-detail-backdrop { z-index: 13; }
+.global-idea-detail-backdrop .cult-insight-modal { max-block-size: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain; }
+.cult-insight-modal h2, .cult-insight-spotlight-copy h3 { overflow-wrap: anywhere; }
 .journey-global-dialog .cult-embedded, .specialists-view .cult-embedded { margin: 0; padding-top: 0; border: 0; }
 .specialists-view .cult-embedded { margin-top: 24px; }
 .crm-dashboard > .badges-gallery {
