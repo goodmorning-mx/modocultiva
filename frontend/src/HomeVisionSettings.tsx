@@ -25,7 +25,7 @@ export function HomeVisionSettings({ language, modes, images, preferences, close
   const [failed, setFailed] = useState(false);
   const [uploadMode, setUploadMode] = useState<string | null>(null);
   const uploadArea = useRef<HTMLDivElement>(null);
-  const [title, summary, defaultLabel, visionLabel, , saveError] = homeVisionCopy(language);
+  const [title, summary, stockLabel, visionLabel, , saveError] = homeVisionCopy(language);
   const pickSource = (mode: string, source: HomeImageSource) => {
     if (source === 'vision' && !hasVisionImage(images[mode])) {
       flushSync(() => { setFailed(false); setUploadMode(mode); });
@@ -62,9 +62,9 @@ export function HomeVisionSettings({ language, modes, images, preferences, close
             if (event.currentTarget.getAttribute('src') !== fallback) event.currentTarget.src = fallback;
           }} />}
           <div className="home-vision-options">
-            <label><input type="radio" name={`${id}-${mode.key}-source`} value="default" checked={selected === 'default'} onChange={() => pickSource(mode.key, 'default')} />{defaultLabel}</label>
-            <label><input type="radio" name={`${id}-${mode.key}-source`} value="vision" checked={selected === 'vision'} onChange={() => pickSource(mode.key, 'vision')} />{visionLabel}</label>
             <label><input type="radio" name={`${id}-${mode.key}-source`} value="electric" checked={selected === 'electric'} onChange={() => pickSource(mode.key, 'electric')} />{electricSymbolLabel(language)}</label>
+            <label><input type="radio" name={`${id}-${mode.key}-source`} value="vision" checked={selected === 'vision'} onChange={() => pickSource(mode.key, 'vision')} />{visionLabel}</label>
+            <label><input type="radio" name={`${id}-${mode.key}-source`} value="stock" checked={selected === 'stock'} onChange={() => pickSource(mode.key, 'stock')} />{stockLabel}</label>
           </div>
           {(selected === 'vision' || uploadMode === mode.key) && <div className="home-vision-upload" ref={uploadMode === mode.key ? uploadArea : undefined}>
             <VisionImage value={images[mode.key]} compact language={language} title={visionLabel} uploadLabel={uploadLabel} changeLabel={changeLabel}

@@ -126,7 +126,7 @@ function fixture(language, established = true) {
     selectedPreset: established ? 'QA existing map' : '', visionImages: established ? Object.fromEntries(MODES.map(mode => [mode, PNG])) : {},
     featuredBadges: [], onboardingWelcomeCompleted: false, qa_unknown: { retained: ['synthetic', 'unknown state field'] } };
 }
-const localFields = { levels: 'lastState', activityDrafts: 'activityDrafts', activityAlignments: 'activityAlignments', activityCompletions: 'activityCompletions', activityReactions: 'activityReactions', insightRequests: 'insightRequests', presets: 'presets', visionImages: 'visionImages', featuredBadges: 'featuredBadges', selectedPreset: 'selectedPreset', profileName: 'profileName', profileImage: 'profileImage', language: 'language', skin: 'skin' };
+const localFields = { levels: 'lastState', activityDrafts: 'activityDrafts', activityAlignments: 'activityAlignments', activityCompletions: 'activityCompletions', activityReactions: 'activityReactions', insightRequests: 'insightRequests', presets: 'presets', visionImages: 'visionImages', homeVisionCards: 'homeVisionCards', featuredBadges: 'featuredBadges', selectedPreset: 'selectedPreset', profileName: 'profileName', profileImage: 'profileImage', language: 'language', skin: 'skin' };
 const protectedFields = ['levels', 'presets', 'selectedPreset', 'activityDrafts', 'activityAlignments', 'visionImages', 'profileImage', 'activityCompletions', 'activityReactions', 'featuredBadges'];
 function serverIdentity(owner = false) {
   // The owner address is read from the checkout solely for a synthetic /auth/me fixture.
@@ -498,6 +498,7 @@ async function runCase(browser, config, task) {
   if (task.name.endsWith('home-vision')) {
     state.levels.fisico = 9;
     state.visionImages = { fisico: PNG, arquetipico: 'data:image/png;base64,AAAA' };
+    state.homeVisionCards = Object.fromEntries(MODES.map(mode => [mode, 'stock']));
     state.activityReactions = { 'fisico-3-abcdef0123456789': 'leaf' };
   }
   if (task.name.includes('local-')) state.insightRequests = { 'fisico-3': true }; // Old cache is not authoritative delivery.
@@ -990,8 +991,12 @@ async function runCase(browser, config, task) {
         await open();
         assert.equal(await modal.locator('[data-mode=fisico] input[value=vision]').isChecked(), true, 'Keep the old boolean preference');
         assert.equal(await modal.locator('input[value=electric]').count(), 12);
+        assert.deepEqual(await modal.locator('[data-mode=intelectual] input').evaluateAll(inputs => inputs.map(input => input.value)), ['electric','vision','stock']);
+        assert.ok((await modal.locator('[data-mode=intelectual]').innerText()).includes(homeVisionCopy(task.language)[2]));
+        assert.equal(await modal.locator('[data-mode=intelectual] input[value=electric]').isChecked(), true, 'Unconfigured modes default to electric symbols');
         assert.equal(await modal.locator('[data-mode=fisico] input[type=file]').count(), 1, 'Existing Vision can be changed');
         for (const mode of MODES) {
+          if (await modal.locator(`[data-mode=${mode}] input[value=electric]`).isChecked()) await modal.locator(`[data-mode=${mode}] input[value=stock]`).check();
           await modal.locator(`[data-mode=${mode}] input[value=electric]`).check();
           assert.ok((await modal.locator(`[data-mode=${mode}]`).innerText()).includes(electricSymbolLabel(task.language)));
         }
@@ -1074,9 +1079,9 @@ async function runCase(browser, config, task) {
         await open();
         for (const mode of MODES) assert.equal(await modal.locator(`[data-mode=${mode}] input[value=electric]`).isChecked(), true);
         await modal.locator('[data-mode=fisico] input[value=vision]').check();
-        await modal.locator('[data-mode=intelectual] input[value=default]').check();
+        await modal.locator('[data-mode=intelectual] input[value=stock]').check();
         await page.keyboard.press('Escape');
-        if (account) await eventually(() => transport.snapshot().state.homeVisionCards?.fisico === true && !transport.snapshot().state.homeVisionCards?.intelectual, 'Restoring existing choices synced');
+        if (account) await eventually(() => transport.snapshot().state.homeVisionCards?.fisico === true && transport.snapshot().state.homeVisionCards?.intelectual === 'stock', 'Restoring existing choices synced');
         await assertPreserved(page,state,account);
         result = { electricModes:12, oldBooleanPreserved:true, selectableSources:3, persistence:account?'account':'guest', noCanvas:true, strictReducedMotion:true, allModesOpen:true, preserved:true };
       } else if (uploads) {
@@ -1094,8 +1099,8 @@ async function runCase(browser, config, task) {
         const invalid = await choose();
         await invalid.setFiles({name:'invalid.png',mimeType:'image/png',buffer:Buffer.from('invalid')});
         await field.locator('.vision-image-notice:not(:empty)').waitFor();
-        assert.equal(await field.locator('input[value=default]').isChecked(), true);
-        assert.equal(await current.getAttribute('src'), '/mode-photos/financiero.jpg');
+        assert.equal(await field.locator('input[value=electric]').isChecked(), true, 'A failed upload keeps the existing/default symbol selection');
+        assert.equal(await current.getAttribute('src'), '/mode-symbols/financiero.webp');
         const valid = await choose();
         await valid.setFiles({name:'valid.png',mimeType:'image/png',buffer:Buffer.from(PNG.split(',')[1],'base64')});
         await eventually(() => field.locator('input[value=vision]').isChecked(), 'Uploaded photo selects Vision');
@@ -1133,7 +1138,7 @@ async function runCase(browser, config, task) {
         assert.equal(await choice('financiero', 'vision').isEnabled(), true, 'Vision is available even before a photo exists');
         await choice('arquetipico', 'vision').check();
         await eventually(async () => await photo('arquetipico').getAttribute('src') === '/mode-photos/arquetipico.jpg', 'Broken image falls back');
-        await choice('arquetipico', 'default').check();
+        await choice('arquetipico', 'stock').check();
         await choice('fisico', 'vision').check();
         await page.keyboard.press('Escape');
         await modal.waitFor({ state: 'detached' });
@@ -1145,11 +1150,11 @@ async function runCase(browser, config, task) {
         assert.equal(await photo('fisico').getAttribute('src'), PNG, 'Selection survives reload');
         await open();
         assert.equal(await choice('fisico', 'vision').isChecked(), true);
-        await choice('fisico', 'default').check();
+        await choice('fisico', 'stock').check();
         await page.goBack();
         await modal.waitFor({ state: 'detached' });
         assert.equal(await photo('fisico').getAttribute('src'), '/mode-photos/fisico.jpg');
-        if (account) await eventually(() => JSON.stringify(transport.snapshot().state.homeVisionCards) === '{}', 'Restoring stock does not sync');
+        if (account) await eventually(() => transport.snapshot().state.homeVisionCards?.fisico === 'stock', 'Restoring stock does not sync');
         await selectPhysicalMode(page);
         await page.locator('.journey-step-arrow--next').click();
         await page.locator('.journey-level-card--vision').waitFor();
@@ -1442,8 +1447,8 @@ async function runCase(browser, config, task) {
 function selfTest() {
   assert.equal(STOPS.length, 28 + Number(JOURNEY_REACTIONS_ENABLED) + Number(JOURNEY_SUBMISSION_AUDIENCE_ENABLED));
   assert.equal(new Set(STOPS).size, STOPS.length); assert.equal(STOPS.includes('audience'), JOURNEY_SUBMISSION_AUDIENCE_ENABLED);
-  assert.deepEqual(cleanHomeVisionCards({ fisico: true, emocional: false, unknown: true, social: 'true' }), { fisico: true });
-  assert.deepEqual(cleanHomeVisionCards({ fisico: true, social: 'electric', unknown: 'electric' }), { fisico:true, social:'electric' });
+  assert.deepEqual(cleanHomeVisionCards({ fisico: true, emocional: false, unknown: true, social: 'true', ludico:'stock' }), { fisico: true, ludico:'stock' });
+  assert.deepEqual(cleanHomeVisionCards({ fisico: true, social: 'electric', unknown: 'electric', ludico:'stock' }), { fisico:true, social:'electric', ludico:'stock' });
   assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/fisico-electrico.svg');
   assert.equal(homeModePhoto('visionario', PNG, { visionario:'electric' }), '/mode-symbols/fisico.webp');
   assert.equal(homeModePhoto('emocional', PNG, { emocional:'electric' }), '/mode-symbols/emocional-electrico.svg?v=3');
@@ -1453,7 +1458,8 @@ function selfTest() {
   assert.equal(homeModePhoto('ludico', PNG, { ludico:'electric' }), '/mode-symbols/ludico-electrico.svg?v=2');
   assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
   assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '/mode-photos/fisico.jpg');
-  assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-photos/fisico.jpg');
+  assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-symbols/fisico-electrico.svg');
+  assert.equal(homeModePhoto('fisico', PNG, { fisico:'stock' }), '/mode-photos/fisico.jpg');
   assert.equal(options(['--smoke']).languages[0], 'en');
   for (const url of ['https://example.com', 'http://127.0.0.1:4173/?token=x', 'http://user:secret@localhost:4173']) assert.throws(() => options([`--url=${url}`]));
   for (const language of LANGUAGES) {
@@ -1463,6 +1469,7 @@ function selfTest() {
     assert.equal(welcomeMessages[language].messages.length, 7); assert.ok(stateAccountCopy(language).cloudOnly);
     assert.ok(onboardingIntegrationCopy(language).share); for (const stop of STOPS.filter(stop => !stop.startsWith('control'))) assert.ok(guidedTourStepCopy(language, stop).title);
     assert.equal(homeVisionCopy(language).filter(Boolean).length, 6);
+    assert.equal(homeVisionCopy(language)[2], language === 'es' ? 'Galería de Imágenes' : language === 'en' ? 'Stock Images' : homeVisionCopy(language)[2]);
     if (language !== 'es') {
       assert.deepEqual(Object.keys(triviaModeQuestions[language]).sort(), [...MODES].sort());
       assert.equal(new Set(Object.values(triviaModeQuestions[language])).size, MODES.length);
