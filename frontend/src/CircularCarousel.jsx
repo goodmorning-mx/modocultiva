@@ -811,7 +811,7 @@ const CircularCarousel = ({
                     tabIndex={active === index ? 0 : -1}
                     style={{ ...item.style, width: cardW, height: cardH }}
                   >
-                    {item.electric && <ModeElectricSymbol src={item.src} fallbackSrc={item.fallbackSrc} active={active === index && effectsEnabled && !reduced} />}
+                    {item.electric && <ModeElectricSymbol src={item.src} fallbackSrc={item.fallbackSrc} color={item.style['--mode-color']} active={active === index && effectsEnabled && !reduced} />}
                     {item.content}
                   </button>
                 </div>

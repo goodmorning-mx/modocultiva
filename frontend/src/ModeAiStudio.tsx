@@ -11,7 +11,7 @@ function StudioMark({ quiet = false }: { quiet?: boolean }) {
 }
 
 type Props = {
-  language: string; brand: string; title: string; description: string; modeIcon: string;
+  language: string; brand: string; title: string; description: string; modeIcon: ReactNode;
   clarityGoal?: ReactNode;
   level: number; levelLabel: string; stage: string; considerLabel: string; effort: string; effortDescription: string;
   question: string; contextLabel: string; placeholder: string; activityLabel: string; readyLabel: string; waiting: string;

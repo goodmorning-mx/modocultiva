@@ -90,6 +90,7 @@
   cursor: inherit;
 }
 .home-mode-card:focus-visible { outline: 2px solid var(--mode-color); outline-offset: -4px; }
+.mode-orbits-mark { width: 1.14em; height: 1.14em; object-fit: contain; vertical-align: middle; }
 .home-mode-icon {
   position: absolute;
   top: 20px;

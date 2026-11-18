@@ -74,8 +74,8 @@ function SharePreview({ card, platform, onClose }: { card: ActivityShare; platfo
   </dialog>;
 }
 
-type Props = { card: ActivityShare; current: boolean; defined: boolean; reaction?: Reaction; onReact: (reaction: Reaction) => void; flow?: Omit<ActivityJourneyFlowProps, 'sourceLevel' | 'language'>; sharePreviewScope?: string; showSocial?: boolean; showReactions?: boolean; actions?: ReactNode; emptyTitle?: string };
-export function JourneyActivityCard({ card, current, defined, reaction, onReact, flow, sharePreviewScope, showSocial = true, showReactions = true, actions, emptyTitle }: Props) {
+type Props = { card: ActivityShare; modeMark?: ReactNode; current: boolean; defined: boolean; reaction?: Reaction; onReact: (reaction: Reaction) => void; flow?: Omit<ActivityJourneyFlowProps, 'sourceLevel' | 'language'>; sharePreviewScope?: string; showSocial?: boolean; showReactions?: boolean; actions?: ReactNode; emptyTitle?: string };
+export function JourneyActivityCard({ card, modeMark = card.icon, current, defined, reaction, onReact, flow, sharePreviewScope, showSocial = true, showReactions = true, actions, emptyTitle }: Props) {
   const copy = socialCopy(card.language);
   const [defineWithActions, defineToShare] = activityDefinitionCopy(card.language);
   const hasActivity = defined && Boolean(card.activity.trim());
@@ -91,8 +91,8 @@ export function JourneyActivityCard({ card, current, defined, reaction, onReact,
   // A strict public allowlist: flow state/private proof must never reach exporters.
   const publicCard: ActivityShare = { mode: card.mode, level: card.level, levelLabel: card.levelLabel, stage: card.stage, effort: card.effort, activity: card.activity, color: card.color, icon: card.icon, language: card.language };
   return <><article className={`journey-level-card journey-level-card--active journey-social-card${current ? ' journey-level-card--current' : ''}${hasActivity ? '' : ' journey-social-card--empty'}`} style={{ '--mode-color': card.color } as CSSProperties} aria-labelledby={headingId} dir={card.language === 'ar' ? 'rtl' : 'ltr'}>
-    <div className="journey-social-art" aria-hidden="true"><span>{card.icon}</span><svg viewBox="0 0 440 220" fill="none"><path d="M440 12C310 28 346 132 182 220M440 45C323 49 352 145 222 220M440 80C356 83 365 163 267 220M440 116C391 113 392 170 312 220" stroke="currentColor" /></svg></div>
-    <header className="journey-social-heading"><div className="journey-social-mode"><span aria-hidden="true">{card.icon}</span><span>{card.mode}</span></div><div className="journey-social-level"><span>{card.levelLabel}</span><strong>{card.level.toLocaleString(card.language)}</strong></div></header>
+    <div className="journey-social-art" aria-hidden="true"><span>{modeMark}</span><svg viewBox="0 0 440 220" fill="none"><path d="M440 12C310 28 346 132 182 220M440 45C323 49 352 145 222 220M440 80C356 83 365 163 267 220M440 116C391 113 392 170 312 220" stroke="currentColor" /></svg></div>
+    <header className="journey-social-heading"><div className="journey-social-mode"><span aria-hidden="true">{modeMark}</span><span>{card.mode}</span></div><div className="journey-social-level"><span>{card.levelLabel}</span><strong>{card.level.toLocaleString(card.language)}</strong></div></header>
     <div className="journey-social-body"><span className="journey-social-stage">{card.stage}</span><h4 id={headingId} dir="auto" tabIndex={hasActivity && title.length > 100 ? 0 : undefined} className={`journey-social-title${title.length > 100 ? ' journey-social-title--long' : ''}`}>{title}</h4><div className="journey-social-effort"><i aria-hidden="true" />{card.effort}</div></div>
     {flow && card.level < 9 ? <ActivityJourneyFlow {...flow} sourceLevel={card.level} language={card.language} /> : <div className="journey-social-track" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} className={i < card.level ? 'is-filled' : ''} />)}</div>}
     {actions}

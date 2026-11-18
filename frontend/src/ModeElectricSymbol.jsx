@@ -1,12 +1,10 @@
 import './mode-electric-symbol.css';
+import { PremiumModeArtwork } from './PremiumModeArtwork';
 
 // Static artwork plus two small composited sprites: no canvas or per-frame JS.
-export default function ModeElectricSymbol({ src, fallbackSrc, active }) {
+export default function ModeElectricSymbol({ src, fallbackSrc, active, color }) {
   return <span className="mode-electric-symbol" aria-hidden="true">
-    <img src={src} alt="" draggable={false} decoding="async" className="mode-electric-symbol-fallback"
-      onError={({ currentTarget }) => {
-        if (fallbackSrc && currentTarget.getAttribute('src') !== fallbackSrc) currentTarget.src = fallbackSrc;
-      }} />
+    <PremiumModeArtwork src={src} fallbackSrc={fallbackSrc} color={color} className="mode-electric-symbol-fallback" />
     {active && <span className="global-sparks global-sparks--symbol" />}
   </span>;
 }

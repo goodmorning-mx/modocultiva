@@ -23,7 +23,7 @@
 }
 .global-sparks::after { inset: 12% 7%; animation-delay: -2s; animation-direction: alternate-reverse; }
 .global-sparks--symbol {
-  --spark-color: #d4adff;
+  --spark-color: color-mix(in srgb, var(--mode-color) 70%, white);
   inset: 15% 17%;
   border-radius: 50%;
 }

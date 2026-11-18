@@ -10,7 +10,11 @@ export function cleanHomeVisionCards(value: unknown): HomeVisionCards {
 }
 
 export const defaultModePhoto = (mode: string) => `/mode-photos/${mode}.jpg`;
-export const modeSymbol = (mode: string) => `/mode-symbols/${mode}.webp`;
+export function modeSymbol(mode: string) {
+  if (mode === 'emocional') return '/mode-symbols/emocional-orbitas.svg';
+  const artwork = mode === 'fisico' ? 'visionario' : mode === 'visionario' ? 'fisico' : mode;
+  return `/mode-symbols/${artwork}.webp`;
+}
 export function homeImageSource(mode: string, image: string | undefined, preferences: HomeVisionCards): HomeImageSource {
   if (preferences[mode] === 'electric') return 'electric';
   return preferences[mode] === true && hasVisionImage(image) ? 'vision' : 'default';
