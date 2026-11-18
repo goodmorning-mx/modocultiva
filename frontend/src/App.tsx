@@ -31,6 +31,8 @@ import { journeyModeTranslations, triviaModeQuestions } from './modeEditorial';
 import { globalIdeaBio } from './globalIdeaBios';
 import { globalIdeaTitle, type GlobalIdeaMode } from './globalIdeaPractices';
 import { specialistExampleCopy, specialistProfileCopy, type SpecialistProfileId } from './specialistProfilesEditorial';
+import { planAccessCopy, planThemeLabel } from './planAccessCopy';
+import { planDetailsForLocale, planKeys, planName, type PlanKey } from './planTierEditorial';
 import { decideWelcomeIntro, markWelcomeIntroComplete, readWelcomeIntroCompletion, welcomeIntroStorageKey, type WelcomeIntroScope } from './welcomeIntroState';
 import { GuidedTour } from './GuidedTour';
 import { getGuidedTourCopy, guidedTourStepCopy, type TourStageId } from './guidedTourMessages';
@@ -88,10 +90,9 @@ type ActivityEntry = 'custom' | 'pool' | 'ai';
 type TourTopic = TourStageId | 'controlStrongest' | 'controlLeast' | 'controlFocus' | 'controlTrivia';
 const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'] satisfies TourTopic[])
   .filter(topic => (JOURNEY_REACTIONS_ENABLED || topic !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || topic !== 'audience'));
-type AccessRequest = { feature: string; plan: 'Cuenta' | 'Entry' | 'Gold' | 'Ultimate Mode'; returnView: View };
+type AccessFeature = 'activityPool' | 'modeAI' | { theme: Skin };
+type AccessRequest = { feature: AccessFeature; plan: PlanKey; returnView: View };
 type PendingActivity = { level: number; entry: ActivityEntry };
-type PlanKey = 'basic' | 'gold' | 'ultimate';
-type PlanDetails = { name: string; price: string; promise: string; features: string[] };
 type CultTab = 'home' | 'insights' | 'network' | 'skins' | 'badges';
 type CultBadge = { key: string; icon: string; title: string; description: string };
 
@@ -158,11 +159,6 @@ const defaultLevels = Object.fromEntries(modes.map((mode) => [mode.key, 0]));
 const levelDescriptions = clarityLevels.languages.es.map(item => item.description);
 const defaultUserProfile = { name: 'Jofer' };
 const ownerEmail = 'ferrussia.joe@gmail.com';
-const planDetails: Record<PlanKey, PlanDetails> = {
-  basic: { name: 'Entry', price: '$179 MXN /mes · IVA incluido', promise: 'Convierte a Modo Cultiva en parte de tu rutina.', features: ['Todo lo incluido en Acceso Libre.', 'Skin Holista.', 'Journeys ilimitados.', 'Pool completo con 10 recomendaciones por nivel.', 'Vision boards en nivel 9.', 'Configuraciones de Vida ilimitadas.', 'Modo IA limitado: hasta 20 consultas mensuales.', 'Personalización de nombre y foto de perfil.', 'Historial personal de evolución.', 'Estadísticas básicas por modo.', 'Exportación de progreso.', 'Insignia Entry.'] },
-  gold: { name: 'Gold', price: '$349 MXN /mes · IVA incluido', promise: 'Cultiva acompañado por tu red de apoyo.', features: ['Todo lo incluido en Entry.', 'Una skin adicional de tu elección.', 'Insights locales dentro de tu red de apoyo.', 'Solicitudes y respuestas de Insights con mayor frecuencia.', 'Grupos privados o círculos de confianza.', 'Comparación de progreso con tu círculo.', 'Modo IA ampliado: hasta 100 consultas mensuales.', 'Configuraciones de Vida compartibles.', 'Recomendaciones comunitarias.', 'Insignia Gold.'] },
-  ultimate: { name: 'ULTIMATE MODE', price: '$1,199 MXN /mes · IVA incluido', promise: 'Lleva tu cultivo a una red global de conocimiento.', features: ['Todo lo incluido en Gold.', 'Skins y Filtros ilimitados.', 'Insights ilimitados.', 'Insights globales.', 'Modo IA sin límite razonable o con política de uso justo.', 'Red de Especialistas.', 'Directorio de profesionales por modo.', 'Filtros por especialidad, nivel, idioma y ubicación.', 'Perfiles profesionales verificados.', 'Solicitud de orientación privada.', 'Seguimiento de recomendaciones profesionales.', 'Insignia ULTIMATE MODE.', 'Acceso anticipado a nuevas skins y features.'] },
-};
 // Release switch: keep plan data and UI implementation intact while access is temporarily free.
 const RELEASE_FREE_ACCESS = true;
 const effortByLevel = ['Bajo', 'Bajo', 'Bajo', 'Medio', 'Medio', 'Medio', 'Alto', 'Alto', 'Alto', 'Visión final'];
@@ -180,7 +176,6 @@ const localizedEffortDescriptions: Record<Language, Record<string, string>> = {
   fr: { low: 'Cette étape demande surtout du temps : observer, comprendre et créer un espace régulier pour le mode.', medium: 'Cette étape demande du temps et de l’énergie : maintenir une pratique active, décider et assurer la continuité.', high: 'Cette étape demande du temps, de l’énergie et de l’argent : allouer des ressources, élargir les capacités et soutenir une organisation plus complexe.', vision: 'Cette étape intègre les ressources développées pour consolider une vision complète.' },
   da: { low: 'Dette trin kræver primært tid: at observere, forstå og skabe vedvarende plads til tilstanden.', medium: 'Dette trin kræver tid og energi: at fastholde en aktiv praksis, træffe beslutninger og bevare kontinuiteten.', high: 'Dette trin kræver tid, energi og penge: at fordele ressourcer, udvide evner og opretholde en mere kompleks drift.', vision: 'Dette trin samler de udviklede ressourcer til en samlet vision.' },
 };
-const activityEntryLabel: Record<ActivityEntry, string> = { custom: 'Agregar actividad', pool: 'Pool de actividades', ai: 'Modo IA' };
 const insightAuthors = [
   ['Sofía Méndez', 'Ciudad de Guatemala', 'América Central', 'Español'],
   ['Marcus Lee', 'Austin · Remote', 'América del Norte', 'English'],
@@ -919,8 +914,8 @@ function App() {
     }
   });
   const [pendingAccess, setPendingAccess] = useState<AccessRequest | null>(null);
+  const planCopy = planAccessCopy(language);
   const [pendingActivity, setPendingActivity] = useState<PendingActivity | null>(null);
-  const [insightPreview, setInsightPreview] = useState<{ modeKey: string; level: number } | null>(null);
   const [cultInsightPreview, setCultInsightPreview] = useState<GlobalInsight | null>(null);
   const [specialistPreview, setSpecialistPreview] = useState<Specialist | null>(null);
   const specialistCopy = (specialist: Specialist) => specialist.copyId
@@ -935,6 +930,7 @@ function App() {
   const configurationsDialogRef = useRef<HTMLDialogElement | null>(null);
   const configurationsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
+  const selectedPlanDetails = selectedPlan ? planDetailsForLocale(language, selectedPlan) : null;
   const [cultTab, setCultTab] = useState<CultTab>('insights');
   const [insightSlide, setInsightSlide] = useState(0);
   const [insightCycle, setInsightCycle] = useState(0);
@@ -1607,7 +1603,7 @@ function App() {
     };
   }, [configurationsOpen, language]);
 
-  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, cultOpen, cultTab, profileMenuOpen, configurationsOpen, homeVisionSettingsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, insightPreview, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
+  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, cultOpen, cultTab, profileMenuOpen, configurationsOpen, homeVisionSettingsOpen, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
   const navigationSnapshotKey = JSON.stringify(navigationSnapshot);
   const navigationSnapshotRef = useRef(navigationSnapshot);
   navigationSnapshotRef.current = navigationSnapshot;
@@ -1619,7 +1615,7 @@ function App() {
     setConfigurationsOpen(snapshot.configurationsOpen); setRenamingPreset(snapshot.renamingPreset);
     setHomeVisionSettingsOpen(snapshot.homeVisionSettingsOpen);
     setCustomizingAvatar(snapshot.customizingAvatar); setProfilePreviewMode(snapshot.profilePreviewMode);
-    setSelectedPlan(snapshot.selectedPlan); setInsightPreview(snapshot.insightPreview);
+    setSelectedPlan(snapshot.selectedPlan);
     setCultInsightPreview(snapshot.cultInsightPreview); setSpecialistPreview(snapshot.specialistPreview);
     setCommunityOpen(snapshot.communityOpen); setCommunityTab(snapshot.communityTab);
     setPublicCardId(snapshot.publicCardId);
@@ -1668,7 +1664,7 @@ function App() {
       onEnter: ({ signal }) => {
         if (signal.aborted) return;
         setCommunityOpen(false); setConfigurationsOpen(false); setHomeVisionSettingsOpen(false); setProfilePreviewMode(false); setCustomizingAvatar(false);
-        setCultInsightPreview(null); setSpecialistPreview(null); setInsightPreview(null); setSelectedPlan(null); setProfileMenuOpen(false);
+        setCultInsightPreview(null); setSpecialistPreview(null); setSelectedPlan(null); setProfileMenuOpen(false);
         setActiveActivity(null); setSelectedMode(null); setCultOpen(false); setView('welcome');
         setHomeSidebarOpen(tourTopic === 'replay');
         if (tourTopic === 'modes' || tourTopic === 'replay') return;
@@ -1741,7 +1737,7 @@ function App() {
       return base + Number(Boolean(snapshot.selectedMode)) + Number(snapshot.activeActivity !== null) + Number(snapshot.cultOpen)
         + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.homeVisionSettingsOpen) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
         + Number(snapshot.customizingAvatar) + Number(snapshot.profilePreviewMode) + Number(Boolean(snapshot.selectedPlan))
-        + Number(Boolean(snapshot.insightPreview)) + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview)) + Number(snapshot.communityOpen) + Number(Boolean(snapshot.publicCardId));
+        + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview)) + Number(snapshot.communityOpen) + Number(Boolean(snapshot.publicCardId));
     }, (snapshot) => restoreNavigationRef.current(snapshot), (left, right) => {
       // Ignore details belonging to hidden layers when matching an old parent.
       const location = (snapshot: typeof navigationSnapshot) => [
@@ -1749,7 +1745,7 @@ function App() {
         snapshot.selectedMode || snapshot.view === 'cult' ? [snapshot.cultOpen, snapshot.cultTab] : null,
         snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.homeVisionSettingsOpen, snapshot.configurationsOpen && snapshot.renamingPreset,
         snapshot.customizingAvatar, snapshot.profilePreviewMode, snapshot.selectedPlan,
-        snapshot.insightPreview, snapshot.cultInsightPreview, snapshot.specialistPreview, snapshot.communityOpen, snapshot.communityTab, snapshot.publicCardId,
+        snapshot.cultInsightPreview, snapshot.specialistPreview, snapshot.communityOpen, snapshot.communityTab, snapshot.publicCardId,
       ];
       return JSON.stringify(location(left)) === JSON.stringify(location(right));
     });
@@ -1851,14 +1847,14 @@ function App() {
     });
   };
 
-  const requestAccess = (feature: string, plan: AccessRequest['plan'] = 'Cuenta') => {
+  const requestAccess = (feature: AccessFeature, plan: PlanKey) => {
     setPendingAccess({ feature, plan, returnView: view });
     setProfileMenuOpen(false);
     setView('plans');
   };
 
-  const openPlan = (plan: PlanKey, feature: string) => {
-    setPendingAccess({ feature, plan: plan === 'basic' ? 'Entry' : plan === 'gold' ? 'Gold' : 'Ultimate Mode', returnView: view });
+  const openPlan = (plan: PlanKey, feature: AccessFeature) => {
+    setPendingAccess({ feature, plan, returnView: view });
     setSelectedPlan(plan);
     setProfileMenuOpen(false);
     setView('plans');
@@ -1867,11 +1863,11 @@ function App() {
   const changeSkin = (nextSkin: Skin) => {
     if (nextSkin !== 'holista') return;
     if (!RELEASE_FREE_ACCESS && nextSkin !== 'holista' && !isAuthenticated && view !== 'login') {
-      requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, nextSkin === 'dj' || skinInfo(nextSkin)?.access === 'gold' ? 'Gold' : 'Ultimate Mode');
+      requestAccess({ theme: nextSkin }, nextSkin === 'dj' || skinInfo(nextSkin)?.access === 'gold' ? 'gold' : 'ultimate');
       return;
     }
-    if (!RELEASE_FREE_ACCESS && nextSkin !== 'holista' && isAuthenticated && activePlan === 'basic') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Gold'); return; }
-    if (!RELEASE_FREE_ACCESS && nextSkin !== 'holista' && isAuthenticated && activePlan === 'gold' && nextSkin !== 'dj') { requestAccess(`la skin ${skinInfo(nextSkin)?.name ?? nextSkin}`, 'Ultimate Mode'); return; }
+    if (!RELEASE_FREE_ACCESS && nextSkin !== 'holista' && isAuthenticated && activePlan === 'basic') { requestAccess({ theme: nextSkin }, 'gold'); return; }
+    if (!RELEASE_FREE_ACCESS && nextSkin !== 'holista' && isAuthenticated && activePlan === 'gold' && nextSkin !== 'dj') { requestAccess({ theme: nextSkin }, 'ultimate'); return; }
     if (view === 'login') loginSkinChoice.current = nextSkin;
     setSkin(nextSkin);
     try {
@@ -1955,7 +1951,7 @@ function App() {
   const usePoolActivity = () => {
     if (!selectedMode || activeActivity === null) return;
     if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
-      openPlan('basic', 'Pool de Actividades');
+      openPlan('basic', 'activityPool');
       return;
     }
     const activity = poolActivities(selectedMode.key, activeActivity)[poolSelection];
@@ -1965,7 +1961,7 @@ function App() {
   const consultModeAi = async () => {
     if (aiRequestRef.current || aiLoading) return;
     if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
-      openPlan('gold', 'Modo IA');
+      openPlan('gold', 'modeAI');
       return;
     }
     if (!activityPrompt.trim()) {
@@ -2019,7 +2015,7 @@ function App() {
   const saveModeAiActivity = () => {
     if (!selectedMode || activeActivity === null) return;
     if (!RELEASE_FREE_ACCESS && !isAuthenticated) {
-      openPlan('gold', 'Modo IA');
+      openPlan('gold', 'modeAI');
       return;
     }
     if (aiLoading || !aiHasConsulted || !aiProposal) {
@@ -2437,9 +2433,12 @@ function App() {
         <section className="login-view" data-layer="inicio" aria-labelledby="login-title">
           <div className="login-card">
             <div className="login-brand"><img src={logo} alt="Modo Cultiva" /><span>Modo Cultiva</span></div>
-            <p className="kicker">{pendingAccess ? 'Acceso contextual' : loginIntro}</p>
-            <h1 id="login-title">{pendingAccess ? 'Desbloquea esta función.' : tr('welcome')}</h1>
-            <p className="login-copy">{pendingAccess ? `${pendingAccess.feature} forma parte del plan ${pendingAccess.plan}. Crea tu cuenta o inicia sesión para continuar.` : loginPrompt}</p>
+            <p className="kicker">{pendingAccess ? planCopy.contextualEyebrow : loginIntro}</p>
+            <h1 id="login-title">{pendingAccess ? planCopy.contextualTitle : tr('welcome')}</h1>
+            <p className="login-copy">{pendingAccess ? planCopy.contextualDescription(
+              typeof pendingAccess.feature === 'string' ? tr(pendingAccess.feature) : planThemeLabel(language, skinInfo(pendingAccess.feature.theme)?.name ?? pendingAccess.feature.theme),
+              planName(pendingAccess.plan),
+            ) : loginPrompt}</p>
             <form className="login-form" onSubmit={(event) => { event.preventDefault(); void submitAuthentication(); }}>
               {registering && <label htmlFor="login-name">{tr('name')}<input id="login-name" autoComplete="name" value={loginName} onChange={(event) => setLoginName(event.target.value)} placeholder={tr('name')} required /></label>}
               <label htmlFor="login-username">{tr('email')}<input id="login-username" type="email" autoComplete="email" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} placeholder={emailExample} required /></label>
@@ -2448,14 +2447,14 @@ function App() {
               <button className="login-submit" type="submit">{registering ? tr('createAccount') : tr('login')} <span>↗</span></button>
             </form>
             <button className="login-back-link" type="button" onClick={() => { setRegistering((current) => !current); setAuthError(null); }}>{registering ? alreadyRegistered : newAccount}</button>
-            {pendingAccess && <button className="login-back-link" type="button" onClick={() => { setPendingAccess(null); setPendingActivity(null); setInsightPreview(null); setView('welcome'); }}><span>←</span> Continuar como invitado</button>}
+            {pendingAccess && <button className="login-back-link" type="button" onClick={() => { setPendingAccess(null); setPendingActivity(null); setActiveActivity(null); setSelectedMode(null); setView('welcome'); }}><span aria-hidden="true">{language === 'ar' ? '→' : '←'}</span> {planCopy.continueGuest}</button>}
           </div>
         </section>
       ) : view === 'plans' ? (
         <section className="plans-view" data-layer="plans" aria-labelledby="plans-title">
-          <div className="plans-header"><p className="kicker">Tu siguiente nivel comienza aquí</p><h1 id="plans-title">Haz de tu crecimiento una forma de vida.</h1><p>Elige el ritmo, la profundidad y la comunidad que quieres llevar contigo en Modo Cultiva.</p></div>
-          <div className="plans-grid" aria-label="Modos Premium de Modo Cultiva">{(Object.keys(planDetails) as PlanKey[]).map((plan) => <button className={plan === 'gold' ? 'plan-card plan-card--featured' : 'plan-card'} type="button" key={plan} onClick={() => { setActivePlan(plan); personalStorageRef.current.setItem('modoCultiva_plan', plan); setSelectedPlan(plan); }}><span className="plan-card-name">{planDetails[plan].name}</span><strong>{planDetails[plan].price}</strong><p>{planDetails[plan].promise}</p><span className="plan-card-link">Ver beneficios completos ↗</span></button>)}</div>
-          <button className="plans-signup" type="button" onClick={() => { setPendingAccess(null); setSelectedPlan(null); setView('login'); }}>Crea tu cuenta <span>→</span></button>
+          <div className="plans-header"><p className="kicker">{planCopy.plansEyebrow}</p><h1 id="plans-title">{planCopy.plansTitle}</h1><p>{planCopy.plansDescription}</p></div>
+          <div className="plans-grid" aria-label={tr('premium')}>{planKeys.map((plan) => { const details = planDetailsForLocale(language, plan); return <button className={plan === 'gold' ? 'plan-card plan-card--featured' : 'plan-card'} type="button" key={plan} onClick={() => { setActivePlan(plan); personalStorageRef.current.setItem('modoCultiva_plan', plan); setSelectedPlan(plan); }}><span className="plan-card-name"><bdi>{details.name}</bdi></span><strong><bdi>{details.price}</bdi></strong><p>{details.promise}</p><span className="plan-card-link">{planCopy.seeFullBenefits} <span aria-hidden="true">↗</span></span></button>; })}</div>
+          <button className="plans-signup" type="button" onClick={() => { setSelectedPlan(null); setRegistering(true); setView('login'); }}>{tr('createAccount')} <span aria-hidden="true">{language === 'ar' ? '←' : '→'}</span></button>
         </section>
       ) : view === 'lab' ? (
         <section className="modo-lab-view" data-layer="modo-lab" aria-labelledby="modo-lab-title">
@@ -2663,9 +2662,8 @@ function App() {
         {presetNotice && <p className="configuration-notice" role="status">{presetNotice}</p>}
       </dialog>}
 
-      {selectedPlan && <div className="feature-preview-backdrop" role="presentation" onClick={() => setSelectedPlan(null)}><section className="plan-detail-modal" role="dialog" aria-modal="true" aria-labelledby="plan-detail-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setSelectedPlan(null)} aria-label="Cerrar detalles del plan">×</button><p className="kicker">Detalles del plan</p><h2 id="plan-detail-title">{planDetails[selectedPlan].name}</h2><strong className="plan-detail-price">{planDetails[selectedPlan].price}</strong><p className="plan-detail-promise">{planDetails[selectedPlan].promise}</p><ul className="plan-detail-list">{planDetails[selectedPlan].features.map((feature) => <li key={feature}>{feature}</li>)}</ul>{selectedPlan === 'ultimate' && <button className="feature-preview-cta cult-entry-cta" type="button" onClick={() => { setSelectedPlan(null); setPendingAccess(null); setCultTab('insights'); setSelectedMode(modes[0]); setCultOpen(true); setView('dashboard'); }}>{tr('globalName')} <span>✦</span></button>}<button className="feature-preview-dismiss" type="button" onClick={() => setSelectedPlan(null)}>Volver a Modos Premium</button></section></div>}
+      {selectedPlan && selectedPlanDetails && <div className="feature-preview-backdrop" role="presentation" onClick={() => setSelectedPlan(null)}><section className="plan-detail-modal" role="dialog" aria-modal="true" aria-labelledby="plan-detail-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setSelectedPlan(null)} aria-label={tr('close')} autoFocus>×</button><p className="kicker">{planCopy.planDetails}</p><h2 id="plan-detail-title"><bdi>{selectedPlanDetails.name}</bdi></h2><strong className="plan-detail-price"><bdi>{selectedPlanDetails.price}</bdi></strong><p className="plan-detail-promise">{selectedPlanDetails.promise}</p><ul className="plan-detail-list">{selectedPlanDetails.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>{selectedPlan === 'ultimate' && <button className="feature-preview-cta cult-entry-cta" type="button" onClick={() => { setSelectedPlan(null); setPendingAccess(null); setCultTab('insights'); setSelectedMode(modes[0]); setCultOpen(true); setView('dashboard'); }}>{tr('globalName')} <span>✦</span></button>}<button className="feature-preview-dismiss" type="button" onClick={() => setSelectedPlan(null)}>{planCopy.backToPlans}</button></section></div>}
 
-      {insightPreview && <div className="feature-preview-backdrop" role="presentation" onClick={() => setInsightPreview(null)}><section className="feature-preview" role="dialog" aria-modal="true" aria-labelledby="insight-preview-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setInsightPreview(null)} aria-label="Cerrar vista previa">×</button><p className="kicker">Vista previa · Layer de Insights</p><h2 id="insight-preview-title">Pedir Insights</h2><p className="journey-description">Comparte una duda con personas que ya recorrieron este nivel y recibe una estrategia desde la experiencia de la comunidad.</p><div className="insight-preview-card"><span>INSIGHT DE NIVEL {insightPreview.level}</span><strong>{modes.find((mode) => mode.key === insightPreview.modeKey)?.name}</strong><p>“¿Qué práctica te ayudó a avanzar de este nivel al siguiente?”</p><small>La solicitud se habilita al crear una cuenta Gold.</small></div><button className="feature-preview-cta" type="button" onClick={() => { setInsightPreview(null); openPlan('gold', 'Insights locales'); }}>Ver acceso Gold <span>→</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setInsightPreview(null)}>Seguir explorando como invitado</button></section></div>}
 
       {cultInsightPreview && <div className="feature-preview-backdrop global-idea-detail-backdrop" role="presentation" onClick={() => setCultInsightPreview(null)}><section className="feature-preview cult-insight-modal" style={{ '--insight-color': modes.find((mode) => mode.key === cultInsightPreview.modeKey)?.color ?? '#70ed9c' } as CSSProperties} role="dialog" aria-modal="true" aria-labelledby="cult-insight-modal-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setCultInsightPreview(null)} aria-label={tr('close')} autoFocus>×</button><p className="demo-profile-notice">{onboardingIntegrationCopy(language).demoDetail}</p><h2 id="cult-insight-modal-title">{insightActivity(cultInsightPreview)}</h2><div className="insight-modal-meta"><span>{tr('level')} {formatJourneyLevel(cultInsightPreview.level)} {language === 'ar' ? '←' : '→'} {formatJourneyLevel(cultInsightPreview.level + 1)}</span><span>{effortLabel(cultInsightPreview.level)}</span></div><div className="insight-preset-card"><span>{tr('presetOf')} <bdi>{cultInsightPreview.author.toUpperCase()}</bdi></span><strong><bdi>{cultInsightPreview.author}</bdi> · {tr('presenceRoute')}</strong><p>{tr('insightPresetDescription')}</p><blockquote className="insight-author-bio">“{globalIdeaBio(language, cultInsightPreview.author)}”</blockquote><div className="insight-profile-badges"><span>{tr('featuredBadges')}</span><div>{cultInsightPreview.badges.map((key) => { const badge = cultBadgeCatalog.find((item) => item.key === key); return badge ? <b key={key} title={badgeTitle(key)}>{badge.icon} {badgeTitle(key)}</b> : null; })}</div></div><div className="insight-preset-levels">{modes.map((mode) => <span key={mode.key}>{modeShortName(mode)} <b>{formatJourneyLevel(cultInsightPreview.preset[mode.key])}</b></span>)}</div></div><button className="feature-preview-cta" type="button" onClick={saveGlobalInsightActivity}>{tr('useInMap')} <span>＋</span></button><button className="feature-preview-dismiss" type="button" onClick={() => setCultInsightPreview(null)}>{tr('exploreInsights')}</button></section></div>}
 
@@ -2695,7 +2693,7 @@ function App() {
         <button className="customizer-done" type="button" onClick={() => setCustomizingAvatar(false)}>{tr('customizerDone')} <span>→</span></button>
       </section></div>}
 
-      {selectedMode && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className={`journey-panel${activeActivity !== null && activityEntry === 'ai' ? ' journey-panel--mode-ai' : ''}`} data-layer={activeActivity !== null ? '5' : '3'} role="dialog" aria-modal="true" aria-labelledby={activeActivity === null ? 'journey-title' : 'activity-agent-title'} style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
+      {selectedMode && view !== 'plans' && view !== 'login' && <div className="journey-backdrop" role="presentation" onClick={() => setSelectedMode(null)}><section ref={journeyPanelRef} className={`journey-panel${activeActivity !== null && activityEntry === 'ai' ? ' journey-panel--mode-ai' : ''}`} data-layer={activeActivity !== null ? '5' : '3'} role="dialog" aria-modal="true" aria-labelledby={activeActivity === null ? 'journey-title' : 'activity-agent-title'} style={{ '--mode-color': selectedMode.color, '--mode-accent': selectedMode.accent } as CSSProperties} onClick={(event) => event.stopPropagation()}>
         <button className="close-journey" type="button" onClick={() => setSelectedMode(null)} aria-label={tr('journeyClose')}>×</button>
         {activeActivity === null && <button className="journey-back" type="button" onClick={returnHomeFromJourney}>← {tr('returnHome')}</button>}
         {activeActivity === null && <h2 id="journey-title" className="sr-only">{modeName(selectedMode)}</h2>}

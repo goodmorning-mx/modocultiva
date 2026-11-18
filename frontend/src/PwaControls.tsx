@@ -21,7 +21,7 @@ const copy: Record<PwaLanguage, PwaCopy> = {
   es: { install: 'Instalar Modo Cultiva', howToInstall: 'Cómo instalar', update: 'Nueva versión · Actualizar', updating: 'Actualizando…', close: 'Cerrar', installTitle: 'Instalar Modo Cultiva', iosStepOne: 'Abre esta página en Safari.', iosStepTwo: 'Presiona Compartir.', iosStepThree: 'Selecciona “Añadir a pantalla de inicio”.', browserStepOne: 'Abre el menú de tu navegador.', browserStepTwo: 'Selecciona “Instalar aplicación” o “Agregar a pantalla de inicio”.' },
   en: { install: 'Install Modo Cultiva', howToInstall: 'How to install', update: 'New version · Update', updating: 'Updating…', close: 'Close', installTitle: 'Install Modo Cultiva', iosStepOne: 'Open this page in Safari.', iosStepTwo: 'Tap Share.', iosStepThree: 'Select “Add to Home Screen”.', browserStepOne: 'Open your browser menu.', browserStepTwo: 'Select “Install app” or “Add to home screen”.' },
   zh: { install: '安装 Modo Cultiva', howToInstall: '安装说明', update: '新版本 · 更新', updating: '正在更新…', close: '关闭', installTitle: '安装 Modo Cultiva', iosStepOne: '在 Safari 中打开此页面。', iosStepTwo: '点击分享。', iosStepThree: '选择“添加到主屏幕”。', browserStepOne: '打开浏览器菜单。', browserStepTwo: '选择“安装应用”或“添加到主屏幕”。' },
-  hi: { install: 'Modo Cultiva इंस्टॉल करें', howToInstall: 'इंस्टॉल करने का तरीका', update: 'नया संस्करण · अपडेट करें', updating: 'अपडेट हो रहा है…', close: 'बंद करें', installTitle: 'Modo Cultiva इंस्टॉल करें', iosStepOne: 'यह पेज Safari में खोलें।', iosStepTwo: 'Share दबाएं।', iosStepThree: '“Add to Home Screen” चुनें।', browserStepOne: 'अपने ब्राउज़र का मेनू खोलें।', browserStepTwo: '“Install app” या “Add to home screen” चुनें।' },
+  hi: { install: 'Modo Cultiva इंस्टॉल करें', howToInstall: 'इंस्टॉल करने का तरीका', update: 'नया संस्करण · अपडेट करें', updating: 'अपडेट हो रहा है…', close: 'बंद करें', installTitle: 'Modo Cultiva इंस्टॉल करें', iosStepOne: 'यह पेज Safari में खोलें।', iosStepTwo: '“शेयर करें” पर टैप करें।', iosStepThree: '“होम स्क्रीन पर जोड़ें” चुनें।', browserStepOne: 'अपने ब्राउज़र का मेनू खोलें।', browserStepTwo: '“ऐप इंस्टॉल करें” या “होम स्क्रीन पर जोड़ें” चुनें।' },
   ar: { install: 'تثبيت Modo Cultiva', howToInstall: 'طريقة التثبيت', update: 'إصدار جديد · تحديث', updating: 'جارٍ التحديث…', close: 'إغلاق', installTitle: 'تثبيت Modo Cultiva', iosStepOne: 'افتح هذه الصفحة في Safari.', iosStepTwo: 'اضغط على المشاركة.', iosStepThree: 'اختر «إضافة إلى الشاشة الرئيسية».', browserStepOne: 'افتح قائمة المتصفح.', browserStepTwo: 'اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».' },
   it: { install: 'Installa Modo Cultiva', howToInstall: 'Come installare', update: 'Nuova versione · Aggiorna', updating: 'Aggiornamento…', close: 'Chiudi', installTitle: 'Installa Modo Cultiva', iosStepOne: 'Apri questa pagina in Safari.', iosStepTwo: 'Tocca Condividi.', iosStepThree: 'Seleziona “Aggiungi alla schermata Home”.', browserStepOne: 'Apri il menu del browser.', browserStepTwo: 'Seleziona “Installa app” o “Aggiungi alla schermata Home”.' },
   pt: { install: 'Instalar Modo Cultiva', howToInstall: 'Como instalar', update: 'Nova versão · Atualizar', updating: 'Atualizando…', close: 'Fechar', installTitle: 'Instalar Modo Cultiva', iosStepOne: 'Abra esta página no Safari.', iosStepTwo: 'Toque em Compartilhar.', iosStepThree: 'Selecione “Adicionar à Tela de Início”.', browserStepOne: 'Abra o menu do navegador.', browserStepTwo: 'Selecione “Instalar aplicativo” ou “Adicionar à tela inicial”.' },
@@ -32,6 +32,12 @@ const copy: Record<PwaLanguage, PwaCopy> = {
 };
 
 const isIos = () => typeof navigator !== 'undefined' && (/iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+const appControlsLabel = {
+  es: 'Instalación y actualizaciones', en: 'Installation and updates', zh: '安装与更新',
+  hi: 'इंस्टॉल और अपडेट', ar: 'التثبيت والتحديثات', it: 'Installazione e aggiornamenti',
+  pt: 'Instalação e atualizações', ru: 'Установка и обновления', de: 'Installation und Updates',
+  fr: 'Installation et mises à jour', da: 'Installation og opdateringer',
+} satisfies Record<PwaLanguage, string>;
 const isNativeApp = () => typeof navigator !== 'undefined' && /ModoCultivaAndroidApp/i.test(navigator.userAgent);
 
 type BeforeInstallPromptEvent = Event & {
@@ -99,13 +105,13 @@ export function PwaControls({ language }: { language: string }) {
   const update = usePwaUpdate({ serviceWorkerUrl: '/sw.js', version: '2026-10-18-pwa', updateIntervalMs: 15 * 60 * 1000 });
 
   return <>
-    <div className="pwa-controls" aria-label="PWA controls">
+    <div className="pwa-controls" role="group" aria-label={appControlsLabel[selectedLanguage]}>
       {!isApp && !install.installed && <button className="pwa-action pwa-action--install" type="button" title={labels.install} onClick={() => void install.install()}><svg className="pwa-install-icon" viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><path d="M10 3v9m-3-3 3 3 3-3M4 13v3a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg><span className="pwa-install-label">{labels.install}</span></button>}
       {update.updateReady && <button className="pwa-action pwa-action--update" type="button" onClick={() => void update.update()} disabled={update.updating}>{update.updating ? labels.updating : labels.update}</button>}
     </div>
     {install.guideOpen && <div className="pwa-guide-backdrop" role="presentation" onClick={install.closeGuide}><section className="pwa-guide" role="dialog" aria-modal="true" aria-labelledby="pwa-guide-title" onClick={(event) => event.stopPropagation()}>
       <button className="pwa-guide-close" type="button" aria-label={labels.close} onClick={install.closeGuide}>×</button>
-      <p className="kicker">PWA</p><h2 id="pwa-guide-title">{labels.installTitle}</h2>
+      <p className="kicker">{labels.howToInstall}</p><h2 id="pwa-guide-title">{labels.installTitle}</h2>
       <ol>{isIos() ? <><li>{labels.iosStepOne}</li><li>{labels.iosStepTwo}</li><li>{labels.iosStepThree}</li></> : <><li>{labels.browserStepOne}</li><li>{labels.browserStepTwo}</li></>}</ol>
     </section></div>}
   </>;

@@ -49,20 +49,24 @@ guardan ya traducidos.
   trayectorias, mensajes y títulos de configuraciones. Los nombres propios
   y los nombres nativos de los idiomas permanecen estables, igual que el
   perfil abierto y los filtros al cambiar el idioma de interfaz.
+- Los tres planes, sus 35 beneficios, precios en MXN y el acceso contextual
+  siguen el idioma activo. Los planes siguen ocultos por la política de
+  acceso gratuito. Un servidor de prueba en loopback comprueba el recorrido
+  restringido sin modificar esa política ni exponerlo en DEV. La guía de
+  instalación y los controles de actualización tienen etiquetas traducidas.
 
 ## Pendientes para cerrar el objetivo
 
 | Superficie | Evidencia y siguiente verificación |
 | --- | --- |
-| Planes y accesos especiales | La rama desactivada por la configuración de acceso gratuito aún contiene copy literal. Auditar también errores, accesibilidad y variantes de conexión. |
-| Interfaces restantes | Revisar pantallas y diálogos visibles de Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, instalación, evidencias y notificaciones; comprobar texto visible y accesible, no solo claves. |
+| Interfaces restantes | Revisar pantallas y diálogos visibles de Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, evidencias y notificaciones; comprobar texto visible y accesible, no solo claves. |
 | Persistencia entre sesiones | Ejecutar matriz de idiomas en bienvenida y navegación, recarga, navegador distinto y cambio de cuenta. Comprobar que la preferencia de una cuenta no contamine a otra ni al invitado. |
 
 ## Cómo se mide el avance
 
 El porcentaje indica cuántos de los diez bloques de auditoría están
 verificados y publicados en DEV; no se pondera por horas, número de textos
-ni avance parcial. Estado después de publicar Modo Global (50 %):
+ni avance parcial. Estado después de publicar la Red de Especialistas (60 %):
 
 | Bloque | Estado |
 | --- | --- |
@@ -72,7 +76,7 @@ ni avance parcial. Estado después de publicar Modo Global (50 %):
 | Journey y Trivia | Verificado |
 | Actividades Recomendadas y Modo IA | Verificado |
 | Modo Global | Verificado |
-| Red de Especialistas | Pendiente |
+| Red de Especialistas | Verificado |
 | Planes, accesos especiales e instalación | Pendiente |
 | Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, evidencias y notificaciones | Pendiente |
 | Aislamiento de preferencias entre invitado, cuentas y navegadores | Pendiente de verificación completa |
