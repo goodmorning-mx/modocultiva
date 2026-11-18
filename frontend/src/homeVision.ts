@@ -12,6 +12,9 @@ export function cleanHomeVisionCards(value: unknown): HomeVisionCards {
 export const defaultModePhoto = (mode: string) => `/mode-photos/${mode}.jpg`;
 export const EMOTIONAL_ELECTRIC_ART = '/mode-symbols/emocional-electrico.svg?v=3';
 export function customModeSymbol(mode: string) {
+  if (mode === 'fisico') return '/mode-symbols/fisico-caduceo.svg';
+  if (mode === 'espiritual') return '/mode-symbols/espiritual-sol.svg';
+  if (mode === 'familiar') return '/mode-symbols/familiar-casa.svg';
   if (mode === 'emocional') return '/mode-symbols/emocional-caritas.svg';
   if (mode === 'intelectual') return '/mode-symbols/intelectual-cerebro.svg';
   if (mode === 'profesional') return '/mode-symbols/profesional-portafolio.svg';
@@ -19,13 +22,14 @@ export function customModeSymbol(mode: string) {
 }
 
 export function modeSymbol(mode: string) {
+  if (mode === 'fisico') return '/mode-symbols/fisico-electrico.svg';
   if (mode === 'ludico') return '/mode-symbols/ludico-electrico.svg?v=2';
   if (mode === 'emocional') return EMOTIONAL_ELECTRIC_ART;
   if (mode === 'intelectual') return '/mode-symbols/intelectual-electrico.svg';
   if (mode === 'espiritual') return '/mode-symbols/espiritual-electrico.svg';
   if (mode === 'profesional') return '/mode-symbols/profesional-electrico.svg';
-  const artwork = mode === 'fisico' ? 'visionario' : mode === 'visionario' ? 'fisico' : mode;
-  return customModeSymbol(mode) ?? `/mode-symbols/${artwork}.webp`;
+  const artwork = mode === 'visionario' ? 'fisico' : mode;
+  return `/mode-symbols/${artwork}.webp`;
 }
 export function homeImageSource(mode: string, image: string | undefined, preferences: HomeVisionCards): HomeImageSource {
   if (preferences[mode] === 'electric') return 'electric';

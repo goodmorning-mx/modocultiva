@@ -117,7 +117,7 @@ const allSkinKeys = new Set<Skin>(['holista', 'dj', 'nocturna', 'lucid', ...skin
 const skinInfo = (key: Skin) => skinCatalog.find((item) => item.key === key);
 
 const modes: Mode[] = [
-  { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '△', color: '#22C7A5', accent: '#123B36' },
+  { key: 'fisico', roman: 'I', name: 'Modo Físico', shortName: 'Físico', description: 'Salud y bienestar corporal', icon: '⚕', color: '#22C7A5', accent: '#123B36' },
   { key: 'intelectual', roman: 'II', name: 'Modo Intelectual', shortName: 'Intelectual', description: 'Desarrollo intelectual y cognitivo', icon: '🧠', color: '#3D8FD2', accent: '#172F3B' },
   { key: 'emocional', roman: 'III', name: 'Modo Emocional', shortName: 'Emocional', description: 'Gestión y equilibrio de sentimientos', icon: '◒', color: '#D94A4A', accent: '#3B2528' },
   { key: 'arquetipico', roman: 'IV', name: 'Modo Arquetípico', shortName: 'Arquetípico', description: 'Carácter, coherencia y esencia personal', icon: '✺', color: '#EF7909', accent: '#402719' },
