@@ -27,6 +27,7 @@ CASES.push('electric-home', 'account-electric-home');
 CASES.push('home-upload', 'account-home-upload');
 CASES.push('guest-language-switch', 'account-language-switch');
 CASES.push('mode-editorial');
+CASES.push('global-editorial');
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -67,6 +68,8 @@ const { journeyModeTranslations, triviaModeQuestions } = sourceModule('src/modeE
 const { getBankActivities, bankSources } = sourceModule('src/quoteActivityCatalog.ts');
 const { activityQuoteText } = sourceModule('src/activityQuoteTranslations.ts');
 const { modeAiMessage } = sourceModule('src/modeAiMessages.ts');
+const { globalIdeaTitle } = sourceModule('src/globalIdeaPractices.ts');
+const { globalIdeaBio } = sourceModule('src/globalIdeaBios.ts');
 const STOPS = TOUR_STOPS.filter(stop => (JOURNEY_REACTIONS_ENABLED || stop !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || stop !== 'audience'));
 
 function options(argv) {
@@ -435,6 +438,7 @@ async function runCase(browser, config, task) {
   const uploads = task.name.endsWith('home-upload');
   const switchesLanguage = task.name.endsWith('language-switch');
   const modeEditorial = task.name === 'mode-editorial';
+  const globalEditorial = task.name === 'global-editorial';
   if (switchesLanguage) {
     state.profileName = 'Cultiva todos tus modos.';
     if (account) state.languageSource = 'manual';
@@ -457,7 +461,7 @@ async function runCase(browser, config, task) {
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
   const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads });
-  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: modeEditorial ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !modeEditorial, cachedManual: task.name.includes('ambiguous-cache') });
+  await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: modeEditorial || globalEditorial ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !modeEditorial && !globalEditorial, cachedManual: task.name.includes('ambiguous-cache') });
   if (task.name.endsWith('electric-home') && !account) await context.addInitScript(() => {
     if (!localStorage.getItem('__electric_seed')) {
       localStorage.setItem('modo-cultiva:guest-cache:v1:modoCultiva_homeVisionCards', JSON.stringify({fisico:true}));
@@ -536,6 +540,47 @@ async function runCase(browser, config, task) {
         await assertPreserved(page, state, account);
         await assertMap(page, state.levels);
         result = { switchedLanguages:11, sameShell:true, manualSurvivesReload:true, guestFollowsBrowser:!account, userTextPreserved:true };
+      } else if (globalEditorial) {
+        const code = task.language;
+        const alternate = code === 'es' ? 'fr' : 'es';
+        const level = state.levels.fisico;
+        await selectPhysicalMode(page);
+        await page.locator('.journey-step-list button').nth(1).click();
+        await page.locator('.journey-global-button').click();
+        const dialog = page.locator('.journey-global-dialog');
+        const title = dialog.locator('.cult-insight-spotlight-copy h3');
+        const reload = dialog.locator('.cult-insight-regenerate-button');
+        assert.equal(await title.textContent(), globalIdeaTitle(code, 'fisico', level, 0));
+        assert.ok(await reload.getAttribute('aria-label'));
+        assert.equal(await dialog.locator('.cult-insight-dots button').count(), 12);
+        await reload.click();
+        const selected = globalIdeaTitle(code, 'fisico', level, 1);
+        assert.equal(await title.textContent(), selected);
+        const author = await dialog.locator('.cult-insight-spotlight-copy p strong').textContent();
+        await dialog.locator('.cult-insight-actions button').first().click();
+        const details = page.locator('.cult-insight-modal');
+        const detailTitle = details.locator('h2');
+        const bio = details.locator('.insight-author-bio');
+        assert.equal(await detailTitle.textContent(), selected);
+        assert.equal(await bio.textContent(), `“${globalIdeaBio(code, author)}”`);
+        await page.evaluate(language => {
+          Object.defineProperty(navigator, 'languages', { configurable: true, get: () => [language] });
+          dispatchEvent(new Event('languagechange'));
+        }, alternate);
+        const translated = globalIdeaTitle(alternate, 'fisico', level, 1);
+        await eventually(async () => await detailTitle.textContent() === translated, 'Open Global idea follows the active locale');
+        assert.equal(await bio.textContent(), `“${globalIdeaBio(alternate, author)}”`, 'Same author after language change');
+        assert.equal(await title.textContent(), translated, 'The same idea remains selected in the carousel');
+        await details.locator('.feature-preview-cta').click();
+        const draft = page.locator('.journey-social-body');
+        assert.ok((await draft.textContent()).includes(translated));
+        await page.evaluate(language => {
+          Object.defineProperty(navigator, 'languages', { configurable: true, get: () => [language] });
+          dispatchEvent(new Event('languagechange'));
+        }, code);
+        await eventually(async () => await page.locator('html').getAttribute('lang') === (code === 'zh' ? 'zh-CN' : code), 'Restore test locale');
+        assert.ok((await draft.textContent()).includes(translated), 'A saved Global activity must not be translated retrospectively');
+        result = { localizedGlobalIdea: true, newTranslatedVariant: true, openDetailRetained: true, originalAuthorRetained: true, savedAsShown: true };
       } else if (modeEditorial) {
         const code = task.language;
         const alternate = code === 'es' ? 'fr' : 'es';
@@ -1046,7 +1091,7 @@ async function main() {
   catch { playwright = require(resolve(dirname(process.execPath), '..', 'node_modules', 'playwright')); }
   const tasks = [];
   for (const name of config.cases) {
-    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || ['account-journey-ascent', 'mode-editorial'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
+    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || ['account-journey-ascent', 'mode-editorial', 'global-editorial'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
     else for (const [index, width] of config.widths.entries()) {
       const language = config.languages[index % config.languages.length];
       if (name === 'identity') for (const identity of ['normal', 'forged', 'owner']) tasks.push({ name, width, language, identity });
