@@ -1021,20 +1021,30 @@ async function runCase(browser, config, task) {
           assert.ok((await button.getAttribute('class')).includes('home-mode-card--electric'));
           const artwork = button.locator('.mode-electric-symbol-fallback');
           const customAssets = { emocional: 'emocional-orbitas.svg', ludico: 'ludico-mando.svg' };
-          const asset = { ...customAssets, fisico: 'visionario.webp', visionario: 'fisico.webp', ludico: 'ludico-electrico.svg' }[mode] ?? `${mode}.webp`;
+          const asset = { emocional: 'emocional-electrico.svg', fisico: 'visionario.webp', visionario: 'fisico.webp', ludico: 'ludico-electrico.svg?v=2' }[mode] ?? `${mode}.webp`;
           assert.equal(await artwork.getAttribute('src'), `/mode-symbols/${asset}`);
           await eventually(() => artwork.evaluate(img => img.complete && img.naturalWidth > 0), 'Premium artwork loaded');
-          if (mode === 'ludico') assert.ok(await artwork.evaluate(img => {
+          if (mode === 'ludico' || mode === 'emocional') assert.ok(await artwork.evaluate((img, mode) => {
+            const playful = mode === 'ludico';
+            const [width, height] = playful ? [160, 136] : [120, 112];
             const canvas = document.createElement('canvas');
-            canvas.width = 160; canvas.height = 136;
+            canvas.width = width; canvas.height = height;
             const layer = canvas.getContext('2d');
-            layer.drawImage(img, 0, 0, 160, 136);
-            const alpha = (x, y) => layer.getImageData(x, y, 1, 1).data[3];
-            return alpha(80, 55) === 0 && alpha(51, 64) === 0
-              && alpha(80, 33) > 200 && alpha(63, 64) > 200
-              && alpha(6, 70) < 48 && alpha(19, 70) > 200
-              && alpha(24, 22) > 200 && alpha(151, 74) > 200;
-          }), 'Lúdico keeps a hollow, smaller controller with visible surrounding electric waves');
+            layer.drawImage(img, 0, 0, width, height);
+            const { data } = layer.getImageData(0, 0, width, height);
+            let left = width, right = 0, bright = 0;
+            for (let offset = 0; offset < data.length; offset += 4) {
+              if (data[offset + 3] < 170) continue;
+              const x = (offset / 4) % width;
+              left = Math.min(left, x); right = Math.max(right, x);
+              if (data[offset] >= 245 && data[offset + 1] >= 225 && data[offset + 2] >= 205) bright++;
+            }
+            const alpha = (x, y) => data[(y * width + x) * 4 + 3];
+            const [sx, sy] = playful ? [42, 37] : [33, 30];
+            const spark = Math.max(alpha(sx, sy), alpha(sx + 1, sy), alpha(sx, sy + 1), alpha(sx + 1, sy + 1));
+            return right - left >= width * .55 && right - left <= width * .69
+              && bright >= 12 && spark >= 170 && (!playful || alpha(80, 59) < 30);
+          }, mode), 'The luminous spirals and core fit the smaller footprint; Lúdico remains hollow');
           assert.ok(await artwork.evaluate(img => {
             const palette = getComputedStyle(img).getPropertyValue('--mode-color').trim();
             const filter = img.parentElement.querySelector('filter');
@@ -1398,8 +1408,8 @@ function selfTest() {
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, social: 'electric', unknown: 'electric' }), { fisico:true, social:'electric' });
   assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/visionario.webp');
   assert.equal(homeModePhoto('visionario', PNG, { visionario:'electric' }), '/mode-symbols/fisico.webp');
-  assert.equal(homeModePhoto('emocional', PNG, { emocional:'electric' }), '/mode-symbols/emocional-orbitas.svg');
-  assert.equal(homeModePhoto('ludico', PNG, { ludico:'electric' }), '/mode-symbols/ludico-electrico.svg');
+  assert.equal(homeModePhoto('emocional', PNG, { emocional:'electric' }), '/mode-symbols/emocional-electrico.svg');
+  assert.equal(homeModePhoto('ludico', PNG, { ludico:'electric' }), '/mode-symbols/ludico-electrico.svg?v=2');
   assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
   assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '/mode-photos/fisico.jpg');
   assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-photos/fisico.jpg');
