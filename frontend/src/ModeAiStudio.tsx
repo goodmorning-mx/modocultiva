@@ -18,6 +18,7 @@ type Props = {
   askLabel: string; useLabel: string; consultingLabel: string;
   context: string; proposal: string; proposalLanguage?: string; hasProposal: boolean; loading: boolean; notice: string | null;
   onContext: (value: string) => void; onAsk: () => void; onUse: () => void;
+  lifeContextControls?: ReactNode;
 };
 
 export function ModeAiStudio(props: Props) {
@@ -41,6 +42,7 @@ export function ModeAiStudio(props: Props) {
           <div className="mode-ai-section-heading"><span className="mode-ai-step" aria-hidden="true">01</span><label id={contextId} htmlFor="activity-prompt">{props.contextLabel}</label></div>
           <p className="mode-ai-question" id={questionId}>{props.question}</p>
           <textarea id="activity-prompt" value={props.context} onChange={event => props.onContext(event.target.value)} placeholder={props.placeholder} aria-describedby={questionId} disabled={props.loading} rows={5} dir="auto" />
+          {props.lifeContextControls}
           <button className="agent-ask mode-ai-ask" type="button" disabled={props.loading} onClick={props.onAsk}><span aria-hidden="true">✧</span>{props.loading ? props.consultingLabel : props.askLabel}<span aria-hidden="true">↗</span></button>
           {props.notice && <p className="mode-ai-notice" role="status">{props.notice}</p>}
           <aside className="mode-ai-consideration"><span>{props.considerLabel}</span><strong>{props.effort}</strong><p>{props.effortDescription}</p></aside>
