@@ -1,5 +1,4 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
-import { flushSync } from 'react-dom';
 import { hasVisionImage } from './badgeProgress';
 import { VisionImage } from './VisionImage';
 import { PremiumModeArtwork } from './PremiumModeArtwork';
@@ -24,12 +23,12 @@ export function HomeVisionSettings({ language, modes, images, preferences, close
   const id = useId();
   const [failed, setFailed] = useState(false);
   const [uploadMode, setUploadMode] = useState<string | null>(null);
-  const uploadArea = useRef<HTMLDivElement>(null);
   const [title, summary, stockLabel, visionLabel, , saveError] = homeVisionCopy(language);
   const pickSource = (mode: string, source: HomeImageSource) => {
     if (source === 'vision' && !hasVisionImage(images[mode])) {
-      flushSync(() => { setFailed(false); setUploadMode(mode); });
-      uploadArea.current?.querySelector<HTMLInputElement>('input[type="file"]')?.click();
+      setFailed(false);
+      setUploadMode(mode);
+      setFailed(!onChange(mode, source));
       return;
     }
     setUploadMode(source === 'vision' ? mode : null);
@@ -66,7 +65,7 @@ export function HomeVisionSettings({ language, modes, images, preferences, close
             <label><input type="radio" name={`${id}-${mode.key}-source`} value="vision" checked={selected === 'vision'} onChange={() => pickSource(mode.key, 'vision')} />{visionLabel}</label>
             <label><input type="radio" name={`${id}-${mode.key}-source`} value="stock" checked={selected === 'stock'} onChange={() => pickSource(mode.key, 'stock')} />{stockLabel}</label>
           </div>
-          {(selected === 'vision' || uploadMode === mode.key) && <div className="home-vision-upload" ref={uploadMode === mode.key ? uploadArea : undefined}>
+          {(selected === 'vision' || uploadMode === mode.key) && <div className="home-vision-upload">
             <VisionImage value={images[mode.key]} compact language={language} title={visionLabel} uploadLabel={uploadLabel} changeLabel={changeLabel}
               onChange={image => setFailed(!onUpload(mode.key, image))} />
           </div>}

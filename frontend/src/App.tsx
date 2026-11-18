@@ -2260,7 +2260,7 @@ function App() {
     setVisionImages(next);
   };
   const selectHomeVisionCard = (modeKey: string, source: HomeImageSource, uploadedImage?: string) => {
-    if (accountBlocked || (source === 'vision' && !hasVisionImage(uploadedImage ?? visionImages[modeKey]))) return false;
+    if (accountBlocked || (uploadedImage && !hasVisionImage(uploadedImage))) return false;
     const next = { ...homeVisionCards };
     if (source === 'vision') next[modeKey] = true;
     else if (source === 'electric') next[modeKey] = 'electric';
