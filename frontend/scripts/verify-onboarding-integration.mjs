@@ -1091,19 +1091,30 @@ async function runCase(browser, config, task) {
         const current = field.locator('img');
         const prior = await page.locator('[data-tour-mode=financiero]').getAttribute('aria-label');
         const choose = async () => {
+          await field.locator('input[value=vision]').check();
+          assert.equal(await modal.isVisible(), true, 'Selecting Vision keeps the person in Home Images');
+          assert.equal(await field.locator('.vision-upload').isVisible(), true, 'The person chooses when to open the image picker');
           const event = page.waitForEvent('filechooser');
-          await field.locator('input[value=vision]').click();
+          await field.locator('.vision-upload').click();
           return await event;
         };
         await open();
-        const invalid = await choose();
-        await invalid.setFiles({name:'invalid.png',mimeType:'image/png',buffer:Buffer.from('invalid')});
+        await field.locator('input[value=vision]').check();
+        assert.equal(await modal.isVisible(), true, 'Choosing Vision alone does not navigate away');
+        assert.equal(await field.locator('.vision-upload').isVisible(), true, 'Image selection waits for the explicit upload button');
+        await field.locator('input[value=stock]').check();
+        const cancelled = await choose();
+        await cancelled.setFiles([]);
+        assert.equal(await modal.isVisible(), true, 'Cancelling the native picker returns to the same settings dialog');
+        assert.equal(await field.locator('input[value=vision]').isChecked(), true, 'Cancelling leaves Vision selected');
+        const invalidPicker = await choose();
+        await invalidPicker.setFiles({name:'invalid.png',mimeType:'image/png',buffer:Buffer.from('invalid')});
         await field.locator('.vision-image-notice:not(:empty)').waitFor();
-        assert.equal(await field.locator('input[value=electric]').isChecked(), true, 'A failed upload keeps the existing/default symbol selection');
-        assert.equal(await current.getAttribute('src'), '/mode-symbols/financiero.webp');
+        assert.equal(await field.locator('input[value=vision]').isChecked(), true, 'A failed upload keeps the Vision selection');
+        assert.equal(await current.getAttribute('src'), '/mode-photos/financiero.jpg');
         const valid = await choose();
         await valid.setFiles({name:'valid.png',mimeType:'image/png',buffer:Buffer.from(PNG.split(',')[1],'base64')});
-        await eventually(() => field.locator('input[value=vision]').isChecked(), 'Uploaded photo selects Vision');
+        await eventually(async () => (await current.getAttribute('src'))?.startsWith('data:image/'), 'Uploaded photo appears in the preview');
         const uploaded = await current.getAttribute('src');
         assert.match(uploaded, /^data:image\//);
         if (account) await eventually(() => transport.snapshot().state.visionImages.financiero === uploaded && transport.snapshot().state.homeVisionCards.financiero === true, 'Photo and choice synced');
@@ -1469,7 +1480,9 @@ function selfTest() {
     assert.equal(welcomeMessages[language].messages.length, 7); assert.ok(stateAccountCopy(language).cloudOnly);
     assert.ok(onboardingIntegrationCopy(language).share); for (const stop of STOPS.filter(stop => !stop.startsWith('control'))) assert.ok(guidedTourStepCopy(language, stop).title);
     assert.equal(homeVisionCopy(language).filter(Boolean).length, 6);
-    assert.equal(homeVisionCopy(language)[2], language === 'es' ? 'Galería de Imágenes' : language === 'en' ? 'Stock Images' : homeVisionCopy(language)[2]);
+    assert.equal(homeVisionCopy(language)[2], language === 'es' ? 'Galería de imágenes' : language === 'en' ? 'Stock Images' : homeVisionCopy(language)[2]);
+    if (language === 'es') assert.ok(homeVisionCopy(language)[1].includes('distinto para cada modo'));
+    if (language === 'en') assert.ok(homeVisionCopy(language)[1].includes('different one for each mode'));
     if (language !== 'es') {
       assert.deepEqual(Object.keys(triviaModeQuestions[language]).sort(), [...MODES].sort());
       assert.equal(new Set(Object.values(triviaModeQuestions[language])).size, MODES.length);

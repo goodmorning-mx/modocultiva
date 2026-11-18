@@ -34,28 +34,28 @@ export function modeSymbol(mode: string) {
 export function homeImageSource(mode: string, image: string | undefined, preferences: HomeVisionCards): HomeImageSource {
   if (preferences[mode] === 'stock') return 'stock';
   if (preferences[mode] === 'electric') return 'electric';
-  if (preferences[mode] === true && hasVisionImage(image)) return 'vision';
+  if (preferences[mode] === true) return 'vision';
   return preferences[mode] === undefined ? 'electric' : 'stock';
 }
 export function homeModePhoto(mode: string, image: string | undefined, preferences: HomeVisionCards) {
   const source = homeImageSource(mode, image, preferences);
-  return source === 'electric' ? modeSymbol(mode) : source === 'vision' ? image!.trim() : defaultModePhoto(mode);
+  return source === 'electric' ? modeSymbol(mode) : source === 'vision' && hasVisionImage(image) ? image!.trim() : defaultModePhoto(mode);
 }
 
 const electricLabels = { es: 'Símbolo eléctrico', en: 'Electric symbol', zh: '电光符号', hi: 'विद्युत प्रतीक', ar: 'رمز كهربائي', it: 'Simbolo elettrico', pt: 'Símbolo elétrico', ru: 'Электрический символ', de: 'Elektrisches Symbol', fr: 'Symbole électrique', da: 'Elektrisk symbol' } as const;
 export const electricSymbolLabel = (language: keyof typeof electricLabels) => electricLabels[language];
 
 const copy = {
-  es: ['Imágenes de Inicio', 'Elige qué imagen aparece en cada tarjeta de inicio. Puedes cargar o cambiar tu foto desde Visión Final, aquí mismo.', 'Galería de Imágenes', 'Visión Final', 'Sin foto en Visión Final', 'No se pudo guardar en este dispositivo.'],
-  en: ['Home Images', 'Choose an image for each home card. You can upload or change your photo under Final Vision right here.', 'Stock Images', 'Final Vision', 'No Final Vision photo yet', 'Could not save on this device.'],
-  zh: ['首页图片', '为每张首页卡片选择图片。可直接在此处通过最终愿景上传或更换照片。', '图库图片', '最终愿景', '尚无最终愿景照片', '无法在此设备上保存。'],
-  hi: ['होम की तस्वीरें', 'हर होम कार्ड की तस्वीर चुनें। अंतिम दृष्टि में यहीं तस्वीर अपलोड या बदल सकते हैं।', 'स्टॉक इमेज', 'अंतिम दृष्टि', 'अभी कोई अंतिम दृष्टि की तस्वीर नहीं', 'इस डिवाइस पर सहेजा नहीं जा सका।'],
-  ar: ['صور الصفحة الرئيسية', 'اختر صورة كل بطاقة في الصفحة الرئيسية. يمكنك رفع صورتك أو تغييرها هنا من خيار الرؤية النهائية.', 'صور المخزون', 'الرؤية النهائية', 'لا توجد صورة للرؤية النهائية بعد', 'تعذّر الحفظ على هذا الجهاز.'],
-  it: ['Immagini della home', 'Scegli un’immagine per ogni scheda iniziale. Puoi caricare o cambiare la foto qui, in Visione finale.', 'Immagini stock', 'Visione finale', 'Nessuna foto della visione finale', 'Impossibile salvare su questo dispositivo.'],
-  pt: ['Imagens do início', 'Escolha a imagem de cada cartão inicial. Você pode enviar ou trocar a foto aqui mesmo em Visão Final.', 'Imagens de banco', 'Visão Final', 'Sem foto da Visão Final', 'Não foi possível salvar neste dispositivo.'],
-  ru: ['Изображения главной', 'Выберите изображение для каждой карточки. Загрузить или поменять фото можно здесь в разделе «Итоговое видение».', 'Стоковые изображения', 'Итоговое видение', 'Фото итогового видения пока нет', 'Не удалось сохранить на этом устройстве.'],
-  de: ['Startseitenbilder', 'Wähle das Bild für jede Startkarte. Unter Endvision kannst du dein Foto direkt hier hochladen oder ändern.', 'Stockbilder', 'Endvision', 'Noch kein Foto zur Endvision', 'Auf diesem Gerät konnte nicht gespeichert werden.'],
-  fr: ['Images d’accueil', 'Choisis l’image de chaque carte d’accueil. Tu peux ajouter ou changer ta photo ici, dans Vision finale.', 'Images de stock', 'Vision finale', 'Pas encore de photo de vision finale', 'Impossible d’enregistrer sur cet appareil.'],
-  da: ['Forsidebilleder', 'Vælg et billede til hvert kort på forsiden. Du kan uploade eller skifte dit foto her under Endelig vision.', 'Stockbilleder', 'Endelig vision', 'Intet foto til endelig vision endnu', 'Kunne ikke gemme på denne enhed.'],
+  es: ['Imágenes de Inicio', 'Elige tu estilo preferido para el inicio; puedes elegir uno distinto para cada modo.', 'Galería de imágenes', 'Visión Final', 'Sin foto en Visión Final', 'No se pudo guardar en este dispositivo.'],
+  en: ['Home Images', 'Choose your preferred home style; you can choose a different one for each mode.', 'Stock Images', 'Final Vision', 'No Final Vision photo yet', 'Could not save on this device.'],
+  zh: ['首页图片', '选择你喜欢的首页风格；每种模式都可以单独选择。', '图库图片', '最终愿景', '尚无最终愿景照片', '无法在此设备上保存。'],
+  hi: ['होम की तस्वीरें', 'होम के लिए अपनी पसंदीदा शैली चुनें; हर मोड के लिए अलग शैली चुन सकते हैं।', 'स्टॉक इमेज', 'अंतिम दृष्टि', 'अभी कोई अंतिम दृष्टि की तस्वीर नहीं', 'इस डिवाइस पर सहेजा नहीं जा सका।'],
+  ar: ['صور الصفحة الرئيسية', 'اختر النمط الذي تفضله للصفحة الرئيسية، ويمكنك اختيار نمط مختلف لكل وضع.', 'صور المخزون', 'الرؤية النهائية', 'لا توجد صورة للرؤية النهائية بعد', 'تعذّر الحفظ على هذا الجهاز.'],
+  it: ['Immagini della home', 'Scegli lo stile che preferisci per la home; puoi sceglierne uno diverso per ogni modalità.', 'Immagini stock', 'Visione finale', 'Nessuna foto della visione finale', 'Impossibile salvare su questo dispositivo.'],
+  pt: ['Imagens do início', 'Escolha o estilo que prefere para o início; você pode escolher um diferente para cada modo.', 'Imagens de banco', 'Visão Final', 'Sem foto da Visão Final', 'Não foi possível salvar neste dispositivo.'],
+  ru: ['Изображения главной', 'Выберите стиль главной страницы; для каждого режима можно выбрать свой вариант.', 'Стоковые изображения', 'Итоговое видение', 'Фото итогового видения пока нет', 'Не удалось сохранить на этом устройстве.'],
+  de: ['Startseitenbilder', 'Wähle deinen bevorzugten Startseitenstil; für jeden Modus kannst du einen eigenen auswählen.', 'Stockbilder', 'Endvision', 'Noch kein Foto zur Endvision', 'Auf diesem Gerät konnte nicht gespeichert werden.'],
+  fr: ['Images d’accueil', 'Choisis le style que tu préfères pour l’accueil ; tu peux en choisir un différent pour chaque mode.', 'Images de stock', 'Vision finale', 'Pas encore de photo de vision finale', 'Impossible d’enregistrer sur cet appareil.'],
+  da: ['Forsidebilleder', 'Vælg din foretrukne stil til forsiden; du kan vælge en forskellig stil for hver tilstand.', 'Stockbilleder', 'Endelig vision', 'Intet foto til endelig vision endnu', 'Kunne ikke gemme på denne enhed.'],
 } as const;
 export const homeVisionCopy = (language: keyof typeof copy) => copy[language];
