@@ -54,19 +54,26 @@ guardan ya traducidos.
   acceso gratuito. Un servidor de prueba en loopback comprueba el recorrido
   restringido sin modificar esa política ni exponerlo en DEV. La guía de
   instalación y los controles de actualización tienen etiquetas traducidas.
+- La verificación de sesiones alterna entre invitado y dos cuentas
+  sintéticas, recarga e inicia sesión de nuevo desde Edge. Comprueba
+  las elecciones manuales, el idioma automático del navegador y los
+  mapas, configuraciones y borradores de las tres identidades, sin hacer
+  solicitudes a cuentas ni servicios reales.
 
 ## Pendientes para cerrar el objetivo
 
 | Superficie | Evidencia y siguiente verificación |
 | --- | --- |
 | Interfaces restantes | Revisar pantallas y diálogos visibles de Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, evidencias y notificaciones; comprobar texto visible y accesible, no solo claves. |
-| Persistencia entre sesiones | Ejecutar matriz de idiomas en bienvenida y navegación, recarga, navegador distinto y cambio de cuenta. Comprobar que la preferencia de una cuenta no contamine a otra ni al invitado. |
+| Recorrido de bienvenida y tutorial | Completar la prueba de bienvenida y de todos los pasos del tutorial en los 11 idiomas, con vista móvil y de escritorio. |
 
 ## Cómo se mide el avance
 
 El porcentaje indica cuántos de los diez bloques de auditoría están
 verificados y publicados en DEV; no se pondera por horas, número de textos
-ni avance parcial. Estado después de publicar la Red de Especialistas (60 %):
+ni avance parcial. La entrega de planes e instalación llevó el avance a 70 %.
+El aislamiento de las preferencias se verifica con la misma versión de la
+aplicación publicada en DEV, usando el servidor local con cuentas sintéticas.
 
 | Bloque | Estado |
 | --- | --- |
@@ -77,9 +84,9 @@ ni avance parcial. Estado después de publicar la Red de Especialistas (60 %):
 | Actividades Recomendadas y Modo IA | Verificado |
 | Modo Global | Verificado |
 | Red de Especialistas | Verificado |
-| Planes, accesos especiales e instalación | Pendiente |
+| Planes, accesos especiales e instalación | Verificado |
 | Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, evidencias y notificaciones | Pendiente |
-| Aislamiento de preferencias entre invitado, cuentas y navegadores | Pendiente de verificación completa |
+| Aislamiento de preferencias entre invitado, cuentas y navegadores | Verificado en Chrome y Edge |
 
 El objetivo sigue abierto hasta contrastar el recorrido completo en la
 aplicación y comprobar el despliegue en DEV. No hay cambios en producción,

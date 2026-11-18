@@ -20,6 +20,7 @@
     "verify:badges": "node scripts/verify-badges.mjs",
     "verify:welcome": "node scripts/verify-welcome.mjs",
     "verify:state-sync": "node scripts/verify-state-sync.mjs",
+    "verify:language-session": "node scripts/verify-language-session-scope.mjs",
     "verify:app-state": "node scripts/verify-app-state.mjs",
     "verify:tutorial": "node scripts/verify-guided-tour.mjs",
     "verify:activity-flow": "node scripts/verify-activity-flow.mjs",
