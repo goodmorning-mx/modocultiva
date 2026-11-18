@@ -2829,7 +2829,11 @@ function App() {
             <div className="journey-deck-navigation" aria-label={tr('cultivationPath')} onKeyDown={event => {
               if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
               event.preventDefault();
-              goJourneyStep(displayJourneyStep + ((event.key === 'ArrowRight') !== (language === 'ar') ? 1 : -1));
+              const targetStep = displayJourneyStep + ((event.key === 'ArrowRight') !== (language === 'ar') ? 1 : -1);
+              if (targetStep === 0 && displayJourneyStep === 1) {
+                event.currentTarget.querySelector<HTMLButtonElement>('.journey-step-list button')?.focus({ preventScroll: true });
+              }
+              goJourneyStep(targetStep);
             }}>
               {displayJourneyStep > 0 && <button className="journey-step-arrow journey-step-arrow--previous" type="button" onClick={event => {
                 goJourneyStep(displayJourneyStep - 1);
