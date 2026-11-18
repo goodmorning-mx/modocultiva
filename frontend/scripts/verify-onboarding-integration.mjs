@@ -1111,7 +1111,7 @@ async function runCase(browser, config, task) {
         await invalidPicker.setFiles({name:'invalid.png',mimeType:'image/png',buffer:Buffer.from('invalid')});
         await field.locator('.vision-image-notice:not(:empty)').waitFor();
         assert.equal(await field.locator('input[value=vision]').isChecked(), true, 'A failed upload keeps the Vision selection');
-        assert.equal(await current.getAttribute('src'), '/mode-photos/financiero.jpg');
+        assert.equal(await field.locator('.home-vision-empty-preview').isVisible(), true, 'A missing Vision photo stays blank instead of showing stock');
         const valid = await choose();
         await valid.setFiles({name:'valid.png',mimeType:'image/png',buffer:Buffer.from(PNG.split(',')[1],'base64')});
         await eventually(async () => (await current.getAttribute('src'))?.startsWith('data:image/'), 'Uploaded photo appears in the preview');
@@ -1150,6 +1150,9 @@ async function runCase(browser, config, task) {
         await choice('arquetipico', 'vision').check();
         await eventually(async () => await photo('arquetipico').getAttribute('src') === '/mode-photos/arquetipico.jpg', 'Broken image falls back');
         await choice('arquetipico', 'stock').check();
+        await choice('romantico', 'vision').check();
+        assert.equal(await modal.locator('[data-mode=romantico] .home-vision-empty-preview').isVisible(), true, 'No level-nine photo means an empty Vision preview');
+        assert.equal(await photo('romantico').count(), 0, 'Empty Vision does not load a stock carousel image');
         await choice('fisico', 'vision').check();
         await page.keyboard.press('Escape');
         await modal.waitFor({ state: 'detached' });
@@ -1468,7 +1471,7 @@ function selfTest() {
   assert.equal(homeModePhoto('profesional', PNG, { profesional:'electric' }), '/mode-symbols/profesional-electrico.svg');
   assert.equal(homeModePhoto('ludico', PNG, { ludico:'electric' }), '/mode-symbols/ludico-electrico.svg?v=2');
   assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
-  assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '/mode-photos/fisico.jpg');
+  assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '');
   assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-symbols/fisico-electrico.svg');
   assert.equal(homeModePhoto('fisico', PNG, { fisico:'stock' }), '/mode-photos/fisico.jpg');
   assert.equal(options(['--smoke']).languages[0], 'en');

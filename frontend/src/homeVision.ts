@@ -39,7 +39,9 @@ export function homeImageSource(mode: string, image: string | undefined, prefere
 }
 export function homeModePhoto(mode: string, image: string | undefined, preferences: HomeVisionCards) {
   const source = homeImageSource(mode, image, preferences);
-  return source === 'electric' ? modeSymbol(mode) : source === 'vision' && hasVisionImage(image) ? image!.trim() : defaultModePhoto(mode);
+  if (source === 'electric') return modeSymbol(mode);
+  if (source === 'vision') return hasVisionImage(image) ? image!.trim() : '';
+  return defaultModePhoto(mode);
 }
 
 const electricLabels = { es: 'Símbolo eléctrico', en: 'Electric symbol', zh: '电光符号', hi: 'विद्युत प्रतीक', ar: 'رمز كهربائي', it: 'Simbolo elettrico', pt: 'Símbolo elétrico', ru: 'Электрический символ', de: 'Elektrisches Symbol', fr: 'Symbole électrique', da: 'Elektrisk symbol' } as const;

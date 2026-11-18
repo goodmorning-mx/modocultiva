@@ -752,7 +752,7 @@ const CircularCarousel = ({
           className="circular-carousel__frame"
           style={{ height: axis === 'x' ? size : cardH, borderRadius: frameRadius }}
         >
-          {!item.electric && <img
+          {!item.electric && !item.visionEmpty && <img
             className="circular-carousel__photo"
             src={item.src}
             onError={({ currentTarget }) => {

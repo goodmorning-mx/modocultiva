@@ -5,6 +5,7 @@ export interface CarouselItem {
   src: string;
   fallbackSrc?: string;
   electric?: boolean;
+  visionEmpty?: boolean;
   label: string;
   style: CSSProperties;
   content: ReactNode;
