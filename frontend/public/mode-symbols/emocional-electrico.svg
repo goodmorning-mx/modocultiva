@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 112">
+  <defs>
+    <radialGradient id="ruby" cx=".38" cy=".25" r=".75">
+      <stop stop-color="#ffcdca"/>
+      <stop offset=".32" stop-color="#e87579"/>
+      <stop offset=".74" stop-color="#9f353f"/>
+      <stop offset="1" stop-color="#35141c"/>
+    </radialGradient>
+    <linearGradient id="edge" x2=".45" y2="1">
+      <stop stop-color="#fff6f2"/>
+      <stop offset=".52" stop-color="#fe9b9b"/>
+      <stop offset="1" stop-color="#f76169"/>
+    </linearGradient>
+    <filter id="plasma" x="-30%" y="-40%" width="160%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="2.25"/>
+    </filter>
+    <path id="outer-wave" d="M10 91C-1 81 14 55 45 36c31-20 63-26 70-13 3 6-1 15-10 20"/>
+    <path id="inner-wave" d="M114 47c8 9-5 29-28 43-30 18-65 22-76 11-3-3-4-7-2-13"/>
+    <path id="echo" d="M21 18c18-7 52-1 76 14 13 8 20 17 20 24M6 56c5 13 19 25 40 36 22 11 51 15 66 9"/>
+  </defs>
+  <g transform="translate(19.8 18.48) scale(.67)">
+    <g fill="none" stroke-linecap="round">
+      <g stroke="#ff7079" stroke-width="5.4" filter="url(#plasma)">
+        <use href="#outer-wave"/><use href="#inner-wave"/>
+      </g>
+      <use href="#echo" stroke="#ef8389" stroke-width="1.1" opacity=".72"/>
+      <use href="#outer-wave" stroke="url(#edge)" stroke-width="2.1"/>
+      <use href="#outer-wave" stroke="#fff3ed" stroke-width="1" stroke-dasharray="19 14 35 15"/>
+    </g>
+    <g stroke="url(#edge)" stroke-width="2.9" stroke-linecap="round">
+      <path d="M25 8v96M60 8v96M95 8v96" fill="none"/>
+      <circle cx="25" cy="63" r="23" fill="url(#ruby)"/>
+      <circle cx="95" cy="63" r="23" fill="url(#ruby)"/>
+      <circle cx="60" cy="41" r="24" fill="url(#ruby)"/>
+      <g fill="url(#ruby)">
+        <circle cx="25" cy="27" r="5.3"/><circle cx="60" cy="90" r="5.3"/><circle cx="95" cy="97" r="5.3"/>
+      </g>
+    </g>
+    <g fill="none" stroke="#fff5f1" stroke-linecap="round">
+      <path d="M40 34c3-9 12-14 21-14M8 58c2-7 8-12 14-13M84 48c5-4 11-6 17-4" stroke-width="1.6" opacity=".9"/>
+      <use href="#inner-wave" stroke="url(#edge)" stroke-width="2.4"/>
+      <use href="#inner-wave" stroke-width="1" stroke-dasharray="17 11 27 15"/>
+      <path d="M12 36l6-5-2 6 6-3M104 91l-6 5 4 1-6 4" stroke-width="1.15"/>
+    </g>
+    <g fill="#fff2eb">
+      <circle cx="21" cy="18" r="1.7"/><circle cx="105" cy="43" r="1.55"/><circle cx="114" cy="47" r="1.8"/><circle cx="112" cy="101" r="1.4"/>
+      <path d="M10 85l1.3 4.7 4.7 1.3-4.7 1.3L10 97l-1.3-4.7L4 91l4.7-1.3Z"/>
+    </g>
+  </g>
+</svg>

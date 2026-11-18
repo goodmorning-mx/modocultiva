@@ -27,6 +27,9 @@
   inset: 15% 17%;
   border-radius: 50%;
 }
+:is([data-tour-mode="ludico"], [data-tour-mode="emocional"]) .global-sparks--symbol {
+  transform: scale(.67);
+}
 @keyframes global-spark-drift {
   from { transform: translate3d(-4%, 4%, 0) rotate(-12deg); opacity: .35; }
   to { transform: translate3d(4%, -5%, 0) rotate(12deg); opacity: .9; }
