@@ -2517,6 +2517,7 @@ function App() {
                 src: homeModePhoto(mode.key, visionImages[mode.key], homeVisionCards),
                 fallbackSrc: defaultModePhoto(mode.key),
                 electric: homeImageSource(mode.key, visionImages[mode.key], homeVisionCards) === 'electric',
+                visionEmpty: homeImageSource(mode.key, visionImages[mode.key], homeVisionCards) === 'vision' && !hasVisionImage(visionImages[mode.key]),
                 label: `${modeName(mode)}, ${tr('level')} ${level}`,
                 style: { '--mode-color': mode.color, '--mode-accent': mode.accent } as CSSProperties,
                 content: <>
