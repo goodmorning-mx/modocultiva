@@ -19,7 +19,7 @@ export type GuidedTourProps = {
   onClose: (reason: 'close' | 'escape') => void;
   canGoBack?: boolean;
   isLastStep?: boolean;
-  /** Only confirm a visit after the actual method view has mounted. Never infer transactions. */
+  /** Options the user has explicitly activated during this tour. Never infer transactions. */
   visitedMethods?: readonly TourMethod[];
   onTargetInteraction?: (interaction: TourInteraction) => void;
   onTargetUnavailable?: (detail: { stepId: string; reason: TourUnavailableReason }) => void;

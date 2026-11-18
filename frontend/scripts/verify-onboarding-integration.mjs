@@ -19,7 +19,7 @@ const require = createRequire(import.meta.url);
 const LANGUAGES = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da'];
 const WIDTHS = [320, 390, 870, 1440];
 const MODES = ['fisico', 'intelectual', 'emocional', 'arquetipico', 'espiritual', 'romantico', 'familiar', 'social', 'financiero', 'profesional', 'ludico', 'visionario'];
-const TOUR_STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
+const TOUR_STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', 'custom', 'bank', 'localContacts', 'globalIdeas', 'ai', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
 const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-ambiguous-cache-welcome', 'tour', 'identity', 'drafts', 'local-idea', 'account-local-idea', 'account-local-zero', 'account-local-failure'];
 const ACCESS = 'synthetic-qa-token-not-a-credential';
 CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey', 'home-vision', 'account-home-vision');
@@ -358,29 +358,55 @@ async function inspectSpotlight(page, owner) {
   for (const rect of [result.panel, ...result.holes]) assert.ok(rect.w > 0 && rect.h > 0 && rect.x >= -2 && rect.y >= -2 && rect.right <= result.width + 2 && rect.bottom <= result.height + 2, `Clipped spotlight/panel stays within viewport: ${result.id}`);
   return result;
 }
-const methodSelectors = { custom: '.journey-manual-button', bank: '.journey-recommended-button', ai: '.journey-ai-button', localContacts: '.journey-local-button' };
+const methodSelectors = { custom: '.journey-manual-button', bank: '.journey-recommended-button', localContacts: '.journey-local-button', globalIdeas: '.journey-global-button', ai: '.journey-ai-button' };
 async function advance(page, current, timeout) {
-  const next = STOPS[STOPS.indexOf(current) + 1];
+  const next = current === 'methods' ? 'effort' : STOPS[STOPS.indexOf(current) + 1];
   const button = page.locator('.guided-tour-rail button:last-child'); assert.equal(await button.isDisabled(), false, `Next available: ${current}`);
   await button.click();
   if (next) await ready(page, next, timeout);
   else await eventually(async () => await page.locator('.guided-tour-layer').count() === 0, 'Final tour did not finish', timeout);
 }
-async function methodRegression(page, timeout) {
-  for (const [method, selector] of Object.entries(methodSelectors)) {
-    await page.locator(selector).click(); await ready(page, method, timeout);
-    const surface = method === 'localContacts' ? methodSelectors.localContacts : `.activity-agent--${method === 'bank' ? 'pool' : method}`;
-    assert.equal(await page.locator(surface).isVisible(), true, `Summary button actually opens ${method}, not just a local checklist toggle`);
-    for (let index = STOPS.indexOf(method); STOPS[index] !== 'methods'; index++) await advance(page, STOPS[index], timeout);
-    assert.equal(await page.locator('.guided-tour-methods li[data-visited="true"]').count(), 4);
+async function visitMethods(page, timeout, language, regress) {
+  const next = page.locator('.guided-tour-rail button:last-child');
+  const visited = page.locator('.guided-tour-methods li[data-visited="true"]');
+  const group = page.locator('.journey-fixed-actions');
+  assert.equal(await visited.count(), 0, 'Overview precedes all individual visits');
+  assert.equal(await group.locator('button').count(), 5);
+  assert.deepEqual(await group.locator('button').evaluateAll(elements => elements.map(button => button.classList[0])), Object.values(methodSelectors).map(selector => selector.slice(1)));
+  assert.equal(await group.locator('.journey-local-pin').count(), 1);
+  assert.equal(await group.locator('.journey-global-globe').count(), 1);
+  assert.equal(await group.locator('.journey-global-button .global-sparks').count(), 0);
+  assert.equal(await group.locator('.journey-ai-button .global-sparks').count(), 1);
+  assert.ok(await group.locator('button').evaluateAll(buttons => buttons.every(button => button.scrollWidth <= button.clientWidth + 1 && getComputedStyle(button).hyphens === 'none')), 'The button labels fit without forced hyphenation');
+  if (regress) {
+    await group.locator(methodSelectors.localContacts).dispatchEvent('click');
+    assert.equal(await visited.count(), 0, 'A synthetic click cannot count toward completion');
   }
+  const seen = [];
+  for (const [method, selector] of Object.entries(methodSelectors)) {
+    assert.equal(await next.isDisabled(), true, 'Next remains locked while any option is unvisited');
+    await page.locator(selector).click(); await ready(page, method, timeout);
+    const surface = method === 'localContacts' ? selector : method === 'globalIdeas' ? '.cult-embedded-content .cult-section-heading' : `.activity-agent--${method === 'bank' ? 'pool' : method}`;
+    assert.equal(await page.locator(surface).isVisible(), true, `Summary button actually opens ${method}, not just a local checklist toggle`);
+    if (method === 'globalIdeas') assert.ok((await page.locator('.cult-embedded-content').innerText()).includes(onboardingIntegrationCopy(language).demoDetail));
+    seen.push(method);
+    await next.click(); await ready(page, 'methods', timeout);
+    assert.equal(await visited.count(), seen.length);
+    if (regress && method === 'custom') {
+      await page.locator(selector).click(); await ready(page, method, timeout);
+      await page.locator('.guided-tour-rail button:first-child').click(); await ready(page, 'methods', timeout);
+      assert.equal(await visited.count(), 1, 'Visiting the same option twice does not unlock others');
+    }
+  }
+  assert.equal(await next.isEnabled(), true);
+  return seen;
 }
 async function walkTour(page, configuration, { owner = false, regress = false, sharePreview = true } = {}) {
   const seen = [], scrollEvidence = [];
   await ready(page, 'modes', configuration.timeout); seen.push('modes');
   await inspectSpotlight(page, owner); assert.equal(await page.locator('.guided-tour-rail button:last-child').isDisabled(), true, 'Choosing an actual mode is required');
   await selectPhysicalMode(page); await ready(page, 'modeDescription', configuration.timeout);
-  for (const step of STOPS.slice(1)) {
+  for (const step of STOPS.slice(1).filter(step => !(step in methodSelectors))) {
     await ready(page, step, configuration.timeout); seen.push(step);
     const inspected = await inspectSpotlight(page, owner);
     assert.equal(inspected.dir, configuration.language === 'ar' ? 'rtl' : 'ltr', 'Localized spotlight direction');
@@ -391,7 +417,9 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
       assert.equal(await page.locator('.journey-builder .activity-flow-target').count(), 1, 'Canonical next-clarity guidance remains inside the activity');
       assert.ok((await page.locator('.journey-builder .activity-flow-target summary').innerText()).trim());
     }
-    if (step === 'methods') { assert.equal(await page.locator('.guided-tour-methods li[data-visited="true"]').count(), 4); if (regress) await methodRegression(page, configuration.timeout); }
+    if (step === 'methods') {
+      seen.push(...await visitMethods(page, configuration.timeout, configuration.language, regress));
+    }
     if (['activityCard', 'evidence', 'audience'].includes(step)) assert.equal(await page.locator('.journey-step-list > li').count(), 3, 'Three numbered activity stages');
     if (step === 'audience') {
       assert.equal(await page.locator('.activity-flow-audience input[value="network"]').isChecked(), true);
@@ -405,7 +433,6 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
       }), 'Both actual audience choices must be completely illuminated and not blocked by navigation', configuration.timeout);
     }
     if (step === 'vision') { assert.equal(await page.locator('.activity-flow-stages').count(), 0, 'Level9 stays separate'); assert.equal(await page.locator('.journey-level-card--vision input[type="file"]').count(), 1); }
-    if (step === 'globalIdeas') assert.ok((await page.locator('.cult-embedded-content').innerText()).includes(onboardingIntegrationCopy(configuration.language).demoDetail), 'Static global ideas carry the localized demonstration disclaimer');
     if (step === 'specialists') {
       const labels = await page.locator('.cult-embedded-content .cult-specialist-copy p').allTextContents();
       assert.ok(labels.length && labels.every(label => label.includes(onboardingIntegrationCopy(configuration.language).demo)), 'Every static specialist is labelled as a demonstration');
@@ -420,7 +447,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
     await advance(page, step, configuration.timeout);
   }
   assert.deepEqual(seen, STOPS, 'Exactly the intended tour stops');
-  return { stops: seen.length, methods: 4, longScrollStops: scrollEvidence };
+  return { stops: seen.length, methods: Object.keys(methodSelectors).length, longScrollStops: scrollEvidence };
 }
 
 async function welcomeCase(page, configuration, account = false) {
@@ -506,7 +533,7 @@ async function runCase(browser, config, task) {
   // saved map data. account-completed deliberately has no browser account flag.
   if (account && !welcomeTask) state.onboardingWelcomeCompleted = true;
   const regionalLocales = { es: 'es-MX', en: 'en-GB', zh: 'zh-Hans-CN', hi: 'hi-IN', ar: 'ar-SA', it: 'it-IT', pt: 'pt-BR', ru: 'ru-RU', de: 'de-DE', fr: 'fr-FR', da: 'da-DK' };
-  const height = task.name === 'fresh-journey' ? (task.width <= 390 ? 568 : task.width === 870 ? 667 : 835) : 835;
+  const height = ['fresh-journey', 'tour'].includes(task.name) ? (task.width <= 390 ? 568 : task.width === 870 ? 667 : 835) : 835;
   const context = await browser.newContext({ viewport: { width: task.width, height }, hasTouch: task.width <= 390, serviceWorkers: 'block', reducedMotion: reduced ? 'reduce' : 'no-preference', locale: regionalLocales[task.language] });
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));

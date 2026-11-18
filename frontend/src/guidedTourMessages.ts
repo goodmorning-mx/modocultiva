@@ -1,6 +1,8 @@
+import type { TourMethod } from './guidedTourCore';
+
 export const TOUR_LANGUAGES = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da'] as const;
 export type TourLanguage = typeof TOUR_LANGUAGES[number];
-export const TOUR_STAGE_IDS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', 'custom', 'bank', 'ai', 'localContacts', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'replay'] as const;
+export const TOUR_STAGE_IDS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', 'custom', 'bank', 'localContacts', 'globalIdeas', 'ai', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'replay'] as const;
 export type TourStageId = typeof TOUR_STAGE_IDS[number];
 type StageCopy = readonly [title: string, body: string];
 export type TourMessages = {
@@ -9,7 +11,7 @@ export type TourMessages = {
     loading: string; unavailable: string; methods: string; visitAll: string; visited: string;
     notVisited: string; nextClarity: string; level: string; counter: string;
   };
-  methods: Record<'custom' | 'bank' | 'ai' | 'localContacts', string>;
+  methods: Record<TourMethod, string>;
   /** Exactly three stages; validated replaces the THIRD label, never adds a fourth. */
   activityStages: readonly [string, string, string];
   validated: string;
@@ -19,8 +21,8 @@ export type TourMessages = {
 /** Explanatory copy, not a claim that pending backend features are enabled. */
 export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
   es: {
-    controls: { tour: 'Recorrido Modo Cultiva', back: 'Anterior', next: 'Siguiente', close: 'Cerrar recorrido', finish: 'Terminar recorrido', retry: 'Volver a buscar', loading: 'Abriendo la sección…', unavailable: 'Esta sección no está disponible para mostrarla ahora. Vuelve a buscar, retrocede o cierra el recorrido; tus datos siguen intactos.', methods: 'Cuatro caminos, una actividad', visitAll: 'Visita los cuatro métodos antes de continuar. Sólo explorar: no guardes, pagues ni envíes solicitudes.', visited: 'Visitado', notVisited: 'Por visitar', nextClarity: 'Descripción exacta del siguiente nivel de claridad', level: 'Nivel', counter: 'Paso {current} de {total}' },
-    methods: { custom: 'Personalizada', bank: 'Banco de 10 ideas', ai: 'Modo IA', localContacts: 'Contactos del siguiente nivel' },
+    controls: { tour: 'Recorrido Modo Cultiva', back: 'Anterior', next: 'Siguiente', close: 'Cerrar recorrido', finish: 'Terminar recorrido', retry: 'Volver a buscar', loading: 'Abriendo la sección…', unavailable: 'Esta sección no está disponible para mostrarla ahora. Vuelve a buscar, retrocede o cierra el recorrido; tus datos siguen intactos.', methods: 'Cinco caminos, una actividad', visitAll: 'Pulsa los cinco botones para continuar.', visited: 'Visitado', notVisited: 'Por visitar', nextClarity: 'Descripción exacta del siguiente nivel de claridad', level: 'Nivel', counter: 'Paso {current} de {total}' },
+    methods: { custom: 'Personalizada', bank: 'Banco de 10 ideas', localContacts: 'Contactos del siguiente nivel', globalIdeas: 'Ideas globales', ai: 'Modo IA' },
     activityStages: ['Definir actividad', 'Adjuntar foto o video', 'Esperar 3 aprobaciones'], validated: 'Validada',
     stages: {
       modes: ['Tu vida, en doce modos', 'Elige cualquiera de los 12 modos del carrusel. No hay un orden obligatorio: empieza por el área que hoy necesita tu atención.'],
@@ -28,7 +30,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['Reconoce tu punto de partida', 'Una cuenta nueva empieza en nivel 0. El siguiente nivel está arriba y se desbloquea cuando tu actividad reúne las 3 aprobaciones. No se reinicia el progreso existente.'],
       activityDesign: ['Diseña una actividad con intención', 'En los niveles 0–8 defines una actividad concreta para tu modo y nivel de origen, dirigida al siguiente nivel de claridad. Explorar el recorrido no exige guardar ni completar nada.'],
       nextClarity: ['La meta es tu siguiente claridad', 'Lee la descripción exacta del SIGUIENTE nivel que aparece aquí. Hacer la actividad debe ayudarte a reconocerte en esa descripción. Cumplir una tarea arbitraria del nivel actual no basta; la revisión también evalúa esta congruencia.'],
-      methods: ['Explora los cuatro caminos', 'Abre Personalizada, el banco de 10 ideas, Modo IA y contactos del siguiente nivel. Visita los cuatro antes de continuar; no necesitas guardar, pedir ideas, conectar ni consumir IA de pago.'],
+      methods: ['Explora las cinco opciones', 'Pulsa cada botón resaltado para ver qué hace. No se enviarán alertas ni se harán consultas de IA.'],
       custom: ['Tu propia propuesta', 'Redacta una actividad personal y viable, alineada con la descripción exacta de la siguiente claridad. Abrir el editor cuenta como visita; no hace falta guardar.'],
       bank: ['Un banco de diez ideas', 'Explora las 10 propuestas para tu modo y nivel. Adapta la que te sirva a tu contexto y a la siguiente claridad. Mirar el banco no selecciona ni guarda una actividad.'],
       ai: ['IA como apoyo, no como requisito', 'Explora el estudio IA y sus límites. No necesitas generar nada ni consumir una consulta de pago para completar el recorrido. Una sugerencia no promete resultados ni aprobación.'],
@@ -52,8 +54,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   en: {
-    controls: { tour: 'Modo Cultiva guided tour', back: 'Back', next: 'Next', close: 'Close tour', finish: 'Finish tour', retry: 'Find section again', loading: 'Opening the section…', unavailable: 'This section cannot be shown right now. Retry, go back or close the tour; your data is unchanged.', methods: 'Four paths, one activity', visitAll: 'Visit all four methods to continue. Explore only: no saving, payments or requests required.', visited: 'Visited', notVisited: 'Not yet visited', nextClarity: 'Exact description of the next clarity level', level: 'Level', counter: 'Step {current} of {total}' },
-    methods: { custom: 'Custom', bank: 'Bank of 10 ideas', ai: 'Mode AI', localContacts: 'Next-level contacts' },
+    controls: { tour: 'Modo Cultiva guided tour', back: 'Back', next: 'Next', close: 'Close tour', finish: 'Finish tour', retry: 'Find section again', loading: 'Opening the section…', unavailable: 'This section cannot be shown right now. Retry, go back or close the tour; your data is unchanged.', methods: 'Five ways to define an activity', visitAll: 'Select all five buttons to continue.', visited: 'Visited', notVisited: 'Not yet visited', nextClarity: 'Exact description of the next clarity level', level: 'Level', counter: 'Step {current} of {total}' },
+    methods: { custom: 'Custom', bank: 'Bank of 10 ideas', localContacts: 'Next-level contacts', globalIdeas: 'Global ideas', ai: 'Mode AI' },
     activityStages: ['Define activity', 'Attach photo or video', 'Wait for 3 approvals'], validated: 'Validated',
     stages: {
       modes: ['Your life, in twelve modes', 'Choose any of the 12 modes in the carousel. There is no required order: begin with the area that needs your attention today.'],
@@ -61,7 +63,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['Recognize your starting point', 'A new account starts at level 0. The next level is above and unlocks after 3 approvals. Existing progress is preserved.'],
       activityDesign: ['Design an intentional activity', 'At levels 0–8, define a concrete activity for your mode and source level, aimed at the next clarity level. Exploring this tour requires no saving or completion.'],
       nextClarity: ['Your destination is the next clarity', 'Read the exact NEXT-level description shown here. Doing the activity should help you recognize yourself in that description. Completing an arbitrary current-level task is not enough; reviewers also assess this congruence.'],
-      methods: ['Explore all four paths', 'Open Custom, the bank of 10 ideas, Mode AI and next-level contacts. Visit all four before continuing; no saving, requests, connections or paid AI calls are required.'],
+      methods: ['Explore all five options', 'Select each highlighted button to see what it does. No alerts or AI requests are sent.'],
       custom: ['Your own proposal', 'Describe a practical personal activity aligned with the exact next clarity description. Opening the editor counts as a visit; saving is not required.'],
       bank: ['A bank of ten ideas', 'Explore 10 suggestions for your mode and level. Adapt a useful idea to your circumstances and next clarity. Viewing the bank does not select or save an activity.'],
       ai: ['AI support, never a requirement', 'Explore the AI studio and its limits. You do not need to generate anything or use a paid query to finish the tour. A suggestion guarantees neither outcomes nor approval.'],
@@ -85,8 +87,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   zh: {
-    controls: { tour: 'Modo Cultiva 导览', back: '上一步', next: '下一步', close: '关闭导览', finish: '结束导览', retry: '重新查找', loading: '正在打开此区域…', unavailable: '暂时无法展示此区域。可以重试、返回或关闭导览；你的数据未改变。', methods: '四种方法，一个活动', visitAll: '查看全部四种方法后继续。只需浏览，无须保存、付款或发送请求。', visited: '已查看', notVisited: '未查看', nextClarity: '下一个清晰度等级的准确描述', level: '等级', counter: '第 {current} 步，共 {total} 步' },
-    methods: { custom: '自定义', bank: '10 个想法库', ai: '模式 AI', localContacts: '高一级的联系人' },
+    controls: { tour: 'Modo Cultiva 导览', back: '上一步', next: '下一步', close: '关闭导览', finish: '结束导览', retry: '重新查找', loading: '正在打开此区域…', unavailable: '暂时无法展示此区域。可以重试、返回或关闭导览；你的数据未改变。', methods: '五种方式，一项活动', visitAll: '点击全部五个按钮后继续。', visited: '已查看', notVisited: '未查看', nextClarity: '下一个清晰度等级的准确描述', level: '等级', counter: '第 {current} 步，共 {total} 步' },
+    methods: { custom: '自定义', bank: '10 个想法库', localContacts: '高一级的联系人', globalIdeas: '全球想法', ai: '模式 AI' },
     activityStages: ['定义活动', '附上照片或视频', '等待 3 人批准'], validated: '已验证',
     stages: {
       modes: ['生活的十二种模式', '从 轮播中的 12 种模式中任选一种。没有规定顺序，从今天最需要关注的领域开始。'],
@@ -94,7 +96,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['认识你的起点', '新账户从 0 级开始。上一层的新等级在获得 3 次批准后解锁。已有进度会保留。'],
       activityDesign: ['有目的地设计活动', '在 0–8 级，为当前模式和起始等级设计具体活动，目标是下一个清晰度等级。浏览导览不要求保存或完成活动。'],
       nextClarity: ['目标是下一个清晰度', '阅读此处显示的下一等级准确描述。做这个活动应帮助你在描述中认出自己。随意完成当前等级的一项任务并不足够；审核也会评估这种一致性。'],
-      methods: ['探索全部四种方法', '打开自定义、10 个想法库、模式 AI 和高一级的联系人。全部查看后再继续，无须保存、请求、建立连接或付费调用 AI。'],
+      methods: ['探索全部五个选项', '点击每个高亮按钮了解其用途。不会发送提醒或提交 AI 请求。'],
       custom: ['你自己的方案', '写下可行的个人活动，与下一清晰度的准确描述一致。打开编辑器即算查看，无须保存。'],
       bank: ['十个想法的库', '浏览适合当前模式和等级的 10 个建议，并按自己的情况及下一清晰度调整。查看不会选用或保存活动。'],
       ai: ['AI 是辅助，不是要求', '了解 AI 工作室及其限制。完成导览无须生成内容或使用付费查询。建议不保证结果或获批。'],
@@ -118,8 +120,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   hi: {
-    controls: { tour: 'Modo Cultiva परिचय', back: 'पीछे', next: 'आगे', close: 'परिचय बंद करें', finish: 'परिचय समाप्त करें', retry: 'फिर खोजें', loading: 'अनुभाग खुल रहा है…', unavailable: 'यह अनुभाग अभी नहीं दिख सकता। फिर खोजें, पीछे जाएँ या परिचय बंद करें; आपका डेटा नहीं बदला है।', methods: 'चार रास्ते, एक गतिविधि', visitAll: 'आगे जाने से पहले चारों तरीके देखें। केवल जानें; सहेजना, भुगतान या अनुरोध ज़रूरी नहीं।', visited: 'देख लिया', notVisited: 'अभी नहीं देखा', nextClarity: 'स्पष्टता के अगले स्तर का सटीक विवरण', level: 'स्तर', counter: 'चरण {current}, कुल {total}' },
-    methods: { custom: 'अपनी गतिविधि', bank: '10 विचारों का संग्रह', ai: 'मोड AI', localContacts: 'अगले स्तर के संपर्क' },
+    controls: { tour: 'Modo Cultiva परिचय', back: 'पीछे', next: 'आगे', close: 'परिचय बंद करें', finish: 'परिचय समाप्त करें', retry: 'फिर खोजें', loading: 'अनुभाग खुल रहा है…', unavailable: 'यह अनुभाग अभी नहीं दिख सकता। फिर खोजें, पीछे जाएँ या परिचय बंद करें; आपका डेटा नहीं बदला है।', methods: 'गतिविधि तय करने के पाँच तरीके', visitAll: 'आगे बढ़ने के लिए पाँचों बटन दबाएँ।', visited: 'देख लिया', notVisited: 'अभी नहीं देखा', nextClarity: 'स्पष्टता के अगले स्तर का सटीक विवरण', level: 'स्तर', counter: 'चरण {current}, कुल {total}' },
+    methods: { custom: 'अपनी गतिविधि', bank: '10 विचारों का संग्रह', localContacts: 'अगले स्तर के संपर्क', globalIdeas: 'वैश्विक विचार', ai: 'मोड AI' },
     activityStages: ['गतिविधि तय करें', 'फ़ोटो या वीडियो जोड़ें', '3 स्वीकृतियों की प्रतीक्षा'], validated: 'सत्यापित',
     stages: {
       modes: ['जीवन के बारह मोड', 'कैरोसेल में 12 मोड में से कोई चुनें। कोई तय क्रम नहीं है; आज जिस क्षेत्र को ध्यान चाहिए उससे शुरू करें।'],
@@ -127,7 +129,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['अपना आरंभ पहचानें', 'नया खाता स्तर 0 से शुरू होता है। अगला स्तर ऊपर है और 3 स्वीकृतियों के बाद खुलता है। पुरानी प्रगति बनी रहती है।'],
       activityDesign: ['उद्देश्यपूर्ण गतिविधि बनाएँ', 'स्तर 0–8 में अपने मोड और मूल स्तर के लिए ठोस गतिविधि तय करें, जिसका लक्ष्य स्पष्टता का अगला स्तर हो। परिचय में सहेजना या पूरा करना ज़रूरी नहीं।'],
       nextClarity: ['लक्ष्य है अगली स्पष्टता', 'यहाँ अगले स्तर का सटीक विवरण पढ़ें। गतिविधि करने से आपको उस विवरण में खुद को पहचानने में मदद मिलनी चाहिए। वर्तमान स्तर का कोई भी काम पूरा करना पर्याप्त नहीं; समीक्षक यह अनुरूपता भी जाँचेंगे।'],
-      methods: ['चारों रास्ते देखें', 'अपनी गतिविधि, 10 विचारों का संग्रह, मोड AI और अगले स्तर के संपर्क खोलें। चारों देखें; सहेजना, अनुरोध, जुड़ना या सशुल्क AI चलाना आवश्यक नहीं।'],
+      methods: ['पाँचों विकल्प देखें', 'हर हाइलाइट किए गए बटन को दबाकर उसका काम जानें। कोई सूचना या AI अनुरोध नहीं भेजा जाएगा।'],
       custom: ['आपका अपना प्रस्ताव', 'अगली स्पष्टता के सटीक विवरण से जुड़ी व्यावहारिक निजी गतिविधि लिखें। संपादक खोलना ही देखना है; सहेजना ज़रूरी नहीं।'],
       bank: ['दस विचारों का संग्रह', 'अपने मोड और स्तर के 10 सुझाव देखें। उपयोगी विचार को अपनी परिस्थिति और अगली स्पष्टता के अनुसार ढालें। देखने से गतिविधि चुनी या सहेजी नहीं जाती।'],
       ai: ['AI सहायता है, शर्त नहीं', 'AI स्टूडियो और सीमाएँ जानें। परिचय पूरा करने के लिए कुछ बनवाना या सशुल्क प्रश्न पूछना ज़रूरी नहीं। सुझाव परिणाम या स्वीकृति की गारंटी नहीं है।'],
@@ -151,8 +153,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   ar: {
-    controls: { tour: 'جولة Modo Cultiva', back: 'السابق', next: 'التالي', close: 'إغلاق الجولة', finish: 'إنهاء الجولة', retry: 'البحث مجدداً', loading: 'جارٍ فتح القسم…', unavailable: 'لا يمكن عرض هذا القسم الآن. أعد المحاولة أو ارجع أو أغلق الجولة؛ بياناتك لم تتغير.', methods: 'أربعة مسارات لنشاط واحد', visitAll: 'زر الطرق الأربع قبل المتابعة. الاستكشاف فقط؛ لا حفظ أو دفع أو إرسال طلبات.', visited: 'تمت الزيارة', notVisited: 'لم تتم الزيارة', nextClarity: 'الوصف الدقيق لمستوى الوضوح التالي', level: 'المستوى', counter: 'الخطوة {current} من {total}' },
-    methods: { custom: 'نشاط مخصص', bank: 'بنك 10 أفكار', ai: 'وضع الذكاء الاصطناعي', localContacts: 'جهات اتصال بالمستوى التالي' },
+    controls: { tour: 'جولة Modo Cultiva', back: 'السابق', next: 'التالي', close: 'إغلاق الجولة', finish: 'إنهاء الجولة', retry: 'البحث مجدداً', loading: 'جارٍ فتح القسم…', unavailable: 'لا يمكن عرض هذا القسم الآن. أعد المحاولة أو ارجع أو أغلق الجولة؛ بياناتك لم تتغير.', methods: 'خمس طرق لتحديد نشاط', visitAll: 'اضغط الأزرار الخمسة للمتابعة.', visited: 'تمت الزيارة', notVisited: 'لم تتم الزيارة', nextClarity: 'الوصف الدقيق لمستوى الوضوح التالي', level: 'المستوى', counter: 'الخطوة {current} من {total}' },
+    methods: { custom: 'نشاط مخصص', bank: 'بنك 10 أفكار', localContacts: 'جهات اتصال بالمستوى التالي', globalIdeas: 'أفكار عالمية', ai: 'وضع الذكاء الاصطناعي' },
     activityStages: ['تحديد النشاط', 'إرفاق صورة أو فيديو', 'انتظار 3 موافقات'], validated: 'تم التحقق',
     stages: {
       modes: ['حياتك في اثني عشر وضعاً', 'اختر أياً من الأوضاع الـ12 في العرض الدوّار. لا ترتيب إلزامياً؛ ابدأ بالمجال الذي يحتاج انتباهك اليوم.'],
@@ -160,7 +162,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['تعرّف إلى نقطة بدايتك', 'يبدأ الحساب الجديد من المستوى 0. المستوى التالي في الأعلى ويُفتح بعد 3 موافقات. يظل التقدم السابق محفوظًا.'],
       activityDesign: ['صمّم نشاطاً هادفاً', 'في المستويات 0–8 تحدد نشاطاً ملموساً لوضعك ومستوى الانطلاق باتجاه مستوى الوضوح التالي. لا يتطلب الاستكشاف حفظاً أو إنجازاً.'],
       nextClarity: ['الوجهة هي الوضوح التالي', 'اقرأ الوصف الدقيق للمستوى التالي هنا. ينبغي أن يساعدك تنفيذ النشاط على أن تجد نفسك في ذلك الوصف. لا يكفي إنجاز مهمة عشوائية بمستواك الحالي؛ يراجع الأعضاء هذا التوافق أيضاً.'],
-      methods: ['استكشف المسارات الأربعة', 'افتح النشاط المخصص وبنك 10 أفكار ووضع الذكاء الاصطناعي وجهات اتصال المستوى التالي. زر الأربعة قبل المتابعة؛ لا حفظ أو طلبات أو اتصال أو استخدام مدفوع للذكاء الاصطناعي.'],
+      methods: ['استكشف الخيارات الخمسة', 'اضغط كل زر مميز لتعرف وظيفته. لن تُرسل تنبيهات أو طلبات إلى الذكاء الاصطناعي.'],
       custom: ['اقتراحك الخاص', 'اكتب نشاطاً شخصياً عملياً يتوافق مع وصف الوضوح التالي بدقة. فتح المحرر يُحسب زيارة؛ الحفظ غير مطلوب.'],
       bank: ['بنك من عشر أفكار', 'استكشف 10 مقترحات لوضعك ومستواك وعدّل الفكرة المناسبة لسياقك والوضوح التالي. المشاهدة لا تختار نشاطاً ولا تحفظه.'],
       ai: ['الذكاء الاصطناعي دعم لا شرط', 'تعرّف إلى الاستوديو وحدوده. لا تحتاج توليد محتوى أو استعلام مدفوع لإكمال الجولة. الاقتراح لا يضمن نتائج أو موافقة.'],
@@ -184,8 +186,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   it: {
-    controls: { tour: 'Visita guidata Modo Cultiva', back: 'Indietro', next: 'Avanti', close: 'Chiudi la guida', finish: 'Termina la guida', retry: 'Cerca di nuovo', loading: 'Apertura della sezione…', unavailable: 'Questa sezione non è disponibile ora. Riprova, torna indietro o chiudi la guida; i tuoi dati non sono cambiati.', methods: 'Quattro percorsi, un’attività', visitAll: 'Visita tutti e quattro i metodi per continuare. Basta esplorare: niente salvataggi, pagamenti o richieste.', visited: 'Visitato', notVisited: 'Da visitare', nextClarity: 'Descrizione esatta del prossimo livello di chiarezza', level: 'Livello', counter: 'Passo {current} di {total}' },
-    methods: { custom: 'Personalizzata', bank: 'Banca di 10 idee', ai: 'Modo IA', localContacts: 'Contatti del livello successivo' },
+    controls: { tour: 'Visita guidata Modo Cultiva', back: 'Indietro', next: 'Avanti', close: 'Chiudi la guida', finish: 'Termina la guida', retry: 'Cerca di nuovo', loading: 'Apertura della sezione…', unavailable: 'Questa sezione non è disponibile ora. Riprova, torna indietro o chiudi la guida; i tuoi dati non sono cambiati.', methods: 'Cinque modi per definire un’attività', visitAll: 'Tocca tutti e cinque i pulsanti per continuare.', visited: 'Visitato', notVisited: 'Da visitare', nextClarity: 'Descrizione esatta del prossimo livello di chiarezza', level: 'Livello', counter: 'Passo {current} di {total}' },
+    methods: { custom: 'Personalizzata', bank: 'Banca di 10 idee', localContacts: 'Contatti del livello successivo', globalIdeas: 'Idee globali', ai: 'Modo IA' },
     activityStages: ['Definire l’attività', 'Allegare foto o video', 'Attendere 3 approvazioni'], validated: 'Convalidata',
     stages: {
       modes: ['La tua vita in dodici modalità', 'Scegli una qualsiasi delle 12 modalità nel carosello. Non c’è un ordine obbligatorio: parti dall’area che oggi richiede attenzione.'],
@@ -193,7 +195,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['Riconosci il tuo punto di partenza', 'Un nuovo account parte dal livello 0. Il livello successivo è in alto e si apre dopo 3 approvazioni. I progressi esistenti restano intatti.'],
       activityDesign: ['Progetta un’attività intenzionale', 'Ai livelli 0–8 definisci un’attività concreta per modalità e livello di origine, diretta al prossimo livello di chiarezza. Esplorare non richiede salvataggi o completamenti.'],
       nextClarity: ['La meta è la prossima chiarezza', 'Leggi qui la descrizione esatta del livello SUCCESSIVO. Svolgere l’attività dovrebbe aiutarti a riconoscerti in quella descrizione. Un compito qualsiasi del livello attuale non basta; la revisione valuta anche questa coerenza.'],
-      methods: ['Esplora tutti e quattro i percorsi', 'Apri Personalizzata, banca di 10 idee, Modo IA e contatti del livello successivo. Visitali tutti prima di proseguire; nessun salvataggio, richiesta, connessione o uso di IA a pagamento.'],
+      methods: ['Esplora tutte e cinque le opzioni', 'Tocca ogni pulsante evidenziato per scoprire come funziona. Non verranno inviati avvisi né richieste all’IA.'],
       custom: ['La tua proposta', 'Descrivi un’attività personale e realistica coerente con l’esatta prossima chiarezza. Aprire l’editor vale come visita; non serve salvare.'],
       bank: ['Una banca di dieci idee', 'Esplora 10 proposte per modalità e livello. Adatta un’idea al tuo contesto e alla prossima chiarezza. Guardare non seleziona né salva un’attività.'],
       ai: ['L’IA aiuta, non è obbligatoria', 'Esplora lo studio IA e i suoi limiti. Per finire la guida non devi generare contenuti o usare richieste a pagamento. Un suggerimento non garantisce risultati o approvazioni.'],
@@ -217,8 +219,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   pt: {
-    controls: { tour: 'Visita guiada Modo Cultiva', back: 'Voltar', next: 'Avançar', close: 'Fechar visita', finish: 'Concluir visita', retry: 'Buscar novamente', loading: 'Abrindo a seção…', unavailable: 'Esta seção não pode ser exibida agora. Tente novamente, volte ou feche a visita; seus dados não mudaram.', methods: 'Quatro caminhos, uma atividade', visitAll: 'Visite os quatro métodos antes de continuar. Basta explorar: sem salvar, pagar ou enviar pedidos.', visited: 'Visitado', notVisited: 'A visitar', nextClarity: 'Descrição exata do próximo nível de clareza', level: 'Nível', counter: 'Etapa {current} de {total}' },
-    methods: { custom: 'Personalizada', bank: 'Banco de 10 ideias', ai: 'Modo IA', localContacts: 'Contatos do próximo nível' },
+    controls: { tour: 'Visita guiada Modo Cultiva', back: 'Voltar', next: 'Avançar', close: 'Fechar visita', finish: 'Concluir visita', retry: 'Buscar novamente', loading: 'Abrindo a seção…', unavailable: 'Esta seção não pode ser exibida agora. Tente novamente, volte ou feche a visita; seus dados não mudaram.', methods: 'Cinco caminhos, uma atividade', visitAll: 'Toque nos cinco botões para continuar.', visited: 'Visitado', notVisited: 'A visitar', nextClarity: 'Descrição exata do próximo nível de clareza', level: 'Nível', counter: 'Etapa {current} de {total}' },
+    methods: { custom: 'Personalizada', bank: 'Banco de 10 ideias', localContacts: 'Contatos do próximo nível', globalIdeas: 'Ideias globais', ai: 'Modo IA' },
     activityStages: ['Definir atividade', 'Anexar foto ou vídeo', 'Aguardar 3 aprovações'], validated: 'Validada',
     stages: {
       modes: ['Sua vida em doze modos', 'Escolha qualquer um dos 12 modos no carrossel. Não há ordem obrigatória: comece pela área que precisa de atenção hoje.'],
@@ -226,7 +228,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['Reconheça seu ponto de partida', 'Uma conta nova começa no nível 0. O próximo nível fica acima e é liberado após 3 aprovações. O progresso existente é preservado.'],
       activityDesign: ['Desenhe uma atividade com intenção', 'Nos níveis 0–8, defina uma atividade concreta para seu modo e nível de origem, voltada ao próximo nível de clareza. Explorar não exige salvar nem concluir nada.'],
       nextClarity: ['O destino é a próxima clareza', 'Leia a descrição exata do PRÓXIMO nível aqui. Fazer a atividade deve ajudar você a se reconhecer nessa descrição. Cumprir uma tarefa qualquer do nível atual não basta; a revisão avalia essa congruência.'],
-      methods: ['Explore os quatro caminhos', 'Abra Personalizada, banco de 10 ideias, Modo IA e contatos do próximo nível. Visite os quatro antes de continuar; sem salvar, pedir ideias, conectar ou consumir IA paga.'],
+      methods: ['Explore as cinco opções', 'Toque em cada botão destacado para saber o que ele faz. Nenhum alerta ou pedido à IA será enviado.'],
       custom: ['Sua própria proposta', 'Descreva uma atividade pessoal viável alinhada à descrição exata da próxima clareza. Abrir o editor conta como visita; não precisa salvar.'],
       bank: ['Um banco de dez ideias', 'Explore 10 sugestões para seu modo e nível. Adapte uma ideia ao seu contexto e à próxima clareza. Olhar o banco não escolhe nem salva uma atividade.'],
       ai: ['IA como apoio, não obrigação', 'Explore o estúdio IA e seus limites. Não precisa gerar conteúdo nem usar consulta paga para concluir a visita. Uma sugestão não garante resultados ou aprovação.'],
@@ -250,8 +252,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   ru: {
-    controls: { tour: 'Экскурсия Modo Cultiva', back: 'Назад', next: 'Далее', close: 'Закрыть экскурсию', finish: 'Завершить экскурсию', retry: 'Найти снова', loading: 'Открываем раздел…', unavailable: 'Сейчас раздел нельзя показать. Повторите поиск, вернитесь или закройте экскурсию; ваши данные не изменились.', methods: 'Четыре пути, одна активность', visitAll: 'Посетите все четыре метода. Достаточно просмотра: сохранения, оплаты и запросы не нужны.', visited: 'Посещён', notVisited: 'Ещё не посещён', nextClarity: 'Точное описание следующего уровня ясности', level: 'Уровень', counter: 'Шаг {current} из {total}' },
-    methods: { custom: 'Свой вариант', bank: 'Банк из 10 идей', ai: 'Режим ИИ', localContacts: 'Контакты следующего уровня' },
+    controls: { tour: 'Экскурсия Modo Cultiva', back: 'Назад', next: 'Далее', close: 'Закрыть экскурсию', finish: 'Завершить экскурсию', retry: 'Найти снова', loading: 'Открываем раздел…', unavailable: 'Сейчас раздел нельзя показать. Повторите поиск, вернитесь или закройте экскурсию; ваши данные не изменились.', methods: 'Пять способов выбрать задание', visitAll: 'Нажмите все пять кнопок, чтобы продолжить.', visited: 'Посещён', notVisited: 'Ещё не посещён', nextClarity: 'Точное описание следующего уровня ясности', level: 'Уровень', counter: 'Шаг {current} из {total}' },
+    methods: { custom: 'Свой вариант', bank: 'Банк из 10 идей', localContacts: 'Контакты следующего уровня', globalIdeas: 'Глобальные идеи', ai: 'Режим ИИ' },
     activityStages: ['Определить активность', 'Прикрепить фото или видео', 'Ждать 3 одобрения'], validated: 'Подтверждено',
     stages: {
       modes: ['Ваша жизнь в двенадцати режимах', 'Выберите любой из 12 режимов в карусели. Обязательного порядка нет: начните с области, которой нужно внимание сегодня.'],
@@ -259,7 +261,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['Определите отправную точку', 'Новый аккаунт начинает с уровня 0. Следующий уровень расположен выше и открывается после 3 одобрений. Прежний прогресс сохраняется.'],
       activityDesign: ['Создайте осмысленную активность', 'На уровнях 0–8 задайте конкретную активность для режима и исходного уровня, направленную к следующей ясности. Просмотр не требует сохранения или выполнения.'],
       nextClarity: ['Цель — следующая ясность', 'Прочитайте точное описание СЛЕДУЮЩЕГО уровня здесь. Выполнение должно помочь узнать себя в этом описании. Произвольной задачи текущего уровня недостаточно; рецензенты проверяют и это соответствие.'],
-      methods: ['Исследуйте четыре пути', 'Откройте свой вариант, банк из 10 идей, режим ИИ и контакты следующего уровня. Посетите все четыре; сохранять, запрашивать, подключаться или платить за ИИ не нужно.'],
+      methods: ['Изучите все пять вариантов', 'Нажмите каждую выделенную кнопку, чтобы узнать, как она работает. Уведомления и запросы к ИИ не отправляются.'],
       custom: ['Ваше предложение', 'Опишите реалистичную личную активность, согласованную с точным описанием следующей ясности. Открытие редактора считается посещением; сохранять не требуется.'],
       bank: ['Банк из десяти идей', 'Изучите 10 предложений для режима и уровня. Адаптируйте полезную идею к себе и следующей ясности. Просмотр не выбирает и не сохраняет активность.'],
       ai: ['ИИ — помощь, а не условие', 'Изучите студию ИИ и ограничения. Для завершения экскурсии не нужны генерации или платные запросы. Совет не гарантирует результат или одобрение.'],
@@ -283,8 +285,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   de: {
-    controls: { tour: 'Modo Cultiva Rundgang', back: 'Zurück', next: 'Weiter', close: 'Rundgang schließen', finish: 'Rundgang beenden', retry: 'Erneut suchen', loading: 'Bereich wird geöffnet…', unavailable: 'Dieser Bereich lässt sich gerade nicht zeigen. Erneut suchen, zurückgehen oder schließen; deine Daten bleiben unverändert.', methods: 'Vier Wege, eine Aktivität', visitAll: 'Besuche alle vier Methoden. Erkunden genügt: kein Speichern, Bezahlen oder Anfragen nötig.', visited: 'Besucht', notVisited: 'Noch offen', nextClarity: 'Exakte Beschreibung der nächsten Klarheitsstufe', level: 'Stufe', counter: 'Schritt {current} von {total}' },
-    methods: { custom: 'Eigener Entwurf', bank: 'Sammlung mit 10 Ideen', ai: 'Modus KI', localContacts: 'Kontakte der nächsten Stufe' },
+    controls: { tour: 'Modo Cultiva Rundgang', back: 'Zurück', next: 'Weiter', close: 'Rundgang schließen', finish: 'Rundgang beenden', retry: 'Erneut suchen', loading: 'Bereich wird geöffnet…', unavailable: 'Dieser Bereich lässt sich gerade nicht zeigen. Erneut suchen, zurückgehen oder schließen; deine Daten bleiben unverändert.', methods: 'Fünf Wege, eine Aktivität', visitAll: 'Wähle alle fünf Schaltflächen aus, um fortzufahren.', visited: 'Besucht', notVisited: 'Noch offen', nextClarity: 'Exakte Beschreibung der nächsten Klarheitsstufe', level: 'Stufe', counter: 'Schritt {current} von {total}' },
+    methods: { custom: 'Eigener Entwurf', bank: 'Sammlung mit 10 Ideen', localContacts: 'Kontakte der nächsten Stufe', globalIdeas: 'Globale Ideen', ai: 'Modus KI' },
     activityStages: ['Aktivität definieren', 'Foto oder Video anhängen', 'Auf 3 Zustimmungen warten'], validated: 'Validiert',
     stages: {
       modes: ['Dein Leben in zwölf Modi', 'Wähle einen beliebigen der 12 Modi im Karussell. Es gibt keine feste Reihenfolge: Beginne mit dem Bereich, der heute Aufmerksamkeit braucht.'],
@@ -292,7 +294,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['Erkenne deinen Ausgangspunkt', 'Ein neues Konto beginnt auf Stufe 0. Die nächste Stufe liegt oben und wird nach 3 Bestätigungen freigeschaltet. Bisheriger Fortschritt bleibt erhalten.'],
       activityDesign: ['Gestalte eine gezielte Aktivität', 'Auf Stufen 0–8 definierst du eine konkrete Aktivität für Modus und Ausgangsstufe mit Ziel nächste Klarheitsstufe. Erkunden erfordert weder Speichern noch Abschließen.'],
       nextClarity: ['Das Ziel ist die nächste Klarheit', 'Lies hier die exakte Beschreibung der NÄCHSTEN Stufe. Die Aktivität soll dir helfen, dich darin wiederzuerkennen. Eine beliebige Aufgabe der aktuellen Stufe reicht nicht; auch diese Übereinstimmung wird geprüft.'],
-      methods: ['Erkunde alle vier Wege', 'Öffne eigenen Entwurf, Sammlung mit 10 Ideen, Modus KI und Kontakte der nächsten Stufe. Besuche alle vier; kein Speichern, Anfragen, Vernetzen oder kostenpflichtiger KI-Aufruf nötig.'],
+      methods: ['Erkunde alle fünf Optionen', 'Wähle jede hervorgehobene Schaltfläche aus. Es werden weder Mitteilungen noch KI-Anfragen gesendet.'],
       custom: ['Dein eigener Vorschlag', 'Beschreibe eine machbare persönliche Aktivität passend zur exakten nächsten Klarheit. Den Editor zu öffnen zählt als Besuch; Speichern ist nicht nötig.'],
       bank: ['Zehn Ideen zur Auswahl', 'Erkunde 10 Vorschläge für Modus und Stufe. Passe eine Idee an deinen Kontext und die nächste Klarheit an. Ansehen wählt oder speichert keine Aktivität.'],
       ai: ['KI als Hilfe, nicht als Pflicht', 'Erkunde das KI-Studio und seine Grenzen. Du musst nichts generieren oder kostenpflichtig abfragen. Ein Vorschlag garantiert weder Wirkung noch Zustimmung.'],
@@ -316,8 +318,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   fr: {
-    controls: { tour: 'Visite guidée Modo Cultiva', back: 'Précédent', next: 'Suivant', close: 'Fermer la visite', finish: 'Terminer la visite', retry: 'Rechercher à nouveau', loading: 'Ouverture de la section…', unavailable: 'Cette section ne peut pas être affichée maintenant. Réessayez, revenez ou fermez la visite ; vos données restent intactes.', methods: 'Quatre chemins, une activité', visitAll: 'Visitez les quatre méthodes avant de continuer. Explorer suffit : ni sauvegarde, ni paiement, ni demande.', visited: 'Visité', notVisited: 'À visiter', nextClarity: 'Description exacte du prochain niveau de clarté', level: 'Niveau', counter: 'Étape {current} sur {total}' },
-    methods: { custom: 'Personnalisée', bank: 'Banque de 10 idées', ai: 'Mode IA', localContacts: 'Contacts du niveau suivant' },
+    controls: { tour: 'Visite guidée Modo Cultiva', back: 'Précédent', next: 'Suivant', close: 'Fermer la visite', finish: 'Terminer la visite', retry: 'Rechercher à nouveau', loading: 'Ouverture de la section…', unavailable: 'Cette section ne peut pas être affichée maintenant. Réessayez, revenez ou fermez la visite ; vos données restent intactes.', methods: 'Cinq façons de définir une activité', visitAll: 'Touchez les cinq boutons pour continuer.', visited: 'Visité', notVisited: 'À visiter', nextClarity: 'Description exacte du prochain niveau de clarté', level: 'Niveau', counter: 'Étape {current} sur {total}' },
+    methods: { custom: 'Personnalisée', bank: 'Banque de 10 idées', localContacts: 'Contacts du niveau suivant', globalIdeas: 'Idées mondiales', ai: 'Mode IA' },
     activityStages: ['Définir l’activité', 'Joindre photo ou vidéo', 'Attendre 3 approbations'], validated: 'Validée',
     stages: {
       modes: ['Votre vie en douze modes', 'Choisissez un des 12 modes du carrousel. Aucun ordre imposé : commencez par le domaine qui demande votre attention aujourd’hui.'],
@@ -325,7 +327,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['Reconnaissez votre point de départ', 'Un nouveau compte commence au niveau 0. Le niveau suivant est au-dessus et se déverrouille après 3 approbations. Les progrès existants sont conservés.'],
       activityDesign: ['Concevez une activité intentionnelle', 'Aux niveaux 0–8, définissez une activité concrète pour votre mode et niveau de départ, orientée vers la prochaine clarté. Explorer n’exige ni sauvegarde ni réalisation.'],
       nextClarity: ['La destination est la prochaine clarté', 'Lisez ici la description exacte du niveau SUIVANT. Faire l’activité doit vous aider à vous reconnaître dans cette description. Une tâche quelconque du niveau actuel ne suffit pas ; la revue évalue aussi cette cohérence.'],
-      methods: ['Explorez les quatre chemins', 'Ouvrez Personnalisée, banque de 10 idées, Mode IA et contacts du niveau suivant. Visitez les quatre ; aucune sauvegarde, demande, connexion ou requête IA payante nécessaire.'],
+      methods: ['Explorez les cinq options', 'Touchez chaque bouton mis en évidence pour découvrir son rôle. Aucune alerte ni requête à l’IA ne sera envoyée.'],
       custom: ['Votre propre proposition', 'Décrivez une activité personnelle réalisable, conforme à la description exacte de la prochaine clarté. Ouvrir l’éditeur suffit comme visite ; pas besoin de sauvegarder.'],
       bank: ['Une banque de dix idées', 'Explorez 10 propositions pour votre mode et niveau. Adaptez une idée à votre contexte et à la prochaine clarté. Consulter ne choisit ni ne sauvegarde une activité.'],
       ai: ['L’IA aide, elle n’est pas obligatoire', 'Découvrez le studio IA et ses limites. Finir la visite n’exige ni génération ni requête payante. Une suggestion ne garantit aucun résultat ni approbation.'],
@@ -349,8 +351,8 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
     },
   },
   da: {
-    controls: { tour: 'Modo Cultiva rundvisning', back: 'Tilbage', next: 'Næste', close: 'Luk rundvisning', finish: 'Afslut rundvisning', retry: 'Find igen', loading: 'Åbner sektionen…', unavailable: 'Sektionen kan ikke vises lige nu. Prøv igen, gå tilbage eller luk; dine data er uændrede.', methods: 'Fire veje, én aktivitet', visitAll: 'Besøg alle fire metoder, før du fortsætter. Udforsk blot: ingen gemning, betaling eller anmodninger.', visited: 'Besøgt', notVisited: 'Ikke besøgt endnu', nextClarity: 'Præcis beskrivelse af næste klarhedsniveau', level: 'Niveau', counter: 'Trin {current} af {total}' },
-    methods: { custom: 'Egen aktivitet', bank: 'Bank med 10 idéer', ai: 'Modus AI', localContacts: 'Kontakter på næste niveau' },
+    controls: { tour: 'Modo Cultiva rundvisning', back: 'Tilbage', next: 'Næste', close: 'Luk rundvisning', finish: 'Afslut rundvisning', retry: 'Find igen', loading: 'Åbner sektionen…', unavailable: 'Sektionen kan ikke vises lige nu. Prøv igen, gå tilbage eller luk; dine data er uændrede.', methods: 'Fem veje, én aktivitet', visitAll: 'Tryk på alle fem knapper for at fortsætte.', visited: 'Besøgt', notVisited: 'Ikke besøgt endnu', nextClarity: 'Præcis beskrivelse af næste klarhedsniveau', level: 'Niveau', counter: 'Trin {current} af {total}' },
+    methods: { custom: 'Egen aktivitet', bank: 'Bank med 10 idéer', localContacts: 'Kontakter på næste niveau', globalIdeas: 'Globale idéer', ai: 'Modus AI' },
     activityStages: ['Definér aktiviteten', 'Vedhæft foto eller video', 'Afvent 3 godkendelser'], validated: 'Valideret',
     stages: {
       modes: ['Dit liv i tolv modi', 'Vælg en af de 12 modi i karrusellen. Ingen bestemt rækkefølge: Start med det område, der behøver opmærksomhed i dag.'],
@@ -358,7 +360,7 @@ export const guidedTourMessages: Record<TourLanguage, TourMessages> = {
       selfAssessment: ['Genkend dit udgangspunkt', 'En ny konto starter på niveau 0. Næste niveau ligger ovenfor og låses op efter 3 godkendelser. Tidligere fremskridt bevares.'],
       activityDesign: ['Skab en målrettet aktivitet', 'På niveau 0–8 definerer du en konkret aktivitet for modus og kildeniveau rettet mod næste klarhedsniveau. Udforskning kræver ikke gemning eller gennemførelse.'],
       nextClarity: ['Målet er næste klarhed', 'Læs den præcise beskrivelse af NÆSTE niveau her. Aktiviteten skal hjælpe dig med at genkende dig selv i den beskrivelse. En vilkårlig opgave på nuværende niveau er ikke nok; bedømmelsen vurderer også denne sammenhæng.'],
-      methods: ['Udforsk alle fire veje', 'Åbn egen aktivitet, banken med 10 idéer, Modus AI og kontakter på næste niveau. Besøg alle fire; ingen gemning, anmodninger, forbindelser eller betalte AI-kald kræves.'],
+      methods: ['Udforsk alle fem muligheder', 'Tryk på hver fremhævet knap for at se, hvad den gør. Der sendes ingen beskeder eller AI-anmodninger.'],
       custom: ['Dit eget forslag', 'Beskriv en realistisk personlig aktivitet, der passer til den præcise næste klarhed. At åbne editoren tæller som besøg; du behøver ikke gemme.'],
       bank: ['En bank med ti idéer', 'Udforsk 10 forslag til modus og niveau. Tilpas en idé til din situation og næste klarhed. At se banken vælger eller gemmer ikke en aktivitet.'],
       ai: ['AI som støtte, ikke et krav', 'Udforsk AI-studiet og dets grænser. Du skal ikke generere noget eller bruge en betalt forespørgsel for at afslutte. Et forslag garanterer hverken resultat eller godkendelse.'],
