@@ -29,6 +29,8 @@ CASES.push('guest-language-switch', 'account-language-switch');
 CASES.push('mode-editorial');
 CASES.push('global-editorial');
 CASES.push('specialist-editorial');
+CASES.push('install-guide');
+const FIXTURE_ONLY_CASES = ['premium-access-fixture'];
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
 const VISITOR = 'synthetic-onboarding-visitor';
@@ -72,6 +74,8 @@ const { modeAiMessage } = sourceModule('src/modeAiMessages.ts');
 const { globalIdeaTitle } = sourceModule('src/globalIdeaPractices.ts');
 const { globalIdeaBio } = sourceModule('src/globalIdeaBios.ts');
 const { specialistProfileCopy, specialistExampleCopy, specialistProfileIds } = sourceModule('src/specialistProfilesEditorial.ts');
+const { planAccessCopy } = sourceModule('src/planAccessCopy.ts');
+const { planDetailsForLocale, planKeys } = sourceModule('src/planTierEditorial.ts');
 const STOPS = TOUR_STOPS.filter(stop => (JOURNEY_REACTIONS_ENABLED || stop !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || stop !== 'audience'));
 
 function options(argv) {
@@ -96,7 +100,7 @@ function options(argv) {
   result.url = url.origin;
   for (const language of result.languages) assert.ok(LANGUAGES.includes(language), `Unsupported language ${language}`);
   for (const width of result.widths) assert.ok(WIDTHS.includes(width), `Unsupported width ${width}`);
-  for (const name of result.cases) assert.ok(CASES.includes(name), `Unknown case ${name}`);
+  for (const name of result.cases) assert.ok([...CASES, ...FIXTURE_ONLY_CASES].includes(name), `Unknown case ${name}`);
   for (const key of ['replays', 'workers', 'timeout']) assert.ok(Number.isInteger(result[key]) && result[key] > 0, `Invalid ${key}`);
   assert.ok(result.workers <= 4 && result.replays <= 10 && result.timeout <= 60000);
   return result;
@@ -442,7 +446,9 @@ async function runCase(browser, config, task) {
   const modeEditorial = task.name === 'mode-editorial';
   const globalEditorial = task.name === 'global-editorial';
   const specialistEditorial = task.name === 'specialist-editorial';
-  const editorialCase = modeEditorial || globalEditorial || specialistEditorial;
+  const premiumAccess = task.name === 'premium-access-fixture';
+  const installGuide = task.name === 'install-guide';
+  const editorialCase = modeEditorial || globalEditorial || specialistEditorial || premiumAccess || installGuide;
   if (switchesLanguage) {
     state.profileName = 'Cultiva todos tus modos.';
     if (account) state.languageSource = 'manual';
@@ -466,6 +472,17 @@ async function runCase(browser, config, task) {
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
   const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads });
   await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: editorialCase ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !editorialCase, cachedManual: task.name.includes('ambiguous-cache') });
+  const iosGuide = installGuide && task.width <= 390;
+  if (iosGuide) await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'userAgent', { configurable: true, get: () => 'iPhone Synthetic QA Safari' });
+  });
+  const setLocale = async language => {
+    await page.evaluate(language => {
+      Object.defineProperty(navigator, 'languages', { configurable: true, get: () => [language] });
+      dispatchEvent(new Event('languagechange'));
+    }, language);
+    await eventually(async () => await page.locator('html').getAttribute('lang') === (language === 'zh' ? 'zh-CN' : language), 'Browser language changes live');
+  };
   if (task.name.endsWith('electric-home') && !account) await context.addInitScript(() => {
     if (!localStorage.getItem('__electric_seed')) {
       localStorage.setItem('modo-cultiva:guest-cache:v1:modoCultiva_homeVisionCards', JSON.stringify({fisico:true}));
@@ -544,6 +561,71 @@ async function runCase(browser, config, task) {
         await assertPreserved(page, state, account);
         await assertMap(page, state.levels);
         result = { switchedLanguages:11, sameShell:true, manualSurvivesReload:true, guestFollowsBrowser:!account, userTextPreserved:true };
+      } else if (installGuide) {
+        const switchingTo = task.language === 'hi' ? 'ar' : 'hi';
+        await page.locator('.home-menu-button').click();
+        const sidebar = page.locator('.home-sidebar-nav');
+        assert.equal(await sidebar.locator('button').count(), 8, 'Premium remains hidden in the shipping build');
+        await sidebar.locator('[data-home-menu-item="dashboard"]').click();
+        const controls = page.locator('.pwa-controls');
+        await controls.locator('.pwa-action--install').click();
+        const guide = page.locator('.pwa-guide');
+        await guide.waitFor();
+        const direction = await guide.evaluate(el => getComputedStyle(el).direction);
+        assert.equal(direction, task.language === 'ar' ? 'rtl' : 'ltr');
+        const firstLabel = await controls.getAttribute('aria-label');
+        const steps = guide.locator('li');
+        const original = await steps.allTextContents();
+        assert.equal(original.length, iosGuide ? 3 : 2);
+        await setLocale(switchingTo);
+        assert.notEqual(await controls.getAttribute('aria-label'), firstLabel);
+        assert.notDeepEqual(await steps.allTextContents(), original);
+        assert.match(await steps.last().textContent(), switchingTo === 'hi' ? /होम स्क्रीन पर जोड़ें/ : /الشاشة الرئيسية/);
+        await guide.locator('.pwa-guide-close').click();
+        assert.equal(await guide.count(), 0);
+        result = { installationCopy: true, installedNothing: true, platform: iosGuide ? 'ios guide' : 'browser guide', premiumRemainedHidden: true };
+      } else if (premiumAccess) {
+        const code = task.language;
+        const alternate = code === 'fr' ? 'ar' : 'fr';
+        await selectPhysicalMode(page);
+        await page.locator('.journey-step-list button').nth(1).click();
+        await page.locator('.journey-recommended-button').click();
+        await page.locator('.bank-use').click();
+        const plans = page.locator('.plans-view');
+        const dialog = page.locator('.plan-detail-modal');
+        const assertPlan = async (language, plan) => {
+          const expected = planDetailsForLocale(language, plan);
+          assert.equal(await plans.locator('h1').textContent(), planAccessCopy(language).plansTitle);
+          assert.equal(await dialog.locator('h2').textContent(), expected.name);
+          assert.equal(await dialog.locator('.plan-detail-price').textContent(), expected.price);
+          assert.equal(await dialog.locator('.plan-detail-promise').textContent(), expected.promise);
+          assert.deepEqual(await dialog.locator('li').allTextContents(), expected.features);
+        };
+        await assertPlan(code, 'basic');
+        assert.equal(await page.locator('.journey-panel').count(), 0, 'Journey does not cover the gated flow');
+        await setLocale(alternate);
+        await assertPlan(alternate, 'basic');
+        await dialog.locator('.close-journey').click();
+        const cards = plans.locator('.plan-card');
+        for (const [index, plan] of planKeys.entries()) {
+          if (!index) continue;
+          await cards.nth(index).click();
+          await assertPlan(alternate, plan);
+          await dialog.locator('.close-journey').click();
+        }
+        await plans.locator('.plans-signup').click();
+        await page.locator('#login-name').waitFor();
+        const login = page.locator('.login-view');
+        assert.equal(await login.locator('h1').textContent(), planAccessCopy(alternate).contextualTitle);
+        const names = { fr: 'Activités recommandées', ar: 'الأنشطة الموصى بها' };
+        assert.ok((await login.locator('.login-copy').textContent()).includes('Entry'));
+        assert.ok((await login.locator('.login-copy').textContent()).includes(names[alternate]), 'The gated feature is named in the current language');
+        await setLocale(code);
+        assert.equal(await login.locator('h1').textContent(), planAccessCopy(code).contextualTitle);
+        await login.getByRole('button', {name: planAccessCopy(code).continueGuest}).click();
+        await page.locator('.welcome-view').waitFor();
+        await assertPreserved(page, state);
+        result = { fixtureOnlyPremium: true, plans: planKeys.length, unlockedNothing: true, contextRetainedInLogin: true, originalActivityPreserved: true };
       } else if (specialistEditorial) {
         const code = task.language;
         const alternate = code === 'fr' ? 'ar' : 'fr';
@@ -1144,6 +1226,15 @@ function selfTest() {
     const exampleTopics = MODES.map(mode => specialistExampleCopy(language, mode, mode).specialty);
     assert.ok(exampleTopics.every(Boolean));
     assert.equal(new Set(exampleTopics).size, MODES.length);
+    for (const [index, plan] of planKeys.entries()) {
+      const details = planDetailsForLocale(language, plan);
+      assert.match(details.price, /MXN/u);
+      assert.equal(details.features.length, [12, 10, 13][index]);
+      assert.ok(details.features.every(text => text?.trim()));
+      assert.equal(new Set(details.features).size, details.features.length);
+      assert.ok(planAccessCopy(language).contextualDescription('feature-fixture', details.name).includes(details.name));
+      if (language !== 'es') assert.notEqual(details.features[0], planDetailsForLocale('es', plan).features[0]);
+    }
     const document = fixture(language); assert.equal(Object.keys(document.levels).length, 12); sameProtected(clone(document), document);
   }
   emit({ selfTest: 'PASS', languages: 11, widths: WIDTHS, tourStops: STOPS.length, cases: CASES, safety: 'loopback preview only; all API requests intercepted; no dependencies installed' });
@@ -1157,7 +1248,7 @@ async function main() {
   catch { playwright = require(resolve(dirname(process.execPath), '..', 'node_modules', 'playwright')); }
   const tasks = [];
   for (const name of config.cases) {
-    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || ['account-journey-ascent', 'mode-editorial', 'global-editorial', 'specialist-editorial'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
+    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || ['account-journey-ascent', 'mode-editorial', 'global-editorial', 'specialist-editorial', 'install-guide', 'premium-access-fixture'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
     else for (const [index, width] of config.widths.entries()) {
       const language = config.languages[index % config.languages.length];
       if (name === 'identity') for (const identity of ['normal', 'forged', 'owner']) tasks.push({ name, width, language, identity });
