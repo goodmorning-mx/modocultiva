@@ -1024,7 +1024,7 @@ async function runCase(browser, config, task) {
           const asset = { emocional: 'emocional-electrico.svg?v=3', intelectual: 'intelectual-electrico.svg', espiritual: 'espiritual-electrico.svg', profesional: 'profesional-electrico.svg', fisico: 'visionario.webp', visionario: 'fisico.webp', ludico: 'ludico-electrico.svg?v=2' }[mode] ?? `${mode}.webp`;
           assert.equal(await artwork.getAttribute('src'), `/mode-symbols/${asset}`);
           await eventually(() => artwork.evaluate(img => img.complete && img.naturalWidth > 0), 'Premium artwork loaded');
-          const scale = { intelectual: .536, visionario: .8375, arquetipico: .67, espiritual: .67, familiar: .67, profesional: .67, social: .67, financiero: .67, romantico: .67 }[mode] ?? 1;
+          const scale = { fisico: .90, intelectual: .536, emocional: .85, arquetipico: .737, espiritual: .603, romantico: .67, familiar: .737, social: .67, financiero: .67, profesional: .67, ludico: .95, visionario: .8375 }[mode];
           assert.equal(await artwork.evaluate(img => {
             const matrix = getComputedStyle(img).transform;
             return matrix === 'none' ? 1 : new DOMMatrix(matrix).a;
