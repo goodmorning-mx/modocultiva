@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 136">
+  <defs>
+    <linearGradient id="copper" gradientUnits="userSpaceOnUse" x1="28" y1="17" x2="122" y2="127">
+      <stop stop-color="#f9ddc0"/>
+      <stop offset=".52" stop-color="#d9a684"/>
+      <stop offset="1" stop-color="#b67f5c"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#copper)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M80 25V8m-29 17h58c25 0 45 20 45 45v28c0 14-10 25-24 25-12 0-19-8-26-19l-7-11c-4-6-8-8-14-8h-6c-6 0-10 2-14 8l-7 11c-7 11-14 19-26 19-14 0-24-11-24-25V70c0-25 20-45 45-45Z"/>
+    <circle cx="45" cy="63" r="14"/>
+    <path d="M101 63h28m-14-14v28"/>
+  </g>
+</svg>
