@@ -30,6 +30,7 @@ CASES.push('mode-editorial');
 CASES.push('global-editorial');
 CASES.push('specialist-editorial');
 CASES.push('install-guide');
+CASES.push('management-surfaces', 'account-community-surfaces', 'anonymous-public-surface');
 const FIXTURE_ONLY_CASES = ['premium-access-fixture'];
 const ORG = '00000000-0000-4000-8000-000000000100';
 const USER = '00000000-0000-4000-8000-000000000101';
@@ -38,6 +39,12 @@ const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJA
 const ACTIVITY = 'Synthetic saved practice: walk mindfully at the same time each morning.';
 const ALIGNMENT = 'Repeating this practice supports recognizing myself in the exact NEXT clarity description.';
 const PROPOSAL = 'Synthetic fixture proposal. No AI provider was contacted or charged.';
+const CARD_ID = '00000000-0000-4000-8000-000000000202';
+const REVIEW_ID = '00000000-0000-4000-8000-000000000203';
+const OTHER_USER = '00000000-0000-4000-8000-000000000204';
+const NOTICE_KIND = 'evidence_validated';
+const EVIDENCE_TEXT = 'Original evidence note · conservar sin traducir.';
+const CLARITY_CATALOG = JSON.parse(readFileSync(resolve(frontend, 'src/clarity-levels.json'), 'utf8'));
 const clone = value => structuredClone(value);
 const emit = value => process.stdout.write(`${JSON.stringify(value)}\n`);
 
@@ -76,6 +83,10 @@ const { globalIdeaBio } = sourceModule('src/globalIdeaBios.ts');
 const { specialistProfileCopy, specialistExampleCopy, specialistProfileIds } = sourceModule('src/specialistProfilesEditorial.ts');
 const { planAccessCopy } = sourceModule('src/planAccessCopy.ts');
 const { planDetailsForLocale, planKeys } = sourceModule('src/planTierEditorial.ts');
+const { badgeCopy } = sourceModule('src/badgeMessages.ts');
+const { activityFlowCopy, cardAudienceCopy } = sourceModule('src/activityJourneyFlowMessages.ts');
+const { communityCopy, communityNoticeLabel } = sourceModule('src/communityMessages.ts');
+const { publicCardCopy } = sourceModule('src/publicCardMessages.ts');
 const STOPS = TOUR_STOPS.filter(stop => (JOURNEY_REACTIONS_ENABLED || stop !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || stop !== 'audience'));
 
 function options(argv) {
@@ -134,10 +145,24 @@ function sameProtected(actual, expected, uploads = false) {
   }
 }
 
-async function installTransport(context, origin, state, { identity = serverIdentity(), hold = false, syntheticAi = false, localIdeaCase = '', pendingTour = false, uploads = false } = {}) {
+async function installTransport(context, origin, state, { identity = serverIdentity(), hold = false, syntheticAi = false, localIdeaCase = '', pendingTour = false, uploads = false, communitySurfaces = false } = {}) {
   let approvalCount = 1;
   const ideaWrites = []; let idea = null;
   const reads = [], writes = [], violations = [], blocked = [], aiPayloads = []; let revision = 1; let document = clone(state);
+  let failNotices = false;
+  const rubric = { version: CLARITY_CATALOG.version, source: CLARITY_CATALOG.languages.es[3], target: CLARITY_CATALOG.languages.es[4], effort: 'time_energy' };
+  const submittedActivity = {
+    id: REVIEW_ID, author_id: OTHER_USER, mode: 'fisico', source_level: 3, target_level: 4, revision_number: 1,
+    activity: ACTIVITY, activity_hash: 'a'.repeat(64), target_alignment: ALIGNMENT, status: 'pending',
+    created_at: '2026-10-29T12:00:00Z', review_count: 1, review_quorum: 3, reviews: [], can_review: true, advanced: false,
+    evidence: { reflection: EVIDENCE_TEXT, image: PNG }, rubric_version: rubric.version, rubric_snapshot: rubric, audience: 'public',
+  };
+  const card = {
+    id: CARD_ID, author_id: OTHER_USER, display_name: 'Original Creator', mode: 'fisico', source_level: 3,
+    activity: ACTIVITY, activity_hash: 'a'.repeat(64), created_at: '2026-10-29T12:00:00Z', reactions: {}, my_reaction: null,
+    audience: 'public', has_evidence: true,
+  };
+  const cardDetail = { ...card, reflection: EVIDENCE_TEXT, proof: { kind: 'photo', image: PNG }, rubric_snapshot: rubric, validation_status: 'pending', review_count: 1, review_quorum: 3 };
   const identityGate = deferred(), stateGate = deferred();
   if (!hold) { identityGate.resolve(); stateGate.resolve(); }
   const snapshot = () => ({ state: clone(document), revision: `synthetic-qa-revision-${revision}`, validationReceipts: {}, legacyCompletionSlots: [] });
@@ -161,6 +186,16 @@ async function installTransport(context, origin, state, { identity = serverIdent
       if (apiPath === '/health' && method === 'GET') return reply(route, { status: 'ok', app_env: 'synthetic-test', version: 'qa-only' });
       if (apiPath === '/community/capabilities' && method === 'GET') return reply(route, { enabled: true, storage_ready: true });
       if (apiPath === '/community/profile' && method === 'GET') return reply(route, { user_id: USER, display_name: 'Synthetic QA person', bio: '', discoverable: true });
+      if (communitySurfaces && method === 'GET') {
+        if (apiPath === '/community/notifications' && authenticated) return failNotices
+          ? reply(route, { detail: { code: 'fixture_unavailable' } }, 503)
+          : reply(route, { notifications: [{ id: 'fixture-notice', kind: NOTICE_KIND, resource_id: REVIEW_ID, read: false, created_at: '2026-10-29T12:00:00Z' }] });
+        if (apiPath === '/community/review-inbox' && authenticated) return reply(route, { submissions: [submittedActivity] });
+        if (apiPath === `/community/submissions/${REVIEW_ID}` && authenticated) return reply(route, submittedActivity);
+        if (apiPath === '/community/feed' && authenticated) return reply(route, { cards: [card] });
+        if (apiPath === `/community/cards/${CARD_ID}` && authenticated) return reply(route, cardDetail);
+        if (apiPath === `/community/public/cards/${CARD_ID}` && !request.headers().authorization) return reply(route, cardDetail);
+      }
       if (apiPath === '/community/submissions' && method === 'GET' && pendingTour) {
         const rubric = JSON.parse(readFileSync(resolve(frontend, 'src/clarity-levels.json'), 'utf8'));
         return reply(route, { submissions: [{ id: 'synthetic-pending', author_id: USER, mode: 'fisico', source_level: 3, target_level: 4, revision_number: 1, activity: ACTIVITY, target_alignment: ALIGNMENT, status: approvalCount === 3 ? 'approved' : 'pending', review_count: approvalCount, review_quorum: 3, reviews: [], evidence: { reflection: 'Synthetic visual evidence context for the saved practice.', image: PNG }, rubric_version: rubric.version, rubric_snapshot: { version: rubric.version, source: rubric.languages[state.language][3], target: rubric.languages[state.language][4], effort: 'time_energy' }, audience: 'network', shared_card_id: '00000000-0000-4000-8000-000000000222' }] });
@@ -186,6 +221,7 @@ async function installTransport(context, origin, state, { identity = serverIdent
     blocked.push(request.resourceType()); return route.abort('blockedbyclient');
   });
   return { reads, writes, ideaWrites, violations, blocked, identityGate, stateGate, snapshot, aiPayloads, get aiCalls() { return aiPayloads.length; },
+    failNotifications() { failNotices = true; },
     setApprovals(count) {
       approvalCount = count;
       if (count === 3) { document.levels.fisico = 4; revision++; }
@@ -448,11 +484,15 @@ async function runCase(browser, config, task) {
   const specialistEditorial = task.name === 'specialist-editorial';
   const premiumAccess = task.name === 'premium-access-fixture';
   const installGuide = task.name === 'install-guide';
-  const editorialCase = modeEditorial || globalEditorial || specialistEditorial || premiumAccess || installGuide;
+  const managementSurfaces = task.name === 'management-surfaces';
+  const communitySurfaces = task.name === 'account-community-surfaces';
+  const publicSurface = task.name === 'anonymous-public-surface';
+  const editorialCase = modeEditorial || globalEditorial || specialistEditorial || premiumAccess || installGuide || managementSurfaces || communitySurfaces || publicSurface;
   if (switchesLanguage) {
     state.profileName = 'Cultiva todos tus modos.';
     if (account) state.languageSource = 'manual';
   }
+  if (communitySurfaces) state.languageSource = 'auto';
   if (uploads) delete state.visionImages.financiero;
   if (task.name.endsWith('electric-home')) state.homeVisionCards = { fisico: true };
   if (task.name.endsWith('home-vision')) {
@@ -470,7 +510,7 @@ async function runCase(browser, config, task) {
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
   context.on('page', popup => { if (popup !== page) { errors.push('Unexpected external page'); void popup.close(); } });
-  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads });
+  const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads, communitySurfaces: communitySurfaces || publicSurface });
   await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: editorialCase ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !editorialCase, cachedManual: task.name.includes('ambiguous-cache') });
   const iosGuide = installGuide && task.width <= 390;
   if (iosGuide) await context.addInitScript(() => {
@@ -492,7 +532,7 @@ async function runCase(browser, config, task) {
   const configuration = { ...config, ...task, language: expectedLanguage, reduced }; let result;
   try {
     if (welcomeTask) { await page.clock.install({ time: new Date('2026-10-29T12:00:00Z') }); await page.clock.pauseAt(new Date('2026-10-29T12:00:01Z')); }
-    await page.goto(config.url, { waitUntil: 'domcontentloaded' });
+    await page.goto(publicSurface ? `${config.url}/?community-card=${CARD_ID}` : config.url, { waitUntil: 'domcontentloaded' });
     if (task.name === 'identity') {
       await page.locator('.state-account-boundary').waitFor();
       assert.equal(await page.locator('.guided-tour-counter, .mc-welcome, .guided-tour-layer').count(), 0, 'Cached identity cannot start owner UI before verification');
@@ -508,7 +548,7 @@ async function runCase(browser, config, task) {
     }
     else {
       await delay(150); assert.equal(await page.locator('.mc-welcome').count(), 0, 'A genuinely completed introduction does not repeat');
-      await assertPreserved(page, state, account); await assertMap(page, state.levels);
+      await assertPreserved(page, state, account); if (!publicSurface) await assertMap(page, state.levels);
       if (task.name === 'account-completed') {
         assert.equal(await page.locator('.guided-tour-layer').count(), 0, 'Cloud completion does not restart tutorial on another browser');
         result = { cloudCompletionWithoutBrowserFlag: true, noRepeat: true, preserved: true };
@@ -561,6 +601,134 @@ async function runCase(browser, config, task) {
         await assertPreserved(page, state, account);
         await assertMap(page, state.levels);
         result = { switchedLanguages:11, sameShell:true, manualSurvivesReload:true, guestFollowsBrowser:!account, userTextPreserved:true };
+      } else if (managementSurfaces) {
+        const code = task.language, alternate = code === 'ar' ? 'en' : 'ar';
+        const chooseHomeSection = async id => {
+          await page.locator('.home-menu-button').click();
+          await page.locator(`[data-home-menu-item="${id}"]`).click();
+        };
+        await chooseHomeSection('dashboard');
+        const heading = page.locator('#dashboard-title');
+        const originalHeading = await heading.textContent();
+        assert.ok(originalHeading?.trim());
+        const gallery = page.locator('.crm-dashboard .badges-gallery');
+        assert.equal(await gallery.locator('.achievement-intro').textContent(), badgeCopy(code).intro);
+        assert.equal(await gallery.locator('article[data-badge="completionist"] > p').textContent(), badgeCopy(code).completionist);
+        assert.equal(await gallery.locator('article[data-badge="maxed"] > p').textContent(), badgeCopy(code).maxed);
+        await setLocale(alternate);
+        assert.notEqual(await heading.textContent(), originalHeading);
+        assert.equal(await gallery.locator('.achievement-intro').textContent(), badgeCopy(alternate).intro);
+        await page.locator('.dashboard-back').click();
+        await setLocale(code);
+        await chooseHomeSection('configurations');
+        const dialog = page.locator('.life-configurations-card');
+        const title = await dialog.locator('h2').textContent();
+        const name = 'Mon plan · خطة · Mi mapa';
+        await dialog.locator('#preset-name').fill(name);
+        await dialog.locator('.configuration-save-action').click();
+        const notice = dialog.locator('.configuration-notice');
+        const originalNotice = await notice.textContent();
+        assert.ok(originalNotice.includes(name));
+        await setLocale(alternate);
+        assert.notEqual(await dialog.locator('h2').textContent(), title);
+        assert.notEqual(await notice.textContent(), originalNotice);
+        assert.ok((await notice.textContent()).includes(name));
+        assert.equal(await dialog.locator('#preset-select').inputValue(), name);
+        assert.equal(await dialog.locator('#preset-select option:checked').textContent(), name);
+        await page.keyboard.press('Escape');
+        await setLocale(code);
+        await selectPhysicalMode(page);
+        await page.locator('.journey-step-list button').nth(2).click();
+        const evidence = page.locator('.visual-evidence-input');
+        const reflection = page.locator('.activity-journey-flow textarea').first();
+        await reflection.fill(EVIDENCE_TEXT);
+        await evidence.locator('input[type=file]').setInputFiles({ name: 'invalid-evidence.txt', mimeType: 'text/plain', buffer: Buffer.from('not a photo or video') });
+        const error = evidence.getByRole('alert');
+        assert.equal(await error.textContent(), activityFlowCopy(code).errors.unsupported);
+        await setLocale(alternate);
+        assert.equal(await error.textContent(), activityFlowCopy(alternate).errors.unsupported);
+        assert.equal(await reflection.inputValue(), EVIDENCE_TEXT);
+        assert.equal(await evidence.locator('input[type=file]').getAttribute('aria-label'), activityFlowCopy(alternate).choose);
+        result = { dashboard: true, badges: true, configurationNotice: true, originalPresetNamePreserved: true, localizedEvidenceError: true, draftPreserved: true };
+      } else if (communitySurfaces) {
+        const code = task.language, alternate = code === 'ar' ? 'en' : 'ar';
+        await page.locator('.home-menu-button').click();
+        await page.locator('[data-home-menu-item="dashboard"]').click();
+        await page.locator('.profile-button').click();
+        await page.locator('.profile-menu-dropdown [role="menuitem"]').nth(1).click();
+        const community = page.locator('.community-panel');
+        const tabs = community.locator('.community-tabs button');
+        const requests = path => transport.reads.filter(value => value === path).length;
+        await tabs.nth(4).click();
+        const notification = community.locator('.community-tab-content .community-card');
+        const noticePath = '/community/notifications';
+        assert.equal(await notification.locator('h4').textContent(), communityNoticeLabel(code, NOTICE_KIND));
+        const time = notification.locator('time');
+        const expectedDate = await time.getAttribute('datetime');
+        const originalTime = await time.textContent();
+        const noticeReads = requests(noticePath);
+        await setLocale(alternate);
+        assert.equal(await notification.locator('h4').textContent(), communityNoticeLabel(alternate, NOTICE_KIND));
+        assert.notEqual(await time.textContent(), originalTime);
+        assert.equal(await time.getAttribute('datetime'), expectedDate);
+        assert.equal(requests(noticePath), noticeReads, 'Locale changes must not fetch notifications again');
+        transport.failNotifications();
+        await community.locator('.community-toolbar button').click();
+        const error = community.locator('.community-error');
+        assert.equal(await error.textContent(), communityCopy(alternate).unavailable);
+        await setLocale(code);
+        assert.equal(await error.textContent(), communityCopy(code).unavailable);
+
+        await tabs.nth(1).click();
+        await community.locator('.community-tab-content .community-card button').first().click();
+        const review = community.locator('.community-review-detail');
+        const assertRubric = async (node, language, selector) => {
+          const target = CLARITY_CATALOG.languages[language][4];
+          assert.equal(await node.locator(`${selector} p`).first().textContent(), target.description);
+          assert.ok((await node.locator(`${selector} strong`).first().textContent()).includes(target.name));
+        };
+        await assertRubric(review, code, '.community-rubric');
+        assert.equal(await review.locator('.community-private-image').getAttribute('alt'), activityFlowCopy(code).preview);
+        assert.ok((await review.textContent()).includes(EVIDENCE_TEXT));
+        const reviewDraft = 'Una nota propia para la revisión.';
+        await review.locator('textarea').fill(reviewDraft);
+        const reviewReads = requests(`/community/submissions/${REVIEW_ID}`);
+        await setLocale(alternate);
+        await assertRubric(review, alternate, '.community-rubric');
+        assert.equal(await review.locator('textarea').inputValue(), reviewDraft);
+        assert.ok((await review.textContent()).includes(EVIDENCE_TEXT));
+        assert.equal(requests(`/community/submissions/${REVIEW_ID}`), reviewReads);
+        await setLocale(code);
+        await tabs.nth(2).click();
+        await community.locator('.community-feed-card').getByRole('button', {name: cardAudienceCopy(code).openCard, exact: true}).click();
+        const card = page.locator('.public-activity-card[open]');
+        await card.locator('article').waitFor();
+        assert.equal(await card.locator('h2').textContent(), ACTIVITY);
+        await assertRubric(card, code, '.public-card-goal');
+        const cardReads = requests(`/community/cards/${CARD_ID}`);
+        await setLocale(alternate);
+        await assertRubric(card, alternate, '.public-card-goal');
+        assert.equal(await card.locator('.public-card-audience').textContent(), publicCardCopy(alternate).public);
+        assert.equal(await card.locator('.public-card-photo').getAttribute('alt'), publicCardCopy(alternate).photo);
+        assert.equal(await card.locator('.public-card-reflection').textContent(), EVIDENCE_TEXT);
+        assert.equal(await card.locator('.public-card-author').textContent(), 'Original Creator');
+        assert.equal(requests(`/community/cards/${CARD_ID}`), cardReads);
+        result = { notifications: true, localizedNetworkError: true, localizedRubric: true, unchangedReviewDraft: true, authorshipPreserved: true, noRefetchOnLocaleChange: true };
+      } else if (publicSurface) {
+        const code = task.language, alternate = code === 'ar' ? 'en' : 'ar';
+        const card = page.locator('.public-activity-card[open]');
+        await card.locator('article').waitFor();
+        assert.equal(await card.locator('h2').textContent(), ACTIVITY);
+        assert.equal(await card.locator('.public-card-audience').textContent(), publicCardCopy(code).public);
+        assert.equal(await card.locator('.public-card-goal p').first().textContent(), CLARITY_CATALOG.languages[code][4].description);
+        assert.equal(await card.locator('.public-card-reflection').textContent(), EVIDENCE_TEXT);
+        await setLocale(alternate);
+        assert.equal(await card.locator('.public-card-goal p').first().textContent(), CLARITY_CATALOG.languages[alternate][4].description);
+        assert.equal(await card.locator('h2').textContent(), ACTIVITY);
+        assert.equal(await card.locator('.public-card-photo').getAttribute('alt'), publicCardCopy(alternate).photo);
+        assert.equal(transport.reads.filter(value => value === `/community/public/cards/${CARD_ID}`).length, 1);
+        assert.equal(transport.reads.includes('/auth/me'), false);
+        result = { anonymousDeepLink: true, localizedMetadataAndPhoto: true, localizedCanonicalRubric: true, authorContentUnchanged: true };
       } else if (installGuide) {
         const switchingTo = task.language === 'hi' ? 'ar' : 'hi';
         await page.locator('.home-menu-button').click();
@@ -1251,7 +1419,7 @@ async function main() {
   catch { playwright = require(resolve(dirname(process.execPath), '..', 'node_modules', 'playwright')); }
   const tasks = [];
   for (const name of config.cases) {
-    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || ['account-journey-ascent', 'mode-editorial', 'global-editorial', 'specialist-editorial', 'install-guide', 'premium-access-fixture'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
+    if (name.endsWith('welcome') || name.endsWith('tour') || name.includes('local-') || ['account-journey-ascent', 'mode-editorial', 'global-editorial', 'specialist-editorial', 'install-guide', 'premium-access-fixture', 'management-surfaces', 'account-community-surfaces', 'anonymous-public-surface'].includes(name)) for (const width of config.widths) for (const language of config.languages) tasks.push({ name, width, language });
     else for (const [index, width] of config.widths.entries()) {
       const language = config.languages[index % config.languages.length];
       if (name === 'identity') for (const identity of ['normal', 'forged', 'owner']) tasks.push({ name, width, language, identity });

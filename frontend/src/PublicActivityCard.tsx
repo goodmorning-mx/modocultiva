@@ -3,6 +3,7 @@ import { CultivaLeaf } from './CultivaLeaf';
 import { fetchPublicCommunityCard, loadPublicCardVideo, type CommunityCardDetail, type CommunityClient } from './communityClient';
 import { isNormalizedEvidenceImage, validateEvidenceVideo } from './visualEvidence';
 import { publicCardCopy } from './publicCardMessages';
+import { displayClarityStep } from './clarityRubric';
 import './public-activity-card.css';
 
 export function PublicActivityCard({ apiUrl, cardId, client, language, modeNames, onClose }: { apiUrl: string; cardId: string; client: CommunityClient | null; language: string; modeNames: Record<string, string>; onClose: () => void }) {
@@ -23,6 +24,7 @@ export function PublicActivityCard({ apiUrl, cardId, client, language, modeNames
   }, [apiUrl, cardId, client, reload]);
   const count = card && card.review_quorum === 3 && Number.isInteger(card.review_count) && card.review_count >= 0 && card.review_count <= 3 ? card.review_count : 0;
   const validated = card?.validation_status === 'approved' && count === 3;
+  const displayTarget = card?.rubric_snapshot?.target ? displayClarityStep(card.rubric_snapshot.target, card.rubric_snapshot.version, language) : null;
   let reference: string | null = null;
   try { const value = card?.reference_link ? new URL(card.reference_link) : null; if (value?.protocol === 'https:' && !value.username && !value.password) reference = value.href; } catch { /* Never activate malformed author URLs. */ }
   return <dialog className="public-activity-card" ref={dialog} dir={language === 'ar' ? 'rtl' : 'ltr'} lang={language} aria-labelledby={`${id}-title`} onCancel={event => { event.preventDefault(); onClose(); }} onKeyDown={event => event.stopPropagation()}>
@@ -35,7 +37,7 @@ export function PublicActivityCard({ apiUrl, cardId, client, language, modeNames
         : card.proof?.kind === 'video' ? <CardVideo key={`${card.id}:${card.audience}:${reload}`} card={card} apiUrl={apiUrl} client={client} language={language} /> : <p className="public-card-note">{copy.noProof}</p>}
       {card.reflection && <p className="public-card-reflection" dir="auto">{card.reflection}</p>}
       {reference && <a href={reference} rel="noopener noreferrer nofollow" target="_blank">{copy.reference} ↗</a>}
-      {card.rubric_snapshot && <aside className="public-card-goal"><span>{copy.target} · {copy.level} {card.rubric_snapshot.target.level}</span><strong dir="auto">{card.rubric_snapshot.target.name}</strong><p dir="auto">{card.rubric_snapshot.target.description}</p>{card.target_alignment && <p dir="auto">{card.target_alignment}</p>}</aside>}
+      {displayTarget && <aside className="public-card-goal"><span>{copy.target} · {copy.level} {displayTarget.level.toLocaleString(language)}</span><strong dir="auto">{displayTarget.name}</strong><p dir="auto">{displayTarget.description}</p>{card.target_alignment && <p dir="auto">{card.target_alignment}</p>}</aside>}
       {card.has_evidence && <p className={`public-card-validation${validated ? ' is-validated' : ''}`} role="status">{validated ? copy.validated : copy.awaiting.replace('{count}', String(count))}</p>}
     </article> : <div className="public-card-empty"><h2 id={`${id}-title`}>{error ? copy.unavailable : copy.loading}</h2>{error && <button type="button" onClick={() => setReload(current => current + 1)}>{copy.retry}</button>}</div>}
     <button type="button" className="public-card-return" onClick={onClose}>{copy.close} ↗</button>

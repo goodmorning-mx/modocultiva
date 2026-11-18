@@ -84,6 +84,9 @@ type Mode = {
 
 type View = 'login' | 'plans' | 'cult' | 'lab' | 'welcome' | 'dashboard';
 type Preset = Record<string, number>;
+type PresetNotice = { key: 'presetSaved' | 'presetRenamed'; name: string } | {
+  key: 'presetNameRequired' | 'presetNameExists' | 'presetSelectLoad' | 'presetSelectRename' | 'presetRenameFailed' | 'presetSelectDelete' | 'presetDeleted';
+};
 type Skin = 'holista' | 'dj' | 'nocturna' | 'lucid' | 'zen' | 'mission' | 'rpg' | 'botanical' | 'arcade' | 'arcana' | 'urban' | 'ocean' | 'fashion' | 'minimal';
 type PaletteFilter = 'none' | 'nocturna' | 'lucid';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
@@ -1003,7 +1006,7 @@ function App() {
   const [presetName, setPresetName] = useState('');
   const [selectedPreset, setSelectedPreset] = useState(() => personalStorageRef.current.getItem('modoCultiva_selectedPreset') ?? '');
   const [previewedPreset, setPreviewedPreset] = useState<Preset | null>(null);
-  const [presetNotice, setPresetNotice] = useState<string | null>(null);
+  const [presetNotice, setPresetNotice] = useState<PresetNotice | null>(null);
   const [renamingPreset, setRenamingPreset] = useState(false);
   const [presetRenameName, setPresetRenameName] = useState('');
   const presetRenameInputRef = useRef<HTMLInputElement | null>(null);
@@ -2173,7 +2176,7 @@ function App() {
   const savePreset = () => {
     const name = presetName.trim();
     if (!name) {
-      setPresetNotice(tr('presetNameRequired'));
+      setPresetNotice({ key: 'presetNameRequired' });
       return;
     }
     const next = { ...presets, [name]: { ...levels } };
@@ -2181,7 +2184,7 @@ function App() {
     setSelectedPreset(name);
     personalStorageRef.current.setItem('modoCultiva_selectedPreset', name);
     setPresetName('');
-    setPresetNotice(trf('presetSaved', { name }));
+    setPresetNotice({ key: 'presetSaved', name });
     try {
       personalStorageRef.current.setItem('modoCultiva_presets', JSON.stringify(next));
     } catch {
@@ -2191,7 +2194,7 @@ function App() {
 
   const loadPreset = () => {
     if (!selectedPreset || !presets[selectedPreset]) {
-      setPresetNotice(tr('presetSelectLoad'));
+      setPresetNotice({ key: 'presetSelectLoad' });
       return;
     }
     // A configuration is a snapshot; viewing it must not unlock journey levels.
@@ -2200,7 +2203,7 @@ function App() {
   };
 
   const beginPresetRename = () => {
-    if (!selectedPreset || !presets[selectedPreset]) { setPresetNotice(tr('presetSelectRename')); return; }
+    if (!selectedPreset || !presets[selectedPreset]) { setPresetNotice({ key: 'presetSelectRename' }); return; }
     setPresetRenameName(selectedPreset);
     setPresetNotice(null);
     setRenamingPreset(true);
@@ -2208,19 +2211,19 @@ function App() {
   const commitPresetRename = () => {
     const result = renameLifeConfiguration(presets, selectedPreset, presetRenameName);
     if (!result.ok) {
-      setPresetNotice(tr(result.reason === 'empty' ? 'presetNameRequired' : result.reason === 'duplicate' ? 'presetNameExists' : 'presetSelectRename'));
+      setPresetNotice({ key: result.reason === 'empty' ? 'presetNameRequired' : result.reason === 'duplicate' ? 'presetNameExists' : 'presetSelectRename' });
       return;
     }
     try {
       persistRenamedConfiguration(personalStorageRef.current, result.configurations, result.selectedName);
     } catch {
-      setPresetNotice(tr('presetRenameFailed'));
+      setPresetNotice({ key: 'presetRenameFailed' });
       return;
     }
     setPresets(result.configurations);
     setSelectedPreset(result.selectedName);
     setRenamingPreset(false);
-    setPresetNotice(trf('presetRenamed', { name: result.selectedName }));
+    setPresetNotice({ key: 'presetRenamed', name: result.selectedName });
   };
   useEffect(() => {
     if (renamingPreset) { presetRenameInputRef.current?.focus(); presetRenameInputRef.current?.select(); }
@@ -2228,7 +2231,7 @@ function App() {
 
   const deletePreset = () => {
     if (!selectedPreset || !presets[selectedPreset]) {
-      setPresetNotice(tr('presetSelectDelete'));
+      setPresetNotice({ key: 'presetSelectDelete' });
       return;
     }
     const next = { ...presets };
@@ -2236,7 +2239,7 @@ function App() {
     setPresets(next);
     setSelectedPreset('');
     personalStorageRef.current.removeItem('modoCultiva_selectedPreset');
-    setPresetNotice(tr('presetDeleted'));
+    setPresetNotice({ key: 'presetDeleted' });
     try {
       personalStorageRef.current.setItem('modoCultiva_presets', JSON.stringify(next));
     } catch {
@@ -2659,7 +2662,7 @@ function App() {
             </div>
           </div>
         </div>
-        {presetNotice && <p className="configuration-notice" role="status">{presetNotice}</p>}
+        {presetNotice && <p className="configuration-notice" role="status">{'name' in presetNotice ? trf(presetNotice.key, { name: presetNotice.name }) : tr(presetNotice.key)}</p>}
       </dialog>}
 
       {selectedPlan && selectedPlanDetails && <div className="feature-preview-backdrop" role="presentation" onClick={() => setSelectedPlan(null)}><section className="plan-detail-modal" role="dialog" aria-modal="true" aria-labelledby="plan-detail-title" onClick={(event) => event.stopPropagation()}><button className="close-journey" type="button" onClick={() => setSelectedPlan(null)} aria-label={tr('close')} autoFocus>×</button><p className="kicker">{planCopy.planDetails}</p><h2 id="plan-detail-title"><bdi>{selectedPlanDetails.name}</bdi></h2><strong className="plan-detail-price"><bdi>{selectedPlanDetails.price}</bdi></strong><p className="plan-detail-promise">{selectedPlanDetails.promise}</p><ul className="plan-detail-list">{selectedPlanDetails.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>{selectedPlan === 'ultimate' && <button className="feature-preview-cta cult-entry-cta" type="button" onClick={() => { setSelectedPlan(null); setPendingAccess(null); setCultTab('insights'); setSelectedMode(modes[0]); setCultOpen(true); setView('dashboard'); }}>{tr('globalName')} <span>✦</span></button>}<button className="feature-preview-dismiss" type="button" onClick={() => setSelectedPlan(null)}>{planCopy.backToPlans}</button></section></div>}

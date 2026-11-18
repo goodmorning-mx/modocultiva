@@ -60,34 +60,42 @@ guardan ya traducidos.
   mapas, configuraciones y borradores de las tres identidades, sin hacer
   solicitudes a cuentas ni servicios reales.
 
-## Pendientes para cerrar el objetivo
+## Últimas pantallas y regresiones
 
-| Superficie | Evidencia y siguiente verificación |
-| --- | --- |
-| Interfaces restantes | Revisar pantallas y diálogos visibles de Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, evidencias y notificaciones; comprobar texto visible y accesible, no solo claves. |
-| Recorrido de bienvenida y tutorial | Completar la prueba de bienvenida y de todos los pasos del tutorial en los 11 idiomas, con vista móvil y de escritorio. |
+- Los avisos de Configuraciones de Vida y los errores de Comunidad y
+  evidencias se traducen al mostrarse. Cambiar de idioma no reinicia la
+  pantalla ni sustituye nombres de mapas, archivos, reflexiones o borradores.
+- La definición de claridad de una revisión solo se muestra en otro idioma
+  si coincide exactamente con una entrada de la misma versión de la rúbrica.
+  Las versiones históricas y los textos que no coincidan se muestran intactos.
+  No cambia qué se evalúa ni se vuelve a pedir la tarjeta al alternar el idioma.
+- La verificación de código revisa las claves literales y condicionales de
+  `tr`/`trf`, además del texto directo en JSX y las etiquetas accesibles.
+  Los catálogos con datos dinámicos se complementan con pruebas del navegador.
 
 ## Cómo se mide el avance
 
 El porcentaje indica cuántos de los diez bloques de auditoría están
 verificados y publicados en DEV; no se pondera por horas, número de textos
 ni avance parcial. La entrega de planes e instalación llevó el avance a 70 %.
-El aislamiento de las preferencias se verifica con la misma versión de la
-aplicación publicada en DEV, usando el servidor local con cuentas sintéticas.
+La comprobación del aislamiento de preferencias en Chrome y Edge, con la
+misma versión publicada en DEV y con cuentas sintéticas, lo llevó a 80 %.
+La matriz completa de bienvenida y tutorial lo llevó a 90 %.
 
 | Bloque | Estado |
 | --- | --- |
 | Inicio y detección/selección del idioma | Verificado |
-| Bienvenida y tutorial completo, en los 11 idiomas | Pendiente de verificación completa |
+| Bienvenida y tutorial completo, en los 11 idiomas | 132 pruebas: siete frases, arranque automático y 28 pasos del tutorial, en cuatro anchos y con movimiento normal y reducido. |
 | Acceso normal y cabecera del perfil | Verificado |
 | Journey y Trivia | Verificado |
 | Actividades Recomendadas y Modo IA | Verificado |
 | Modo Global | Verificado |
 | Red de Especialistas | Verificado |
 | Planes, accesos especiales e instalación | Verificado |
-| Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, evidencias y notificaciones | Pendiente |
+| Centro de Control, Insignias, configuraciones, comunidad, tarjeta pública, evidencias y notificaciones | 66 pruebas de navegador en 11 idiomas y dos anchos: cambio de idioma, avisos, borradores, criterios y tarjetas anónimas. |
 | Aislamiento de preferencias entre invitado, cuentas y navegadores | Verificado en Chrome y Edge |
 
-El objetivo sigue abierto hasta contrastar el recorrido completo en la
-aplicación y comprobar el despliegue en DEV. No hay cambios en producción,
-credenciales añadidas, ni migraciones.
+El cierre requiere confirmar que DEV sirve los mismos archivos que se
+probaron localmente. Las pruebas de navegador usan datos sintéticos y no
+escriben en servicios reales. No hay cambios en producción, credenciales
+añadidas, ni migraciones.

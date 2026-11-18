@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { clarityMessages, clarityReminderTitles, clarityTransition, type ClarityLanguage } from './clarityRubric';
+import { clarityMessages, clarityReminderTitles, clarityTransition, displayClarityStep, type ClarityLanguage } from './clarityRubric';
 import { activityFlowCopy, cardAudienceCopy } from './activityJourneyFlowMessages';
 import { VisualEvidenceInput } from './VisualEvidenceInput';
 import { compactActivityCopy } from './compactActivityMessages';
@@ -113,7 +113,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
   const audienceCopy = cardAudienceCopy(language);
   const clarity = clarityMessages[language as keyof typeof clarityMessages] ?? clarityMessages.en;
   const transition = clarityTransition(sourceLevel, language)!;
-  const target = targetSnapshot ?? { ...transition.target, version: transition.version };
+  const target = targetSnapshot ? displayClarityStep(targetSnapshot, targetSnapshot.version, language) : transition.target;
   const targetMatches = target.level === sourceLevel + 1 && Boolean(target.description.trim());
   const id = useId();
   const [editing, setEditing] = useState(false);
@@ -124,7 +124,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
   const [draft, setDraft] = useState<EvidenceDraft>(state.evidence ?? { reflection: '' });
   const [busy, setBusy] = useState(false);
   const [visualBusy, setVisualBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<ReturnType<typeof evidenceDraftProblem> | 'actionFailed' | 'minimum'>(null);
   const [selectedAudience, setSelectedAudience] = useState(() => normalizeCardAudience(audience));
   const [publicConfirmed, setPublicConfirmed] = useState(false);
   const [savedAudience, setSavedAudience] = useState(() => normalizeCardAudience(publishedAudience ?? audience));
@@ -157,7 +157,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
   useEffect(() => {
     operation.current?.abort(); operation.current = null; setBusy(false);
     setDefinition(state.definition ?? { activity: '', target_alignment: '' });
-    setEditing(false); setError('');
+    setEditing(false); setError(null);
   }, [sourceLevel, state.definition?.activity, state.definition?.target_alignment]);
   useEffect(() => {
     setDraft(state.evidence ?? { reflection: '' });
@@ -165,22 +165,22 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
     state.evidence?.visual?.kind === 'photo' ? state.evidence.visual.image : state.evidence?.visual?.video_asset_id]);
   useEffect(() => {
     // Superseding/review updates cannot be overwritten by a late action response.
-    operation.current?.abort(); operation.current = null; setBusy(false); setError('');
+    operation.current?.abort(); operation.current = null; setBusy(false); setError(null);
     if (state.status === 'changesRequested') setEditing(false);
   }, [state.status, 'submission' in state ? state.submission.revision : undefined]);
 
-  const changeDraft = (next: EvidenceDraft) => { setDraft(next); setError(''); onDraftChange?.(next); };
+  const changeDraft = (next: EvidenceDraft) => { setDraft(next); setError(null); onDraftChange?.(next); };
   const perform = async (callback: (signal: AbortSignal) => Promise<void>) => {
     if (operation.current || disabled) return;
-    const controller = new AbortController(); operation.current = controller; setBusy(true); setError('');
+    const controller = new AbortController(); operation.current = controller; setBusy(true); setError(null);
     try { await callback(controller.signal); }
-    catch (failure) { if (operation.current === controller && !controller.signal.aborted && !isEvidenceAbort(failure)) setError(copy.actionFailed); }
+    catch (failure) { if (operation.current === controller && !controller.signal.aborted && !isEvidenceAbort(failure)) setError('actionFailed'); }
     finally { if (operation.current === controller) { operation.current = null; setBusy(false); } }
     // No optimistic pending/approved state, count mutation, or level advancement.
   };
   const submit = () => {
     const problem = evidenceDraftProblem(draft);
-    if (problem) { setError(copy[problem]); return; }
+    if (problem) { setError(problem); return; }
     if (!onSubmit || !state.definition || !targetMatches || visualBusy) return;
     const saved = state.definition;
     if (!submitReady) return;
@@ -206,7 +206,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
     {state.status === 'legacyHistorical' && <p className="activity-flow-legacy">{copy.legacy}</p>}
     {stage === 1 ? (inDeck && !definitionOnly && (!state.definition || validSavedActivityDefinition(state.definition)) ? null : <form className="activity-flow-form" onSubmit={event => {
       event.preventDefault();
-      if (!validActivityDefinition(definition)) { setError(copy.minimum); return; }
+      if (!validActivityDefinition(definition)) { setError('minimum'); return; }
       if (onDefine && targetMatches) void perform(signal => onDefine({ activity: definition.activity.trim(), target_alignment: definition.target_alignment.trim() }, signal));
     }}>
       <label htmlFor={activityInputId}>{copy.activity}</label>
@@ -217,12 +217,12 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
       {allowSubmissionAudience && !inDeck && !definitionOnly && <CardAudienceControl language={language} value={selectedAudience} confirmed={publicConfirmed} disabled={locked} draft showDetails={false} onChange={next => { setSelectedAudience(next); setPublicConfirmed(false); notifiedSelection.current = next; onAudienceChange?.(next); }} onConfirm={setPublicConfirmed} />}
       <div className="activity-flow-actions">
         <button type="submit" disabled={locked || !onDefine || !targetMatches || !validActivityDefinition(definition) || !definitionChanged}>{copy.save}</button>
-        {editing && <button type="button" disabled={busy} onClick={() => { setDefinition(state.definition!); setEditing(false); setError(''); }}>{copy.cancel}</button>}
+        {editing && <button type="button" disabled={busy} onClick={() => { setDefinition(state.definition!); setEditing(false); setError(null); }}>{copy.cancel}</button>}
       </div>
       {!onDefine && <p className="activity-flow-note">{copy.unavailable}</p>}
     </form>) : <>
       <details className="activity-flow-alignment"><summary>{copy.alignment}</summary><p dir="auto">{state.definition?.target_alignment}</p>
-        {!inDeck && <button type="button" disabled={locked || !onDefine} onClick={() => { setEditing(true); setError(''); }}>{copy.edit}</button>}
+        {!inDeck && <button type="button" disabled={locked || !onDefine} onClick={() => { setEditing(true); setError(null); }}>{copy.edit}</button>}
       </details>
       {stage === 2 && inDeck && availableStage === 3 ? <div className="activity-flow-evidence-snapshot">
         <VisualEvidenceInput language={language} value={state.evidence?.visual} readOnly onChange={() => {}} onLoadVideo={onLoadVideo} />
@@ -258,7 +258,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
       </details>}
     </>}
     {busy && <p role="status">{copy.working}</p>}
-    {error && <p className="activity-flow-error" role="alert">{error}</p>}
+    {error && <p className="activity-flow-error" role="alert">{copy[error]}</p>}
     {!targetMatches && <p className="activity-flow-error" role="alert">{copy.actionFailed}</p>}
   </section>;
 }

@@ -3,7 +3,7 @@ import { activityFlowCopy, cardAudienceCopy } from './activityJourneyFlowMessage
 import { compactActivityCopy } from './compactActivityMessages';
 import {
   checkEvidenceAbort, isEvidenceAbort, normalizeEvidenceImage, uploadVideoEvidence, validateEvidenceVideo,
-  VisualEvidenceError, type LoadVideo, type UploadVideo, type VisualAttachment,
+  VisualEvidenceError, type EvidenceErrorCode, type LoadVideo, type UploadVideo, type VisualAttachment,
 } from './visualEvidence';
 import './activity-journey-flow.css';
 
@@ -27,7 +27,7 @@ export function VisualEvidenceInput({ language = 'en', value, onChange, onUpload
   // Uploads may outlive a render: never restore an older reflection/link draft.
   const changeCallback = useRef(onChange); changeCallback.current = onChange;
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<EvidenceErrorCode | null>(null);
   const [preview, setPreview] = useState<{ url: string; assetId: string } | null>(null);
   const assetId = value?.kind === 'video' ? value.video_asset_id : undefined;
   const photo = value?.kind === 'photo' ? value.image : undefined;
@@ -42,18 +42,18 @@ export function VisualEvidenceInput({ language = 'en', value, onChange, onUpload
     operation.current?.abort(); operation.current = null;
     setBusy(false); busyCallback.current?.(false);
     setPreview(previous => previous?.assetId === assetId ? previous : null);
-    setError('');
+    setError(null);
   }, [assetId, photo]);
   useEffect(() => { if (disabled) cancel(); }, [disabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const run = async (work: (signal: AbortSignal) => Promise<void>, fallback: 'uploadFailed' | 'playbackFailed') => {
     operation.current?.abort();
     const controller = new AbortController(); operation.current = controller;
-    setBusy(true); busyCallback.current?.(true); setError('');
+    setBusy(true); busyCallback.current?.(true); setError(null);
     try { await work(controller.signal); }
     catch (failure) {
       if (operation.current === controller && !controller.signal.aborted && !isEvidenceAbort(failure)) {
-        setError(copy.errors[failure instanceof VisualEvidenceError ? failure.code : fallback]);
+        setError(failure instanceof VisualEvidenceError ? failure.code : fallback);
       }
     } finally {
       if (operation.current === controller) { operation.current = null; setBusy(false); busyCallback.current?.(false); }
@@ -101,10 +101,10 @@ export function VisualEvidenceInput({ language = 'en', value, onChange, onUpload
     </div>}
     <div className="activity-flow-actions">
       {busy && <button type="button" onClick={cancel}>{copy.cancel}</button>}
-      {value && !readOnly && <button type="button" disabled={disabled} onClick={() => { cancel(); setError(''); onChange(undefined); }}>{copy.remove}</button>}
+      {value && !readOnly && <button type="button" disabled={disabled} onClick={() => { cancel(); setError(null); onChange(undefined); }}>{copy.remove}</button>}
     </div>
     <div role="status" aria-live="polite" aria-atomic="true">{busy ? copy.working : ''}</div>
-    {error && <p className="activity-flow-error" role="alert">{error}</p>}
+    {error && <p className="activity-flow-error" role="alert">{copy.errors[error]}</p>}
     {!readOnly && <details className="activity-flow-help"><summary>{compactActivityCopy(language).details}</summary><p id={`${id}-rule`}>{copy.visual}</p><p>{cardAudienceCopy(language).draftOwnerOnly}</p><p id={`${id}-privacy`}>{copy.privacy}</p></details>}
   </fieldset>;
 }

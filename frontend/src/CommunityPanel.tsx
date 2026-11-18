@@ -3,6 +3,7 @@ import type { CommunityClient, CommunityProfile, CommunitySubmission, CommunityC
 import { communityCopy, communityDestinationCopy, communityEffort, communityImportWarning, communityNoticeLabel, communityStatus } from './communityMessages';
 import { activityFlowCopy, cardAudienceCopy } from './activityJourneyFlowMessages';
 import { CardAudienceControl } from './ActivityJourneyFlow';
+import { displayClarityStep } from './clarityRubric';
 import { REACTIONS, socialCopy } from './journeySocial';
 import { cardPublicationFields, normalizeCardAudience, checkEvidenceAbort, isEvidenceAbort, isNormalizedEvidenceImage, isVideoAssetId, validateEvidenceVideo, type CardAudience } from './visualEvidence';
 import './community-panel.css';
@@ -86,7 +87,8 @@ function CommunityPanelContent({ client, language, profileName, modeNames, onSta
   const [tab, setTab] = useState<CommunityTab>(COMMUNITY_TABS.includes(initialTab) ? initialTab : 'network');
   const [profile, setProfile] = useState<OwnProfile | null>();
   const [name, setName] = useState(profileName); const [bio, setBio] = useState(''); const [discoverable, setDiscoverable] = useState(false);
-  const [loading, setLoading] = useState(Boolean(client)); const [busy, setBusy] = useState(false); const [error, setError] = useState('');
+  const [loading, setLoading] = useState(Boolean(client)); const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<'unavailable' | 'sync' | 'uncertain' | null>(null);
   const [data, setData] = useState<PanelData>({}); const [details, setDetails] = useState<CommunitySubmission | null>(null);
   const [cardDetails, setCardDetails] = useState<CommunityCardDetail | null>(null);
   const [shareAudience, setShareAudience] = useState<CardAudience>('network'); const [sharePublicConfirmed, setSharePublicConfirmed] = useState(false);
@@ -135,9 +137,9 @@ function CommunityPanelContent({ client, language, profileName, modeNames, onSta
   useEffect(() => {
     if (!client) { setLoading(false); return; }
     operation.current?.abort(); const controller = new AbortController(); operation.current = controller;
-    setLoading(true); setError(''); setData({}); setDetails(null); setCardDetails(null); setConfirmImport(null); setSharePublicConfirmed(false);
+    setLoading(true); setError(null); setData({}); setDetails(null); setCardDetails(null); setConfirmImport(null); setSharePublicConfirmed(false);
     void refresh(controller.signal).catch(failure => {
-      if (!controller.signal.aborted && !isEvidenceAbort(failure)) setError(copy.unavailable);
+      if (!controller.signal.aborted && !isEvidenceAbort(failure)) setError('unavailable');
     }).finally(() => { if (operation.current === controller) { operation.current = null; setLoading(false); } });
     return () => { controller.abort(); if (operation.current === controller) operation.current = null; };
   }, [client, tab, reload]); // Language changes do not discard drafts or trigger requests.
@@ -145,16 +147,16 @@ function CommunityPanelContent({ client, language, profileName, modeNames, onSta
   const mutate = async (action: (signal: AbortSignal) => Promise<unknown>, syncForm = false) => {
     if (!client || writing.current || loading) return;
     writing.current = true; operation.current?.abort(); const controller = new AbortController(); operation.current = controller;
-    setBusy(true); setError(''); setCardDetails(null); let saved = false;
+    setBusy(true); setError(null); setCardDetails(null); let saved = false;
     try {
       await action(controller.signal); checkEvidenceAbort(controller.signal); saved = true;
       let syncFailed = false;
       try { await onStateChanged(); } catch { syncFailed = true; }
       checkEvidenceAbort(controller.signal);
       await refresh(controller.signal, syncForm, details?.id);
-      if (syncFailed) setError(copy.sync);
+      if (syncFailed) setError('sync');
     } catch (failure) {
-      if (!controller.signal.aborted && !isEvidenceAbort(failure)) { setData({}); setDetails(null); setError(saved ? copy.uncertain : copy.unavailable); }
+      if (!controller.signal.aborted && !isEvidenceAbort(failure)) { setData({}); setDetails(null); setError(saved ? 'uncertain' : 'unavailable'); }
     } finally {
       writing.current = false;
       if (operation.current === controller) { operation.current = null; setBusy(false); }
@@ -163,16 +165,16 @@ function CommunityPanelContent({ client, language, profileName, modeNames, onSta
   };
   const openReview = async (submissionId: string) => {
     if (!client || locked || writing.current) return;
-    operation.current?.abort(); const controller = new AbortController(); operation.current = controller; setBusy(true); setError(''); setDetails(null);
+    operation.current?.abort(); const controller = new AbortController(); operation.current = controller; setBusy(true); setError(null); setDetails(null);
     try { const submission = await client.submission(submissionId, controller.signal); checkEvidenceAbort(controller.signal); setDetails(submission); }
-    catch (failure) { if (!controller.signal.aborted && !isEvidenceAbort(failure)) setError(copy.unavailable); }
+    catch (failure) { if (!controller.signal.aborted && !isEvidenceAbort(failure)) setError('unavailable'); }
     finally { if (operation.current === controller) { operation.current = null; setBusy(false); } }
   };
   const openCard = async (cardId: string) => {
     if (!client || !allowed || locked || writing.current) return;
-    operation.current?.abort(); const controller = new AbortController(); operation.current = controller; setBusy(true); setError(''); setCardDetails(null);
+    operation.current?.abort(); const controller = new AbortController(); operation.current = controller; setBusy(true); setError(null); setCardDetails(null);
     try { const card = await client.card(cardId, controller.signal); checkEvidenceAbort(controller.signal); setCardDetails(card); }
-    catch (failure) { if (!controller.signal.aborted && !isEvidenceAbort(failure)) setError(copy.unavailable); }
+    catch (failure) { if (!controller.signal.aborted && !isEvidenceAbort(failure)) setError('unavailable'); }
     finally { if (operation.current === controller) { operation.current = null; setBusy(false); } }
   };
   const modeLabel = (key: string) => modeNames[key] ?? key;
@@ -213,7 +215,7 @@ function CommunityPanelContent({ client, language, profileName, modeNames, onSta
       </details>
       {allowed && <nav className="community-tabs" aria-label={copy.title}>{COMMUNITY_TABS.map(key => <button key={key} type="button" disabled={busy} aria-pressed={tab === key} aria-controls={`${id}-panel`} onClick={() => setTab(key)}>{tabLabel(key)}</button>)}</nav>}
       <div className="community-toolbar"><button type="button" disabled={locked} onClick={() => setReload(value => value + 1)}>{copy.refresh}</button>{locked && <span role="status">{flowCopy.working}</span>}</div>
-      {error && <p className="community-error" role="alert">{error}</p>}
+      {error && <p className="community-error" role="alert">{copy[error]}</p>}
       {allowed && !loading && <section id={`${id}-panel`} className="community-tab-content" aria-label={tabLabel(tab)} aria-busy={busy}>
         <h3>{tabLabel(tab)}</h3>
         {confirmImport && <section className="community-import-confirm" role="group" aria-label={copy.import}>
@@ -312,7 +314,7 @@ function CommunityPublicLink({ card, language }: { card: CommunityCard; language
 
 function CommunityCardEvidence({ card, client, language }: { card: CommunityCardDetail; client: CommunityClient; language: string }) {
   const copy = cardAudienceCopy(language); const flow = activityFlowCopy(language); const community = communityCopy(language);
-  const target = card.rubric_snapshot?.target;
+  const target = card.rubric_snapshot?.target ? displayClarityStep(card.rubric_snapshot.target, card.rubric_snapshot.version, language) : undefined;
   let link: string | null = null;
   try { const reference = new URL(card.reference_link ?? ''); if (reference.protocol === 'https:' && !reference.username && !reference.password) link = reference.href; } catch { /* Do not render malformed or credential-bearing references. */ }
   return <article className="community-review-detail" aria-label={copy.openCard}>
@@ -331,7 +333,8 @@ function CommunityReviewDetail({ submission, userId, client, language, modeName,
   const copy = communityCopy(language); const flow = activityFlowCopy(language); const id = useId();
   const [criteria, setCriteria] = useState<[boolean, boolean, boolean]>([false, false, false]); const [feedback, setFeedback] = useState('');
   const available = canReviewCommunitySubmission(submission, userId);
-  const length = Array.from(feedback.trim()).length; const target = submission.rubric_snapshot.target;
+  const length = Array.from(feedback.trim()).length;
+  const target = displayClarityStep(submission.rubric_snapshot.target, submission.rubric_snapshot.version, language);
   const proof = submission.evidence;
   return <article className="community-review-detail" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>{modeName} · {copy.level} {submission.source_level} → {submission.target_level}</h4><h5 dir="auto">{submission.activity}</h5>
