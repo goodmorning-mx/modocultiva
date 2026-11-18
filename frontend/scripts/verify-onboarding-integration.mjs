@@ -338,9 +338,9 @@ async function assertFixedHome(page) {
   assert.equal(await page.evaluate(() => window.scrollY), 0, 'Home stays fixed under a wheel or programmatic scroll');
 }
 async function assertJourneyNumbers(steps, language) {
-  assert.equal(await steps.nth(0).locator('.journey-step-number').count(), 0, 'The overview is not a numbered step');
+  assert.equal(await steps.count(), 3, 'Only the numbered stages appear after the overview');
   for (const step of [1, 2, 3]) {
-    const number = steps.nth(step).locator('.journey-step-number');
+    const number = steps.nth(step - 1).locator('.journey-step-number');
     assert.equal(await number.evaluate(tag => tag.firstChild.textContent), step.toLocaleString(language), 'The activity number remains visible regardless of status');
   }
 }
@@ -392,7 +392,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
       assert.ok((await page.locator('.journey-builder .activity-flow-target summary').innerText()).trim());
     }
     if (step === 'methods') { assert.equal(await page.locator('.guided-tour-methods li[data-visited="true"]').count(), 4); if (regress) await methodRegression(page, configuration.timeout); }
-    if (['activityCard', 'evidence', 'audience'].includes(step)) assert.equal(await page.locator('.journey-step-list > li').count(), 4, 'Overview and three activity stages');
+    if (['activityCard', 'evidence', 'audience'].includes(step)) assert.equal(await page.locator('.journey-step-list > li').count(), 3, 'Three numbered activity stages');
     if (step === 'audience') {
       assert.equal(await page.locator('.activity-flow-audience input[value="network"]').isChecked(), true);
       assert.equal(await page.locator('.activity-flow-audience input[type="checkbox"]').count(), 0);
@@ -638,7 +638,8 @@ async function runCase(browser, config, task) {
         await page.keyboard.press('Escape');
         await setLocale(code);
         await selectPhysicalMode(page);
-        await page.locator('.journey-step-list button').nth(2).click();
+        await page.locator('.journey-step-arrow--next').click();
+        await page.locator('[data-journey-step="2"] button').click();
         const evidence = page.locator('.visual-evidence-input');
         const reflection = page.locator('.activity-journey-flow textarea').first();
         await reflection.fill(EVIDENCE_TEXT);
@@ -756,7 +757,7 @@ async function runCase(browser, config, task) {
         const code = task.language;
         const alternate = code === 'fr' ? 'ar' : 'fr';
         await selectPhysicalMode(page);
-        await page.locator('.journey-step-list button').nth(1).click();
+        await page.locator('.journey-step-arrow--next').click();
         const recommendation = page.locator('.journey-recommended-button');
         const originalFeature = (await recommendation.textContent()).replace(/^[^\p{L}]+/u, '');
         await recommendation.click();
@@ -856,7 +857,7 @@ async function runCase(browser, config, task) {
         const alternate = code === 'es' ? 'fr' : 'es';
         const level = state.levels.fisico;
         await selectPhysicalMode(page);
-        await page.locator('.journey-step-list button').nth(1).click();
+        await page.locator('.journey-step-arrow--next').click();
         await page.locator('.journey-global-button').click();
         const dialog = page.locator('.journey-global-dialog');
         const title = dialog.locator('.cult-insight-spotlight-copy h3');
@@ -939,7 +940,7 @@ async function runCase(browser, config, task) {
         }
         assert.equal(new Set(descriptions).size, MODES.length);
         await selectPhysicalMode(page);
-        await page.locator('.journey-step-list button').nth(1).click();
+        await page.locator('.journey-step-arrow--next').click();
         await page.locator('.journey-recommended-button').click();
         const bank = page.locator('.bank-presentation');
         const assertBank = async (language, slide) => {
@@ -1150,7 +1151,7 @@ async function runCase(browser, config, task) {
         assert.equal(await photo('fisico').getAttribute('src'), '/mode-photos/fisico.jpg');
         if (account) await eventually(() => JSON.stringify(transport.snapshot().state.homeVisionCards) === '{}', 'Restoring stock does not sync');
         await selectPhysicalMode(page);
-        await page.locator('.journey-step-list button').nth(1).click();
+        await page.locator('.journey-step-arrow--next').click();
         await page.locator('.journey-level-card--vision').waitFor();
         assert.equal(await page.locator('.journey-level-card--vision input[type=file]').count(), 1, 'Vision still owns the uploader');
         assert.equal(await page.locator('.journey-level-card--vision .vision-image-content').getAttribute('src'), PNG, 'Restoring stock never changes the original Vision');
@@ -1199,8 +1200,10 @@ async function runCase(browser, config, task) {
           assert.equal(await dialog.evaluate(el => el.style.getPropertyValue('--mode-color')), expectedColors[index]);
           assert.equal(await dialog.locator('.journey-level-link--up').isDisabled(), true);
           assert.equal(await dialog.locator('.journey-level-link--down').count(), 0);
-          assert.equal(await dialog.locator('.journey-step-list button').nth(2).isDisabled(), true);
-          assert.equal(await dialog.locator('.journey-step-list button').nth(3).isDisabled(), true);
+          assert.equal(await dialog.locator('.journey-step-list').count(), 0, 'Overview hides the steps');
+          await dialog.locator('.journey-step-arrow--next').click();
+          assert.equal(await dialog.locator('[data-journey-step="2"] button').isDisabled(), true);
+          assert.equal(await dialog.locator('[data-journey-step="3"] button').isDisabled(), true);
           await dialog.locator('.close-journey').click();
           if (index < MODES.length - 1) await carousel.locator('.circular-carousel__controls button').nth(1).click();
         }
@@ -1215,7 +1218,7 @@ async function runCase(browser, config, task) {
         await page.locator('.journey-panel .journey-back').click();
         await assertFixedHome(page);
         await selectPhysicalMode(page);
-        await page.locator('.journey-step-list button').nth(1).click();
+        await page.locator('.journey-step-arrow--next').click();
         const social = page.locator('.journey-social-footer');
         assert.equal(await social.locator('.journey-reactions').count(), JOURNEY_REACTIONS_ENABLED ? 1 : 0);
         const share = social.locator('.journey-share');
@@ -1242,9 +1245,25 @@ async function runCase(browser, config, task) {
         await selectPhysicalMode(page);
         const steps = page.locator('.journey-step-list button');
         const up = page.locator('.journey-level-link--up');
-        await assertJourneyNumbers(steps, task.language);
         const previous = page.locator('.journey-step-arrow--previous');
+        const next = page.locator('.journey-step-arrow--next');
+        const down = page.locator('.journey-level-link--down');
+        const frame = page.locator('.journey-deck-frame');
+        const stepButton = step => page.locator(`[data-journey-step="${step}"] button`);
         assert.equal(await previous.count(), 0);
+        assert.equal(await steps.count(), 0);
+        assert.equal(await up.locator('svg').count(), 1, 'Locked ascent shows a lock');
+        assert.equal(await up.locator('.global-sparks').count(), 0);
+        assert.equal(await down.isEnabled(), true);
+        assert.equal(await down.locator('.global-sparks').count(), 0);
+        const bounds = await frame.boundingBox(), upper = await up.boundingBox(), lower = await down.boundingBox(), forward = await next.boundingBox();
+        assert.ok(upper.y + upper.height <= bounds.y && lower.y >= bounds.y + bounds.height, 'Level controls are outside the central card');
+        // Layout dimensions remain stable while the modal entrance is animating.
+        const controlDimensions = button => button.evaluate(element => [element.offsetWidth, element.offsetHeight]);
+        assert.deepEqual(await controlDimensions(up), await controlDimensions(down));
+        assert.ok(task.language === 'ar' ? forward.x + forward.width <= bounds.x : forward.x >= bounds.x + bounds.width, 'Next floats in the side rail');
+        assert.equal(await next.locator('svg.journey-boomerang').count(), 1);
+        assert.equal(await next.locator('.global-sparks').count(), 1);
         const assertStepLabelsFit = () => steps.locator('small').evaluateAll(labels => labels.map(label => {
           const range = document.createRange();
           range.selectNodeContents(label);
@@ -1257,27 +1276,32 @@ async function runCase(browser, config, task) {
             && text.top >= button.top && text.bottom <= button.bottom
             && button.left >= list.left && button.right <= list.right;
         }));
-        assert.deepEqual(await assertStepLabelsFit(), [true, true, true, true], 'No clipped or wrapped labels in the overview');
+        await next.click();
+        await assertJourneyNumbers(steps, task.language);
         for (const step of [1, 2, 3]) {
-          await steps.nth(step).click();
+          await stepButton(step).click();
           assert.equal(await previous.isVisible(), true, `Previous is visible in step ${step}`);
-          assert.deepEqual(await assertStepLabelsFit(), [true, true, true, true], 'Tab text stays inside each button on one line');
+          assert.equal(await previous.locator('.global-sparks').count(), 0);
+          assert.deepEqual(await assertStepLabelsFit(), [true, true, true], 'Tab text stays inside each button on one line');
+          assert.equal(await steps.evaluateAll(buttons => new Set(buttons.map(b => b.getBoundingClientRect().top)).size), 1, 'All three buttons are on one row');
         }
         await previous.click();
-        assert.equal(await steps.nth(2).getAttribute('aria-current'), 'step');
+        assert.equal(await stepButton(2).getAttribute('aria-current'), 'step');
         await previous.click();
         await previous.click();
         assert.equal(await previous.count(), 0);
-        assert.equal(await steps.nth(0).evaluate(button => button === document.activeElement), true);
-        await steps.nth(1).click();
+        assert.equal(await steps.count(), 0);
+        await eventually(() => next.evaluate(button => button === document.activeElement), 'Focus returns to the remaining next arrow');
+        await next.click();
         await previous.press(task.language === 'ar' ? 'ArrowRight' : 'ArrowLeft');
         assert.equal(await previous.count(), 0, 'Keyboard navigation also hides Previous when it reaches the overview');
-        assert.equal(await steps.nth(0).evaluate(button => button === document.activeElement), true, 'Keyboard focus moves to the overview');
+        await eventually(() => next.evaluate(button => button === document.activeElement), 'Keyboard focus moves to the next arrow on overview');
         if (task.language === 'es') {
           assert.match(await up.textContent(), /Siguiente nivel · 4.*Se desbloquea al validar tu actividad/s);
           assert.match(await page.locator('.journey-level-link--down').textContent(), /Ver nivel anterior · 2/);
         }
-        await steps.nth(3).click();
+        await next.click();
+        await stepButton(3).click();
         assert.equal(await page.locator('.activity-flow-review progress').getAttribute('value'), '1');
         assert.equal(await up.isDisabled(), true);
         transport.setApprovals(2);
@@ -1288,13 +1312,17 @@ async function runCase(browser, config, task) {
         await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
         await page.locator('.activity-flow-review progress[value="3"]').waitFor();
         if (task.language === 'es') await eventually(async () => /Subir al siguiente nivel · 4/.test(await up.textContent()), 'The unlocked ascent invites the user to go up');
+        await up.locator('.global-sparks').waitFor();
+        assert.equal(await up.isEnabled(), true, 'Only unlocked ascent gets neon particles');
         await up.click();
-        assert.equal(await steps.nth(0).getAttribute('aria-current'), 'true');
-        assert.equal(await steps.nth(2).isDisabled(), true, 'A new level has no evidence until its activity is defined');
-        assert.equal(await steps.nth(3).isDisabled(), true);
+        assert.equal(await steps.count(), 0);
+        await next.click();
+        assert.equal(await stepButton(2).isDisabled(), true, 'A new level has no evidence until its activity is defined');
+        assert.equal(await stepButton(3).isDisabled(), true);
         assert.equal(await up.isDisabled(), true);
         await page.locator('.journey-level-link--down').click();
-        await steps.nth(3).click();
+        await next.click();
+        await stepButton(3).click();
         assert.equal(await page.locator('.activity-flow-review progress').getAttribute('value'), '3');
         await assertPreserved(page, state, true);
         result = { fourCards: true, approvalsUnlockAscent: 3, priorLevelStillVisible: true };
@@ -1319,14 +1347,13 @@ async function runCase(browser, config, task) {
       } else if (task.name.includes('local-')) {
         await selectPhysicalMode(page);
         const steps = page.locator('.journey-step-list button');
-        assert.equal(await steps.count(), 4);
-        assert.equal(await steps.nth(0).getAttribute('aria-current'), 'true');
+        assert.equal(await steps.count(), 0);
+        await page.locator('.journey-step-arrow--next').click();
         await assertJourneyNumbers(steps, task.language);
-        assert.ok(await steps.nth(1).locator('.journey-step-check').isVisible(), 'A completion check does not replace the step number');
-        assert.equal(await steps.nth(3).isDisabled(), true);
+        assert.ok(await steps.nth(0).locator('.journey-step-check').isVisible(), 'A completion check does not replace the step number');
+        assert.equal(await steps.nth(2).isDisabled(), true);
         assert.equal(await page.locator('.journey-level-link--up').isDisabled(), true);
         assert.equal(await page.locator('#journey-slider').count(), 0);
-        await steps.nth(1).click();
         const activity = page.locator('.journey-deck-content > .journey-level-card');
         assert.ok(await activity.evaluate(card => card.querySelector('.journey-fixed-actions') && card.nextElementSibling.classList.contains('journey-social-footer')), 'The five activity actions sit inside the card above the separate social footer');
         const neonButtons = activity.locator('.journey-action-neon');
@@ -1346,7 +1373,7 @@ async function runCase(browser, config, task) {
         await page.locator('.journey-global-dialog .cult-insight-spotlight').waitFor();
         assert.equal(transport.ideaWrites.length, 0, 'Global ideas display recommendations without notifying contacts');
         await page.locator('.journey-global-dialog > .close-journey').click();
-        await steps.nth(2).click();
+        await steps.nth(1).click();
         const flow = page.locator('.activity-journey-flow'); await flow.waitFor();
         assert.equal(await page.locator('.journey-community-actions').count(), 0);
         assert.equal(await flow.locator(':scope > .activity-flow-help').count(), 0);
@@ -1354,14 +1381,14 @@ async function runCase(browser, config, task) {
         assert.equal(await flow.locator('form .activity-flow-audience .activity-flow-help').count(), 0, 'Audience details do not appear in the evidence form');
         assert.equal(await flow.locator('form .activity-flow-reference').count(), 1, 'Evidence reference is still available');
         const height = (await flow.boundingBox()).height; assert.ok(height < 1350, `Compact default flow height: ${height}`);
-        await steps.nth(1).click();
+        await steps.nth(0).click();
         const trigger = page.locator(methodSelectors.localContacts);
         await trigger.click(); await page.locator('.journey-local-idea-status').waitFor();
         assert.equal(await page.locator('.community-panel').count(), 0, 'Direct action never opens another section');
         assert.equal(transport.ideaWrites.length, account ? 1 : 0, 'One synthetic transport call, no anonymous sends');
         assert.equal(await trigger.getAttribute('aria-pressed'), task.name === 'account-local-idea' ? 'true' : 'false');
         assert.equal(await trigger.isDisabled(), task.name === 'account-local-idea');
-        if (process.env.ACTIVITY_QA_SCREENSHOTS) { await steps.nth(2).click(); await flow.scrollIntoViewIfNeeded(); await page.screenshot({ path: resolve(process.env.ACTIVITY_QA_SCREENSHOTS, `compact-${task.name}-${task.width}-${task.language}.png`) }); }
+        if (process.env.ACTIVITY_QA_SCREENSHOTS) { await steps.nth(1).click(); await flow.scrollIntoViewIfNeeded(); await page.screenshot({ path: resolve(process.env.ACTIVITY_QA_SCREENSHOTS, `compact-${task.name}-${task.width}-${task.language}.png`) }); }
         await assertPreserved(page, state, account);
         result = { directRequest: true, compactHeight: height, ideaCalls: transport.ideaWrites.length, dataPreserved: true };
       } else if (task.name === 'drafts') {
@@ -1373,7 +1400,7 @@ async function runCase(browser, config, task) {
           }
           if (!await page.locator('.journey-panel').count()) await selectPhysicalMode(page);
           else if (await page.locator('.activity-agent-back').isVisible()) { await page.locator('.activity-agent-back').click(); await page.locator('.journey-fixed-actions').waitFor(); }
-          if (!await page.locator(methodSelectors[entry]).isVisible()) await page.locator('.journey-step-list button').nth(1).click();
+          if (!await page.locator(methodSelectors[entry]).isVisible()) await page.locator('.journey-step-arrow--next').click();
           await page.locator(methodSelectors[entry]).click();
           const text = `Unsaved ${entry} draft · العربية · QA only. Never replace this with saved text.`;
           await page.locator('#activity-prompt').fill(text);
