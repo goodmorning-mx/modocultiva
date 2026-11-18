@@ -16,6 +16,7 @@ export function customModeSymbol(mode: string) {
 }
 
 export function modeSymbol(mode: string) {
+  if (mode === 'ludico') return '/mode-symbols/ludico-electrico.svg';
   const artwork = mode === 'fisico' ? 'visionario' : mode === 'visionario' ? 'fisico' : mode;
   return customModeSymbol(mode) ?? `/mode-symbols/${artwork}.webp`;
 }
