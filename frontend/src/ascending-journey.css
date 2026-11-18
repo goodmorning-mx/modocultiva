@@ -45,7 +45,7 @@
 .journey-current-level strong { font-size: 1.45rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .journey-deck .journey-level-link {
   position: relative; isolation: isolate;
-  display: flex; inline-size: min(100%, 20rem); min-block-size: 62px; justify-self: center;
+  display: flex; inline-size: min(100%, 20rem); min-block-size: 4.5rem; justify-self: center;
   justify-content: center; align-items: center; gap: 9px; padding: 7px 12px;
   border: 1px solid; border-radius: 15px;
   color: #f0f7f4; font-size: .86rem; line-height: 1.25; text-align: start;
