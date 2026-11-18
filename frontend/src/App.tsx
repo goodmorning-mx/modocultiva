@@ -36,7 +36,7 @@ import { planDetailsForLocale, planKeys, planName, type PlanKey } from './planTi
 import { decideWelcomeIntro, markWelcomeIntroComplete, readWelcomeIntroCompletion, welcomeIntroStorageKey, type WelcomeIntroScope } from './welcomeIntroState';
 import { GuidedTour } from './GuidedTour';
 import { getGuidedTourCopy, guidedTourStepCopy, type TourStageId } from './guidedTourMessages';
-import type { GuidedTourStep, TourMethod } from './guidedTourCore';
+import { TOUR_METHODS, allTourMethodsVisited, type GuidedTourStep, type TourMethod } from './guidedTourCore';
 import { clarityTransition } from './clarityRubric';
 import { CommunityPanel, type CommunityShareCandidate, type CommunityTab } from './CommunityPanel';
 import './onboarding-integration.css';
@@ -92,8 +92,12 @@ type Skin = 'holista' | 'dj' | 'nocturna' | 'lucid' | 'zen' | 'mission' | 'rpg' 
 type PaletteFilter = 'none' | 'nocturna' | 'lucid';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
 type TourTopic = TourStageId | 'controlStrongest' | 'controlLeast' | 'controlFocus' | 'controlTrivia';
-const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'custom', 'bank', 'ai', 'localContacts', 'methods', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'globalIdeas', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'] satisfies TourTopic[])
+const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', ...TOUR_METHODS, 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'] satisfies TourTopic[])
   .filter(topic => (JOURNEY_REACTIONS_ENABLED || topic !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || topic !== 'audience'));
+const tourMethodTargets: Record<TourMethod, string> = {
+  custom: '.journey-manual-button', bank: '.journey-recommended-button', localContacts: '.journey-local-button',
+  globalIdeas: '.journey-global-button', ai: '.journey-ai-button',
+};
 type AccessFeature = 'activityPool' | 'modeAI' | { theme: Skin };
 type AccessRequest = { feature: AccessFeature; plan: PlanKey; returnView: View };
 type PendingActivity = { level: number; entry: ActivityEntry };
@@ -1650,6 +1654,7 @@ function App() {
     });
   };
   const tourTopic = tourIndex === null ? null : tourTopics[tourIndex];
+  const tourMethodDetail = TOUR_METHODS.some(method => method === tourTopic);
   const tourMode = modes.find(mode => mode.key === tourModeKey) ?? selectedMode ?? modes[0];
   const tourSource = Math.min(8, Math.max(0, levels[tourMode.key] ?? 0));
   const tourStep: GuidedTourStep | null = tourTopic ? (() => {
@@ -1664,10 +1669,7 @@ function App() {
     const selection = targets[tourTopic];
     return { id: tourTopic, ...copy,
       ...(tourTopic === 'modes' ? { target: selection as string, nextDisabled: !tourModeKey }
-        : tourTopic === 'methods' ? { methodChecklist: true, targets: [
-          { selector: '.journey-manual-button', method: 'custom' as const }, { selector: '.journey-recommended-button', method: 'bank' as const },
-          { selector: '.journey-ai-button', method: 'ai' as const }, { selector: '.journey-fixed-actions .journey-local-button', method: 'localContacts' as const },
-        ] }
+        : tourTopic === 'methods' ? { methodChecklist: true, targets: TOUR_METHODS.map(method => ({ selector: `.journey-fixed-actions ${tourMethodTargets[method]}`, method })) }
         : Array.isArray(selection) ? { targets: selection } : { target: selection as string }),
       ...(tourTopic === 'nextClarity' ? { clarityTarget: clarityTransition(tourSource, language)!.target } : {}),
       onEnter: ({ signal }) => {
@@ -1699,6 +1701,11 @@ function App() {
   })() : null;
 
   useLayoutEffect(() => {
+    if (tourTopic !== 'methods' || !selectedMode) return;
+    journeyPanelRef.current?.querySelector('.journey-fixed-actions')?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+  }, [tourTopic, selectedMode, journeySlide, journeyStep, activeActivity, cultOpen]);
+
+  useLayoutEffect(() => {
     if (tourTopic !== 'audience' || !selectedMode) return;
     const panel = journeyPanelRef.current;
     const settings = panel?.querySelector<HTMLDetailsElement>('.activity-flow-published-audience');
@@ -1717,15 +1724,6 @@ function App() {
     });
     return () => window.cancelAnimationFrame(frame);
   }, [tourTopic, view]);
-
-  useEffect(() => {
-    if (!tourTopic) return;
-    const method = tourTopic === 'custom' ? 'custom' : tourTopic === 'bank' ? 'bank' : tourTopic === 'ai' ? 'ai' : tourTopic === 'localContacts' ? 'localContacts' : null;
-    if (!method) return;
-    const mounted = method === 'localContacts' ? Boolean(selectedMode && document.querySelector('.journey-fixed-actions .journey-local-button'))
-      : activeActivity !== null && activityEntry === (method === 'bank' ? 'pool' : method) && Boolean(document.querySelector(`.activity-agent--${activityEntry}`));
-    if (mounted) setTourVisitedMethods(current => current.includes(method) ? current : [...current, method]);
-  }, [tourTopic, communityOpen, communityTab, activeActivity, activityEntry, selectedMode]);
 
   useEffect(() => {
     if (publicCardId) return; // Shared cards open directly, without a welcome covering their content.
@@ -2828,12 +2826,17 @@ function App() {
                   <div className="journey-fixed-actions" aria-label={tr('visibleLevelActions')}>
                     <button className="journey-manual-button journey-action-neon" type="button" onClick={() => openActivity(visibleJourneyLevel, 'custom')}>＋ {tr('addActivity')}</button>
                     <button className="journey-recommended-button journey-action-neon" type="button" onClick={() => openActivity(visibleJourneyLevel, 'pool')}>▦ {tr('activityPoolButton')}</button>
-                    <button className="journey-ai-button journey-action-neon" type="button" onClick={() => openActivity(visibleJourneyLevel, 'ai')}>✦ {tr('modeAI')}</button>
                     <button className="journey-local-button journey-action-neon" type="button" disabled={!tourTopic && (localIdeaBusy || (localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0)}
                       aria-pressed={(localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0} aria-busy={localIdeaBusy}
-                      onClick={() => requestInsight(selectedMode.key, visibleJourneyLevel)}>{localIdeaBusy ? activityFlowCopy(language).working : (localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0 ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}</button>
-                    <button className="journey-global-button" type="button" onClick={() => { setInsightSlide(0); setInsightCycle(0); setCultTab('insights'); setCultOpen(true); }}>
-                      <span className="journey-global-globe" aria-hidden="true"><i /></span>{deckLabels[4]}
+                      onClick={() => requestInsight(selectedMode.key, visibleJourneyLevel)}>
+                      <svg className="journey-local-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>{' '}
+                      {localIdeaBusy ? activityFlowCopy(language).working : (localIdeaRequests[insightRequestKey(selectedMode.key, visibleJourneyLevel)]?.eligible_count ?? 0) > 0 ? `✓ ${tr('insightRequested')}` : tr('requestInsights')}
+                    </button>
+                    <button className="journey-global-button journey-action-neon" type="button" onClick={() => { setInsightSlide(0); setInsightCycle(0); setCultTab('insights'); setCultOpen(true); }}>
+                      <span className="journey-global-globe" aria-hidden="true" /> {deckLabels[4]}
+                    </button>
+                    <button className="journey-ai-button" type="button" onClick={() => openActivity(visibleJourneyLevel, 'ai')}>
+                      <span className="global-sparks" aria-hidden="true" /><span>✦ {tr('modeAI')}</span>
                     </button>
                   </div>
                   {localIdeaNotice?.key === insightRequestKey(selectedMode.key, visibleJourneyLevel) && <p className="journey-local-idea-status" role="status">{localIdeaNotice.kind === 'login' ? communityCopy(language).login : localIdeaNotice.kind === 'profile' ? onboardingIntegrationCopy(language).profileRequired : localIdeaNotice.kind === 'failed' ? communityCopy(language).unavailable : localIdeaNotice.count ? `${tr('insightRequested')} · ${communityCopy(language).eligible.replace('{count}', String(localIdeaNotice.count))}` : communityCopy(language).zero}</p>}
@@ -2875,11 +2878,19 @@ function App() {
           if (kind === 'reuse') await communityClient.importReuse(id, expectedHash); else await communityClient.importIdea(id, expectedHash);
           await refreshCommunity();
         } : undefined} />}
-      {!accountBlocked && !publicCardId && <GuidedTour step={tourStep} language={language} visitedMethods={tourVisitedMethods} onPrevious={() => setTourIndex(current => current === null ? null : Math.max(0, current - 1))}
-        onNext={() => { if (tourIndex === tourTopics.length - 1) closeTour(); else setTourIndex(current => current === null ? null : current + 1); }} onClose={closeTour}
+      {!accountBlocked && !publicCardId && <GuidedTour step={tourStep} language={language} visitedMethods={tourVisitedMethods}
+        onPrevious={() => setTourIndex(current => current === null ? null : tourMethodDetail || tourTopic === 'effort' ? tourTopics.indexOf('methods') : Math.max(0, current - 1))}
+        onNext={() => {
+          if (tourMethodDetail) setTourIndex(tourTopics.indexOf('methods'));
+          else if (tourTopic === 'methods') { if (allTourMethodsVisited(tourVisitedMethods)) setTourIndex(tourTopics.indexOf('effort')); }
+          else if (tourIndex === tourTopics.length - 1) closeTour();
+          else setTourIndex(current => current === null ? null : current + 1);
+        }} onClose={closeTour}
         canGoBack={tourIndex !== null && tourIndex > 0} isLastStep={tourIndex === tourTopics.length - 1} showCounter={isAuthenticated && stateHydrated && isOwnerAccount} counter={tourIndex === null ? undefined : { current: tourIndex + 1, total: tourTopics.length }}
-        onTargetInteraction={({ stepId, method }) => {
-          if (stepId === 'methods' && method) setTourIndex(tourTopics.indexOf(method === 'localContacts' ? 'localContacts' : method === 'bank' ? 'bank' : method));
+        onTargetInteraction={({ stepId, method, event }) => {
+          if (stepId !== 'methods' || !method || event.type !== 'click' || !event.isTrusted) return;
+          setTourVisitedMethods(current => current.includes(method) ? current : [...current, method]);
+          setTourIndex(tourTopics.indexOf(method));
         }} />}
       {!accountBlocked && !publicCardId && welcomeScope && <WelcomeIntro key={welcomeIntroStorageKey(welcomeScope)} language={language} onComplete={() => {
         try { markWelcomeIntroComplete(window.localStorage, welcomeScope); } catch { /* The in-memory scope guard prevents a replay loop. */ }

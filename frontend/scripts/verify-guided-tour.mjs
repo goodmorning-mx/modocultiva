@@ -16,10 +16,10 @@ const overlap = (a, b) => clipTourRect(a, b);
 const inside = (x, y, rect) => x >= rect.left && x < rect.left + rect.width && y >= rect.top && y < rect.top + rect.height;
 const unitStep = { id: 'methods', target: '.method', title: 'Methods', body: 'Only visits', methodChecklist: true };
 
-check('four externally confirmed visits gate Next; duplicates do not qualify', () => {
+check('five explicit visits gate Next; duplicates do not qualify', () => {
   assert.equal(allTourMethodsVisited([]), false);
   assert.equal(allTourMethodsVisited(['custom', 'custom', 'bank', 'ai']), false);
-  assert.equal(tourNextDisabled(unitStep, ['custom', 'bank', 'ai'], true), true);
+  assert.equal(tourNextDisabled(unitStep, ['custom', 'bank', 'localContacts', 'ai'], true), true);
   assert.equal(tourNextDisabled(unitStep, TOUR_METHODS, true), false);
   assert.equal(tourNextDisabled(unitStep, TOUR_METHODS, false), true);
   assert.equal(tourNextDisabled({ ...unitStep, nextDisabled: true }, TOUR_METHODS, true), true);
@@ -145,7 +145,7 @@ if (process.argv.includes('--browser')) {
       const [visits,setVisits]=useState([]), [delayed,setDelayed]=useState(false);
       const [fixtureWidth,setFixtureWidth]=useState(innerWidth);
       const dialog=useRef(null);
-      const methodNames=['custom','bank','ai','localContacts'];
+      const methodNames=${JSON.stringify(TOUR_METHODS)};
       const buttonStyle={position:'absolute',left:24,top:24,width:88,height:44};
       useEffect(()=>{window.__tour={stats,open:()=>setOpen(true),close:()=>setOpen(false),scenario:(name)=>{setDelayed(false);setVisits([]);setScenario(name)},visits:setVisits};},[]);
       useEffect(()=>{const resize=()=>setFixtureWidth(innerWidth);addEventListener('resize',resize);return()=>removeEventListener('resize',resize)},[]);
@@ -222,15 +222,15 @@ if (process.argv.includes('--browser')) {
     await page.keyboard.press('Enter'); assert.equal(await page.evaluate(() => window.__tour.stats.actual), 2);
     console.log('PASS browser: real target pointer/keyboard interaction, blackout and focus fence');
 
-    await scenario('methods'); await ready(4);
+    await scenario('methods'); await ready(5);
     const next = page.getByRole('button', { name: 'Next', exact: true });
     assert.equal(await next.isDisabled(), true);
-    for (const method of ['custom', 'bank', 'ai']) await page.locator('#method-' + method).click();
+    for (const method of TOUR_METHODS.slice(0, -1)) await page.locator('#method-' + method).click();
     assert.equal(await next.isDisabled(), true);
-    await page.locator('#method-localContacts').click(); assert.equal(await next.isEnabled(), true);
-    assert.equal(await page.locator('.guided-tour-methods [data-visited="true"]').count(), 4);
-    assert.equal(await page.evaluate(() => window.__tour.stats.interactions.filter(e => e.method).length), 4);
-    console.log('PASS browser: four real method visits, no automatic actions');
+    await page.locator('#method-ai').click(); assert.equal(await next.isEnabled(), true);
+    assert.equal(await page.locator('.guided-tour-methods [data-visited="true"]').count(), 5);
+    assert.equal(await page.evaluate(() => window.__tour.stats.interactions.filter(e => e.method).length), 5);
+    console.log('PASS browser: five real method visits, no automatic actions');
 
     await scenario('section'); await ready(); await page.locator('#live-input').fill('keep native typing');
     await page.keyboard.press('ArrowLeft'); assert.equal(await page.locator('#live-input').inputValue(), 'keep native typing');

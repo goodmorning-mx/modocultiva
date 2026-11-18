@@ -1,5 +1,5 @@
 /** Geometry and contracts only. Distinct stem avoids case-insensitive TS/TSX resolution on Windows. */
-export const TOUR_METHODS = ['custom', 'bank', 'ai', 'localContacts'] as const;
+export const TOUR_METHODS = ['custom', 'bank', 'localContacts', 'globalIdeas', 'ai'] as const;
 export type TourMethod = typeof TOUR_METHODS[number];
 export type TourRect = { left: number; top: number; width: number; height: number };
 export type TourTarget = string | {
@@ -19,7 +19,7 @@ type StepContent = {
   /** Pass the exact next description from clarityTransition/server-owned rubric. Never invent it. */
   clarityTarget?: { level: number; description: string };
   onEnter?: (context: TourEntryContext) => void | Promise<void>;
-  /** Showing this checklist also gates Next on all FOUR externally confirmed visits. */
+  /** Gates Next on an explicit activation of each of the five options. */
   methodChecklist?: boolean;
   nextDisabled?: boolean;
   nextDisabledReason?: string;
