@@ -2561,6 +2561,7 @@ function App() {
             interval={3}
             direction="left"
             momentum={0.6}
+            swipeCoastCards={0.35}
             snap
             pauseOnHover
             focusOnClick
