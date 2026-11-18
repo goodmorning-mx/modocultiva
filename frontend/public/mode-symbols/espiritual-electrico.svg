@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 144">
+  <defs>
+    <radialGradient id="heart"><stop stop-color="#fff"/><stop offset=".21" stop-color="#f4f8fe"/><stop offset=".58" stop-color="#9aaec5"/><stop offset=".91" stop-color="#293c51"/><stop offset="1" stop-color="#182434"/></radialGradient>
+    <linearGradient id="orbit" x2=".6" y2="1"><stop stop-color="#677990"/><stop offset=".35" stop-color="#fff"/><stop offset=".68" stop-color="#8ea4c1"/><stop offset="1" stop-color="#fff"/></linearGradient>
+    <filter id="aura" x="-35%" y="-35%" width="170%" height="170%"><feGaussianBlur stdDeviation="3.6"/></filter>
+    <path id="rays" d="M80 23v13m0 72v13M31 72h13m72 0h13M45 37l9 9m52 52 9 9m-70 0 9-9m52-52 9-9"/>
+    <path id="wave" d="M9 105C1 84 27 49 65 27c34-19 72-24 83-9 11 16-8 54-43 80-34 25-80 36-94 18"/>
+  </defs>
+  <g fill="none" stroke-linecap="round">
+    <use href="#wave" stroke="#c5d7eb" stroke-width="7" opacity=".54" filter="url(#aura)"/>
+    <use href="#wave" stroke="url(#orbit)" stroke-width="1.75"/>
+    <path d="M17 41c19-16 62-14 95 6s46 45 32 64c-12 18-49 20-75 9" stroke="#c8d4e3" stroke-width="1" opacity=".65"/>
+    <g stroke="#f0f5ff" stroke-width="8" opacity=".75" filter="url(#aura)"><use href="#rays"/><circle cx="80" cy="72" r="28"/></g>
+    <circle cx="80" cy="72" r="28" fill="url(#heart)" stroke="#fff" stroke-width="2.8"/>
+    <use href="#rays" stroke="#fff" stroke-width="4.8"/>
+    <path d="M12 117c15 18 63 7 93-19 16-12 33-30 40-46" stroke="#fff" stroke-width="1.4" stroke-dasharray="33 10 22 13"/>
+  </g>
+  <g fill="#fff"><circle cx="26" cy="35" r="2"/><circle cx="144" cy="53" r="2.1"/><circle cx="12" cy="116" r="2"/><circle cx="137" cy="112" r="2"/><path d="M122 22l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></g>
+</svg>

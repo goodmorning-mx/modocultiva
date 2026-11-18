@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 152">
+  <defs>
+    <radialGradient id="tissue" cx=".48" cy=".33" r=".68"><stop stop-color="#568bcd"/><stop offset=".47" stop-color="#1d446c"/><stop offset="1" stop-color="#061421"/></radialGradient>
+    <linearGradient id="neural" x2=".65" y2="1"><stop stop-color="#fffbe6"/><stop offset=".52" stop-color="#a4d8ff"/><stop offset=".82" stop-color="#569cdc"/><stop offset="1" stop-color="#eefaff"/></linearGradient>
+    <filter id="glow" x="-25%" y="-30%" width="150%" height="160%"><feGaussianBlur stdDeviation="3.3"/></filter>
+    <path id="cortex" d="M30 101c-14-4-21-13-20-25-4-10 2-22 11-28 1-10 12-19 24-22 8-11 19-14 31-13 11-8 26-9 39-2 15-2 31 4 37 15 16 4 26 15 27 31 8 9 11 25 5 36-5 9-14 16-23 18-1 17-22 27-39 20l-9 13c-3 5-10 3-12-2l-4-21c-15 4-32 0-41-12-11 2-20-1-26-8Z"/>
+    <g id="folds">
+      <path d="M21 50c12-9 24-9 32-1 6 6 7 14 3 21m-19-34c7-2 12-1 17 4m-26 22c-10 5-12 15-6 21m8 10c9 6 19 2 24-5 6-10 15-14 24-11m-11-58c-3 8-1 17 8 20 7 3 11 10 8 17m11-45c-8 7-11 14-8 23s18 10 18 21m11-42c-6 5-9 12-5 20m9-7c11-6 23-3 30 7m-15 3c-11-2-20 4-21 14-1 9 4 14 10 16m41-19c-11-6-24-2-30 8-3 7-1 13 3 17m28 3c-13-3-19 3-23 10-5 9-10 12-18 12m51-32c5 6 7 12 3 19m-96 14c0-12 7-21 18-22 5-1 11 0 15 2m-18-17c3 13-7 18-17 20m8-30c-4-7-11-9-19-7m-8 73c5-10 15-13 26-11m15 11c12-6 20-7 29-6m-29 20c10-5 26-6 38-1"/>
+      <path d="M37 84c9-4 15-15 11-24m10 44c-1-7 4-13 9-16m27-18c6-8 15-10 23-5m30 16c11-1 18-6 21-14m-57 56c14 5 31 5 43-3m-38 9c10 3 19 3 29 0" opacity=".72"/>
+    </g>
+    <path id="orbit" d="M16 112C-2 104 14 76 44 56c56-38 125-48 140-20 11 21-30 55-68 73-32 15-68 23-89 18"/>
+  </defs>
+  <use href="#orbit" fill="none" stroke="#79c6fa" stroke-width="5" opacity=".62" filter="url(#glow)"/>
+  <use href="#orbit" fill="none" stroke="#9fddff" stroke-width="1.2" stroke-dasharray="50 13 24 17"/>
+  <use href="#cortex" fill="none" stroke="#78c7ff" stroke-width="8" filter="url(#glow)"/>
+  <use href="#cortex" fill="url(#tissue)" stroke="url(#neural)" stroke-width="2.9"/>
+  <g fill="none" stroke-linecap="round"><use href="#folds" stroke="#75bafb" stroke-width="4.8" filter="url(#glow)"/><use href="#folds" stroke="url(#neural)" stroke-width="2.15"/></g>
+  <path d="M16 112c19 13 57 14 100-3 30-12 55-32 66-49" fill="none" stroke="#d6f0ff" stroke-width="1.35" stroke-dasharray="30 8 14 12" opacity=".85"/>
+  <g fill="#f7fcff"><circle cx="22" cy="48" r="2.6"/><circle cx="75" cy="39" r="2.2"/><circle cx="113" cy="50" r="2.1"/><circle cx="138" cy="72" r="2.4"/><circle cx="77" cy="98" r="2.2"/><circle cx="161" cy="111" r="2.5"/><path d="M119 77l2 5 5 2-5 2-2 5-2-5-5-2 5-2ZM39 31l1.6 4.4L45 37l-4.4 1.6L39 43l-1.6-4.4L33 37l4.4-1.6Z"/></g>
+</svg>

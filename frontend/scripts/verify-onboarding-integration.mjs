@@ -1020,10 +1020,15 @@ async function runCase(browser, config, task) {
           await button.waitFor();
           assert.ok((await button.getAttribute('class')).includes('home-mode-card--electric'));
           const artwork = button.locator('.mode-electric-symbol-fallback');
-          const customAssets = { emocional: 'emocional-orbitas.svg', ludico: 'ludico-mando.svg' };
-          const asset = { emocional: 'emocional-electrico.svg?v=2', fisico: 'visionario.webp', visionario: 'fisico.webp', ludico: 'ludico-electrico.svg?v=2' }[mode] ?? `${mode}.webp`;
+          const customAssets = { emocional: 'emocional-caritas.svg', intelectual: 'intelectual-cerebro.svg', profesional: 'profesional-portafolio.svg', ludico: 'ludico-mando.svg' };
+          const asset = { emocional: 'emocional-electrico.svg?v=3', intelectual: 'intelectual-electrico.svg', espiritual: 'espiritual-electrico.svg', profesional: 'profesional-electrico.svg', fisico: 'visionario.webp', visionario: 'fisico.webp', ludico: 'ludico-electrico.svg?v=2' }[mode] ?? `${mode}.webp`;
           assert.equal(await artwork.getAttribute('src'), `/mode-symbols/${asset}`);
           await eventually(() => artwork.evaluate(img => img.complete && img.naturalWidth > 0), 'Premium artwork loaded');
+          const smaller = ['intelectual', 'visionario', 'social', 'financiero', 'romantico'].includes(mode);
+          assert.equal(await artwork.evaluate(img => {
+            const matrix = getComputedStyle(img).transform;
+            return matrix === 'none' ? 1 : new DOMMatrix(matrix).a;
+          }), smaller ? .67 : 1, 'Only the five requested electric Home artworks are resized via layout');
           if (mode === 'ludico' || mode === 'emocional') assert.ok(await artwork.evaluate((img, mode) => {
             const playful = mode === 'ludico';
             const [width, height] = playful ? [160, 136] : [120, 112];
@@ -1164,7 +1169,7 @@ async function runCase(browser, config, task) {
         const header = page.locator('.topbar--material-home');
         assert.equal(await header.evaluate(el => getComputedStyle(el).boxShadow), 'none');
         assert.equal(await header.locator('.topbar-actions').evaluate(el => getComputedStyle(el).position), 'fixed');
-        const expectedColors = ['#22C7A5', '#3D8FD2', '#D94A4A', '#A77BDB', '#FFFFFF', '#D98BA9', '#B49AD6', '#3FBBC3', '#D9B65D', '#7A91A8', '#A87554', '#C7CED8'];
+        const expectedColors = ['#22C7A5', '#3D8FD2', '#D94A4A', '#EF7909', '#FFFFFF', '#F16FAD', '#A47DAB', '#3FBBC3', '#D9B65D', '#7A91A8', '#A87554', '#A77BDB'];
         await active.press('Home');
         for (const [index, mode] of MODES.entries()) {
           const card = carousel.locator(`[data-tour-mode="${mode}"][tabindex="0"]`);
@@ -1410,7 +1415,10 @@ function selfTest() {
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, social: 'electric', unknown: 'electric' }), { fisico:true, social:'electric' });
   assert.equal(homeModePhoto('fisico', PNG, { fisico:'electric' }), '/mode-symbols/visionario.webp');
   assert.equal(homeModePhoto('visionario', PNG, { visionario:'electric' }), '/mode-symbols/fisico.webp');
-  assert.equal(homeModePhoto('emocional', PNG, { emocional:'electric' }), '/mode-symbols/emocional-electrico.svg?v=2');
+  assert.equal(homeModePhoto('emocional', PNG, { emocional:'electric' }), '/mode-symbols/emocional-electrico.svg?v=3');
+  assert.equal(homeModePhoto('intelectual', PNG, { intelectual:'electric' }), '/mode-symbols/intelectual-electrico.svg');
+  assert.equal(homeModePhoto('espiritual', PNG, { espiritual:'electric' }), '/mode-symbols/espiritual-electrico.svg');
+  assert.equal(homeModePhoto('profesional', PNG, { profesional:'electric' }), '/mode-symbols/profesional-electrico.svg');
   assert.equal(homeModePhoto('ludico', PNG, { ludico:'electric' }), '/mode-symbols/ludico-electrico.svg?v=2');
   assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
   assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '/mode-photos/fisico.jpg');

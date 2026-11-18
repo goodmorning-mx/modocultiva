@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 136">
+  <defs>
+    <linearGradient id="metal" x2=".75" y2="1"><stop stop-color="#fff"/><stop offset=".4" stop-color="#9eb9d3"/><stop offset=".68" stop-color="#e9f5ff"/><stop offset="1" stop-color="#66839f"/></linearGradient>
+    <linearGradient id="body" x2="0" y2="1"><stop stop-color="#3c526b"/><stop offset="1" stop-color="#101d2d"/></linearGradient>
+    <filter id="aura" x="-25%" y="-40%" width="150%" height="180%"><feGaussianBlur stdDeviation="3.3"/></filter>
+    <path id="orbit" d="M14 106C-1 90 27 61 62 38c34-23 77-30 88-13 12 19-21 54-59 77-36 21-68 26-80 13"/>
+    <path id="handle" d="M60 42V28c0-6 4-9 9-9h22c5 0 9 3 9 9v14"/>
+  </defs>
+  <g fill="none" stroke-linecap="round">
+    <use href="#orbit" stroke="#b8d7f0" stroke-width="7" filter="url(#aura)" opacity=".85"/>
+    <use href="#orbit" stroke="url(#metal)" stroke-width="1.8"/>
+    <use href="#handle" stroke="#c0d9ef" stroke-width="9" filter="url(#aura)"/>
+    <use href="#handle" stroke="url(#metal)" stroke-width="6"/>
+    <rect x="31" y="42" width="98" height="72" rx="8" fill="url(#body)" stroke="url(#metal)" stroke-width="4"/>
+    <rect x="39" y="50" width="82" height="56" rx="4" stroke="#9db9d2" opacity=".7" stroke-width="1"/>
+    <path d="M32 72c29 15 66 15 96 0" stroke="#eaf4ff" stroke-width="2.3"/>
+    <rect x="74" y="77" width="12" height="9" rx="2" fill="#bfd7ec" stroke="#fff" stroke-width="1.2"/>
+    <path d="M12 114c13 12 48 6 79-12 22-13 42-30 53-46" stroke="#e9f5ff" stroke-width="1.65" stroke-dasharray="27 9 45 11"/>
+  </g>
+  <g fill="#fff"><circle cx="14" cy="105" r="2.4"/><circle cx="146" cy="50" r="2"/><circle cx="116" cy="105" r="1.8"/><path d="M37 46l1.8 4.2L43 52l-4.2 1.8L37 58l-1.8-4.2L31 52l4.2-1.8Z"/></g>
+</svg>
