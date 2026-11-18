@@ -10,15 +10,20 @@ export function cleanHomeVisionCards(value: unknown): HomeVisionCards {
 }
 
 export const defaultModePhoto = (mode: string) => `/mode-photos/${mode}.jpg`;
-export const EMOTIONAL_ELECTRIC_ART = '/mode-symbols/emocional-electrico.svg?v=2';
+export const EMOTIONAL_ELECTRIC_ART = '/mode-symbols/emocional-electrico.svg?v=3';
 export function customModeSymbol(mode: string) {
-  if (mode === 'emocional') return '/mode-symbols/emocional-orbitas.svg';
+  if (mode === 'emocional') return '/mode-symbols/emocional-caritas.svg';
+  if (mode === 'intelectual') return '/mode-symbols/intelectual-cerebro.svg';
+  if (mode === 'profesional') return '/mode-symbols/profesional-portafolio.svg';
   if (mode === 'ludico') return '/mode-symbols/ludico-mando.svg';
 }
 
 export function modeSymbol(mode: string) {
   if (mode === 'ludico') return '/mode-symbols/ludico-electrico.svg?v=2';
   if (mode === 'emocional') return EMOTIONAL_ELECTRIC_ART;
+  if (mode === 'intelectual') return '/mode-symbols/intelectual-electrico.svg';
+  if (mode === 'espiritual') return '/mode-symbols/espiritual-electrico.svg';
+  if (mode === 'profesional') return '/mode-symbols/profesional-electrico.svg';
   const artwork = mode === 'fisico' ? 'visionario' : mode === 'visionario' ? 'fisico' : mode;
   return customModeSymbol(mode) ?? `/mode-symbols/${artwork}.webp`;
 }
