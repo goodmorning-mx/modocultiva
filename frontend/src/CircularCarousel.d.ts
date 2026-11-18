@@ -30,6 +30,7 @@ export default function CircularCarousel(props: {
   interval?: number;
   direction?: 'left' | 'right';
   momentum?: number;
+  swipeCoastCards?: number;
   snap?: boolean;
   pauseOnHover?: boolean;
   focusOnClick?: boolean;
