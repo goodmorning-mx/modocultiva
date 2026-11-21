@@ -55,6 +55,7 @@ import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
 import logo from './assets/modo-cultiva-logo-neon.png';
+import homeElectricLogo from './assets/modo-cultiva-logo-electric.webp';
 import './skin-overrides.css';
 import './life-map-polish.css';
 import './profile-level.css';
@@ -2467,7 +2468,7 @@ function App() {
       </div>
       <header className={`topbar${view === 'welcome' ? ' topbar--material-home' : ''}`}>
         <a className="brand" href="/" aria-label={`Modo Cultiva · ${tr('home')}`}>
-          <img src={logo} alt="Modo Cultiva" />
+          <img src={view === 'welcome' ? homeElectricLogo : logo} className={view === 'welcome' ? 'home-brand-electric' : undefined} alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
         {view === 'welcome' && <span className="home-material-title">Modo Cultiva</span>}

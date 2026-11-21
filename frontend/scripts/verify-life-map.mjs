@@ -49,6 +49,18 @@ assert.equal(Object.keys(quoteModeCounts).length, 12, 'Daily quotes cover every 
 assert.ok(Math.max(...Object.values(quoteModeCounts)) - Math.min(...Object.values(quoteModeCounts)) <= 1, 'Daily quotes are balanced across the life modes');
 assert.ok(app.includes('homeSortDescending') && app.includes('levels[right.key] - levels[left.key]') && app.includes('home-sort-glyph') && app.includes('<i>↑</i><i>↓</i>'), 'Home sorts modes with an up/down arrow-only control');
 assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*grid-column:\s*1/,'Current brand logo sits on the left side of the app bar');
+assert.ok(app.includes("import homeElectricLogo from './assets/modo-cultiva-logo-electric.webp'") && app.includes("src={view === 'welcome' ? homeElectricLogo : logo}"), 'Home selects the approved electric logo without changing other screens');
+assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*width:\s*88px[^}]*height:\s*88px[^}]*border-radius:\s*50%[^}]*background:\s*radial-gradient\([^}]*#20483f[^}]*#12312d/, 'Home logo is much larger on the chosen green circular backing');
+assert.match(css, /@media \(max-width: 680px\)[\s\S]*\.topbar--material-home \.brand\s*\{[^}]*width:\s*72px[^}]*height:\s*72px/, 'Mobile keeps a large readable logo');
+assert.match(css, /\.topbar--material-home \.brand img\s*\{[^}]*width:\s*100%[^}]*height:\s*100%[^}]*object-fit:\s*contain/, 'Logo preserves its whole silhouette and transparent halo');
+const homeLogo = await readFile(new URL('../src/assets/modo-cultiva-logo-electric.webp', import.meta.url));
+assert.equal(homeLogo.toString('ascii', 0, 4), 'RIFF');
+assert.equal(homeLogo.toString('ascii', 8, 12), 'WEBP');
+assert.equal(homeLogo.toString('ascii', 12, 16), 'VP8X');
+assert.ok(homeLogo[20] & 0x10, 'Header logo retains true transparency');
+assert.equal(1 + homeLogo.readUIntLE(24, 3), 384);
+assert.equal(1 + homeLogo.readUIntLE(27, 3), 384);
+assert.ok(homeLogo.length < 80_000, 'Header artwork is optimized under 80 KB');
 assert.ok(app.includes('{view === \'welcome\' ? <><button className="home-profile-avatar"') && app.includes('className="home-menu-button"') && app.includes('{languagePicker()}') && app.includes('{languagePicker(true)}') && app.includes('languageFlags[code]'), 'Home and other views provide the same language picker');
 assert.ok(app.includes('className="home-sidebar" id="home-sidebar" role="dialog"') && app.includes("setView('dashboard')") && app.includes("setView('lab')") && app.includes('setConfigurationsOpen(true)'), 'Home sidebar opens as an accessible navigation panel with links to existing screens and options');
 assert.match(css, /\.home-sidebar\s*\{[^}]*width:\s*min\(320px, calc\(100vw - 40px\)\)[^}]*animation: home-sidebar-slide \.36s/, 'Sidebar is narrow and has a paced entrance animation');
