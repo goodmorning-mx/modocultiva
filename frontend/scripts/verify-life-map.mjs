@@ -16,6 +16,14 @@ assert.match(modeList, /key: 'familiar'[^\n]*color: '#E3AAF4'/, 'Family uses the
 assert.ok(!app.includes('#A47DAB'), 'The old Family palette is not used by any app surface');
 const familyIcon = await readFile(new URL('../public/mode-symbols/familiar-casa.svg', import.meta.url), 'utf8');
 assert.equal((familyIcon.match(/stroke="#e3aaf4"/g) ?? []).length, 2, 'Family house and energy orbit use the same light lilac');
+assert.match(modeList, /key: 'visionario'[^\n]*color: '#818CF8'[^\n]*accent: '#222449'/, 'Visionary uses a blue indigo palette distinct from Family lilac');
+assert.ok(!app.includes('#A77BDB'), 'The former Visionary violet is no longer used');
+const visionaryIcon = await readFile(new URL('../public/mode-symbols/visionario-telescopio.svg', import.meta.url), 'utf8');
+assert.ok(visionaryIcon.includes('stop-color="#818CF8"') && visionaryIcon.includes('stroke="#818CF8"') && !visionaryIcon.includes('#A77BDB'), 'Telescope and star match the new indigo palette');
+const luminance = hex => [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255)
+  .map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4)
+  .reduce((value, channel, i) => value + channel * [.2126, .7152, .0722][i], 0);
+assert.ok((luminance('#818CF8') + .05) / (luminance('#222449') + .05) >= 4.5, 'Indigo remains legible for small text on its dark accent');
 assert.ok(homeCarousel.includes('orderedHomeModes.map((mode) =>'), 'Home renders modes in the selected sort order');
 assert.ok(carousel.includes('className={`home-mode-card') && homeCarousel.includes('openMode(mode)'), 'Each mode opens its existing journey');
 assert.match(homeCarousel, /preset="panorama"[\s\S]*cardWidth=\{300\}[\s\S]*aspectRatio=\{0\.78\}[\s\S]*autoplay="drift"/);
