@@ -133,6 +133,14 @@
   outline-offset: 2px;
 }
 
+/* Geometric media controls stay bold and identical across device fonts. */
+.home-carousel-rotation-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
 .circular-carousel__controls span {
   min-width: 5ch;
   text-align: center;

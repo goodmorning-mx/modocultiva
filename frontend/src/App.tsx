@@ -2601,7 +2601,9 @@ function App() {
                 className="home-carousel-rotation"
                 aria-label={homeCarouselControls[language][homeCarouselPaused ? 3 : 2]}
                 onClick={() => setHomeCarouselPaused((paused) => !paused)}
-              >{homeCarouselPaused ? '▶' : 'Ⅱ'}</button>,
+              ><svg className="home-carousel-rotation-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                {homeCarouselPaused ? <path d="M7 4.5v15L20 12Z" /> : <><rect x="5" y="4" width="5" height="16" rx="1" /><rect x="14" y="4" width="5" height="16" rx="1" /></>}
+              </svg></button>,
             }}
             preset="panorama"
             intro={tourTopic === 'modes' ? 'none' : 'assemble'}
