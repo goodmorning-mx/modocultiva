@@ -57,7 +57,7 @@
   --home-electric-transform: scale(.95);
 }
 [data-tour-mode="visionario"] {
-  --home-electric-transform: scale(.8375); /* .67 × 1.25 */
+  --home-electric-transform: scale(.70); /* Balance the telescope's taller silhouette. */
 }
 [data-tour-mode="intelectual"] {
   --home-electric-transform: scale(.536); /* .67 × .80 */

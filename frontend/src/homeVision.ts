@@ -21,6 +21,7 @@ export function customModeSymbol(mode: string) {
   if (mode === 'ludico') return '/mode-symbols/ludico-mando.svg';
   if (mode === 'social') return '/mode-symbols/social-amistad.svg';
   if (mode === 'financiero') return '/mode-symbols/financiero-monedas.svg';
+  if (mode === 'visionario') return '/mode-symbols/visionario-telescopio.svg';
 }
 
 export function modeSymbol(mode: string) {
@@ -32,8 +33,8 @@ export function modeSymbol(mode: string) {
   if (mode === 'profesional') return '/mode-symbols/profesional-electrico.svg';
   if (mode === 'social') return '/mode-symbols/social-amistad-electrico.webp';
   if (mode === 'financiero') return '/mode-symbols/financiero-monedas-electrico.webp';
-  const artwork = mode === 'visionario' ? 'fisico' : mode;
-  return `/mode-symbols/${artwork}.webp`;
+  if (mode === 'visionario') return '/mode-symbols/visionario-telescopio-electrico.webp';
+  return `/mode-symbols/${mode}.webp`;
 }
 export function homeImageSource(mode: string, image: string | undefined, preferences: HomeVisionCards): HomeImageSource {
   if (preferences[mode] === 'stock') return 'stock';
