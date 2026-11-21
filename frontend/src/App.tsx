@@ -2484,8 +2484,6 @@ function App() {
       {homeSidebarOpen && view === 'welcome' && <div className="home-sidebar-backdrop" role="presentation" onClick={() => setHomeSidebarOpen(false)}>
         <aside className="home-sidebar" id="home-sidebar" role="dialog" aria-modal="true" aria-labelledby="home-sidebar-title" onClick={(event) => event.stopPropagation()}>
           <div className="home-sidebar-heading"><div><span className="home-sidebar-eyebrow">Modo Cultiva</span><h2 id="home-sidebar-title">{tr('homeNavigation')}</h2></div><div className="home-sidebar-heading-actions"><div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">
-            <button type="button" role="menuitem" data-tour="replay" disabled={aiLoading} onClick={startTour}>{onboardingIntegrationCopy(language).replay} <span aria-hidden="true">↗</span></button>
-            <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); setCommunityTab('network'); setCommunityOpen(true); }}>{onboardingIntegrationCopy(language).network} <span aria-hidden="true">↗</span></button>
             {isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div><button className="home-sidebar-close" type="button" onClick={() => setHomeSidebarOpen(false)} aria-label={tr('close')}>×</button></div></div>
           <nav className="home-sidebar-nav" aria-label={tr('homeNavigation')}>
             <button type="button" data-home-menu-item="configurations" onClick={() => { setHomeSidebarOpen(false); setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
@@ -2607,8 +2605,8 @@ function App() {
             }}
             preset="panorama"
             intro={tourTopic === 'modes' ? 'none' : 'assemble'}
-            cardWidth={270}
-            aspectRatio={0.75}
+            cardWidth={300}
+            aspectRatio={0.78}
             speed={4}
             gap={25}
             tilt={0}
