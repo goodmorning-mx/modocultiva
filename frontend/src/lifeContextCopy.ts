@@ -14,7 +14,22 @@ const copy = {
   da: ["Livskontekst","Beskriv hver tilstand med dine egne ord.","Udfyld denne tilstands kontekst for at få mere personlige forslag. Gem det, du har, eller fortsæt uden.","For et mere helhedsorienteret svar kan du udfylde andre tilstande og vælge at medtage dem.","Tilstand","Gem og luk","Gem og fortsæt til AI","Fortsæt uden kontekst","Jeg ved det ikke endnu","Kunne ikke gemme. Prøv igen.","Kontekst for denne tilstand","Medtag kontekst fra andre tilstande","De valgte oplysninger sendes kun til AI, når du beder om et forslag.","Grundlag","Hvilke værdier eller overbevisninger vejleder dig?","Vision","Hvordan ville din bedste version se ud med dine egne ord?","Mål","Hvilke konkrete milepæle vil du nå?","Strategi","Hvilke planer eller ressourcer har du allerede?"],
 } as const satisfies Record<AppLanguage, readonly string[]>;
 
+const introCopy: Record<AppLanguage, string> = {
+  es: 'Completar tu contexto ayuda a la IA a darte recomendaciones más personalizadas y te acerca a nuevas Insignias.',
+  en: 'Completing your context helps AI make more personalized recommendations and moves you closer to new Badges.',
+  zh: '完善生活背景可帮助 AI 提供更个性化的建议，也让你更接近解锁新徽章。',
+  hi: 'आपका जीवन-संदर्भ AI को अधिक व्यक्तिगत सुझाव देने में मदद करता है और आपको नए बैज की दिशा में आगे बढ़ाता है।',
+  ar: 'يساعد سياق حياتك الذكاء الاصطناعي على تقديم توصيات أكثر تخصيصاً، ويقرّبك من شارات جديدة.',
+  it: 'Il tuo contesto aiuta l’IA a offrirti consigli più personalizzati e ti avvicina a nuovi Badge.',
+  pt: 'Seu contexto ajuda a IA a oferecer recomendações mais personalizadas e aproxima você de novas Insígnias.',
+  ru: 'Ваш контекст помогает ИИ давать более персональные рекомендации и приближает вас к новым значкам.',
+  de: 'Dein Kontext hilft der KI bei persönlicheren Empfehlungen und bringt dich neuen Abzeichen näher.',
+  fr: 'Ton contexte aide l’IA à proposer des recommandations plus personnalisées et te rapproche de nouveaux badges.',
+  da: 'Din kontekst hjælper AI med mere personlige anbefalinger og bringer dig tættere på nye badges.',
+};
+
 export function lifeContextCopy(language: AppLanguage) {
-  const [title, intro, gate, holistic, mode, save, proceed, skip, unknown, failed, useCurrent, includeOthers, privacy, a, aq, b, bq, c, cq, d, dq] = copy[language];
+  const [title, , gate, holistic, mode, save, proceed, skip, unknown, failed, useCurrent, includeOthers, privacy, a, aq, b, bq, c, cq, d, dq] = copy[language];
+  const intro = introCopy[language];
   return { title, intro, gate, holistic, mode, save, proceed, skip, unknown, failed, useCurrent, includeOthers, privacy, fields: [[a, aq], [b, bq], [c, cq], [d, dq]] as const };
 }

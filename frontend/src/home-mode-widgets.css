@@ -24,7 +24,7 @@
   border-radius: 0; filter: drop-shadow(0 0 3px #39e6b533);
 }
 .topbar--material-home .brand:focus-visible { outline: 2px solid #b6f0c5; outline-offset: 3px; }
-.home-material-title { grid-column: 2; color: #f1fff4; font-size: .98rem; font-weight: 800; letter-spacing: -.035em; white-space: nowrap; }
+.home-material-title { grid-column: 2; color: #f1fff4; font-size: 1.16rem; font-weight: 800; letter-spacing: -.035em; white-space: nowrap; }
 .topbar--material-home .topbar-actions { grid-column: 3; justify-self: end; flex-wrap: nowrap; gap: 7px; }
 /* Keep the floating profile/menu centered against the enlarged Home brand. */
 .app-shell--home .topbar--material-home .topbar-actions {
@@ -45,6 +45,10 @@
 .home-sidebar-eyebrow { color: #70ed9c; font-size: .68rem; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
 .home-sidebar-heading h2 { margin: 5px 0 0; color: #f1fff4; font-size: 1.55rem; font-weight: 750; letter-spacing: -.04em; }
 .home-sidebar-close { display: grid; flex: 0 0 38px; place-items: center; width: 38px; height: 38px; padding: 0 0 3px; border: 1px solid rgba(201, 234, 215, .18); border-radius: 50%; color: #d7eee0; background: rgba(255, 255, 255, .04); font: 300 1.6rem/1 sans-serif; cursor: pointer; }
+.home-sidebar-heading-actions { display: flex; align-items: center; gap: 8px; }
+.home-sidebar .profile-menu { position: relative; inset: auto; z-index: 21; flex: 0 0 auto; }
+.home-sidebar .profile-menu > .profile-button { width: 42px; height: 42px; border-color: rgba(112, 237, 156, .3); background: rgba(112, 237, 156, .08); box-shadow: none; font-size: .72rem; }
+.home-sidebar .profile-menu-dropdown { top: calc(100% + 8px); right: 0; }
 .home-sidebar-nav { display: grid; gap: 8px; padding-top: 18px; }
 .home-sidebar .home-sidebar-language {
   display: grid; flex: 0 0 auto; gap: 6px; margin-block-start: 18px; color: #d5f2dd; font-size: .8rem;
@@ -146,8 +150,9 @@
   .home-profile-avatar svg { width: 19px; height: 19px; }
   .home-menu-button { flex-basis: 36px; width: 36px; height: 36px; }
   .home-menu-button svg { width: 19px; height: 19px; }
-  .home-material-title { justify-self: center; font-size: .84rem; }
+  .home-material-title { justify-self: center; }
   .topbar--material-home .topbar-actions { gap: 4px; }
+  .home-material-title { font-size: 1.06rem; }
   .topbar--material-home .language-picker select { max-width: 102px; padding-inline: 3px 17px; font-size: .61rem; }
   .home-greeting { min-height: 226px; margin-bottom: 4px; padding: 23px 20px; }
   .home-greeting-heading { gap: 10px; margin-top: 0; }

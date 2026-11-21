@@ -2466,28 +2466,27 @@ function App() {
         <span className="sr-only">{pullRefreshState === 'refreshing' ? pullRefreshCopy[language].loading : pullRefreshState === 'error' ? pullRefreshCopy[language].failed : ''}</span>
         {pullRefreshState === 'error' && <span className="pull-refresh-error-message">{pullRefreshCopy[language].failed}</span>}
       </div>
-      <header className={`topbar${view === 'welcome' ? ' topbar--material-home' : ''}`}>
+      {view === 'welcome' && <header className="topbar topbar--material-home">
         <a className="brand" href="/" aria-label={`Modo Cultiva · ${tr('home')}`}>
-          <img src={view === 'welcome' ? homeElectricLogo : logo} className={view === 'welcome' ? 'home-brand-electric' : undefined} alt="Modo Cultiva" />
+          <img src={homeElectricLogo} className="home-brand-electric" alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
-        {view === 'welcome' && <span className="home-material-title">Modo Cultiva</span>}
+        <span className="home-material-title">Modo Cultiva</span>
         <div className="topbar-meta">{tr('lifeModes')}</div>
         <div className="topbar-actions">
-          {view === 'welcome' ? <><button className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')} title={tr('profileButton')}>
+          <><button className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')} title={tr('profileButton')}>
             {profileImage ? <img src={profileImage} alt="" /> : <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg>}
-          </button><button className="home-menu-button" type="button" onClick={() => setHomeSidebarOpen(true)} aria-label={tr('homeNavigation')} aria-expanded={homeSidebarOpen} aria-controls="home-sidebar" title={tr('homeNavigation')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button></> : <>{languagePicker()}<PwaControls language={language} />
-          <div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">
-            <button type="button" role="menuitem" data-tour="replay" disabled={aiLoading} onClick={startTour}>{onboardingIntegrationCopy(language).replay} <span aria-hidden="true">↗</span></button>
-            <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setCommunityTab('network'); setCommunityOpen(true); }}>{onboardingIntegrationCopy(language).network} <span aria-hidden="true">↗</span></button>
-            {isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div></>}
+          </button><button className="home-menu-button" type="button" onClick={() => setHomeSidebarOpen(true)} aria-label={tr('homeNavigation')} aria-expanded={homeSidebarOpen} aria-controls="home-sidebar" title={tr('homeNavigation')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button></>
         </div>
         {isAuthenticated && <span className={`state-sync-state state-sync-state--${stateSyncStatus}`} role="status">{tr(stateSyncStatus === 'syncing' ? 'syncState' : stateSyncStatus === 'synced' ? 'syncReady' : 'syncFailed')}</span>}
-      </header>
+      </header>}
 
       {homeSidebarOpen && view === 'welcome' && <div className="home-sidebar-backdrop" role="presentation" onClick={() => setHomeSidebarOpen(false)}>
         <aside className="home-sidebar" id="home-sidebar" role="dialog" aria-modal="true" aria-labelledby="home-sidebar-title" onClick={(event) => event.stopPropagation()}>
-          <div className="home-sidebar-heading"><div><span className="home-sidebar-eyebrow">Modo Cultiva</span><h2 id="home-sidebar-title">{tr('homeNavigation')}</h2></div><button className="home-sidebar-close" type="button" onClick={() => setHomeSidebarOpen(false)} aria-label={tr('close')}>×</button></div>
+          <div className="home-sidebar-heading"><div><span className="home-sidebar-eyebrow">Modo Cultiva</span><h2 id="home-sidebar-title">{tr('homeNavigation')}</h2></div><div className="home-sidebar-heading-actions"><div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">
+            <button type="button" role="menuitem" data-tour="replay" disabled={aiLoading} onClick={startTour}>{onboardingIntegrationCopy(language).replay} <span aria-hidden="true">↗</span></button>
+            <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); setCommunityTab('network'); setCommunityOpen(true); }}>{onboardingIntegrationCopy(language).network} <span aria-hidden="true">↗</span></button>
+            {isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div><button className="home-sidebar-close" type="button" onClick={() => setHomeSidebarOpen(false)} aria-label={tr('close')}>×</button></div></div>
           <nav className="home-sidebar-nav" aria-label={tr('homeNavigation')}>
             <button type="button" data-home-menu-item="configurations" onClick={() => { setHomeSidebarOpen(false); setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
             <button type="button" data-home-menu-item="life-context" aria-haspopup="dialog" onClick={() => { setHomeSidebarOpen(false); setLifeEditor({}); }}><span className="home-sidebar-icon" aria-hidden="true">▤</span><span>{lifeCopy.title}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
@@ -2531,7 +2530,7 @@ function App() {
         </section>
       ) : view === 'lab' ? (
         <section className="modo-lab-view" data-layer="modo-lab" aria-labelledby="modo-lab-title">
-          <div className="modo-lab-topline"><button className="modo-lab-dashboard-back" type="button" onClick={() => setView('dashboard')}>← {tr('returnToControlCenter')}</button></div>
+          <div className="modo-lab-topline"><button className="modo-lab-dashboard-back" type="button" onClick={() => setView('welcome')}>{tr('home')}</button></div>
           <header className="modo-lab-hero"><div><p className="kicker">{tr('triviaHeroEyebrow')}</p><h1 id="modo-lab-title">{tr('triviaHeroTitle')}</h1><p>{tr('triviaHeroCopy')}</p></div></header>
           <div className="modo-lab-guide"><span>01</span><p>{tr('triviaGuide')}</p></div>
           <div className="modo-lab-grid">{modes.map((mode) => { const flipped = labFlippedCard === mode.key; return <article className={`modo-lab-card${flipped ? ' modo-lab-card--flipped' : ''}`} key={mode.key} style={{ '--lab-color': mode.color, '--lab-accent': mode.accent } as CSSProperties}><div className="modo-lab-card-inner"><div className="modo-lab-face modo-lab-front"><div className="modo-lab-card-top"><span>{mode.roman}</span><small>{tr('triviaCardLabel')} {mode.roman}</small></div><div className="modo-lab-icon">{modeMark(mode)}</div><p className="modo-lab-label">{tr('triviaQuestionLabel')}</p><h2>{triviaQuestion(mode)}</h2><p className="modo-lab-mode">{modeName(mode)}</p><button type="button" onClick={() => setLabFlippedCard(flipped ? null : mode.key)}>{tr('triviaFlip')} <span>↗</span></button></div><div className="modo-lab-face modo-lab-back"><div className="modo-lab-card-top"><span>↺</span><small>{tr('triviaDiscovery')}</small></div><p className="modo-lab-label">{tr('triviaInfo')}</p><h2>{modeName(mode)}</h2><p className="modo-lab-answer">{triviaAnswer(mode)}</p><div className="modo-lab-description"><span>{modeMark(mode)}</span>{modeDescription(mode)}</div><button type="button" onClick={() => setLabFlippedCard(null)}>{tr('triviaBack')} <span>↺</span></button></div></div></article>; })}</div>
@@ -2635,7 +2634,7 @@ function App() {
       ) : (
       <>
       <section className="intro" data-layer="2" aria-labelledby="dashboard-title">
-        <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>← {tr('returnToOverview')}</button>
+        <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>{tr('home')}</button>
         <div>
           <p className="kicker">{tr('dashboard')}</p>
           <h1 id="dashboard-title">{tr('dashboardTitle')}</h1>
