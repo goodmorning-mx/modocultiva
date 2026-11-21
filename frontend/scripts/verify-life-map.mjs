@@ -12,6 +12,10 @@ const carouselStart = app.indexOf('<CircularCarousel');
 const homeCarousel = carouselStart < 0 ? '' : app.slice(carouselStart, app.indexOf('</section>', carouselStart));
 
 assert.equal((modeList.match(/\{ key: '/g) ?? []).length, 12, 'All 12 modes remain in the home data');
+assert.match(modeList, /key: 'familiar'[^\n]*color: '#E3AAF4'/, 'Family uses the approved light lilac across the shared mode palette');
+assert.ok(!app.includes('#A47DAB'), 'The old Family palette is not used by any app surface');
+const familyIcon = await readFile(new URL('../public/mode-symbols/familiar-casa.svg', import.meta.url), 'utf8');
+assert.equal((familyIcon.match(/stroke="#e3aaf4"/g) ?? []).length, 2, 'Family house and energy orbit use the same light lilac');
 assert.ok(homeCarousel.includes('orderedHomeModes.map((mode) =>'), 'Home renders modes in the selected sort order');
 assert.ok(carousel.includes('className={`home-mode-card') && homeCarousel.includes('openMode(mode)'), 'Each mode opens its existing journey');
 assert.match(homeCarousel, /preset="panorama"[\s\S]*cardWidth=\{300\}[\s\S]*aspectRatio=\{0\.78\}[\s\S]*autoplay="drift"/);

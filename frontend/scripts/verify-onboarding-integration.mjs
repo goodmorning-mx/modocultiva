@@ -24,6 +24,7 @@ const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-w
 const ACCESS = 'synthetic-qa-token-not-a-credential';
 CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey', 'home-vision', 'account-home-vision');
 CASES.push('electric-home', 'account-electric-home');
+CASES.push('family-palette');
 CASES.push('home-upload', 'account-home-upload');
 CASES.push('life-context', 'account-life-context');
 CASES.push('guest-language-switch', 'account-language-switch');
@@ -960,6 +961,57 @@ async function runCase(browser, config, task) {
         await eventually(async () => await proposal.count() === 1 && await proposal.getAttribute('lang') === alternate, 'New suggestion uses the current language');
         assert.equal(transport.aiPayloads[1].language, alternate);
         result = { modeDescriptions: descriptions.length, triviaCards: questions.length, bankOriginalRetained: true, localizedSavedRecommendation: true, aiLanguageAndDraftVerified: true };
+      } else if (task.name === 'family-palette') {
+        const lilac = '#e3aaf4';
+        const palette = (locator, variable = '--mode-color') => locator.evaluate((el, key) => getComputedStyle(el).getPropertyValue(key).trim().toLowerCase(), variable);
+        const assertTint = async artwork => {
+          await eventually(() => artwork.evaluate(img => img.complete && img.naturalWidth > 0), 'Family artwork loaded');
+          const tint = await artwork.evaluate(img => {
+            const filter = img.parentElement.querySelector('filter');
+            return { applied: getComputedStyle(img).filter.includes(filter.id), channels: ['R','G','B'].map(key => Number(filter.querySelector(`feFunc${key}`).getAttribute('tableValues').split(' ')[3])) };
+          });
+          assert.equal(tint.applied, true);
+          assert.deepEqual(tint.channels, [227 / 255, 170 / 255, 244 / 255], 'Electric highlights use the exact approved lilac');
+        };
+        const carousel = page.locator('.circular-carousel[data-ready]');
+        await carousel.locator('.home-mode-card[tabindex="0"]').press('Home');
+        for (let index = 0; index < 6; index++) {
+          await carousel.locator(`[data-tour-mode=${MODES[index]}][tabindex="0"]`).waitFor();
+          await carousel.locator('.circular-carousel__controls button').nth(1).click();
+        }
+        const family = carousel.locator('[data-tour-mode=familiar][tabindex="0"]');
+        await family.waitFor();
+        assert.equal(await palette(family), lilac);
+        await assertTint(family.locator('.mode-electric-symbol-fallback'));
+        assert.equal(await family.locator('.home-mode-icon img').getAttribute('src'), '/mode-symbols/familiar-casa.svg');
+        await family.press('Enter');
+        const journey = page.locator('.journey-panel');
+        assert.equal(await palette(journey), lilac);
+        assert.equal(await journey.locator('.journey-icon img').getAttribute('src'), '/mode-symbols/familiar-casa.svg');
+        if (process.env.FAMILY_QA_SCREENSHOT) await page.screenshot({ path: process.env.FAMILY_QA_SCREENSHOT });
+        await journey.locator('.journey-step-arrow--next').click();
+        assert.equal(await palette(journey.locator('.journey-level-card--active')), lilac, 'Activity cards retain the Family palette');
+        await journey.locator('.close-journey').click();
+        const openMenuItem = async item => { await page.locator('.home-menu-button').click(); await page.locator(`[data-home-menu-item=${item}]`).click(); };
+        await openMenuItem('images');
+        const imageSettings = page.locator('.home-vision-settings [data-mode=familiar]');
+        assert.equal(await palette(imageSettings), lilac);
+        await assertTint(imageSettings.locator('.home-vision-symbol-preview'));
+        await page.keyboard.press('Escape');
+        await openMenuItem('life-context');
+        await page.locator('.life-context-nav select').selectOption('6');
+        assert.equal(await palette(page.locator('.life-context-card[data-mode=familiar]'), '--life-accent'), lilac);
+        await page.keyboard.press('Escape');
+        await openMenuItem('configurations');
+        assert.equal(await palette(page.locator('#life-configurations-card .configuration-orbit-node').nth(6), '--orbit-color'), lilac);
+        await page.keyboard.press('Escape');
+        await page.locator('.home-profile-avatar').click();
+        assert.equal(await palette(page.locator('.profile-preview-levels > div').nth(6)), lilac);
+        await page.locator('.feature-preview-dismiss').click();
+        await openMenuItem('trivia');
+        assert.equal(await palette(page.locator('.modo-lab-card').nth(6), '--lab-color'), lilac);
+        await assertPreserved(page, state, account);
+        result = { familyLilac: lilac, electricTint: true, overview: true, activityCards: true, homeImages: true, lifeContext: true, configurations: true, profile: true, trivia: true, savedMapPreserved: true };
       } else if (task.name.endsWith('electric-home')) {
         const modal = page.locator('.home-vision-settings[open]');
         const open = async () => { await page.locator('.home-menu-button').click(); await page.locator('[data-home-menu-item="images"]').click(); await modal.waitFor(); };
@@ -1163,7 +1215,7 @@ async function runCase(browser, config, task) {
         const header = page.locator('.topbar--material-home');
         assert.equal(await header.evaluate(el => getComputedStyle(el).boxShadow), 'none');
         assert.equal(await header.locator('.topbar-actions').evaluate(el => getComputedStyle(el).position), 'fixed');
-        const expectedColors = ['#22C7A5', '#3D8FD2', '#D94A4A', '#EF7909', '#FFFFFF', '#F16FAD', '#A47DAB', '#3FBBC3', '#D9B65D', '#7A91A8', '#A87554', '#A77BDB'];
+        const expectedColors = ['#22C7A5', '#3D8FD2', '#D94A4A', '#EF7909', '#FFFFFF', '#F16FAD', '#E3AAF4', '#3FBBC3', '#D9B65D', '#7A91A8', '#A87554', '#A77BDB'];
         await active.press('Home');
         for (const [index, mode] of MODES.entries()) {
           const card = carousel.locator(`[data-tour-mode="${mode}"][tabindex="0"]`);
