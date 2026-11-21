@@ -137,7 +137,7 @@ const modes: Mode[] = [
   { key: 'financiero', roman: 'IX', name: 'Modo Financiero', shortName: 'Financiero', description: 'Gestión del dinero, ahorro e inversión', icon: '◉', color: '#D9B65D', accent: '#3B3321' },
   { key: 'profesional', roman: 'X', name: 'Modo Profesional', shortName: 'Profesional', description: 'Carrera, vocación y desempeño laboral', icon: '💼', color: '#7A91A8', accent: '#27333D' },
   { key: 'ludico', roman: 'XI', name: 'Modo Lúdico', shortName: 'Lúdico', description: 'Disfrute, ocio, descanso y recarga', icon: '🎮', color: '#A87554', accent: '#34251F' },
-  { key: 'visionario', roman: 'XII', name: 'Modo Visionario', shortName: 'Visionario', description: 'Metas, planificación y legado', icon: '✦', color: '#A77BDB', accent: '#2B2237' },
+  { key: 'visionario', roman: 'XII', name: 'Modo Visionario', shortName: 'Visionario', description: 'Metas, planificación y legado', icon: '✦', color: '#818CF8', accent: '#222449' },
 ];
 const modeMark = (mode: Mode) => {
   const src = customModeSymbol(mode.key);
