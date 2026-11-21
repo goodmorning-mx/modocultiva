@@ -71,7 +71,7 @@ const { onboardingIntegrationCopy } = sourceModule('src/onboardingIntegrationMes
 const { guidedTourStepCopy } = sourceModule('src/guidedTourMessages.ts');
 const { JOURNEY_REACTIONS_ENABLED } = sourceModule('src/journeySocial.ts');
 const { JOURNEY_SUBMISSION_AUDIENCE_ENABLED } = sourceModule('src/journeyDeck.ts');
-const { cleanHomeVisionCards, homeModePhoto, homeVisionCopy } = sourceModule('src/homeVision.ts');
+const { cleanHomeVisionCards, homeModePhoto, homeVisionCopy, customModeSymbol } = sourceModule('src/homeVision.ts');
 const { electricSymbolLabel } = sourceModule('src/homeVision.ts');
 const { interfaceCopy, homeGreetingPhrases } = sourceModule('src/interfaceLanguage.ts');
 const { homeQuoteText } = sourceModule('src/homeQuoteTranslations.ts');
@@ -1057,11 +1057,12 @@ async function runCase(browser, config, task) {
           await button.waitFor();
           assert.ok((await button.getAttribute('class')).includes('home-mode-card--electric'));
           const artwork = button.locator('.mode-electric-symbol-fallback');
-          const customAssets = { fisico: 'fisico-caduceo.svg', emocional: 'emocional-caritas.svg', intelectual: 'intelectual-cerebro.svg', espiritual: 'espiritual-sol.svg', familiar: 'familiar-casa.svg', profesional: 'profesional-portafolio.svg', ludico: 'ludico-mando.svg' };
-          const asset = { emocional: 'emocional-electrico.svg?v=3', intelectual: 'intelectual-electrico.svg', espiritual: 'espiritual-electrico.svg', profesional: 'profesional-electrico.svg', fisico: 'fisico-electrico.svg', visionario: 'fisico.webp', ludico: 'ludico-electrico.svg?v=2' }[mode] ?? `${mode}.webp`;
+          const customAssets = { fisico: 'fisico-caduceo.svg', emocional: 'emocional-caritas.svg', intelectual: 'intelectual-cerebro.svg', espiritual: 'espiritual-sol.svg', familiar: 'familiar-casa.svg', profesional: 'profesional-portafolio.svg', ludico: 'ludico-mando.svg', social: 'social-amistad.svg', financiero: 'financiero-monedas.svg' };
+          const asset = { emocional: 'emocional-electrico.svg?v=3', intelectual: 'intelectual-electrico.svg', espiritual: 'espiritual-electrico.svg', profesional: 'profesional-electrico.svg', fisico: 'fisico-electrico.svg', visionario: 'fisico.webp', ludico: 'ludico-electrico.svg?v=2', social: 'social-amistad-electrico.webp', financiero: 'financiero-monedas-electrico.webp' }[mode] ?? `${mode}.webp`;
           assert.equal(await artwork.getAttribute('src'), `/mode-symbols/${asset}`);
           await eventually(() => artwork.evaluate(img => img.complete && img.naturalWidth > 0), 'Premium artwork loaded');
-          const scale = { fisico: .63, intelectual: .536, emocional: .85, arquetipico: .737, espiritual: .603, romantico: .67, familiar: .737, social: .67, financiero: .67, profesional: .67, ludico: .95, visionario: .8375 }[mode];
+          assert.equal(await carousel.evaluate(el => el.scrollTop), 0, 'Carousel controls cannot scroll electric symbols out of view');
+          const scale = { fisico: .63, intelectual: .536, emocional: .85, arquetipico: .737, espiritual: .603, romantico: .67, familiar: .737, social: .78, financiero: .64, profesional: .67, ludico: .95, visionario: .8375 }[mode];
           assert.equal(await artwork.evaluate(img => {
             const matrix = getComputedStyle(img).transform;
             return matrix === 'none' ? 1 : new DOMMatrix(matrix).a;
@@ -1578,6 +1579,23 @@ function selfTest() {
   assert.equal(homeModePhoto('espiritual', PNG, { espiritual:'electric' }), '/mode-symbols/espiritual-electrico.svg');
   assert.equal(homeModePhoto('profesional', PNG, { profesional:'electric' }), '/mode-symbols/profesional-electrico.svg');
   assert.equal(homeModePhoto('ludico', PNG, { ludico:'electric' }), '/mode-symbols/ludico-electrico.svg?v=2');
+  for (const [mode, name] of [['social', 'social-amistad'], ['financiero', 'financiero-monedas']]) {
+    const electric = `/mode-symbols/${name}-electrico.webp`;
+    assert.equal(homeModePhoto(mode, PNG, {}), electric, 'The official symbol is the default for new users');
+    assert.equal(homeModePhoto(mode, PNG, { [mode]: 'electric' }), electric);
+    assert.equal(customModeSymbol(mode), `/mode-symbols/${name}.svg`, 'Cards and image exports use the same official mark');
+    assert.equal(homeModePhoto(mode, PNG, { [mode]: true }), PNG, 'Existing uploaded visions are untouched');
+    assert.equal(homeModePhoto(mode, PNG, { [mode]: 'stock' }), `/mode-photos/${mode}.jpg`, 'Existing stock choices are untouched');
+    const artwork = readFileSync(resolve(frontend, `public${electric}`));
+    assert.equal(artwork.toString('ascii', 0, 4), 'RIFF');
+    assert.equal(artwork.toString('ascii', 8, 12), 'WEBP');
+    assert.equal(artwork.toString('ascii', 12, 16), 'VP8X');
+    assert.ok(artwork[20] & 0x10, 'Floating symbols preserve real transparency');
+    assert.ok(artwork.length < 100_000, 'Each artwork stays under 100 KB');
+    const icon = readFileSync(resolve(frontend, `public${customModeSymbol(mode)}`), 'utf8');
+    assert.match(icon, /viewBox="0 0 64 64"/);
+    assert.doesNotMatch(icon, /<script|<image|<foreignObject|<animate|https?:\/\/(?!www\.w3\.org)/i, 'Small marks are self-contained and static');
+  }
   assert.equal(homeModePhoto('fisico', PNG, { fisico: true }), PNG);
   assert.equal(homeModePhoto('fisico', undefined, { fisico: true }), '');
   assert.equal(homeModePhoto('fisico', PNG, {}), '/mode-symbols/fisico-electrico.svg');
