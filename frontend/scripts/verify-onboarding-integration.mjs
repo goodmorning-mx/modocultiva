@@ -74,6 +74,7 @@ const { JOURNEY_REACTIONS_ENABLED } = sourceModule('src/journeySocial.ts');
 const { JOURNEY_SUBMISSION_AUDIENCE_ENABLED } = sourceModule('src/journeyDeck.ts');
 const { cleanHomeVisionCards, homeModePhoto, homeVisionCopy, customModeSymbol } = sourceModule('src/homeVision.ts');
 const { electricSymbolLabel } = sourceModule('src/homeVision.ts');
+const { electricArtworkTint, VISIONARY_ELECTRIC_ART } = sourceModule('src/electricArtworkTint.ts');
 const { interfaceCopy, homeGreetingPhrases } = sourceModule('src/interfaceLanguage.ts');
 const { homeQuoteText } = sourceModule('src/homeQuoteTranslations.ts');
 const { journeyModeTranslations, triviaModeQuestions } = sourceModule('src/modeEditorial.ts');
@@ -967,16 +968,15 @@ async function runCase(browser, config, task) {
         const modeIndex = MODES.indexOf(modeKey);
         const approvedColor = visionary ? '#818cf8' : '#e3aaf4';
         const approvedIcon = `/mode-symbols/${visionary ? 'visionario-telescopio' : 'familiar-casa'}.svg`;
-        const rgb = [1, 3, 5].map(offset => parseInt(approvedColor.slice(offset, offset + 2), 16) / 255);
         const palette = (locator, variable = '--mode-color') => locator.evaluate((el, key) => getComputedStyle(el).getPropertyValue(key).trim().toLowerCase(), variable);
         const assertTint = async artwork => {
           await eventually(() => artwork.evaluate(img => img.complete && img.naturalWidth > 0), 'Mode artwork loaded');
           const tint = await artwork.evaluate(img => {
             const filter = img.parentElement.querySelector('filter');
-            return { applied: getComputedStyle(img).filter.includes(filter.id), channels: ['R','G','B'].map(key => Number(filter.querySelector(`feFunc${key}`).getAttribute('tableValues').split(' ')[3])) };
+            return { applied: getComputedStyle(img).filter.includes(filter.id), tables: ['R','G','B'].map(key => filter.querySelector(`feFunc${key}`).getAttribute('tableValues')) };
           });
           assert.equal(tint.applied, true);
-          assert.deepEqual(tint.channels, rgb, 'Electric highlights use the exact approved mode palette');
+          assert.deepEqual(tint.tables, electricArtworkTint(await artwork.getAttribute('src'), approvedColor), 'Electric highlights use the approved rendering palette');
         };
         const carousel = page.locator('.circular-carousel[data-ready]');
         await carousel.locator('.home-mode-card[tabindex="0"]').press('Home');
@@ -988,7 +988,9 @@ async function runCase(browser, config, task) {
         await modeCard.waitFor();
         assert.equal(await palette(modeCard), approvedColor);
         await assertTint(modeCard.locator('.mode-electric-symbol-fallback'));
+        if (visionary) assert.equal(await modeCard.locator('.mode-electric-symbol-fallback').evaluate(img => getComputedStyle(img).mixBlendMode), 'normal', 'Green Home background must not add cyan to electric indigo');
         assert.equal(await modeCard.locator('.home-mode-icon img').getAttribute('src'), approvedIcon);
+        if (visionary && process.env.VISIONARY_HOME_QA_SCREENSHOT) await page.screenshot({ path: process.env.VISIONARY_HOME_QA_SCREENSHOT });
         await modeCard.press('Enter');
         const journey = page.locator('.journey-panel');
         assert.equal(await palette(journey), approvedColor);
@@ -1092,6 +1094,7 @@ async function runCase(browser, config, task) {
               && bright >= 12 && spark >= 170 && (playful ? alpha(80, 59) < 30 : saturatedRed >= 250);
           }, mode), 'The luminous spirals and core fit the smaller footprint; Lúdico remains hollow');
           if (mode === 'emocional') assert.equal(await artwork.evaluate(img => getComputedStyle(img).filter), 'none', 'Emocional retains its authored vivid reds');
+          else if (mode === 'visionario') assert.deepEqual(await artwork.evaluate(img => ['R','G','B'].map(key => img.parentElement.querySelector(`feFunc${key}`).getAttribute('tableValues'))), electricArtworkTint(VISIONARY_ELECTRIC_ART, '#818CF8'), 'Electric telescope keeps its compensated indigo highlights');
           else assert.ok(await artwork.evaluate(img => {
             const palette = getComputedStyle(img).getPropertyValue('--mode-color').trim();
             const filter = img.parentElement.querySelector('filter');
@@ -1561,6 +1564,10 @@ async function runCase(browser, config, task) {
 }
 
 function selfTest() {
+  const indigo = electricArtworkTint(VISIONARY_ELECTRIC_ART, '#818CF8').map(table => table.split(' ').map(Number));
+  assert.deepEqual(indigo.map(table => Math.round(table.at(-1) * 255)), [227,213,255], 'Brightest electric peaks stay indigo, not white');
+  assert.deepEqual(indigo.map(table => Math.round(table[3] * 255)), [152,128,234], 'Indigo body has a red-blue balance rather than icy-blue mids');
+  assert.deepEqual(electricArtworkTint('/mode-symbols/visionario-telescopio.svg', '#818CF8'), [129,140,248].map(value => `0 ${value/255*.33} ${value/255*.72} ${value/255} 1`), 'Journey icon and every non-electric source keep the original tint');
   const allContext = cleanLifeContext(Object.fromEntries(MODES.map(mode => [mode, Object.fromEntries(LIFE_FIELDS.map(field => [field, 'x'.repeat(500)]))])));
   assert.equal(Object.keys(allContext).length, 12);
   assert.equal(allContext.fisico.vision.length, 320);

@@ -16,11 +16,13 @@
 .mode-electric-symbol-fallback[src^="/mode-symbols/"] {
   transform: var(--home-electric-transform, none);
 }
+/* Transparent telescope: keep the green card from adding cyan to its glow. */
+.mode-electric-symbol-fallback[data-electric-tone="indigo"] { mix-blend-mode: normal; }
 .global-sparks { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .global-sparks::before, .global-sparks::after {
   content: ''; position: absolute; inset: 8%; border-radius: 50%;
   background: radial-gradient(circle at 10% 64%, var(--spark-color, #c9ffef) 0 1px, transparent 4px),
-              radial-gradient(circle at 83% 34%, #e6fff9 0 1px, transparent 4px),
+              radial-gradient(circle at 83% 34%, var(--spark-highlight, #e6fff9) 0 1px, transparent 4px),
               radial-gradient(circle at 70% 82%, var(--spark-color, #c9ffef) 0 1px, transparent 3px);
   animation: global-spark-drift 4s ease-in-out infinite alternate;
 }
@@ -58,6 +60,10 @@
 }
 [data-tour-mode="visionario"] {
   --home-electric-transform: scale(.70); /* Balance the telescope's taller silhouette. */
+}
+[data-tour-mode="visionario"] .global-sparks--symbol {
+  --spark-color: #c7baff;
+  --spark-highlight: #ede5ff;
 }
 [data-tour-mode="intelectual"] {
   --home-electric-transform: scale(.536); /* .67 × .80 */
