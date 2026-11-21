@@ -35,9 +35,12 @@
   transform: scale(.67) var(--home-electric-transform, scale(1));
 }
 :is([data-tour-mode="profesional"],
-    [data-tour-mode="social"], [data-tour-mode="financiero"], [data-tour-mode="romantico"]) {
+    [data-tour-mode="romantico"]) {
   --home-electric-transform: scale(.67);
 }
+/* Match the visible (not transparent-canvas) footprint of the other symbols. */
+[data-tour-mode="social"] { --home-electric-transform: scale(.78); }
+[data-tour-mode="financiero"] { --home-electric-transform: scale(.64); }
 :is([data-tour-mode="arquetipico"], [data-tour-mode="familiar"]) {
   --home-electric-transform: scale(.737); /* .67 × 1.10 */
 }

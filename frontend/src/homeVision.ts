@@ -19,6 +19,8 @@ export function customModeSymbol(mode: string) {
   if (mode === 'intelectual') return '/mode-symbols/intelectual-cerebro.svg';
   if (mode === 'profesional') return '/mode-symbols/profesional-portafolio.svg';
   if (mode === 'ludico') return '/mode-symbols/ludico-mando.svg';
+  if (mode === 'social') return '/mode-symbols/social-amistad.svg';
+  if (mode === 'financiero') return '/mode-symbols/financiero-monedas.svg';
 }
 
 export function modeSymbol(mode: string) {
@@ -28,6 +30,8 @@ export function modeSymbol(mode: string) {
   if (mode === 'intelectual') return '/mode-symbols/intelectual-electrico.svg';
   if (mode === 'espiritual') return '/mode-symbols/espiritual-electrico.svg';
   if (mode === 'profesional') return '/mode-symbols/profesional-electrico.svg';
+  if (mode === 'social') return '/mode-symbols/social-amistad-electrico.webp';
+  if (mode === 'financiero') return '/mode-symbols/financiero-monedas-electrico.webp';
   const artwork = mode === 'visionario' ? 'fisico' : mode;
   return `/mode-symbols/${artwork}.webp`;
 }

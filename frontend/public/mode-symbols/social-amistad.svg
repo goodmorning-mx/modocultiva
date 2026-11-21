@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="orb" cx=".3" cy=".2" r=".9"><stop stop-color="#3FBBC3" stop-opacity=".4"/><stop offset="1" stop-color="#12363A"/></radialGradient>
+    <linearGradient id="friends" x2=".6" y2="1"><stop stop-color="#e5ffff"/><stop offset=".55" stop-color="#70d9df"/><stop offset="1" stop-color="#3FBBC3"/></linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="24" fill="url(#orb)" stroke="#3FBBC3" stroke-width="2"/>
+  <ellipse cx="32" cy="32" rx="30" ry="13" transform="rotate(-32 32 32)" fill="none" stroke="#8ee9ed" stroke-width="1.6"/>
+  <g fill="url(#friends)" stroke="#b9f5f7" stroke-width=".7" stroke-linejoin="round">
+    <path d="M16 45v-7c0-6 4-9 9-9 3 0 5 1 7 3 2-2 4-3 7-3 5 0 9 3 9 9v7h-6V36H22v9Z"/>
+    <path d="M21 36v11h10V36Zm12 0v11h10V36Z"/>
+    <circle cx="25" cy="23" r="5.5"/><circle cx="39" cy="23" r="5.5"/>
+  </g>
+  <path d="M19 33q13-4 26 0" fill="none" stroke="#e5ffff" stroke-width="3.6" stroke-linecap="round"/>
+  <g fill="#a7f3f6" stroke="#3FBBC3" stroke-width="1.2"><circle cx="6" cy="42" r="2.7"/><circle cx="52" cy="14" r="2.7"/><circle cx="41" cy="49" r="2.7"/></g>
+</svg>
