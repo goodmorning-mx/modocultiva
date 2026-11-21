@@ -14,7 +14,7 @@ const homeCarousel = carouselStart < 0 ? '' : app.slice(carouselStart, app.index
 assert.equal((modeList.match(/\{ key: '/g) ?? []).length, 12, 'All 12 modes remain in the home data');
 assert.ok(homeCarousel.includes('orderedHomeModes.map((mode) =>'), 'Home renders modes in the selected sort order');
 assert.ok(carousel.includes('className={`home-mode-card') && homeCarousel.includes('openMode(mode)'), 'Each mode opens its existing journey');
-assert.match(homeCarousel, /preset="panorama"[\s\S]*cardWidth=\{270\}[\s\S]*aspectRatio=\{0\.75\}[\s\S]*autoplay="drift"/);
+assert.match(homeCarousel, /preset="panorama"[\s\S]*cardWidth=\{300\}[\s\S]*aspectRatio=\{0\.78\}[\s\S]*autoplay="drift"/);
 assert.match(homeCarousel, /speed=\{4\}/, 'Home drift uses 4 degrees per second instead of 14');
 assert.match(homeCarousel, /swipeCoastCards=\{0\.35\}/, 'Home keeps a firm limit on post-swipe carry');
 assert.ok(homeCarousel.includes('home-carousel-rotation-icon') && homeCarousel.includes('viewBox="0 0 24 24"'), 'Rotation uses font-independent media icons');
@@ -53,8 +53,8 @@ assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*grid-column:\s*1/,'C
 assert.ok(app.includes("import homeElectricLogo from './assets/modo-cultiva-logo-electric.webp'") && app.includes('<header className="topbar topbar--material-home">') && app.includes('src={homeElectricLogo}'), 'The Home-only header selects the approved electric logo');
 assert.ok(!app.includes('className={`topbar${view ==='), 'Internal screens do not render the global header');
 assert.ok(app.includes("<span className=\"home-material-title\">Modo Cultiva</span>") && css.match(/\.home-material-title\s*\{[^}]*font-size:\s*1\.16rem/) && css.match(/@media \(max-width: 680px\)[\s\S]*\.home-material-title\s*\{[^}]*font-size:\s*1\.06rem/), 'Home brand name is modestly enlarged for desktop and mobile');
-assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*width:\s*88px[^}]*height:\s*88px[^}]*border-radius:\s*50%[^}]*background:\s*radial-gradient\([^}]*#20483f[^}]*#12312d/, 'Home logo is much larger on the chosen green circular backing');
-assert.match(css, /@media \(max-width: 680px\)[\s\S]*\.topbar--material-home \.brand\s*\{[^}]*width:\s*72px[^}]*height:\s*72px/, 'Mobile keeps a large readable logo');
+assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*width:\s*80px[^}]*height:\s*80px[^}]*border-radius:\s*50%[^}]*background:\s*radial-gradient\([^}]*#20483f[^}]*#12312d/, 'Home logo is slightly smaller on the chosen green circular backing');
+assert.match(css, /@media \(max-width: 680px\)[\s\S]*\.topbar--material-home \.brand\s*\{[^}]*width:\s*66px[^}]*height:\s*66px/, 'Mobile keeps a compact but readable logo');
 assert.match(css, /\.topbar--material-home \.brand img\s*\{[^}]*width:\s*100%[^}]*height:\s*100%[^}]*object-fit:\s*contain/, 'Logo preserves its whole silhouette and transparent halo');
 const homeLogo = await readFile(new URL('../src/assets/modo-cultiva-logo-electric.webp', import.meta.url));
 assert.equal(homeLogo.toString('ascii', 0, 4), 'RIFF');
@@ -83,6 +83,8 @@ assert.match(css, /\.topbar--material-home\s*\{[^}]*border:\s*0[^}]*border-botto
 assert.match(css, /\.home-profile-avatar\s*\{[^}]*border-radius:\s*50%/, 'Home profile avatar is circular');
 assert.match(css, /\.app-shell\.app-shell--home\s*\{[^}]*block-size:\s*100dvh[^}]*overflow:\s*clip/, 'Only home fits and clips to the dynamic viewport');
 assert.match(css, /\.app-shell--home > \.welcome-view\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\)/, 'Carousel can use the remaining space without pushing controls below the fold');
+assert.match(css, /\.app-shell--home \.home-greeting\s*\{[^}]*min-height:\s*0[^}]*min-block-size:\s*0/, 'Greeting does not reserve excessive height on the home screen');
+assert.match(css, /\.app-shell--home \.home-greeting h1 span\s*\{[^}]*display:\s*inline/, 'Welcome and profile name share a compact line');
 assert.match(css, /\.home-greeting h1 strong\s*\{[^}]*font-size:\s*1\.12em/, 'User name has a larger type size than the welcome word');
 assert.match(css, /\.home-greeting\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Greeting header is completely transparent');
 assert.match(css, /\.home-sort-button\s*\{[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/, 'Sort arrows have a completely transparent container');
