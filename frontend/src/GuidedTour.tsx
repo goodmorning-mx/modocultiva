@@ -279,17 +279,16 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
   const ready = snapshot?.phase === 'ready';
   const unavailable = snapshot?.phase === 'unavailable';
   const width = snapshot?.width ?? 0; const height = snapshot?.height ?? 0;
-  const dark = tourBlackoutRects(width, height, snapshot?.holes ?? []);
+  const surroundings = tourBlackoutRects(width, height, snapshot?.holes ?? []);
+  const shadePath = surroundings.map(({ left, top, width: w, height: h }) => `M${left},${top}h${w}v${h}h${-w}Z`).join('');
   const blocked = tourNextDisabled(props.step, props.visitedMethods ?? [], ready);
   const methodBlocked = props.step.methodChecklist && !TOUR_METHODS.every(method => props.visitedMethods?.includes(method));
   const counter = props.showCounter && props.counter && Number.isInteger(props.counter.current) && Number.isInteger(props.counter.total) && props.counter.current > 0 && props.counter.current <= props.counter.total
     ? copy.controls.counter.replace('{current}', String(props.counter.current)).replace('{total}', String(props.counter.total)) : null;
   return createPortal(<div ref={layer} popover="manual" className="guided-tour-layer" data-guided-tour-layer="" data-tour-step={props.step.id} data-tour-phase={snapshot?.phase ?? 'loading'} dir={rtl ? 'rtl' : 'ltr'} lang={props.language ?? 'es'}>
-    <svg className="guided-tour-shade" width={width} height={height} viewBox={`0 0 ${width || 1} ${height || 1}`} aria-hidden="true" focusable="false">
-      <path d={snapshot ? dark.map(rect => `M${rect.left},${rect.top}h${rect.width}v${rect.height}h${-rect.width}Z`).join('') : 'M0,0h1v1h-1Z'} />
-    </svg>
+    <div className="guided-tour-shade" style={shadePath ? { clipPath: `path("${shadePath}")` } : undefined} aria-hidden="true" />
     {snapshot?.holes.map((rect, index) => <span key={index} className="guided-tour-outline" style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }} aria-hidden="true" />)}
-    <section ref={card} className="guided-tour-card" role="dialog" aria-modal="false" aria-label={copy.controls.tour} aria-labelledby={titleId} aria-describedby={`${bodyId}${props.step.instructions ? ` ${instructionsId}` : ''}`} tabIndex={-1} style={snapshot ? { left: snapshot.panel.left, top: snapshot.panel.top, width: snapshot.panel.width, maxHeight: snapshot.panel.height } : undefined}>
+    <section ref={card} className="guided-tour-card" role="dialog" aria-modal="false" aria-label={copy.controls.tour} aria-labelledby={titleId} aria-describedby={`${bodyId}${props.step.instructions ? ` ${instructionsId}` : ''}`} tabIndex={-1} style={snapshot ? { left: snapshot.panel.left, top: snapshot.panel.top, bottom: 'auto', width: snapshot.panel.width, maxHeight: snapshot.panel.height } : undefined}>
       <div className="guided-tour-content">
         {counter && <small className="guided-tour-counter">{counter}</small>}
         <h2 id={titleId}>{props.step.title}</h2>

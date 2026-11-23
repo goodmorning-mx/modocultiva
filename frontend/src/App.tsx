@@ -95,8 +95,12 @@ type PresetNotice = { key: 'presetSaved' | 'presetRenamed'; name: string } | {
 type Skin = 'holista' | 'dj' | 'nocturna' | 'lucid' | 'zen' | 'mission' | 'rpg' | 'botanical' | 'arcade' | 'arcana' | 'urban' | 'ocean' | 'fashion' | 'minimal';
 type PaletteFilter = 'none' | 'nocturna' | 'lucid';
 type ActivityEntry = 'custom' | 'pool' | 'ai';
-type TourTopic = TourStageId | 'controlStrongest' | 'controlLeast' | 'controlFocus' | 'controlTrivia';
-const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', ...TOUR_METHODS, 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'] satisfies TourTopic[])
+type TourTopic = TourStageId;
+const tourMenuItems: Partial<Record<TourTopic, string>> = {
+  configurations: 'configurations', lifeContext: 'life-context', homeImages: 'images',
+  menuDashboard: 'dashboard', specialists: 'specialists', menuTrivia: 'trivia', replay: 'replay',
+};
+const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', ...TOUR_METHODS, 'effort', 'activityCard', 'evidence', 'validation', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'community', 'profile', 'badges', 'homeSort', 'homeMenu', 'configurations', 'lifeContext', 'homeImages', 'menuDashboard', 'specialists', 'menuTrivia', 'replay'] satisfies TourTopic[])
   .filter(topic => (JOURNEY_REACTIONS_ENABLED || topic !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || topic !== 'audience'));
 const tourMethodTargets: Record<TourMethod, string> = {
   custom: '.journey-manual-button', bank: '.journey-recommended-button', localContacts: '.journey-local-button',
@@ -1674,17 +1678,33 @@ function App() {
   const tourMethodDetail = TOUR_METHODS.some(method => method === tourTopic);
   const tourMode = modes.find(mode => mode.key === tourModeKey) ?? selectedMode ?? modes[0];
   const tourSource = Math.min(8, Math.max(0, levels[tourMode.key] ?? 0));
+  const tourPreviewStep = tourTopic === 'evidence' ? 2 : tourTopic === 'validation' || tourTopic === 'audience' ? 3 : undefined;
   const tourStep: GuidedTourStep | null = tourTopic ? (() => {
-    const controlTopic = tourTopic.startsWith('control');
-    const copy = guidedTourStepCopy(language, controlTopic ? 'controlCenter' : tourTopic as TourStageId);
+    const copy = guidedTourStepCopy(language, tourTopic);
+    const menuItem = tourMenuItems[tourTopic];
+    const menuTarget = menuItem && homeSidebarOpen ? `#home-sidebar [data-home-menu-item="${menuItem}"]` : '.home-menu-button';
     const targets: Record<TourTopic, string | readonly string[]> = {
       modes: '.welcome-view .circular-carousel', modeDescription: '.journey-intro-compact', selfAssessment: '.journey-ascent-status', activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target summary',
-      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions .journey-local-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort', activityCard: '.journey-step-list', evidence: '.journey-step-list > li:nth-child(3)', audience: '.activity-flow-audience .card-audience-options, .journey-step-list > li:nth-child(3)', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
-      reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading', specialists: '.cult-embedded-content .cult-section-heading', community: '.community-header h2', profile: '.profile-preview-identity', badges: '.achievement-heading', configurations: '#presets-title',
-      controlCenter: '.crm-card--score .crm-card-heading', controlStrongest: '.crm-metric-card:nth-of-type(1)', controlLeast: '.crm-metric-card:nth-of-type(2)', controlFocus: '.crm-focus-card .crm-card-heading', controlTrivia: '.crm-trivia-card h2', replay: '[data-tour="replay"]',
+      custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions .journey-local-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort',
+      activityCard: '.journey-step-list > [data-journey-step="1"]',
+      evidence: '.journey-deck-content[data-step="2"] :is(.visual-evidence-picker, .visual-evidence-input:not(:has(.visual-evidence-picker)) > legend)',
+      validation: '.journey-deck-content[data-step="3"] .activity-flow-review',
+      audience: '.activity-flow-audience .card-audience-options', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
+      reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading',
+      community: '.community-header h2', profile: profilePreviewMode ? '.profile-preview-identity' : '.home-profile-avatar',
+      badges: '.profile-preview-badges', homeSort: '.home-sort-button', homeMenu: homeSidebarOpen ? '#home-sidebar .home-sidebar-heading h2' : '.home-menu-button',
+      configurations: configurationsOpen ? '#presets-title' : menuTarget,
+      lifeContext: lifeEditor ? '.life-context-dialog > .life-context-header h2' : menuTarget,
+      homeImages: homeVisionSettingsOpen ? '.home-vision-settings > header h2' : menuTarget,
+      menuDashboard: view === 'dashboard' ? '.crm-card--score .crm-card-heading' : menuTarget,
+      specialists: view === 'cult' ? '#cult-embedded-title' : menuTarget,
+      menuTrivia: view === 'lab' ? '#modo-lab-title' : menuTarget,
+      replay: menuTarget,
     };
     const selection = targets[tourTopic];
+    const flowStep = tourTopic === 'activityCard' ? 1 : tourTopic === 'evidence' ? 2 : tourTopic === 'validation' ? 3 : undefined;
     return { id: tourTopic, ...copy,
+      ...(flowStep ? { title: `${flowStep.toLocaleString(language)} · ${journeyStepLabels[language][flowStep]}` } : {}),
       ...(tourTopic === 'modes' ? { target: selection as string, nextDisabled: !tourModeKey }
         : tourTopic === 'methods' ? { methodChecklist: true, targets: TOUR_METHODS.map(method => ({ selector: `.journey-fixed-actions ${tourMethodTargets[method]}`, method })) }
         : Array.isArray(selection) ? { targets: selection } : { target: selection as string }),
@@ -1694,17 +1714,14 @@ function App() {
         setCommunityOpen(false); setConfigurationsOpen(false); setHomeVisionSettingsOpen(false); setLifeEditor(null); setProfilePreviewMode(false); setCustomizingAvatar(false);
         setCultInsightPreview(null); setSpecialistPreview(null); setSelectedPlan(null); setProfileMenuOpen(false);
         setActiveActivity(null); setSelectedMode(null); setCultOpen(false); setView('welcome');
-        setHomeSidebarOpen(tourTopic === 'replay');
-        if (tourTopic === 'modes' || tourTopic === 'replay') return;
-        if (controlTopic || tourTopic === 'badges') { setView('dashboard'); return; }
-        if (tourTopic === 'specialists') { setCultTab('network'); setView('cult'); return; }
-        if (tourTopic === 'configurations') { setConfigurationsOpen(true); return; }
-        if (tourTopic === 'profile') { setProfilePreviewMode(true); return; }
+        setHomeSidebarOpen(Boolean(menuItem));
+        if (menuItem || ['modes', 'profile', 'homeSort', 'homeMenu'].includes(tourTopic)) return;
+        if (tourTopic === 'badges') { setProfilePreviewMode(true); return; }
         if (['reviews', 'community'].includes(tourTopic)) {
           setCommunityTab(tourTopic === 'reviews' ? 'reviews' : 'network'); setCommunityOpen(true); return;
         }
         setSelectedMode(tourMode); setJourneySlide(tourTopic === 'vision' ? 9 : tourSource);
-        setJourneyStep(tourTopic === 'vision' ? 1 : tourTopic === 'audience' ? 3 : ['modeDescription', 'selfAssessment'].includes(tourTopic) ? 0 : 1);
+        setJourneyStep(tourPreviewStep ?? (['modeDescription', 'selfAssessment'].includes(tourTopic) ? 0 : 1));
         if (tourTopic === 'globalIdeas') {
           setInsightSlide(0); setInsightCycle(0); setCultTab('insights'); setCultOpen(true); return;
         }
@@ -1734,14 +1751,6 @@ function App() {
     });
     return () => { window.cancelAnimationFrame(frame); if (settings) settings.open = Boolean(wasOpen); };
   }, [tourTopic, selectedMode, journeySlide, journeyStep, communitySubmissions]);
-
-  useEffect(() => {
-    if (tourTopic !== 'badges' || view !== 'dashboard') return;
-    const frame = window.requestAnimationFrame(() => {
-      document.querySelector('.crm-dashboard > .badges-gallery .achievement-heading')?.scrollIntoView({ block: 'center', behavior: 'instant' });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [tourTopic, view]);
 
   useEffect(() => {
     if (publicCardId) return; // Shared cards open directly, without a welcome covering their content.
@@ -2385,8 +2394,9 @@ function App() {
   const visibleJourneyLevel = tourTopic ? journeySlide : canOpenJourneyLevel(journeySlide, currentJourneyLevel) ? journeySlide : currentJourneyLevel;
   const journeyActivity = selectedMode ? activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? '' : '';
   const deckFlow = selectedMode && visibleJourneyLevel < 9 ? activityFlow(selectedMode.key, visibleJourneyLevel) : null;
-  const maxJourneyStep = deckFlow ? activityFlowStage(visibleJourneyLevel, deckFlow.state) ?? 1 : 1;
-  const displayJourneyStep = Math.min(journeyStep, maxJourneyStep) as JourneyStep;
+  const activeTourPreview = deckFlow ? tourPreviewStep : undefined;
+  const maxJourneyStep = activeTourPreview ?? (deckFlow ? activityFlowStage(visibleJourneyLevel, deckFlow.state) ?? 1 : 1);
+  const displayJourneyStep = (activeTourPreview ?? Math.min(journeyStep, maxJourneyStep)) as JourneyStep;
   const deckLabels = journeyStepLabels[language];
   const [currentLevelLabel, viewedLevelLabel, thisDefinitionLabel] = journeyOverviewLabels[language];
   const viewingAnotherLevel = visibleJourneyLevel !== currentJourneyLevel;
@@ -2402,7 +2412,7 @@ function App() {
     journeyPanelRef.current?.scrollTo({ top: 0, behavior: 'auto' });
   };
   const goJourneyStep = (step: number) => {
-    if (!Number.isInteger(step) || step < 0 || step > maxJourneyStep) return;
+    if (activeTourPreview || !Number.isInteger(step) || step < 0 || step > maxJourneyStep) return;
     setJourneyStep(step as JourneyStep);
     journeyPanelRef.current?.scrollTo({ top: 0, behavior: 'auto' });
   };
@@ -2451,7 +2461,7 @@ function App() {
   }, [homeSidebarOpen]);
 
   return (
-    <main className={`app-shell app-shell--${skin}${view === 'welcome' ? ' app-shell--home' : ''}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`}>
+    <main className={`app-shell app-shell--${skin}${view === 'welcome' ? ' app-shell--home' : ''}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`} data-tour-active={tourTopic ?? undefined}>
       <div
         className={`pull-refresh-indicator${pullDistance > 0 || pullRefreshState !== 'idle' ? ' is-visible' : ''}${pullRefreshState === 'refreshing' ? ' is-refreshing' : ''}${pullRefreshState === 'error' ? ' is-error' : ''}`}
         style={{ transform: `translate(-50%, ${pullRefreshState === 'idle' ? Math.min(pullDistance * .65, 60) - 52 : 12}px)` }}
@@ -2882,7 +2892,7 @@ function App() {
                 <JourneyActivityCard key={`${selectedMode.key}-${visibleJourneyLevel}`} current={visibleJourneyLevel === currentJourneyLevel} defined={Boolean(journeyActivity.trim())}
                   card={{ mode: modeName(selectedMode), level: visibleJourneyLevel, levelLabel: tr('level'), stage: localizedLevelNames[language][visibleJourneyLevel], effort: effortLabel(visibleJourneyLevel), activity: journeyActivity, color: selectedMode.color, icon: selectedMode.icon, iconSrc: customModeSymbol(selectedMode.key), language }} modeMark={modeMark(selectedMode)}
                   reaction={activityReactions[activityReactionKey(selectedMode.key, visibleJourneyLevel, activityDrafts[`${selectedMode.key}-${visibleJourneyLevel}`] ?? '')]}
-                  flow={deckFlow ? { ...deckFlow, viewStep: displayJourneyStep, onDefine: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onDefine : undefined, onSubmit: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onSubmit : undefined } : undefined}
+                  flow={deckFlow ? { ...deckFlow, viewStep: displayJourneyStep, tourPreviewStep: activeTourPreview, onDefine: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onDefine : undefined, onSubmit: visibleJourneyLevel === currentJourneyLevel && !tourTopic ? deckFlow.onSubmit : undefined } : undefined}
                   showSocial={displayJourneyStep === 1}
                   showReactions={JOURNEY_REACTIONS_ENABLED}
                   sharePreviewScope={tourTopic ?? 'closed'}

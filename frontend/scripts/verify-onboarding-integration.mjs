@@ -19,10 +19,18 @@ const require = createRequire(import.meta.url);
 const LANGUAGES = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da'];
 const WIDTHS = [320, 390, 870, 1440];
 const MODES = ['fisico', 'intelectual', 'emocional', 'arquetipico', 'espiritual', 'romantico', 'familiar', 'social', 'financiero', 'profesional', 'ludico', 'visionario'];
-const TOUR_STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', 'custom', 'bank', 'localContacts', 'globalIdeas', 'ai', 'effort', 'activityCard', 'evidence', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'specialists', 'community', 'profile', 'badges', 'configurations', 'controlCenter', 'controlStrongest', 'controlLeast', 'controlFocus', 'controlTrivia', 'replay'];
+const TOUR_STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', 'custom', 'bank', 'localContacts', 'globalIdeas', 'ai', 'effort', 'activityCard', 'evidence', 'validation', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'community', 'profile', 'badges', 'homeSort', 'homeMenu', 'configurations', 'lifeContext', 'homeImages', 'menuDashboard', 'specialists', 'menuTrivia', 'replay'];
+const menuTourStops = {
+  configurations: ['configurations', '.life-configurations-card[open] #presets-title'],
+  lifeContext: ['life-context', '.life-context-dialog[open] > .life-context-header h2'],
+  homeImages: ['images', '.home-vision-settings[open] > header h2'],
+  menuDashboard: ['dashboard', '.crm-card--score .crm-card-heading'],
+  specialists: ['specialists', '#cult-embedded-title'],
+  menuTrivia: ['trivia', '#modo-lab-title'],
+};
 const CASES = ['welcome', 'legacy-welcome', 'account-welcome', 'legacy-account-welcome', 'account-completed', 'locale-welcome', 'account-locale-welcome', 'account-legacy-locale-welcome', 'manual-welcome', 'account-manual-welcome', 'account-ambiguous-cache-welcome', 'tour', 'identity', 'drafts', 'local-idea', 'account-local-idea', 'account-local-zero', 'account-local-failure'];
 const ACCESS = 'synthetic-qa-token-not-a-credential';
-CASES.push('account-pending-tour', 'account-journey-ascent', 'fresh-journey', 'home-vision', 'account-home-vision');
+CASES.push('account-pending-tour', 'fresh-tour', 'account-journey-ascent', 'fresh-journey', 'home-vision', 'account-home-vision');
 CASES.push('electric-home', 'account-electric-home');
 CASES.push('family-palette', 'visionary-palette');
 CASES.push('home-upload', 'account-home-upload');
@@ -352,11 +360,14 @@ async function inspectSpotlight(page, owner) {
   const result = await page.locator('.guided-tour-layer').evaluate(layer => {
     const rect = element => { const r = element.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, right: r.right, bottom: r.bottom }; };
     const modals = [...document.querySelectorAll('dialog:modal')];
+    const shade = getComputedStyle(layer.querySelector('.guided-tour-shade'));
     return { id: layer.dataset.tourStep, phase: layer.dataset.tourPhase, dir: layer.dir, panel: rect(layer.querySelector('.guided-tour-card')), holes: [...layer.querySelectorAll('.guided-tour-outline')].map(rect),
       counters: layer.querySelectorAll('.guided-tour-counter').length, counter: layer.querySelector('.guided-tour-counter')?.textContent,
-      modalSafe: !modals.length || modals.at(-1).contains(layer), shade: !!layer.querySelector('.guided-tour-shade path[d]'), scrollY, width: innerWidth, height: innerHeight };
+      modalSafe: !modals.length || modals.at(-1).contains(layer), shade: shade.backgroundColor, blur: shade.backdropFilter, clipped: shade.clipPath.startsWith('path('), scrollY, width: innerWidth, height: innerHeight };
   });
-  assert.equal(result.phase, 'ready'); assert.ok(result.shade && result.holes.length > 0, `Real shade and target holes: ${result.id}`);
+  assert.equal(result.phase, 'ready'); assert.ok(result.clipped && result.holes.length > 0, `Real shade and target holes: ${result.id}`);
+  assert.equal(result.shade, 'rgba(3, 15, 16, 0.23)');
+  assert.equal(result.blur, 'blur(2px)');
   assert.ok(result.modalSafe, `Spotlight portal inside active native modal: ${result.id}`);
   assert.equal(result.counters, owner ? 1 : 0, 'Global count is server-verified owner-only');
   for (const rect of [result.panel, ...result.holes]) assert.ok(rect.w > 0 && rect.h > 0 && rect.x >= -2 && rect.y >= -2 && rect.right <= result.width + 2 && rect.bottom <= result.height + 2, `Clipped spotlight/panel stays within viewport: ${result.id}`);
@@ -407,12 +418,16 @@ async function visitMethods(page, timeout, language, regress) {
 }
 async function walkTour(page, configuration, { owner = false, regress = false, sharePreview = true } = {}) {
   const seen = [], scrollEvidence = [];
+  const activate = control => configuration.width <= 390 ? control.tap() : control.click();
   await ready(page, 'modes', configuration.timeout); seen.push('modes');
   await inspectSpotlight(page, owner); assert.equal(await page.locator('.guided-tour-rail button:last-child').isDisabled(), true, 'Choosing an actual mode is required');
   await selectPhysicalMode(page); await ready(page, 'modeDescription', configuration.timeout);
   for (const step of STOPS.slice(1).filter(step => !(step in methodSelectors))) {
     await ready(page, step, configuration.timeout); seen.push(step);
     const inspected = await inspectSpotlight(page, owner);
+    if (process.env.ACTIVITY_QA_SCREENSHOTS && ['evidence', 'homeSort', 'menuTrivia'].includes(step)) {
+      await page.screenshot({ path: resolve(process.env.ACTIVITY_QA_SCREENSHOTS, `tour-${step}-${configuration.width}-${configuration.language}.png`) });
+    }
     assert.equal(inspected.dir, configuration.language === 'ar' ? 'rtl' : 'ltr', 'Localized spotlight direction');
     if (inspected.scrollY > inspected.height) scrollEvidence.push(step);
     if (step === 'nextClarity') {
@@ -424,7 +439,28 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
     if (step === 'methods') {
       seen.push(...await visitMethods(page, configuration.timeout, configuration.language, regress));
     }
-    if (['activityCard', 'evidence', 'audience'].includes(step)) assert.equal(await page.locator('.journey-step-list > li').count(), 3, 'Three numbered activity stages');
+    const journeyStage = ['activityCard', 'evidence', 'validation'].indexOf(step) + 1;
+    if (journeyStage) {
+      assert.equal(await page.locator('.journey-step-list > li').count(), 3, 'Three numbered activity stages');
+      const current = page.locator('.journey-step-list button[aria-current="step"]');
+      assert.equal(await current.locator('..').getAttribute('data-journey-step'), String(journeyStage), 'Tutorial opens the matching real journey stage');
+      assert.equal(await page.locator('.journey-deck-content').getAttribute('data-step'), String(journeyStage));
+      const target = journeyStage === 1 ? current : page.locator(journeyStage === 2 ? '.visual-evidence-picker, .activity-flow-evidence-snapshot .visual-evidence-input legend' : '.activity-flow-review');
+      assert.ok(await target.evaluate(element => {
+        const { left, top, width, height } = element.getBoundingClientRect();
+        return [...document.querySelectorAll('.guided-tour-outline')].some(outline => {
+          const hole = outline.getBoundingClientRect();
+          return left + width / 2 >= hole.left && left + width / 2 <= hole.right && top + height / 2 >= hole.top && top + height / 2 <= hole.bottom;
+        });
+      }), 'The matching content is spotlighted, not obscured');
+      assert.equal(await page.locator('.activity-flow-review').count(), journeyStage === 3 ? 1 : 0);
+      if (journeyStage === 2) {
+        assert.ok(await page.locator('.visual-evidence-input legend').isVisible(), 'Evidence shows the real upload section');
+        for (const control of await page.locator('.activity-flow-form :is(input, textarea, button[type="submit"])').all()) {
+          assert.ok(await control.isDisabled(), 'Tour preview cannot upload, edit or submit evidence');
+        }
+      }
+    }
     if (step === 'audience') {
       assert.equal(await page.locator('.activity-flow-audience input[value="network"]').isChecked(), true);
       assert.equal(await page.locator('.activity-flow-audience input[type="checkbox"]').count(), 0);
@@ -437,6 +473,39 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
       }), 'Both actual audience choices must be completely illuminated and not blocked by navigation', configuration.timeout);
     }
     if (step === 'vision') { assert.equal(await page.locator('.activity-flow-stages').count(), 0, 'Level9 stays separate'); assert.equal(await page.locator('.journey-level-card--vision input[type="file"]').count(), 1); }
+    if (step === 'profile') {
+      await activate(page.locator('.home-profile-avatar'));
+      await page.locator('.profile-preview-identity').waitFor();
+      await ready(page, step, configuration.timeout);
+    }
+    if (step === 'homeSort') {
+      const sort = page.locator('.home-sort-button');
+      const original = await sort.getAttribute('aria-pressed');
+      const modeOrder = () => page.locator('[data-tour-mode]').evaluateAll(cards => cards.map(card => card.dataset.tourMode));
+      const order = await modeOrder();
+      assert.equal(order.length, 12, 'Sort step leaves all 12 live cards in place');
+      await activate(sort);
+      assert.notEqual(await sort.getAttribute('aria-pressed'), original);
+      if (configuration.name === 'fresh-tour') assert.deepEqual(await modeOrder(), order, 'Equal levels stay in their usual order');
+      else assert.notDeepEqual(await modeOrder(), order);
+      await activate(sort);
+      assert.equal(await sort.getAttribute('aria-pressed'), original);
+      assert.deepEqual(await modeOrder(), order, 'Second press restores the default carousel order');
+    }
+    if (step === 'homeMenu') {
+      await activate(page.locator('.home-menu-button'));
+      await page.locator('#home-sidebar h2').waitFor();
+      await ready(page, step, configuration.timeout);
+      assert.deepEqual(await page.locator('#home-sidebar [data-home-menu-item]').evaluateAll(items => items.map(item => item.dataset.homeMenuItem)),
+        [...Object.values(menuTourStops).map(([id]) => id), 'replay']);
+    }
+    if (step in menuTourStops) {
+      const [id, destination] = menuTourStops[step];
+      await activate(page.locator(`#home-sidebar [data-home-menu-item="${id}"]`));
+      await page.locator(destination).waitFor();
+      await ready(page, step, configuration.timeout);
+      await inspectSpotlight(page, owner);
+    }
     if (step === 'specialists') {
       const labels = await page.locator('.cult-embedded-content .cult-specialist-copy p').allTextContents();
       assert.ok(labels.length && labels.every(label => label.includes(onboardingIntegrationCopy(configuration.language).demo)), 'Every static specialist is labelled as a demonstration');
@@ -559,7 +628,7 @@ async function welcomeCase(page, configuration, account = false) {
 async function runCase(browser, config, task) {
   const welcomeTask = task.name.endsWith('welcome');
   const localeTask = task.name.includes('locale') || task.name.includes('ambiguous-cache'); const manualTask = task.name.includes('manual');
-  const established = task.name !== 'fresh-journey' && (task.name.startsWith('legacy-') || localeTask || manualTask || !welcomeTask); const state = fixture(task.language, established);
+  const established = !task.name.startsWith('fresh-') && (task.name.startsWith('legacy-') || localeTask || manualTask || !welcomeTask); const state = fixture(task.language, established);
   const expectedLanguage = manualTask ? (task.language === 'en' ? 'es' : 'en') : task.language;
   if (localeTask) { state.language = 'en'; if (!task.name.includes('legacy-locale') && !task.name.includes('ambiguous-cache')) state.languageSource = 'auto'; }
   if (manualTask) { state.language = expectedLanguage; if (!task.name.includes('cached-manual')) state.languageSource = 'manual'; }
@@ -594,7 +663,7 @@ async function runCase(browser, config, task) {
   // saved map data. account-completed deliberately has no browser account flag.
   if (account && !welcomeTask) state.onboardingWelcomeCompleted = true;
   const regionalLocales = { es: 'es-MX', en: 'en-GB', zh: 'zh-Hans-CN', hi: 'hi-IN', ar: 'ar-SA', it: 'it-IT', pt: 'pt-BR', ru: 'ru-RU', de: 'de-DE', fr: 'fr-FR', da: 'da-DK' };
-  const height = ['fresh-journey', 'tour'].includes(task.name) || lifeContextCase ? (task.width <= 390 ? 568 : task.width === 870 ? 667 : 835) : 835;
+  const height = ['fresh-journey', 'fresh-tour', 'tour'].includes(task.name) || lifeContextCase ? (task.width <= 390 ? 568 : task.width === 870 ? 667 : 835) : 835;
   const context = await browser.newContext({ viewport: { width: task.width, height }, hasTouch: task.width <= 390, serviceWorkers: 'block', reducedMotion: reduced ? 'reduce' : 'no-preference', locale: regionalLocales[task.language] });
   const errors = []; const page = await context.newPage(); page.setDefaultTimeout(config.timeout);
   page.on('pageerror', error => errors.push(error.message));
@@ -641,14 +710,20 @@ async function runCase(browser, config, task) {
       if (task.name === 'account-completed') {
         assert.equal(await page.locator('.guided-tour-layer').count(), 0, 'Cloud completion does not restart tutorial on another browser');
         result = { cloudCompletionWithoutBrowserFlag: true, noRepeat: true, preserved: true };
-      } else if (task.name === 'tour' || task.name === 'account-pending-tour') {
+      } else if (['tour', 'fresh-tour', 'account-pending-tour'].includes(task.name)) {
         const tours = [];
+        const sharePreview = config.sharePreview && established;
         for (let replay = 0; replay < config.replays; replay++) {
           await openReplay(page, config.timeout);
-          tours.push(await walkTour(page, configuration, { regress: replay === 0 && config.methodRegressions, sharePreview: replay === 0 && config.sharePreview }));
+          tours.push(await walkTour(page, configuration, { regress: replay === 0 && config.methodRegressions, sharePreview: replay === 0 && sharePreview }));
           await assertPreserved(page, state); await assertMap(page, state.levels);
         }
-        result = { tours, preserved: true, guestCounter: false, sharingPreviewTested: config.sharePreview };
+        if (!established) {
+          await selectPhysicalMode(page);
+          await page.locator('.journey-step-arrow--next').click();
+          for (const step of [2, 3]) assert.ok(await page.locator(`[data-journey-step="${step}"] button`).isDisabled(), 'Finishing the tour does not unlock real journey stages');
+        }
+        result = { tours, preserved: true, guestCounter: false, sharingPreviewTested: sharePreview };
       } else if (switchesLanguage) {
         const preferred = LANGUAGES.filter(code => code !== expectedLanguage).at(-1);
         const assertLanguage = async code => {
@@ -1632,7 +1707,7 @@ function selfTest() {
   const holistic = lifeAiContext('q'.repeat(5000), allContext, 'fisico', 'holistic');
   assert.ok(holistic.length <= 4000 && MODES.every(mode => holistic.includes(`(${mode})`)));
   assert.equal(lifeAiContext('question', allContext, 'fisico', 'none'), 'question');
-  assert.equal(STOPS.length, 28 + Number(JOURNEY_REACTIONS_ENABLED) + Number(JOURNEY_SUBMISSION_AUDIENCE_ENABLED));
+  assert.equal(STOPS.length, 30 + Number(JOURNEY_REACTIONS_ENABLED) + Number(JOURNEY_SUBMISSION_AUDIENCE_ENABLED));
   assert.equal(new Set(STOPS).size, STOPS.length); assert.equal(STOPS.includes('audience'), JOURNEY_SUBMISSION_AUDIENCE_ENABLED);
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, emocional: false, unknown: true, social: 'true', ludico:'stock' }), { fisico: true, ludico:'stock' });
   assert.deepEqual(cleanHomeVisionCards({ fisico: true, social: 'electric', unknown: 'electric', ludico:'stock' }), { fisico:true, social:'electric', ludico:'stock' });
@@ -1671,7 +1746,7 @@ function selfTest() {
     assert.equal(homeGreetingPhrases[language].filter(Boolean).length, 10);
     if (language !== 'es') for (let index = 0; index < 20; index++) assert.notEqual(homeQuoteText(language, index, '<untranslated>'), '<untranslated>');
     assert.equal(welcomeMessages[language].messages.length, 7); assert.ok(stateAccountCopy(language).cloudOnly);
-    assert.ok(onboardingIntegrationCopy(language).share); for (const stop of STOPS.filter(stop => !stop.startsWith('control'))) assert.ok(guidedTourStepCopy(language, stop).title);
+    assert.ok(onboardingIntegrationCopy(language).share); for (const stop of STOPS) assert.ok(guidedTourStepCopy(language, stop).title);
     assert.equal(homeVisionCopy(language).filter(Boolean).length, 6);
     assert.equal(homeVisionCopy(language)[2], language === 'es' ? 'Galería de imágenes' : language === 'en' ? 'Stock Images' : homeVisionCopy(language)[2]);
     if (language === 'es') assert.ok(homeVisionCopy(language)[1].includes('distinto para cada modo'));
