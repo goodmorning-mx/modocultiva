@@ -65,7 +65,8 @@ assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*grid-column:\s*1/,'C
 assert.ok(app.includes("import homeElectricLogo from './assets/modo-cultiva-logo-electric.webp'") && app.includes('<header className="topbar topbar--material-home">') && app.includes('src={homeElectricLogo}'), 'The Home-only header selects the approved electric logo');
 assert.ok(!app.includes('className={`topbar${view ==='), 'Internal screens do not render the global header');
 assert.ok(app.includes("<span className=\"home-material-title\">Modo Cultiva</span>") && css.match(/\.home-material-title\s*\{[^}]*font-size:\s*1\.16rem/) && css.match(/@media \(max-width: 680px\)[\s\S]*\.home-material-title\s*\{[^}]*font-size:\s*1\.06rem/), 'Home brand name is modestly enlarged for desktop and mobile');
-assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*width:\s*80px[^}]*height:\s*80px[^}]*border-radius:\s*50%[^}]*background:\s*radial-gradient\([^}]*#20483f[^}]*#12312d/, 'Home logo is slightly smaller on the chosen green circular backing');
+assert.match(css, /\.topbar--material-home \.brand\s*\{[^}]*width:\s*80px[^}]*height:\s*80px[^}]*border:\s*0[^}]*background:\s*radial-gradient\([^}]*transparent/, 'Home logo floats over a soft, unframed green halo');
+assert.ok(app.includes('<footer className="home-brand-footer"><span translate="no">Modo Cultiva</span></footer>'), 'Home includes a non-translated footer wordmark');
 assert.match(css, /@media \(max-width: 680px\)[\s\S]*\.topbar--material-home \.brand\s*\{[^}]*width:\s*66px[^}]*height:\s*66px/, 'Mobile keeps a compact but readable logo');
 assert.match(css, /\.topbar--material-home \.brand img\s*\{[^}]*width:\s*100%[^}]*height:\s*100%[^}]*object-fit:\s*contain/, 'Logo preserves its whole silhouette and transparent halo');
 const homeLogo = await readFile(new URL('../src/assets/modo-cultiva-logo-electric.webp', import.meta.url));

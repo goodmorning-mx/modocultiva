@@ -1,5 +1,9 @@
 export const APP_LANGUAGES = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da'] as const;
 export type AppLanguage = typeof APP_LANGUAGES[number];
+export const APP_LANGUAGE_AUTONYMS: Readonly<Record<AppLanguage, string>> = {
+  es: 'Español', en: 'English', zh: '中文', hi: 'हिन्दी', ar: 'العربية',
+  it: 'Italiano', pt: 'Português', ru: 'Русский', de: 'Deutsch', fr: 'Français', da: 'Dansk',
+};
 export type LanguageSource = 'auto' | 'manual';
 export type LanguagePreference = { language: AppLanguage; languageSource: LanguageSource };
 

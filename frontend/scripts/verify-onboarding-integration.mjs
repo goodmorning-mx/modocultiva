@@ -19,7 +19,7 @@ const require = createRequire(import.meta.url);
 const LANGUAGES = ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da'];
 const WIDTHS = [320, 390, 870, 1440];
 const MODES = ['fisico', 'intelectual', 'emocional', 'arquetipico', 'espiritual', 'romantico', 'familiar', 'social', 'financiero', 'profesional', 'ludico', 'visionario'];
-const TOUR_STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', 'custom', 'bank', 'localContacts', 'globalIdeas', 'ai', 'effort', 'activityCard', 'evidence', 'validation', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'community', 'profile', 'badges', 'homeSort', 'homeMenu', 'configurations', 'lifeContext', 'homeImages', 'menuDashboard', 'specialists', 'menuTrivia', 'replay'];
+const TOUR_STOPS = ['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextPresence', 'methods', 'custom', 'bank', 'localContacts', 'globalIdeas', 'ai', 'effort', 'activityCard', 'evidence', 'validation', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'community', 'profile', 'badges', 'homeSort', 'homeMenu', 'configurations', 'lifeContext', 'homeImages', 'menuDashboard', 'specialists', 'menuTrivia', 'replay'];
 const menuTourStops = {
   configurations: ['configurations', '.life-configurations-card[open] #presets-title'],
   lifeContext: ['life-context', '.life-context-dialog[open] > .life-context-header h2'],
@@ -347,6 +347,14 @@ async function assertFixedHome(page) {
   const bounds = await controls.boundingBox();
   const viewport = page.viewportSize();
   assert.ok(bounds.y >= 0 && bounds.y + bounds.height <= viewport.height + 1, 'Carousel controls fit without scrolling');
+  const footer = page.locator('.home-brand-footer');
+  assert.equal(await footer.innerText(), 'Modo Cultiva');
+  const footerBounds = await footer.boundingBox();
+  assert.ok(footerBounds.y >= bounds.y + bounds.height - 1 && footerBounds.y + footerBounds.height <= viewport.height + 1, 'Footer stays below the carousel controls and inside the screen');
+  assert.ok(await page.locator('.topbar--material-home .brand').evaluate(link => {
+    const style = getComputedStyle(link);
+    return style.borderTopWidth === '0px' && style.backgroundImage.includes('radial-gradient') && style.backgroundImage.includes('rgba(0, 0, 0, 0)');
+  }), 'Approved transparent logo floats on a green halo without a visible frame');
   assert.equal(await page.evaluate(() => window.scrollY), 0, 'Home stays fixed under a wheel or programmatic scroll');
 }
 async function assertJourneyNumbers(steps, language) {
@@ -374,6 +382,28 @@ async function inspectSpotlight(page, owner) {
   return result;
 }
 const methodSelectors = { custom: '.journey-manual-button', bank: '.journey-recommended-button', localContacts: '.journey-local-button', globalIdeas: '.journey-global-button', ai: '.journey-ai-button' };
+async function switchTourLanguage(page, step, initial, timeout) {
+  const layer = page.locator('.guided-tour-layer');
+  const picker = layer.locator('.guided-tour-language select');
+  assert.equal(await picker.locator('option').count(), LANGUAGES.length, 'All app languages are available during the tour');
+  const chosen = initial === 'ar' ? 'en' : 'ar';
+  const visited = await layer.locator('.guided-tour-methods [data-visited="true"]').count();
+  const disabled = await layer.locator('.guided-tour-rail button:last-child').isDisabled();
+  const title = await layer.locator('.guided-tour-card h2').textContent();
+  await picker.selectOption(chosen);
+  await eventually(async () => await layer.getAttribute('lang') === chosen && await page.locator('html').getAttribute('lang') === chosen, 'Tour selector changes the app language', timeout);
+  await ready(page, step, timeout);
+  assert.equal(await layer.getAttribute('dir'), chosen === 'ar' ? 'rtl' : 'ltr');
+  assert.notEqual(await layer.locator('.guided-tour-card h2').textContent(), title);
+  assert.equal(await layer.locator('.guided-tour-methods [data-visited="true"]').count(), visited, 'Language switch retains the method visits');
+  assert.equal(await layer.locator('.guided-tour-rail button:last-child').isDisabled(), disabled, 'Language switch preserves the step gate');
+  if (step === 'nextPresence') {
+    assert.equal(await layer.locator('.guided-tour-presence p').textContent(), CLARITY_CATALOG.languages[chosen][4].description, 'The exact presence description changes languages too');
+  }
+  await picker.selectOption(initial);
+  await eventually(async () => await layer.getAttribute('lang') === initial, 'Restore original test language', timeout);
+  await ready(page, step, timeout);
+}
 async function advance(page, current, timeout) {
   const next = current === 'methods' ? 'effort' : STOPS[STOPS.indexOf(current) + 1];
   const button = page.locator('.guided-tour-rail button:last-child'); assert.equal(await button.isDisabled(), false, `Next available: ${current}`);
@@ -408,6 +438,7 @@ async function visitMethods(page, timeout, language, regress) {
     await next.click(); await ready(page, 'methods', timeout);
     assert.equal(await visited.count(), seen.length);
     if (regress && method === 'custom') {
+      await switchTourLanguage(page, 'methods', language, timeout);
       await page.locator(selector).click(); await ready(page, method, timeout);
       await page.locator('.guided-tour-rail button:first-child').click(); await ready(page, 'methods', timeout);
       assert.equal(await visited.count(), 1, 'Visiting the same option twice does not unlock others');
@@ -421,6 +452,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
   const activate = control => configuration.width <= 390 ? control.tap() : control.click();
   await ready(page, 'modes', configuration.timeout); seen.push('modes');
   await inspectSpotlight(page, owner); assert.equal(await page.locator('.guided-tour-rail button:last-child').isDisabled(), true, 'Choosing an actual mode is required');
+  if (regress) await switchTourLanguage(page, 'modes', configuration.language, configuration.timeout);
   await selectPhysicalMode(page); await ready(page, 'modeDescription', configuration.timeout);
   for (const step of STOPS.slice(1).filter(step => !(step in methodSelectors))) {
     await ready(page, step, configuration.timeout); seen.push(step);
@@ -430,11 +462,12 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
     }
     assert.equal(inspected.dir, configuration.language === 'ar' ? 'rtl' : 'ltr', 'Localized spotlight direction');
     if (inspected.scrollY > inspected.height) scrollEvidence.push(step);
-    if (step === 'nextClarity') {
-      assert.ok((await page.locator('.guided-tour-clarity').innerText()).trim());
+    if (step === 'nextPresence') {
+      assert.ok((await page.locator('.guided-tour-presence').innerText()).trim());
       assert.equal(await page.locator('.journey-builder > .clarity-goal').count(), 0, 'Duplicate target above the card is removed');
       assert.equal(await page.locator('.journey-builder .activity-flow-target').count(), 1, 'Canonical next-clarity guidance remains inside the activity');
       assert.ok((await page.locator('.journey-builder .activity-flow-target summary').innerText()).trim());
+      if (regress && configuration.name !== 'fresh-tour') await switchTourLanguage(page, step, configuration.language, configuration.timeout);
     }
     if (step === 'methods') {
       seen.push(...await visitMethods(page, configuration.timeout, configuration.language, regress));
@@ -505,6 +538,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
       await page.locator(destination).waitFor();
       await ready(page, step, configuration.timeout);
       await inspectSpotlight(page, owner);
+      if (regress && step === 'lifeContext') await switchTourLanguage(page, step, configuration.language, configuration.timeout);
     }
     if (step === 'specialists') {
       const labels = await page.locator('.cult-embedded-content .cult-specialist-copy p').allTextContents();
