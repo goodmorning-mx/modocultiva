@@ -1,4 +1,5 @@
-const CACHE = 'modo-cultiva-shell-v9';
+const CACHE = 'modo-cultiva-shell-v10';
+// Keep this URL and the manifest identity stable for existing Android installs.
 const MANIFEST = '/manifest.webmanifest?v=2026-11-23-clear-launch';
 const BRAND_ICONS = [
   '/brand/cultiva-electric-green-32.png',
@@ -8,6 +9,14 @@ const BRAND_ICONS = [
   '/brand/cultiva-electric-clear-512.png',
   '/brand/cultiva-electric-flat-maskable-512.png',
 ];
+// Older installations may still ask for the icon URLs stored at install time.
+const LEGACY_ICONS = {
+  '/brand/cultiva-electric-green-192.png': '/brand/cultiva-electric-clear-192.png',
+  '/brand/cultiva-electric-green-512.png': '/brand/cultiva-electric-clear-512.png',
+  '/brand/cultiva-electric-green-maskable-512.png': '/brand/cultiva-electric-flat-maskable-512.png',
+  '/modo-cultiva-icon-192.png': '/brand/cultiva-electric-clear-192.png',
+  '/modo-cultiva-icon-512.png': '/brand/cultiva-electric-clear-512.png',
+};
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   // Bypass previously cached installation metadata when upgrading the shell.
@@ -40,14 +49,15 @@ self.addEventListener('fetch', (event) => {
     })());
     return;
   }
-  if (url.origin === self.location.origin && BRAND_ICONS.includes(url.pathname)) {
-    // Versioned paths serve the same artwork online and offline, never the HTML shell.
+  const icon = LEGACY_ICONS[url.pathname] ?? url.pathname;
+  if (url.origin === self.location.origin && BRAND_ICONS.includes(icon)) {
+    // Installed and legacy URLs serve the same artwork online and offline.
     event.respondWith((async () => {
       const cache = await caches.open(CACHE);
-      const hit = await cache.match(url.pathname);
+      const hit = await cache.match(icon);
       if (hit) return hit;
-      const response = await fetch(request);
-      if (response.ok) await cache.put(url.pathname, response.clone());
+      const response = await fetch(new Request(new URL(icon, url.origin), { cache: 'reload' }));
+      if (response.ok) await cache.put(icon, response.clone());
       return response;
     })());
     return;

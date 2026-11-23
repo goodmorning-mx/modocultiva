@@ -818,6 +818,10 @@ async function runCase(browser, config, task) {
   try {
     if (welcomeTask) { await page.clock.install({ time: new Date('2026-10-29T12:00:00Z') }); await page.clock.pauseAt(new Date('2026-10-29T12:00:01Z')); }
     await page.goto(publicSurface ? `${config.url}/?community-card=${CARD_ID}` : config.url, { waitUntil: 'domcontentloaded' });
+    if (task.name === 'standalone-welcome') {
+      await page.locator('#pwa-launch-mark').evaluate(img => img.decode());
+      await page.clock.runFor(1250);
+    }
     if (task.name === 'identity') {
       await page.locator('.state-account-boundary').waitFor();
       assert.equal(await page.locator('.guided-tour-counter, .mc-welcome, .guided-tour-layer').count(), 0, 'Cached identity cannot start owner UI before verification');

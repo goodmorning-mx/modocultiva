@@ -14,6 +14,7 @@
     <meta name="description" content="Tu mapa de vida y tus journeys de desarrollo humano." />
     <meta name="modo-cultiva-build" content="2026-10-02-i18n-specialists" />
     <link rel="manifest" href="/manifest.webmanifest?v=2026-11-23-clear-launch" />
+    <link rel="preload" as="image" href="/brand/cultiva-electric-mark-v1.webp" />
     <title>Modo Cultiva</title>
     <style>
       #pwa-launch {
@@ -47,6 +48,64 @@
       <p id="pwa-launch-name">Modo Cultiva</p>
     </div>
     <div id="root"></div>
+    <script id="pwa-launch-clock">
+      (() => {
+        const installed = matchMedia('(display-mode: standalone)').matches ||
+          navigator.standalone === true || /ModoCultivaAndroidApp/i.test(navigator.userAgent);
+        if (!installed) return;
+
+        // Run while the app code downloads. Count only visible time after the
+        // mark has painted so a fast (or backgrounded) launch cannot flash by.
+        const minVisibleMs = 1200;
+        const mark = document.getElementById('pwa-launch-mark');
+        window.modoCultivaLaunchReady = new Promise(resolve => {
+          let remaining = minVisibleMs;
+          let visibleSince = null;
+          let timer = 0;
+          let frame = 0;
+          let imageDeadline = 0;
+
+          function reconcile() {
+            clearTimeout(timer);
+            cancelAnimationFrame(frame);
+            if (visibleSince !== null) {
+              remaining -= performance.now() - visibleSince;
+              visibleSince = null;
+            }
+            if (document.hidden) return;
+            if (remaining <= 0) {
+              document.removeEventListener('visibilitychange', reconcile);
+              resolve();
+              return;
+            }
+            // The second frame leaves a paint opportunity between the two.
+            frame = requestAnimationFrame(() => {
+              frame = requestAnimationFrame(() => {
+                if (document.hidden) return;
+                visibleSince = performance.now();
+                timer = setTimeout(reconcile, remaining);
+              });
+            });
+          }
+
+          function start() {
+            clearTimeout(imageDeadline);
+            mark?.removeEventListener('load', start);
+            mark?.removeEventListener('error', start);
+            document.addEventListener('visibilitychange', reconcile);
+            reconcile();
+          }
+
+          if (!mark || mark.complete) start();
+          else {
+            mark.addEventListener('load', start);
+            mark.addEventListener('error', start);
+            // Never trap the app behind a stalled image on a poor connection.
+            imageDeadline = setTimeout(start, 800);
+          }
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
