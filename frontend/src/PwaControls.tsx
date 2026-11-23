@@ -66,7 +66,7 @@ export async function requestPwaInstall(): Promise<'accepted' | 'dismissed' | 'u
 }
 
 export function isPwaRunningStandalone(): boolean {
-  return typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
+  return typeof window !== 'undefined' && (isNativeApp() || window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
 }
 
 function useReliablePwaInstall() {

@@ -54,7 +54,7 @@ assert.equal(messages.resolveWelcomeLanguage('unknown'), 'es');
 for (const language of languages) {
   const copy = messages.getWelcomeMessages(language);
   assert.equal(copy.messages.length, 7);
-  for (const phrase of [...copy.messages, copy.title, copy.pause, copy.resume, copy.languageLabel, copy.installTitle, copy.installDescription, copy.installAction, copy.continueInBrowser, copy.installUnavailable, copy.detectedLanguageDescription, copy.confirmLanguage, copy.changeLanguage, ...copy.installHelp, copy.detectedLanguage, copy.languagePrompt, copy.continueLabel, copy.automatic, copy.paused]) assert.ok(phrase.trim());
+  for (const phrase of [...copy.messages, copy.title, copy.pause, copy.resume, copy.languageLabel, copy.installTitle, copy.installDescription, copy.installAction, copy.continueInBrowser, copy.installUnavailable, copy.openInstalledApp, ...copy.installHelp, copy.automatic, copy.paused]) assert.ok(phrase.trim());
   assert.ok(welcomeReadDurationMs(copy.messages[2]) > welcomeReadDurationMs(copy.messages[6]), `${language}: long text gets more time`);
   for (const reducedMotion of [false, true]) {
     let timeline = createWelcomeTimeline(Object.freeze([...copy.messages]), 0, { reducedMotion });

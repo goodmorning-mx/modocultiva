@@ -79,7 +79,7 @@ assert.equal(1 + homeLogo.readUIntLE(27, 3), 384);
 assert.ok(homeLogo.length < 80_000, 'Header artwork is optimized under 80 KB');
 assert.ok(app.includes('<button className="home-profile-avatar"') && app.includes('className="home-menu-button"') && app.includes('{languagePicker(true)}') && app.includes('languageFlags[code]'), 'Home keeps its profile and menu controls and the sidebar language picker');
 assert.ok(app.includes('home-sidebar-heading-actions') && app.includes('ref={profileMenuRef}') && app.includes('className="profile-button"'), 'Account/session options are available from a circular header control inside the Home menu');
-assert.ok(app.includes("onClick={() => setView('welcome')}>{tr('home')}</button>"), 'Dashboard and Trivia use a localized Home action');
+assert.equal(app.match(/tr\(homeSidebarOpen \? 'homeNavigation' : 'home'\)/g)?.length, 3, 'Each menu destination labels its actual return target');
 assert.ok(app.includes('lifeContextCopy(language)') && lifeContextCopySource.includes('Completar tu contexto ayuda a la IA a darte recomendaciones más personalizadas y te acerca a nuevas Insignias.'), 'Life Context intro explains personalization and badge progress');
 assert.equal((lifeContextCopySource.match(/^  (?:es|en|zh|hi|ar|it|pt|ru|de|fr|da): '/gm) ?? []).length, 11, 'Life Context intro covers all 11 supported languages');
 assert.ok(app.includes('className="home-sidebar" id="home-sidebar" role="dialog"') && app.includes("setView('dashboard')") && app.includes("setView('lab')") && app.includes('setConfigurationsOpen(true)'), 'Home sidebar opens as an accessible navigation panel with links to existing screens and options');

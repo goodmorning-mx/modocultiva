@@ -40,6 +40,7 @@ CASES.push('mode-editorial');
 CASES.push('global-editorial');
 CASES.push('specialist-editorial');
 CASES.push('install-guide');
+CASES.push('standalone-welcome', 'menu-back');
 CASES.push('management-surfaces', 'account-community-surfaces', 'anonymous-public-surface');
 const FIXTURE_ONLY_CASES = ['premium-access-fixture'];
 const ORG = '00000000-0000-4000-8000-000000000100';
@@ -317,6 +318,79 @@ async function closeTour(page) {
   await page.locator('.guided-tour-close').click();
   await eventually(async () => await page.locator('.guided-tour-layer').count() === 0, 'Tour did not close');
 }
+async function openHomeMenu(page) {
+  const menu = page.locator('#home-sidebar');
+  if (!await menu.isVisible()) await page.locator('.home-menu-button').click();
+  await menu.waitFor();
+}
+async function closeHomeMenu(page) {
+  const menu = page.locator('#home-sidebar');
+  if (await menu.isVisible()) await menu.locator('.home-sidebar-close').click();
+  await menu.waitFor({ state: 'detached' });
+}
+async function menuBackCase(page, hasTouch) {
+  const menu = page.locator('#home-sidebar');
+  const marker = () => page.evaluate(() => history.state?.modoCultivaNavigation);
+  const home = await marker();
+  for (const exit of [() => page.keyboard.press('Escape'), () => page.goBack()]) {
+    await openHomeMenu(page);
+    assert.equal((await marker()).index, home.index + 1, 'Opening the menu creates a back destination');
+    await exit();
+    await menu.waitFor({ state: 'detached' });
+    assert.deepEqual(await marker(), home, 'Closing the menu returns to Home in the same document');
+  }
+  const destinations = [
+    ['configurations', '#life-configurations-card[open]', '#life-configurations-card .close-journey'],
+    ['life-context', '.life-context-dialog[open]', '.life-context-header button'],
+    ['images', '.home-vision-settings[open]', '.home-vision-close'],
+    ['dashboard', '#dashboard-title', '.dashboard-back'],
+    ['specialists', '#cult-embedded-title', '.cult-exit'],
+    ['trivia', '#modo-lab-title', '.modo-lab-dashboard-back'],
+    ['replay', '.guided-tour-layer', '.guided-tour-close'],
+    ['account', '#login-title', '.login-back-to-origin'],
+  ];
+  await openHomeMenu(page);
+  const parent = await marker();
+  for (const [key, target, close] of destinations) {
+    for (const exit of [() => page.keyboard.press('Escape'), () => page.goBack(), () => page.locator(close).click()]) {
+      if (key === 'account') {
+        await menu.locator('.profile-button').click();
+        await menu.getByRole('menuitem').first().click();
+      } else {
+        const item = menu.locator(`[data-home-menu-item="${key}"]`);
+        if (hasTouch) await item.tap();
+        else await item.click();
+      }
+      const section = page.locator(target);
+      await section.waitFor();
+      assert.equal(await menu.count(), 0, `${key} hides the menu`);
+      assert.equal((await marker()).index, parent.index + 1, `${key} has exactly one Back step to the menu`);
+      await exit();
+      await section.waitFor({ state: 'detached' });
+      await menu.waitFor();
+      await eventually(async () => (await marker()).index === parent.index, `${key} returns to the same menu entry`);
+    }
+  }
+  await closeHomeMenu(page);
+  await page.locator('.home-profile-avatar').click();
+  await page.locator('.profile-preview-identity').waitFor();
+  await page.goBack();
+  await page.locator('.profile-preview-identity').waitFor({ state: 'detached' });
+  assert.equal(await menu.count(), 0, 'Profile opened from Home returns directly to Home');
+  await selectPhysicalMode(page);
+  await page.locator('.journey-step-arrow--next').click();
+  const action = page.locator('.journey-ai-button');
+  const context = page.locator('.life-context-dialog[open]');
+  for (const exit of [() => page.keyboard.press('Escape'), () => page.goBack()]) {
+    await action.click();
+    await context.waitFor();
+    await exit();
+    await context.waitFor({ state: 'detached' });
+    await action.waitFor();
+    assert.equal(await menu.count(), 0, 'Context opened from AI returns to the mode, not the menu');
+  }
+  return { menuDestinations: destinations.length, escape: true, browserBack: true, explicitClose: true, originPreserved: true };
+}
 async function assertMap(page, expectedLevels) {
   const carousel = page.locator('.circular-carousel[data-ready]');
   await carousel.scrollIntoViewIfNeeded();
@@ -564,28 +638,43 @@ async function welcomeCase(page, configuration, account = false) {
   assert.equal(await intro.getAttribute('lang'), configuration.language);
   assert.equal(await page.locator('html').getAttribute('lang'), configuration.language === 'zh' ? 'zh-CN' : configuration.language);
   assert.equal(await intro.getAttribute('dir'), configuration.language === 'ar' ? 'rtl' : 'ltr');
-  assert.equal(await intro.locator('.mc-welcome__install-gate button').count(), 2, 'First-run offers install and browser continuation immediately');
-  assert.equal(await intro.locator('.mc-welcome__phrase').count(), 0, 'Slides wait for the install or browser choice');
-  for (const selector of ['.mc-welcome__install-gate', '.mc-welcome__install-action', '.mc-welcome__browser-action']) {
-    const bounds = await intro.locator(selector).boundingBox();
-    assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= configuration.width + 1, `${selector} fits horizontally at ${configuration.width}px`);
-  }
-  if (selectedLanguage === 'en') {
-    await page.evaluate(() => {
-      const prompt = new Event('beforeinstallprompt'); prompt.preventDefault = () => {};
-      prompt.prompt = () => { window.__welcomeInstallPromptCalls = (window.__welcomeInstallPromptCalls || 0) + 1; return Promise.resolve(); };
-      prompt.userChoice = Promise.resolve({ outcome: 'accepted' }); window.dispatchEvent(prompt);
-    });
-    await intro.locator('.mc-welcome__install-action').click();
-    await intro.locator('.mc-welcome__phrase').waitFor({ timeout: configuration.timeout });
-    assert.equal(await page.evaluate(() => window.__welcomeInstallPromptCalls), 1, 'Install prompt is triggered from the user gesture');
+  if (configuration.name === 'standalone-welcome') {
+    assert.equal(await intro.locator('.mc-welcome__install-gate').count(), 0, 'Opening the installed app goes straight to the introduction');
   } else {
-    await intro.locator('.mc-welcome__install-action').click();
-    assert.equal(await intro.locator('.mc-welcome__install-help').count(), 1, 'Unsupported browsers receive installation guidance');
+    assert.equal(await intro.locator('.mc-welcome__install-gate button').count(), 2, 'First-run offers install and browser continuation immediately');
+    assert.equal(await intro.locator('.mc-welcome__phrase').count(), 0, 'Slides wait for the install or browser choice');
+    assert.equal(await intro.locator('select').count(), 0, 'No confirmation or language picker between the install choice and the slides');
+    for (const selector of ['.mc-welcome__install-gate', '.mc-welcome__install-action', '.mc-welcome__browser-action']) {
+      const bounds = await intro.locator(selector).boundingBox();
+      assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= configuration.width + 1, `${selector} fits horizontally at ${configuration.width}px`);
+    }
+    if (selectedLanguage === 'en') {
+      await page.evaluate(() => {
+        const prompt = new Event('beforeinstallprompt'); prompt.preventDefault = () => {};
+        prompt.prompt = () => { window.__welcomeInstallPromptCalls = (window.__welcomeInstallPromptCalls || 0) + 1; return Promise.resolve(); };
+        prompt.userChoice = new Promise(resolve => { window.__completeWelcomeInstall = outcome => resolve({ outcome }); });
+        window.dispatchEvent(prompt);
+      });
+      await intro.locator('.mc-welcome__install-action').click();
+      await page.clock.runFor(60000);
+      assert.equal(await intro.getAttribute('data-phase'), 'install', 'Waiting for the device install does not play the slides');
+      assert.equal(await page.evaluate(() => window.__welcomeInstallPromptCalls), 1, 'Install prompt is triggered from the user gesture');
+      await page.evaluate(outcome => window.__completeWelcomeInstall(outcome), configuration.width <= 390 ? 'accepted' : 'dismissed');
+      if (configuration.width <= 390) await intro.getByText(welcomeMessages.en.openInstalledApp, { exact: true }).waitFor();
+      else await eventually(() => intro.locator('.mc-welcome__install-action').isEnabled(), 'Dismissing install keeps the choices available');
+      await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
+      await intro.getByText(welcomeMessages.en.openInstalledApp, { exact: true }).waitFor();
+    } else {
+      await intro.locator('.mc-welcome__install-action').click();
+      assert.equal(await intro.locator('.mc-welcome__install-help').count(), 1, 'Unsupported browsers receive installation guidance');
+    }
+    await page.clock.runFor(60000);
+    assert.equal(await intro.locator('.mc-welcome__phrase').count(), 0, 'Installation, dismissal or manual guidance never starts playback in the browser');
+    assert.equal(await page.locator('.guided-tour-layer').count(), 0);
     await intro.locator('.mc-welcome__browser-action').click();
   }
   await intro.locator('.mc-welcome__phrase').waitFor({ timeout: configuration.timeout });
-  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Slides start immediately after choosing install or browser');
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Slides start immediately when continuing in browser or opening the installed app');
   assert.equal(await intro.locator('.mc-welcome__language option').count(), 11, 'In-slide language selector offers every app language');
   assert.equal(await page.locator('.guided-tour-counter').count(), 0);
   await intro.focus();
@@ -596,7 +685,7 @@ async function welcomeCase(page, configuration, account = false) {
   const gateLanguage = selectedLanguage === 'fr' ? 'en' : 'fr';
   const gateLanguageSelect = intro.locator('.mc-welcome__language select');
   await gateLanguageSelect.selectOption(gateLanguage);
-  await eventually(async () => await intro.getAttribute('lang') === gateLanguage, 'Detected language could not be changed during the intro');
+  await eventually(async () => await intro.getAttribute('lang') === gateLanguage, 'Language could not be changed during the intro');
   await eventually(async () => await page.locator('html').getAttribute('lang') === gateLanguage, 'The selected locale did not reach the app during the intro');
   selectedLanguage = gateLanguage;
   messages = welcomeMessages[selectedLanguage].messages;
@@ -651,7 +740,7 @@ async function welcomeCase(page, configuration, account = false) {
   const key = account ? `modo-cultiva:welcome-intro:v1:account:${ORG}:${USER}` : `modo-cultiva:welcome-intro:v1:guest:${VISITOR}`;
   assert.deepEqual(await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key), { version: 1, completed: true });
   await page.clock.resume(); await ready(page, 'modes', configuration.timeout);
-  assert.equal(await page.locator('.guided-tour-layer').getAttribute('lang'), selectedLanguage, 'Automatic tutorial retains the confirmed interface language');
+  assert.equal(await page.locator('.guided-tour-layer').getAttribute('lang'), selectedLanguage, 'Automatic tutorial retains the selected interface language');
   await closeTour(page);
   await page.reload({ waitUntil: 'domcontentloaded' }); await settleHydration(page, selectedLanguage, configuration.timeout);
   await delay(150); assert.equal(await intro.count(), 0, 'Completed intro does not repeat on reload');
@@ -705,6 +794,10 @@ async function runCase(browser, config, task) {
   const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial || lifeContextCase, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads, communitySurfaces: communitySurfaces || publicSurface });
   await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: editorialCase ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !editorialCase, cachedManual: task.name.includes('ambiguous-cache') });
   const iosGuide = installGuide && task.width <= 390;
+  if (task.name === 'standalone-welcome') await context.addInitScript(nativeAndroid => {
+    if (nativeAndroid) Object.defineProperty(navigator, 'userAgent', { configurable: true, value: navigator.userAgent + ' ModoCultivaAndroidApp/1.0' });
+    else Object.defineProperty(navigator, 'standalone', { configurable: true, value: true });
+  }, task.width === 390);
   if (iosGuide) await context.addInitScript(() => {
     Object.defineProperty(navigator, 'userAgent', { configurable: true, get: () => 'iPhone Synthetic QA Safari' });
   });
@@ -753,11 +846,14 @@ async function runCase(browser, config, task) {
           await assertPreserved(page, state); await assertMap(page, state.levels);
         }
         if (!established) {
+          await closeHomeMenu(page);
           await selectPhysicalMode(page);
           await page.locator('.journey-step-arrow--next').click();
           for (const step of [2, 3]) assert.ok(await page.locator(`[data-journey-step="${step}"] button`).isDisabled(), 'Finishing the tour does not unlock real journey stages');
         }
         result = { tours, preserved: true, guestCounter: false, sharingPreviewTested: sharePreview };
+      } else if (task.name === 'menu-back') {
+        result = await menuBackCase(page, task.width <= 390);
       } else if (switchesLanguage) {
         const preferred = LANGUAGES.filter(code => code !== expectedLanguage).at(-1);
         const assertLanguage = async code => {
@@ -802,7 +898,7 @@ async function runCase(browser, config, task) {
       } else if (managementSurfaces) {
         const code = task.language, alternate = code === 'ar' ? 'en' : 'ar';
         const chooseHomeSection = async id => {
-          await page.locator('.home-menu-button').click();
+          await openHomeMenu(page);
           await page.locator(`[data-home-menu-item="${id}"]`).click();
         };
         await chooseHomeSection('dashboard');
@@ -835,6 +931,7 @@ async function runCase(browser, config, task) {
         assert.equal(await dialog.locator('#preset-select option:checked').textContent(), name);
         await page.keyboard.press('Escape');
         await setLocale(code);
+        await closeHomeMenu(page);
         await selectPhysicalMode(page);
         await page.locator('.journey-step-arrow--next').click();
         await page.locator('[data-journey-step="2"] button').click();
@@ -1165,7 +1262,7 @@ async function runCase(browser, config, task) {
         await journey.locator('.journey-step-arrow--next').click();
         assert.equal(await palette(journey.locator('.journey-level-card--active')), approvedColor, 'Activity cards retain the mode palette');
         await journey.locator('.close-journey').click();
-        const openMenuItem = async item => { await page.locator('.home-menu-button').click(); await page.locator(`[data-home-menu-item=${item}]`).click(); };
+        const openMenuItem = async item => { await openHomeMenu(page); await page.locator(`[data-home-menu-item=${item}]`).click(); };
         await openMenuItem('images');
         const imageSettings = page.locator(`.home-vision-settings [data-mode=${modeKey}]`);
         assert.equal(await palette(imageSettings), approvedColor);
@@ -1178,6 +1275,7 @@ async function runCase(browser, config, task) {
         await openMenuItem('configurations');
         assert.equal(await palette(page.locator('#life-configurations-card .configuration-orbit-node').nth(modeIndex), '--orbit-color'), approvedColor);
         await page.keyboard.press('Escape');
+        await closeHomeMenu(page);
         await page.locator('.home-profile-avatar').click();
         assert.equal(await palette(page.locator('.profile-preview-levels > div').nth(modeIndex)), approvedColor);
         await page.locator('.feature-preview-dismiss').click();
@@ -1187,7 +1285,7 @@ async function runCase(browser, config, task) {
         result = { modePalette: { [modeKey]: approvedColor }, electricTint: true, overview: true, activityCards: true, homeImages: true, lifeContext: true, configurations: true, profile: true, trivia: true, savedMapPreserved: true };
       } else if (task.name.endsWith('electric-home')) {
         const modal = page.locator('.home-vision-settings[open]');
-        const open = async () => { await page.locator('.home-menu-button').click(); await page.locator('[data-home-menu-item="images"]').click(); await modal.waitFor(); };
+        const open = async () => { await openHomeMenu(page); await page.locator('[data-home-menu-item="images"]').click(); await modal.waitFor(); };
         await open();
         assert.equal(await modal.locator('[data-mode=fisico] input[value=vision]').isChecked(), true, 'Keep the old boolean preference');
         assert.equal(await modal.locator('input[value=electric]').count(), 12);
@@ -1287,7 +1385,7 @@ async function runCase(browser, config, task) {
         result = { electricModes:12, oldBooleanPreserved:true, selectableSources:3, persistence:account?'account':'guest', noCanvas:true, strictReducedMotion:true, allModesOpen:true, preserved:true };
       } else if (uploads) {
         const modal = page.locator('.home-vision-settings[open]');
-        const open = async () => { await page.locator('.home-menu-button').click(); await page.locator('[data-home-menu-item="images"]').click(); await modal.waitFor(); };
+        const open = async () => { await openHomeMenu(page); await page.locator('[data-home-menu-item="images"]').click(); await modal.waitFor(); };
         const field = modal.locator('[data-mode=financiero]');
         const current = field.locator('img');
         const prior = await page.locator('[data-tour-mode=financiero]').getAttribute('aria-label');
@@ -1331,12 +1429,11 @@ async function runCase(browser, config, task) {
         sameProtected(await storedDocument(page, account), state, true);
         result = { uploadFromHome:true, invalidRejected:true, persistence:account?'account':'guest', levelPreserved:true };
       } else if (task.name.endsWith('home-vision')) {
-        const menu = page.locator('.home-menu-button');
         const modal = page.locator('.home-vision-settings[open]');
         const photo = mode => page.locator(`.circular-carousel__card:has([data-tour-mode="${mode}"]) .circular-carousel__photo`).first();
         const choice = (mode, value) => modal.locator(`[data-mode="${mode}"] input[value="${value}"]`);
         const open = async () => {
-          await menu.click();
+          await openHomeMenu(page);
           assert.deepEqual(await page.locator('#home-sidebar [data-home-menu-item]').evaluateAll(items => items.map(item => item.dataset.homeMenuItem)),
             ['configurations', 'life-context', 'images', 'dashboard', 'specialists', 'trivia', 'replay']);
           await page.locator('[data-home-menu-item="images"]').click();
@@ -1370,6 +1467,7 @@ async function runCase(browser, config, task) {
         await modal.waitFor({ state: 'detached' });
         assert.equal(await photo('fisico').getAttribute('src'), '/mode-photos/fisico.jpg');
         if (account) await eventually(() => transport.snapshot().state.homeVisionCards?.fisico === 'stock', 'Restoring stock does not sync');
+        await closeHomeMenu(page);
         await selectPhysicalMode(page);
         await page.locator('.journey-step-arrow--next').click();
         await page.locator('.journey-level-card--vision').waitFor();
@@ -1431,7 +1529,7 @@ async function runCase(browser, config, task) {
         await page.locator('[data-home-menu-item="specialists"]').click();
         await page.locator('.specialists-view .cult-specialist-list').waitFor();
         await page.locator('.specialists-view .cult-exit').click();
-        await page.locator('.home-menu-button').click();
+        await openHomeMenu(page);
         await page.locator('[data-home-menu-item="dashboard"]').click();
         assert.ok(await page.locator('.crm-dashboard > .badges-gallery:last-child').isVisible());
         await page.locator('.crm-focus-list button').first().click();
@@ -1551,7 +1649,7 @@ async function runCase(browser, config, task) {
         if (task.identity === 'owner') assert.ok((await page.locator('.guided-tour-counter').innerText()).includes(STOPS.length.toLocaleString(expectedLanguage)), 'Verified owner sees the current stop total');
         await closeTour(page); await assertPreserved(page, state, true);
         // Replay restores its original MC menu too. Close it before opening another surface.
-        if (await page.locator('[data-tour="replay"]').isVisible()) await page.locator('.profile-button').click();
+        await closeHomeMenu(page);
         await selectPhysicalMode(page);
         await page.locator('.journey-panel').waitFor();
         assert.equal(await page.locator('.journey-community-actions').count(), 0, 'No redundant community callout under the activity');
@@ -1624,7 +1722,7 @@ async function runCase(browser, config, task) {
         const current = 'Synthetic current-mode foundation';
         const other = 'Synthetic other-mode goal';
         const openMenu = async () => {
-          await page.locator('.home-menu-button').click();
+          await openHomeMenu(page);
           await page.locator('[data-home-menu-item="life-context"]').click();
           await dialog.waitFor();
         };
@@ -1650,6 +1748,7 @@ async function runCase(browser, config, task) {
         await card.locator('[data-field=goals]').fill(other);
         await dialog.locator('.life-context-save').click();
         await dialog.waitFor({ state: 'detached' });
+        await closeHomeMenu(page);
         await selectPhysicalMode(page);
         await page.locator('.journey-step-arrow--next').click();
         await ai.click();
@@ -1687,10 +1786,7 @@ async function runCase(browser, config, task) {
       } else if (task.name === 'drafts') {
         const drafts = [];
         for (const entry of ['custom', 'ai']) {
-          if (await page.locator('[data-tour="replay"]').isVisible()) {
-            if (config.draftReplay === 'keyboard') { await page.locator('.profile-button').focus(); await page.keyboard.press('Enter'); }
-            else await page.locator('.profile-button').click();
-          }
+          await closeHomeMenu(page);
           if (!await page.locator('.journey-panel').count()) await selectPhysicalMode(page);
           else if (await page.locator('.activity-agent-back').isVisible()) { await page.locator('.activity-agent-back').click(); await page.locator('.journey-fixed-actions').waitFor(); }
           if (!await page.locator(methodSelectors[entry]).isVisible()) await page.locator('.journey-step-arrow--next').click();
