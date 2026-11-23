@@ -54,7 +54,7 @@ assert.equal(messages.resolveWelcomeLanguage('unknown'), 'es');
 for (const language of languages) {
   const copy = messages.getWelcomeMessages(language);
   assert.equal(copy.messages.length, 7);
-  for (const phrase of [...copy.messages, copy.title, copy.pause, copy.resume, copy.languageLabel, copy.detectedLanguage, copy.languagePrompt, copy.continueLabel, copy.automatic, copy.paused]) assert.ok(phrase.trim());
+  for (const phrase of [...copy.messages, copy.title, copy.pause, copy.resume, copy.languageLabel, copy.installTitle, copy.installDescription, copy.installAction, copy.continueInBrowser, copy.installUnavailable, copy.detectedLanguageDescription, copy.confirmLanguage, copy.changeLanguage, ...copy.installHelp, copy.detectedLanguage, copy.languagePrompt, copy.continueLabel, copy.automatic, copy.paused]) assert.ok(phrase.trim());
   assert.ok(welcomeReadDurationMs(copy.messages[2]) > welcomeReadDurationMs(copy.messages[6]), `${language}: long text gets more time`);
   for (const reducedMotion of [false, true]) {
     let timeline = createWelcomeTimeline(Object.freeze([...copy.messages]), 0, { reducedMotion });
@@ -97,7 +97,7 @@ advanced = reduce(advanced, { type: 'advance', nowMs: 99 });
 assert.equal(advanced.phase, 'complete', 'Advancing past the final slide completes the intro');
 let retreated = createWelcomeTimeline(copy, 0);
 retreated = reduce(retreated, { type: 'start', nowMs: 1 });
-assert.equal(retreated.phase, 'enter', 'Slide timing begins only after language confirmation');
+assert.equal(retreated.phase, 'enter', 'Slide timing begins after the installation/browser choice');
 retreated = reduce(retreated, { type: 'retreat', nowMs: 1 });
 assert.equal(retreated.index, 0, 'Going back from the first slide stays at the beginning');
 retreated = reduce(retreated, { type: 'advance', nowMs: 2 });

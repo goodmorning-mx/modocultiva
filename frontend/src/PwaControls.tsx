@@ -54,9 +54,24 @@ if (typeof window !== 'undefined') {
   });
 }
 
+/** Invoked only from an explicit user gesture; browsers do not allow a reliable load-time prompt. */
+export async function requestPwaInstall(): Promise<'accepted' | 'dismissed' | 'unavailable'> {
+  if (isIos() || !capturedInstallPrompt) return 'unavailable';
+  const prompt = capturedInstallPrompt;
+  await prompt.prompt();
+  const { outcome } = await prompt.userChoice;
+  capturedInstallPrompt = null;
+  window.dispatchEvent(new Event('modo-cultiva-install-ready'));
+  return outcome;
+}
+
+export function isPwaRunningStandalone(): boolean {
+  return typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
+}
+
 function useReliablePwaInstall() {
   const promptRef = useRef<BeforeInstallPromptEvent | null>(capturedInstallPrompt);
-  const [installed, setInstalled] = useState(() => typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true));
+  const [installed, setInstalled] = useState(isPwaRunningStandalone);
   const [installReady, setInstallReady] = useState(() => Boolean(capturedInstallPrompt));
   const [guideOpen, setGuideOpen] = useState(false);
 
@@ -86,11 +101,8 @@ function useReliablePwaInstall() {
       setGuideOpen(true);
       return;
     }
-    const prompt = promptRef.current;
-    await prompt.prompt();
-    await prompt.userChoice;
-    capturedInstallPrompt = null;
-    promptRef.current = null;
+    await requestPwaInstall();
+    promptRef.current = capturedInstallPrompt;
     setInstallReady(false);
   }, []);
 

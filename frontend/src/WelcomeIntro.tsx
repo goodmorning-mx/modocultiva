@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { CultivaLeaf } from './CultivaLeaf';
 import brandLogo from './assets/modo-cultiva-logo-official.png';
 import { getWelcomeMessages, resolveWelcomeLanguage, WELCOME_LANGUAGES, type WelcomeLanguage } from './welcomeMessages';
+import { isPwaRunningStandalone, requestPwaInstall } from './PwaControls';
 import {
   createWelcomeTimeline, reduceWelcomeTimeline, welcomeNextDelayMs,
   WELCOME_ENTER_MS, WELCOME_EXIT_MS, WELCOME_REDUCED_TRANSITION_MS,
@@ -44,7 +45,8 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
     copy.messages, typeof performance === 'undefined' ? 0 : now(),
     { hidden: typeof document !== 'undefined' && document.hidden },
   ));
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(isPwaRunningStandalone);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const pauseRef = useRef<HTMLButtonElement>(null);
   const onCompleteRef = useRef(onComplete);
@@ -54,7 +56,7 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
   const titleId = useId();
   const phraseId = useId();
   const hintId = useId();
-  const languageTitleId = useId();
+  const installTitleId = useId();
   const languageHintId = useId();
   const finished = timeline.phase === 'complete';
 
@@ -149,12 +151,12 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
     className="mc-welcome"
     role="dialog"
     aria-modal="true"
-    aria-labelledby={started ? titleId : languageTitleId}
+    aria-labelledby={started ? titleId : installTitleId}
     aria-describedby={started ? `${phraseId} ${hintId}` : languageHintId}
     lang={resolvedLanguage}
     dir={resolvedLanguage === 'ar' ? 'rtl' : 'ltr'}
     tabIndex={-1}
-    data-phase={started ? timeline.phase : 'language'}
+    data-phase={started ? timeline.phase : 'install'}
     data-paused={paused}
     data-reduced-motion={timeline.reducedMotion}
     data-final={timeline.index === copy.messages.length - 1}
@@ -163,7 +165,7 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
       event.stopPropagation();
       if (event.key === 'Tab') {
         event.preventDefault();
-        const controls = Array.from(rootRef.current?.querySelectorAll<HTMLElement>('.mc-welcome__language select, .mc-welcome__pause, .mc-welcome__continue') ?? []);
+        const controls = Array.from(rootRef.current?.querySelectorAll<HTMLElement>('.mc-welcome__install-action, .mc-welcome__browser-action, .mc-welcome__language select, .mc-welcome__pause') ?? []);
         const currentIndex = controls.indexOf(document.activeElement as HTMLElement);
         const nextIndex = event.shiftKey
           ? (currentIndex <= 0 ? controls.length - 1 : currentIndex - 1)
@@ -190,22 +192,26 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
   >
     <h1 id={titleId} className="mc-welcome__sr-only">{copy.title}</h1>
     <div className="mc-welcome__atmosphere" aria-hidden="true" />
-    {!started ? <main className="mc-welcome__language-gate">
+    {!started ? <main className="mc-welcome__language-gate mc-welcome__install-gate">
       <img className="mc-welcome__gate-logo" src={brandLogo} alt="" width="64" height="64" />
-      <h2 id={languageTitleId}>{copy.detectedLanguage}</h2>
-      <p id={languageHintId}>{copy.languagePrompt}</p>
-      <label className="mc-welcome__language mc-welcome__language--gate">
-        <span className="mc-welcome__sr-only">{copy.languageLabel}</span>
-        <select value={resolvedLanguage} aria-label={copy.languageLabel}
-          onChange={(event) => languageChangeRef.current(event.target.value)}>
-          {WELCOME_LANGUAGES.map((code) => <option key={code} value={code} lang={code}>{languageNames[code]}</option>)}
-        </select>
-        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="m3 4.5 3 3 3-3" /></svg>
-      </label>
-      <button type="button" className="mc-welcome__continue" onClick={() => {
+      <h2 id={installTitleId}>{copy.installTitle}</h2>
+      <p id={languageHintId}>{copy.installDescription}</p>
+      {installHelpOpen && <div className="mc-welcome__install-help" role="status"><p>{copy.installUnavailable}</p><ol>{copy.installHelp.map((step) => <li key={step}>{step}</li>)}</ol></div>}
+      <button type="button" className="mc-welcome__continue mc-welcome__install-action" onClick={async () => {
+        try {
+          const outcome = await requestPwaInstall();
+          if (outcome === 'unavailable') setInstallHelpOpen(true);
+          else {
+            setInstallHelpOpen(false);
+            dispatch({ type: 'start', nowMs: now() });
+            setStarted(true);
+          }
+        } catch { setInstallHelpOpen(true); }
+      }}>{copy.installAction}</button>
+      <button type="button" className="mc-welcome__browser-action" onClick={() => {
         dispatch({ type: 'start', nowMs: now() });
         setStarted(true);
-      }}>{copy.continueLabel}</button>
+      }}>{copy.continueInBrowser}</button>
     </main> : <>
     <header className="mc-welcome__header">
       <div className="mc-welcome__brand" aria-hidden="true"><img src={brandLogo} alt="" width="40" height="40" /><span dir="ltr">Modo Cultiva</span></div>
