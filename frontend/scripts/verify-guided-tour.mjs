@@ -82,9 +82,9 @@ check('missing, malformed, broad or undersized selectors fail closed', () => {
   assert.equal(resolveTourTargets(['.many', '.missing'], scope).elements.length, 0, 'never expose a partial selector set');
 });
 
-check('11 complete locales, 26 topics, and 3 activity stages after the overview', () => {
+check('11 complete locales, 32 topics, and 3 activity stages after the overview', () => {
   assert.deepEqual(messages.TOUR_LANGUAGES, ['es', 'en', 'zh', 'hi', 'ar', 'it', 'pt', 'ru', 'de', 'fr', 'da']);
-  assert.equal(messages.TOUR_STAGE_IDS.length, 26);
+  assert.equal(messages.TOUR_STAGE_IDS.length, 32);
   for (const [language, copy] of Object.entries(messages.guidedTourMessages)) {
     assert.deepEqual(Object.keys(copy.stages).sort(), [...messages.TOUR_STAGE_IDS].sort(), language);
     assert.deepEqual(Object.keys(copy.controls).sort(), Object.keys(messages.guidedTourMessages.es.controls).sort(), language);
@@ -119,8 +119,9 @@ check('engine contract: no writes/fake DOM; live event, native dialog, viewport 
   for (const token of ['event.isTrusted', 'onTargetInteraction', 'visualViewport', "'resize'", "'scroll'", 'requestAnimationFrame', 'AbortController', 'showPopover', 'portalRoot', 'aria-modal="false"', "'Escape'", "'ArrowLeft'", "'ArrowRight'", 'props.showCounter &&']) {
     assert.ok(component.includes(token), token);
   }
-  assert.match(css, /fill: #020706/);
-  assert.match(css, /pointer-events: fill/);
+  assert.match(css, /background: rgb\(3 15 16 \/ \.23\)/);
+  assert.match(css, /backdrop-filter: blur\(2px\)/);
+  assert.match(component, /clipPath:/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /min-width: 44px; min-height: 44px/);
   const result = ts.transpileModule(component, { compilerOptions: { jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2020 }, reportDiagnostics: true });
@@ -207,6 +208,13 @@ if (process.argv.includes('--browser')) {
     const ready = async (outlines = 1) => { await page.waitForFunction(n => document.querySelectorAll('.guided-tour-outline').length === n, outlines); };
     const scenario = async name => { await page.evaluate(value => window.__tour.scenario(value), name); };
     await ready();
+    const shade = await page.locator('.guided-tour-shade').evaluate(el => {
+      const style = getComputedStyle(el);
+      return [style.backgroundColor, style.backdropFilter, style.clipPath];
+    });
+    assert.equal(shade[0], 'rgba(3, 15, 16, 0.23)');
+    assert.equal(shade[1], 'blur(2px)');
+    assert.match(shade[2], /^path\(/);
     assert.equal(await page.locator('.guided-tour-counter').count(), 0);
     await page.locator('#real').click();
     assert.equal(await page.evaluate(() => window.__tour.stats.actual), 1);
@@ -220,7 +228,7 @@ if (process.argv.includes('--browser')) {
     assert.equal(await page.evaluate(() => document.activeElement.className), 'guided-tour-card', 'background focus redirected');
     await page.keyboard.press('Tab'); assert.equal(await page.evaluate(() => document.activeElement.id), 'real');
     await page.keyboard.press('Enter'); assert.equal(await page.evaluate(() => window.__tour.stats.actual), 2);
-    console.log('PASS browser: real target pointer/keyboard interaction, blackout and focus fence');
+    console.log('PASS browser: live target and translucent backdrop, pointer/keyboard guards and focus fence');
 
     await scenario('methods'); await ready(5);
     const next = page.getByRole('button', { name: 'Next', exact: true });

@@ -156,7 +156,7 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
     const doc = host.ownerDocument; const win = doc.defaultView!;
     const viewport = win.visualViewport;
     let unavailableSince: number | null = win.performance.now(); let frame = 0; let lastSignature = '';
-    let scrolled = false; let notified = false;
+    let scrollAttempts = 0; let lastScroll = -Infinity; let notified = false;
     const wait = Math.max(250, Math.min(10000, Number.isFinite(props.targetWaitMs) ? props.targetWaitMs! : 3500));
     const update = () => {
       const width = viewport?.width ?? win.innerWidth; const height = viewport?.height ?? win.innerHeight;
@@ -186,8 +186,11 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
       const partiallyClipped = singleTarget?.visible && singleTarget.layout.height < height - 32
         && (singleTarget.layout.height - singleTarget.visible.height > 2 || singleTarget.layout.width - singleTarget.visible.width > 2)
         && centeredTarget && placeTourPanel(width, height, [centeredTarget], rtl);
-      if (!reason && (!holes.length || partiallyClipped) && !scrolled && resolved.elements[0]) {
-        scrolled = true;
+      // The first scroll can be clamped while a preceding card unmounts or a
+      // container animates. Try again while the anchor remains out of view.
+      if (!reason && !entry.current.pending && !entry.current.failed && (!holes.length || partiallyClipped)
+        && scrollAttempts < 3 && win.performance.now() - lastScroll >= 120 && resolved.elements[0]) {
+        scrollAttempts += 1; lastScroll = win.performance.now();
         resolved.elements[0].scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
       }
       if (!holes.length && !reason) reason = 'missing';
@@ -279,17 +282,16 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
   const ready = snapshot?.phase === 'ready';
   const unavailable = snapshot?.phase === 'unavailable';
   const width = snapshot?.width ?? 0; const height = snapshot?.height ?? 0;
-  const dark = tourBlackoutRects(width, height, snapshot?.holes ?? []);
+  const surroundings = tourBlackoutRects(width, height, snapshot?.holes ?? []);
+  const shadePath = surroundings.map(({ left, top, width: w, height: h }) => `M${left},${top}h${w}v${h}h${-w}Z`).join('');
   const blocked = tourNextDisabled(props.step, props.visitedMethods ?? [], ready);
   const methodBlocked = props.step.methodChecklist && !TOUR_METHODS.every(method => props.visitedMethods?.includes(method));
   const counter = props.showCounter && props.counter && Number.isInteger(props.counter.current) && Number.isInteger(props.counter.total) && props.counter.current > 0 && props.counter.current <= props.counter.total
     ? copy.controls.counter.replace('{current}', String(props.counter.current)).replace('{total}', String(props.counter.total)) : null;
   return createPortal(<div ref={layer} popover="manual" className="guided-tour-layer" data-guided-tour-layer="" data-tour-step={props.step.id} data-tour-phase={snapshot?.phase ?? 'loading'} dir={rtl ? 'rtl' : 'ltr'} lang={props.language ?? 'es'}>
-    <svg className="guided-tour-shade" width={width} height={height} viewBox={`0 0 ${width || 1} ${height || 1}`} aria-hidden="true" focusable="false">
-      <path d={snapshot ? dark.map(rect => `M${rect.left},${rect.top}h${rect.width}v${rect.height}h${-rect.width}Z`).join('') : 'M0,0h1v1h-1Z'} />
-    </svg>
+    <div className="guided-tour-shade" style={shadePath ? { clipPath: `path("${shadePath}")` } : undefined} aria-hidden="true" />
     {snapshot?.holes.map((rect, index) => <span key={index} className="guided-tour-outline" style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }} aria-hidden="true" />)}
-    <section ref={card} className="guided-tour-card" role="dialog" aria-modal="false" aria-label={copy.controls.tour} aria-labelledby={titleId} aria-describedby={`${bodyId}${props.step.instructions ? ` ${instructionsId}` : ''}`} tabIndex={-1} style={snapshot ? { left: snapshot.panel.left, top: snapshot.panel.top, width: snapshot.panel.width, maxHeight: snapshot.panel.height } : undefined}>
+    <section ref={card} className="guided-tour-card" role="dialog" aria-modal="false" aria-label={copy.controls.tour} aria-labelledby={titleId} aria-describedby={`${bodyId}${props.step.instructions ? ` ${instructionsId}` : ''}`} tabIndex={-1} style={snapshot ? { left: snapshot.panel.left, top: snapshot.panel.top, bottom: 'auto', width: snapshot.panel.width, maxHeight: snapshot.panel.height } : undefined}>
       <div className="guided-tour-content">
         {counter && <small className="guided-tour-counter">{counter}</small>}
         <h2 id={titleId}>{props.step.title}</h2>

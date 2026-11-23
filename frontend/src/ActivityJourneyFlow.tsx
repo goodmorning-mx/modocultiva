@@ -48,6 +48,8 @@ export type ActivityJourneyFlowProps = {
   disabled?: boolean;
   /** The journey deck owns visible navigation. The legacy automatic view remains available. */
   viewStep?: 1 | 2 | 3;
+  /** Read-only walkthrough of locked deck steps; never changes real progression. */
+  tourPreviewStep?: 2 | 3;
   definitionOnly?: boolean;
   manualDraft?: ActivityDefinition;
   onManualDraftChange?: (definition: ActivityDefinition) => void;
@@ -109,7 +111,7 @@ export function ActivityJourneyFlow(props: ActivityJourneyFlowProps) {
   return <ActivityJourneyFlowContent key={`${props.activityKey ?? ''}:${props.sourceLevel}`} {...props} />;
 }
 
-function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDefine, onSubmit, onDraftChange, onUploadVideo, onLoadVideo, audience = 'network', allowSubmissionAudience = true, onAudienceChange, publishedAudience, sharedCardId, onSetAudience, onUnshare, disabled = false, targetSnapshot, viewStep, definitionOnly, manualDraft, onManualDraftChange }: ActivityJourneyFlowProps) {
+function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDefine, onSubmit, onDraftChange, onUploadVideo, onLoadVideo, audience = 'network', allowSubmissionAudience = true, onAudienceChange, publishedAudience, sharedCardId, onSetAudience, onUnshare, disabled = false, targetSnapshot, viewStep, tourPreviewStep, definitionOnly, manualDraft, onManualDraftChange }: ActivityJourneyFlowProps) {
   const copy = activityFlowCopy(language);
   const compact = compactActivityCopy(language);
   const audienceCopy = cardAudienceCopy(language);
@@ -134,11 +136,11 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
   const notifiedSelection = useRef<CardAudience | null>(null);
   const operation = useRef<AbortController | null>(null);
   const availableStage = activityFlowStage(sourceLevel, state)!;
-  const stage = editing || definitionOnly ? 1 : Math.min(viewStep ?? availableStage, availableStage);
+  const stage = editing || definitionOnly ? 1 : tourPreviewStep ?? Math.min(viewStep ?? availableStage, availableStage);
   const inDeck = viewStep !== undefined;
   const validated = !editing && targetMatches && activityIsValidated(state);
   const definitionChanged = definition.activity.trim() !== state.definition?.activity.trim() || definition.target_alignment.trim() !== state.definition?.target_alignment.trim();
-  const locked = disabled || busy;
+  const locked = disabled || busy || tourPreviewStep !== undefined;
   const publishReady = selectedAudience !== 'public' || publicConfirmed;
   const submitReady = !allowSubmissionAudience || publishReady;
 
@@ -173,7 +175,7 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
 
   const changeDraft = (next: EvidenceDraft) => { setDraft(next); setError(null); onDraftChange?.(next); };
   const perform = async (callback: (signal: AbortSignal) => Promise<void>) => {
-    if (operation.current || disabled) return;
+    if (operation.current || locked) return;
     const controller = new AbortController(); operation.current = controller; setBusy(true); setError(null);
     try { await callback(controller.signal); }
     catch (failure) { if (operation.current === controller && !controller.signal.aborted && !isEvidenceAbort(failure)) setError('actionFailed'); }
@@ -224,9 +226,9 @@ function ActivityJourneyFlowContent({ sourceLevel, language = 'en', state, onDef
       </div>
       {!onDefine && <p className="activity-flow-note">{copy.unavailable}</p>}
     </form>) : <>
-      <details className="activity-flow-alignment"><summary>{copy.alignment}</summary><p dir="auto">{state.definition?.target_alignment}</p>
+      {state.definition && <details className="activity-flow-alignment"><summary>{copy.alignment}</summary><p dir="auto">{state.definition.target_alignment}</p>
         {!inDeck && <button type="button" disabled={locked || !onDefine} onClick={() => { setEditing(true); setError(null); }}>{copy.edit}</button>}
-      </details>
+      </details>}
       {stage === 2 && inDeck && availableStage === 3 ? <div className="activity-flow-evidence-snapshot">
         <VisualEvidenceInput language={language} value={state.evidence?.visual} readOnly onChange={() => {}} onLoadVideo={onLoadVideo} />
         <p dir="auto">{state.evidence?.reflection}</p>
