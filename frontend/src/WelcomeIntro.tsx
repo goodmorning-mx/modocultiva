@@ -46,7 +46,7 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
     { hidden: typeof document !== 'undefined' && document.hidden },
   ));
   const [started, setStarted] = useState(isPwaRunningStandalone);
-  const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [installState, setInstallState] = useState<'idle' | 'requesting' | 'help' | 'installed'>('idle');
   const rootRef = useRef<HTMLDivElement>(null);
   const pauseRef = useRef<HTMLButtonElement>(null);
   const onCompleteRef = useRef(onComplete);
@@ -57,7 +57,7 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
   const phraseId = useId();
   const hintId = useId();
   const installTitleId = useId();
-  const languageHintId = useId();
+  const installHintId = useId();
   const finished = timeline.phase === 'complete';
 
   // Updating callbacks never restarts the clock or repeats completion.
@@ -97,6 +97,13 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
     }, delay);
     return () => window.clearTimeout(timeout);
   }, [timeline, started]);
+
+  useEffect(() => {
+    if (started) return;
+    const onInstalled = () => setInstallState('installed');
+    window.addEventListener('appinstalled', onInstalled);
+    return () => window.removeEventListener('appinstalled', onInstalled);
+  }, [started]);
 
   // The portal stays separate from the actual twelve-card Holista circle.
   // Preserve pre-existing inert/scroll/focus state, including on early unmount.
@@ -152,7 +159,7 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
     role="dialog"
     aria-modal="true"
     aria-labelledby={started ? titleId : installTitleId}
-    aria-describedby={started ? `${phraseId} ${hintId}` : languageHintId}
+    aria-describedby={started ? `${phraseId} ${hintId}` : installHintId}
     lang={resolvedLanguage}
     dir={resolvedLanguage === 'ar' ? 'rtl' : 'ltr'}
     tabIndex={-1}
@@ -165,7 +172,7 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
       event.stopPropagation();
       if (event.key === 'Tab') {
         event.preventDefault();
-        const controls = Array.from(rootRef.current?.querySelectorAll<HTMLElement>('.mc-welcome__install-action, .mc-welcome__browser-action, .mc-welcome__language select, .mc-welcome__pause') ?? []);
+        const controls = Array.from(rootRef.current?.querySelectorAll<HTMLElement>('.mc-welcome__install-action:not(:disabled), .mc-welcome__browser-action, .mc-welcome__language select, .mc-welcome__pause') ?? []);
         const currentIndex = controls.indexOf(document.activeElement as HTMLElement);
         const nextIndex = event.shiftKey
           ? (currentIndex <= 0 ? controls.length - 1 : currentIndex - 1)
@@ -192,22 +199,20 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
   >
     <h1 id={titleId} className="mc-welcome__sr-only">{copy.title}</h1>
     <div className="mc-welcome__atmosphere" aria-hidden="true" />
-    {!started ? <main className="mc-welcome__language-gate mc-welcome__install-gate">
+    {!started ? <main className="mc-welcome__install-gate">
       <img className="mc-welcome__gate-logo" src={brandLogo} alt="" width="64" height="64" />
       <h2 id={installTitleId}>{copy.installTitle}</h2>
-      <p id={languageHintId}>{copy.installDescription}</p>
-      {installHelpOpen && <div className="mc-welcome__install-help" role="status"><p>{copy.installUnavailable}</p><ol>{copy.installHelp.map((step) => <li key={step}>{step}</li>)}</ol></div>}
-      <button type="button" className="mc-welcome__continue mc-welcome__install-action" onClick={async () => {
+      <p id={installHintId} aria-live="polite">{installState === 'installed' ? copy.openInstalledApp : copy.installDescription}</p>
+      {installState === 'help' && <div className="mc-welcome__install-help" role="status"><p>{copy.installUnavailable}</p><ol>{copy.installHelp.map((step) => <li key={step}>{step}</li>)}</ol></div>}
+      {installState !== 'installed' && <button type="button" className="mc-welcome__continue mc-welcome__install-action" disabled={installState === 'requesting'} onClick={async () => {
+        setInstallState('requesting');
         try {
           const outcome = await requestPwaInstall();
-          if (outcome === 'unavailable') setInstallHelpOpen(true);
-          else {
-            setInstallHelpOpen(false);
-            dispatch({ type: 'start', nowMs: now() });
-            setStarted(true);
-          }
-        } catch { setInstallHelpOpen(true); }
-      }}>{copy.installAction}</button>
+          setInstallState(current => current === 'installed' || outcome === 'accepted' ? 'installed' : outcome === 'unavailable' ? 'help' : 'idle');
+        } catch {
+          setInstallState(current => current === 'installed' ? current : 'help');
+        }
+      }}>{copy.installAction}</button>}
       <button type="button" className="mc-welcome__browser-action" onClick={() => {
         dispatch({ type: 'start', nowMs: now() });
         setStarted(true);

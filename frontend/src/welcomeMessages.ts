@@ -15,13 +15,8 @@ type WelcomeCopy = {
   installAction: string;
   continueInBrowser: string;
   installUnavailable: string;
-  detectedLanguageDescription: string;
-  confirmLanguage: string;
-  changeLanguage: string;
+  openInstalledApp: string;
   installHelp: readonly [string, string, string];
-  detectedLanguage: string;
-  languagePrompt: string;
-  continueLabel: string;
 };
 
 /** Source copy is deliberately separate from presentation, account state and timing. */
@@ -40,8 +35,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'Toca el borde izquierdo para volver o el derecho para avanzar. También usa ← y →. El idioma se cambia arriba.',
     paused: 'Tómate tu tiempo. La introducción está en pausa.',
     pause: 'Pausar', resume: 'Reanudar',
-    languageLabel: 'Idioma', installTitle: 'Instala Modo Cultiva', installDescription: 'Lleva tu mapa de vida contigo. Instala la app para una experiencia más cómoda y rápida.', installAction: 'Instalar Modo Cultiva', continueInBrowser: 'Continuar en el navegador', installUnavailable: 'La instalación no se abrió automáticamente. Puedes continuar en el navegador o seguir estos pasos para instalarla.', detectedLanguageDescription: 'Confirma el idioma detectado con un toque. Si prefieres otro, cámbialo antes de comenzar.', confirmLanguage: 'Usar el idioma seleccionado y comenzar', changeLanguage: 'Cambiar idioma', installHelp: ['Abre el menú de tu navegador.', 'Selecciona “Instalar aplicación” o “Agregar a pantalla de inicio”.', 'En iPhone o iPad: abre en Safari, toca Compartir y elige “Añadir a pantalla de inicio”.'],
-    detectedLanguage: 'Idioma detectado', languagePrompt: 'Si es correcto, continúa. Si no, elige otro idioma.', continueLabel: 'Sí, continuar',
+    languageLabel: 'Idioma', installTitle: 'Instala Modo Cultiva', installDescription: 'Lleva tu mapa de vida contigo. Instala la app para una experiencia más cómoda y rápida.', installAction: 'Instalar Modo Cultiva', continueInBrowser: 'Continuar en el navegador', installUnavailable: 'La instalación no se abrió automáticamente. Puedes continuar en el navegador o seguir estos pasos para instalarla.', openInstalledApp: 'Cuando termine la instalación, abre Modo Cultiva desde la pantalla de inicio para comenzar.', installHelp: ['Abre el menú de tu navegador.', 'Selecciona “Instalar aplicación” o “Agregar a pantalla de inicio”.', 'En iPhone o iPad: abre en Safari, toca Compartir y elige “Añadir a pantalla de inicio”.'],
   },
   en: {
     messages: [
@@ -57,8 +51,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'Tap the left edge to go back or the right edge to move ahead. You can also use ← and →. Change language above.',
     paused: 'Take your time. The introduction is paused.',
     pause: 'Pause', resume: 'Resume',
-    languageLabel: 'Language', installTitle: 'Install Modo Cultiva', installDescription: 'Take your life map with you. Install the app for a faster, more convenient experience.', installAction: 'Install Modo Cultiva', continueInBrowser: 'Continue in browser', installUnavailable: 'The installation prompt did not open automatically. You can continue in your browser or follow these steps to install.', detectedLanguageDescription: 'Confirm the detected language with a tap. If you prefer another, change it before starting.', confirmLanguage: 'Use selected language and begin', changeLanguage: 'Change language', installHelp: ['Open your browser menu.', 'Select “Install app” or “Add to Home Screen”.', 'On iPhone or iPad: open in Safari, tap Share, then choose “Add to Home Screen”.'],
-    detectedLanguage: 'Detected language', languagePrompt: 'If it is correct, continue. Otherwise, choose another language.', continueLabel: 'Yes, continue',
+    languageLabel: 'Language', installTitle: 'Install Modo Cultiva', installDescription: 'Take your life map with you. Install the app for a faster, more convenient experience.', installAction: 'Install Modo Cultiva', continueInBrowser: 'Continue in browser', installUnavailable: 'The installation prompt did not open automatically. You can continue in your browser or follow these steps to install.', openInstalledApp: 'When installation is complete, open Modo Cultiva from your home screen to begin.', installHelp: ['Open your browser menu.', 'Select “Install app” or “Add to Home Screen”.', 'On iPhone or iPad: open in Safari, tap Share, then choose “Add to Home Screen”.'],
   },
   zh: {
     messages: [
@@ -74,8 +67,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: '点按左侧返回，点按右侧前进；也可使用 ← 和 →。可在上方更改语言。',
     paused: '慢慢来，介绍已暂停。',
     pause: '暂停', resume: '继续播放',
-    languageLabel: '语言', installTitle: '安装 Modo Cultiva', installDescription: '随身携带你的人生地图。安装应用，享受更便捷、更快速的体验。', installAction: '安装 Modo Cultiva', continueInBrowser: '在浏览器中继续', installUnavailable: '安装提示未自动打开。你可以在浏览器中继续，或按照以下步骤安装。', detectedLanguageDescription: '轻点以确认检测到的语言。如需使用其他语言，请在开始前更改。', confirmLanguage: '使用所选语言并开始', changeLanguage: '更改语言', installHelp: ['打开浏览器菜单。', '选择“安装应用”或“添加到主屏幕”。', '在 iPhone 或 iPad 上：用 Safari 打开，轻点分享，然后选择“添加到主屏幕”。'],
-    detectedLanguage: '检测到的语言', languagePrompt: '如果语言正确，请继续；否则请选择其他语言。', continueLabel: '是，继续',
+    languageLabel: '语言', installTitle: '安装 Modo Cultiva', installDescription: '随身携带你的人生地图。安装应用，享受更便捷、更快速的体验。', installAction: '安装 Modo Cultiva', continueInBrowser: '在浏览器中继续', installUnavailable: '安装提示未自动打开。你可以在浏览器中继续，或按照以下步骤安装。', openInstalledApp: '安装完成后，请从主屏幕打开 Modo Cultiva 开始。', installHelp: ['打开浏览器菜单。', '选择“安装应用”或“添加到主屏幕”。', '在 iPhone 或 iPad 上：用 Safari 打开，轻点分享，然后选择“添加到主屏幕”。'],
   },
   hi: {
     messages: [
@@ -91,8 +83,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'पीछे जाने के लिए बाएँ किनारे पर और आगे जाने के लिए दाएँ किनारे पर टैप करें। ← और → भी दबा सकते हैं। भाषा ऊपर बदलें।',
     paused: 'अपना समय लें। परिचय रुका हुआ है।',
     pause: 'रोकें', resume: 'फिर शुरू करें',
-    languageLabel: 'भाषा', installTitle: 'Modo Cultiva इंस्टॉल करें', installDescription: 'अपना जीवन मानचित्र अपने साथ रखें। तेज़ और सुविधाजनक अनुभव के लिए ऐप इंस्टॉल करें।', installAction: 'Modo Cultiva इंस्टॉल करें', continueInBrowser: 'ब्राउज़र में जारी रखें', installUnavailable: 'इंस्टॉल विंडो अपने-आप नहीं खुली। आप ब्राउज़र में जारी रख सकते हैं या इंस्टॉल करने के ये चरण अपनाएँ।', detectedLanguageDescription: 'पहचानी गई भाषा की पुष्टि करने के लिए टैप करें। दूसरी भाषा चाहिए तो शुरू करने से पहले बदलें।', confirmLanguage: 'चुनी हुई भाषा में शुरू करें', changeLanguage: 'भाषा बदलें', installHelp: ['अपने ब्राउज़र का मेनू खोलें।', '“ऐप इंस्टॉल करें” या “होम स्क्रीन पर जोड़ें” चुनें।', 'iPhone या iPad पर: Safari में खोलें, शेयर करें पर टैप करें और “होम स्क्रीन पर जोड़ें” चुनें।'],
-    detectedLanguage: 'पहचानी गई भाषा', languagePrompt: 'यदि यह सही है, तो आगे बढ़ें। अन्यथा दूसरी भाषा चुनें।', continueLabel: 'हाँ, आगे बढ़ें',
+    languageLabel: 'भाषा', installTitle: 'Modo Cultiva इंस्टॉल करें', installDescription: 'अपना जीवन मानचित्र अपने साथ रखें। तेज़ और सुविधाजनक अनुभव के लिए ऐप इंस्टॉल करें।', installAction: 'Modo Cultiva इंस्टॉल करें', continueInBrowser: 'ब्राउज़र में जारी रखें', installUnavailable: 'इंस्टॉल विंडो अपने-आप नहीं खुली। आप ब्राउज़र में जारी रख सकते हैं या इंस्टॉल करने के ये चरण अपनाएँ।', openInstalledApp: 'इंस्टॉल पूरा होने पर, शुरू करने के लिए होम स्क्रीन से Modo Cultiva खोलें।', installHelp: ['अपने ब्राउज़र का मेनू खोलें।', '“ऐप इंस्टॉल करें” या “होम स्क्रीन पर जोड़ें” चुनें।', 'iPhone या iPad पर: Safari में खोलें, शेयर करें पर टैप करें और “होम स्क्रीन पर जोड़ें” चुनें।'],
   },
   ar: {
     messages: [
@@ -108,8 +99,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'اضغط على الحافة اليسرى للعودة أو اليمنى للتقدّم. يمكنك أيضًا استخدام ← و→. غيّر اللغة من الأعلى.',
     paused: 'خذ وقتك. التعريف متوقف مؤقتًا.',
     pause: 'إيقاف مؤقت', resume: 'استئناف',
-    languageLabel: 'اللغة', installTitle: 'ثبّت Modo Cultiva', installDescription: 'احتفظ بخريطة حياتك معك. ثبّت التطبيق لتجربة أسرع وأسهل.', installAction: 'تثبيت Modo Cultiva', continueInBrowser: 'المتابعة في المتصفح', installUnavailable: 'لم تظهر نافذة التثبيت تلقائيًا. يمكنك المتابعة في المتصفح أو اتباع الخطوات التالية للتثبيت.', detectedLanguageDescription: 'اضغط لتأكيد اللغة المكتشفة. وإذا فضّلت لغة أخرى، فغيّرها قبل البدء.', confirmLanguage: 'استخدم اللغة المحددة وابدأ', changeLanguage: 'تغيير اللغة', installHelp: ['افتح قائمة المتصفح.', 'اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».', 'على iPhone أو iPad: افتح Safari، واضغط مشاركة، ثم اختر «إضافة إلى الشاشة الرئيسية».'],
-    detectedLanguage: 'اللغة المكتشفة', languagePrompt: 'إذا كانت صحيحة، تابع. وإلا فاختر لغة أخرى.', continueLabel: 'نعم، تابع',
+    languageLabel: 'اللغة', installTitle: 'ثبّت Modo Cultiva', installDescription: 'احتفظ بخريطة حياتك معك. ثبّت التطبيق لتجربة أسرع وأسهل.', installAction: 'تثبيت Modo Cultiva', continueInBrowser: 'المتابعة في المتصفح', installUnavailable: 'لم تظهر نافذة التثبيت تلقائيًا. يمكنك المتابعة في المتصفح أو اتباع الخطوات التالية للتثبيت.', openInstalledApp: 'عند اكتمال التثبيت، افتح Modo Cultiva من الشاشة الرئيسية للبدء.', installHelp: ['افتح قائمة المتصفح.', 'اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».', 'على iPhone أو iPad: افتح Safari، واضغط مشاركة، ثم اختر «إضافة إلى الشاشة الرئيسية».'],
   },
   it: {
     messages: [
@@ -125,8 +115,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'Tocca il bordo sinistro per tornare indietro o quello destro per avanzare. Puoi usare anche ← e →. Cambia lingua in alto.',
     paused: 'Prenditi il tuo tempo. L’introduzione è in pausa.',
     pause: 'Pausa', resume: 'Riprendi',
-    languageLabel: 'Lingua', installTitle: 'Installa Modo Cultiva', installDescription: 'Porta con te la tua mappa di vita. Installa l’app per un’esperienza più rapida e comoda.', installAction: 'Installa Modo Cultiva', continueInBrowser: 'Continua nel browser', installUnavailable: 'La richiesta di installazione non si è aperta automaticamente. Puoi continuare nel browser o seguire questi passaggi.', detectedLanguageDescription: 'Tocca per confermare la lingua rilevata. Se ne preferisci un’altra, cambiala prima di iniziare.', confirmLanguage: 'Usa la lingua selezionata e inizia', changeLanguage: 'Cambia lingua', installHelp: ['Apri il menu del browser.', 'Seleziona “Installa app” o “Aggiungi alla schermata Home”.', 'Su iPhone o iPad: apri in Safari, tocca Condividi e scegli “Aggiungi alla schermata Home”.'],
-    detectedLanguage: 'Lingua rilevata', languagePrompt: 'Se è corretta, continua. Altrimenti scegli un’altra lingua.', continueLabel: 'Sì, continua',
+    languageLabel: 'Lingua', installTitle: 'Installa Modo Cultiva', installDescription: 'Porta con te la tua mappa di vita. Installa l’app per un’esperienza più rapida e comoda.', installAction: 'Installa Modo Cultiva', continueInBrowser: 'Continua nel browser', installUnavailable: 'La richiesta di installazione non si è aperta automaticamente. Puoi continuare nel browser o seguire questi passaggi.', openInstalledApp: 'Una volta completata l’installazione, apri Modo Cultiva dalla schermata Home per iniziare.', installHelp: ['Apri il menu del browser.', 'Seleziona “Installa app” o “Aggiungi alla schermata Home”.', 'Su iPhone o iPad: apri in Safari, tocca Condividi e scegli “Aggiungi alla schermata Home”.'],
   },
   pt: {
     messages: [
@@ -142,8 +131,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'Toque na borda esquerda para voltar ou na direita para avançar. Também use ← e →. Altere o idioma acima.',
     paused: 'Vá no seu ritmo. A introdução está pausada.',
     pause: 'Pausar', resume: 'Retomar',
-    languageLabel: 'Idioma', installTitle: 'Instale o Modo Cultiva', installDescription: 'Leve seu mapa de vida com você. Instale o app para uma experiência mais rápida e prática.', installAction: 'Instalar Modo Cultiva', continueInBrowser: 'Continuar no navegador', installUnavailable: 'A instalação não abriu automaticamente. Você pode continuar no navegador ou seguir estas etapas.', detectedLanguageDescription: 'Toque para confirmar o idioma detectado. Se preferir outro, altere-o antes de começar.', confirmLanguage: 'Usar o idioma selecionado e começar', changeLanguage: 'Mudar idioma', installHelp: ['Abra o menu do navegador.', 'Selecione “Instalar aplicativo” ou “Adicionar à tela inicial”.', 'No iPhone ou iPad: abra no Safari, toque em Compartilhar e escolha “Adicionar à Tela de Início”.'],
-    detectedLanguage: 'Idioma detectado', languagePrompt: 'Se estiver correto, continue. Caso contrário, escolha outro idioma.', continueLabel: 'Sim, continuar',
+    languageLabel: 'Idioma', installTitle: 'Instale o Modo Cultiva', installDescription: 'Leve seu mapa de vida com você. Instale o app para uma experiência mais rápida e prática.', installAction: 'Instalar Modo Cultiva', continueInBrowser: 'Continuar no navegador', installUnavailable: 'A instalação não abriu automaticamente. Você pode continuar no navegador ou seguir estas etapas.', openInstalledApp: 'Quando a instalação terminar, abra o Modo Cultiva pela tela inicial para começar.', installHelp: ['Abra o menu do navegador.', 'Selecione “Instalar aplicativo” ou “Adicionar à tela inicial”.', 'No iPhone ou iPad: abra no Safari, toque em Compartilhar e escolha “Adicionar à Tela de Início”.'],
   },
   ru: {
     messages: [
@@ -159,8 +147,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'Нажмите слева, чтобы вернуться, или справа, чтобы продолжить. Также можно нажать ← и →. Язык меняется вверху.',
     paused: 'Не торопитесь. Вступление приостановлено.',
     pause: 'Пауза', resume: 'Продолжить',
-    languageLabel: 'Язык', installTitle: 'Установите Modo Cultiva', installDescription: 'Сохраните карту своей жизни под рукой. Установите приложение для более удобной и быстрой работы.', installAction: 'Установить Modo Cultiva', continueInBrowser: 'Продолжить в браузере', installUnavailable: 'Окно установки не открылось автоматически. Можно продолжить в браузере или выполнить следующие шаги.', detectedLanguageDescription: 'Нажмите, чтобы подтвердить выбранный язык. Если нужен другой, смените его перед началом.', confirmLanguage: 'Использовать выбранный язык и начать', changeLanguage: 'Изменить язык', installHelp: ['Откройте меню браузера.', 'Выберите «Установить приложение» или «Добавить на главный экран».', 'На iPhone или iPad: откройте страницу в Safari, нажмите «Поделиться» и выберите «На экран Домой».'],
-    detectedLanguage: 'Определённый язык', languagePrompt: 'Если язык выбран верно, продолжите. Иначе выберите другой.', continueLabel: 'Да, продолжить',
+    languageLabel: 'Язык', installTitle: 'Установите Modo Cultiva', installDescription: 'Сохраните карту своей жизни под рукой. Установите приложение для более удобной и быстрой работы.', installAction: 'Установить Modo Cultiva', continueInBrowser: 'Продолжить в браузере', installUnavailable: 'Окно установки не открылось автоматически. Можно продолжить в браузере или выполнить следующие шаги.', openInstalledApp: 'Когда установка завершится, откройте Modo Cultiva с главного экрана, чтобы начать.', installHelp: ['Откройте меню браузера.', 'Выберите «Установить приложение» или «Добавить на главный экран».', 'На iPhone или iPad: откройте страницу в Safari, нажмите «Поделиться» и выберите «На экран Домой».'],
   },
   de: {
     messages: [
@@ -176,8 +163,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'Tippe links, um zurückzugehen, oder rechts, um weiterzugehen. Du kannst auch ← und → nutzen. Sprache oben ändern.',
     paused: 'Nimm dir Zeit. Die Einführung ist pausiert.',
     pause: 'Pausieren', resume: 'Fortsetzen',
-    languageLabel: 'Sprache', installTitle: 'Modo Cultiva installieren', installDescription: 'Behalte deine Lebenskarte immer dabei. Installiere die App für ein schnelleres und komfortableres Erlebnis.', installAction: 'Modo Cultiva installieren', continueInBrowser: 'Im Browser fortfahren', installUnavailable: 'Der Installationsdialog wurde nicht automatisch geöffnet. Du kannst im Browser fortfahren oder diese Schritte ausführen.', detectedLanguageDescription: 'Tippe, um die erkannte Sprache zu bestätigen. Wenn du eine andere möchtest, ändere sie vor dem Start.', confirmLanguage: 'Ausgewählte Sprache verwenden und starten', changeLanguage: 'Sprache ändern', installHelp: ['Öffne das Browsermenü.', 'Wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.', 'Auf iPhone oder iPad: in Safari öffnen, auf „Teilen“ tippen und „Zum Home-Bildschirm“ wählen.'],
-    detectedLanguage: 'Erkannte Sprache', languagePrompt: 'Wenn sie stimmt, fahre fort. Andernfalls wähle eine andere Sprache.', continueLabel: 'Ja, fortfahren',
+    languageLabel: 'Sprache', installTitle: 'Modo Cultiva installieren', installDescription: 'Behalte deine Lebenskarte immer dabei. Installiere die App für ein schnelleres und komfortableres Erlebnis.', installAction: 'Modo Cultiva installieren', continueInBrowser: 'Im Browser fortfahren', installUnavailable: 'Der Installationsdialog wurde nicht automatisch geöffnet. Du kannst im Browser fortfahren oder diese Schritte ausführen.', openInstalledApp: 'Wenn die Installation abgeschlossen ist, öffne Modo Cultiva auf deinem Startbildschirm.', installHelp: ['Öffne das Browsermenü.', 'Wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.', 'Auf iPhone oder iPad: in Safari öffnen, auf „Teilen“ tippen und „Zum Home-Bildschirm“ wählen.'],
   },
   fr: {
     messages: [
@@ -193,8 +179,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'Touchez le bord gauche pour revenir en arrière ou le droit pour avancer. Utilisez aussi ← et →. Changez la langue en haut.',
     paused: 'Prenez votre temps. L’introduction est en pause.',
     pause: 'Pause', resume: 'Reprendre',
-    languageLabel: 'Langue', installTitle: 'Installer Modo Cultiva', installDescription: 'Gardez votre carte de vie avec vous. Installez l’application pour une expérience plus rapide et pratique.', installAction: 'Installer Modo Cultiva', continueInBrowser: 'Continuer dans le navigateur', installUnavailable: 'La fenêtre d’installation ne s’est pas ouverte automatiquement. Vous pouvez continuer dans le navigateur ou suivre ces étapes.', detectedLanguageDescription: 'Touchez pour confirmer la langue détectée. Si vous en préférez une autre, changez-la avant de commencer.', confirmLanguage: 'Utiliser la langue choisie et commencer', changeLanguage: 'Changer de langue', installHelp: ['Ouvrez le menu du navigateur.', 'Choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».', 'Sur iPhone ou iPad : ouvrez dans Safari, touchez Partager, puis « Sur l’écran d’accueil ».'],
-    detectedLanguage: 'Langue détectée', languagePrompt: 'Si elle est correcte, continuez. Sinon, choisissez une autre langue.', continueLabel: 'Oui, continuer',
+    languageLabel: 'Langue', installTitle: 'Installer Modo Cultiva', installDescription: 'Gardez votre carte de vie avec vous. Installez l’application pour une expérience plus rapide et pratique.', installAction: 'Installer Modo Cultiva', continueInBrowser: 'Continuer dans le navigateur', installUnavailable: 'La fenêtre d’installation ne s’est pas ouverte automatiquement. Vous pouvez continuer dans le navigateur ou suivre ces étapes.', openInstalledApp: 'Une fois l’installation terminée, ouvrez Modo Cultiva depuis votre écran d’accueil pour commencer.', installHelp: ['Ouvrez le menu du navigateur.', 'Choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».', 'Sur iPhone ou iPad : ouvrez dans Safari, touchez Partager, puis « Sur l’écran d’accueil ».'],
   },
   da: {
     messages: [
@@ -210,8 +195,7 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
     automatic: 'Tryk på venstre kant for at gå tilbage eller højre kant for at gå frem. Du kan også bruge ← og →. Skift sprog øverst.',
     paused: 'Tag dig god tid. Introduktionen er sat på pause.',
     pause: 'Pause', resume: 'Fortsæt',
-    languageLabel: 'Sprog', installTitle: 'Installer Modo Cultiva', installDescription: 'Hav dit livskort med dig. Installer appen for en hurtigere og mere praktisk oplevelse.', installAction: 'Installer Modo Cultiva', continueInBrowser: 'Fortsæt i browseren', installUnavailable: 'Installationsvinduet åbnede ikke automatisk. Du kan fortsætte i browseren eller følge disse trin.', detectedLanguageDescription: 'Tryk for at bekræfte det registrerede sprog. Vælg et andet, hvis du foretrækker det, før du starter.', confirmLanguage: 'Brug det valgte sprog og start', changeLanguage: 'Skift sprog', installHelp: ['Åbn browserens menu.', 'Vælg “Installer app” eller “Føj til hjemmeskærm”.', 'På iPhone eller iPad: åbn i Safari, tryk på Del, og vælg “Føj til hjemmeskærm”.'],
-    detectedLanguage: 'Registreret sprog', languagePrompt: 'Hvis det er korrekt, kan du fortsætte. Ellers vælg et andet sprog.', continueLabel: 'Ja, fortsæt',
+    languageLabel: 'Sprog', installTitle: 'Installer Modo Cultiva', installDescription: 'Hav dit livskort med dig. Installer appen for en hurtigere og mere praktisk oplevelse.', installAction: 'Installer Modo Cultiva', continueInBrowser: 'Fortsæt i browseren', installUnavailable: 'Installationsvinduet åbnede ikke automatisk. Du kan fortsætte i browseren eller følge disse trin.', openInstalledApp: 'Når installationen er færdig, skal du åbne Modo Cultiva fra din hjemmeskærm for at begynde.', installHelp: ['Åbn browserens menu.', 'Vælg “Installer app” eller “Føj til hjemmeskærm”.', 'På iPhone eller iPad: åbn i Safari, tryk på Del, og vælg “Føj til hjemmeskærm”.'],
   },
 };
 

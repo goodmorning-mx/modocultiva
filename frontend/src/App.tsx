@@ -1635,7 +1635,14 @@ function App() {
     };
   }, [configurationsOpen, language]);
 
-  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, cultOpen, cultTab, profileMenuOpen, configurationsOpen, homeVisionSettingsOpen, lifeEditor, useModeLifeContext, useOtherLifeContexts, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId };
+  // Keep the menu in the navigation stack while a destination opened from it is active.
+  const homeSidebarVisible = homeSidebarOpen && view === 'welcome' && !configurationsOpen && !homeVisionSettingsOpen && !lifeEditor
+    && !selectedMode && !profilePreviewMode && !communityOpen;
+  const closeHomeSidebar = () => {
+    setProfileMenuOpen(false);
+    setHomeSidebarOpen(false);
+  };
+  const navigationSnapshot = { view, selectedMode, activeActivity, activityEntry, journeySlide, journeyStep, cultOpen, cultTab, homeSidebarOpen, profileMenuOpen, configurationsOpen, homeVisionSettingsOpen, lifeEditor, useModeLifeContext, useOtherLifeContexts, renamingPreset, customizingAvatar, profilePreviewMode, selectedPlan, cultInsightPreview, specialistPreview, communityOpen, communityTab, publicCardId, tourReplay: false };
   const navigationSnapshotKey = JSON.stringify(navigationSnapshot);
   const navigationSnapshotRef = useRef(navigationSnapshot);
   navigationSnapshotRef.current = navigationSnapshot;
@@ -1643,7 +1650,8 @@ function App() {
   restoreNavigationRef.current = (snapshot) => {
     setView(snapshot.view); setSelectedMode(snapshot.selectedMode); setActiveActivity(snapshot.activeActivity);
     setActivityEntry(snapshot.activityEntry); setJourneySlide(snapshot.journeySlide); setJourneyStep(snapshot.journeyStep);
-    setCultOpen(snapshot.cultOpen); setCultTab(snapshot.cultTab); setProfileMenuOpen(snapshot.profileMenuOpen);
+    setCultOpen(snapshot.cultOpen); setCultTab(snapshot.cultTab);
+    setHomeSidebarOpen(snapshot.homeSidebarOpen); setProfileMenuOpen(snapshot.profileMenuOpen);
     setConfigurationsOpen(snapshot.configurationsOpen); setRenamingPreset(snapshot.renamingPreset);
     setHomeVisionSettingsOpen(snapshot.homeVisionSettingsOpen);
     setLifeEditor(snapshot.lifeEditor); setUseModeLifeContext(snapshot.useModeLifeContext); setUseOtherLifeContexts(snapshot.useOtherLifeContexts);
@@ -1655,9 +1663,9 @@ function App() {
     if (snapshot.selectedMode && snapshot.activeActivity === null) restoreJourneyPosition();
   };
   const tourReturnRef = useRef<{ navigation: typeof navigationSnapshot; activityPrompt: string; manualAlignment: string; aiProposal: typeof aiProposal; aiHasConsulted: boolean; aiNotice: ModeAiNotice | null; poolSelection: number; pageScroll: number; journeyScroll: number } | null>(null);
-  const startTour = () => {
+  const startTour = (navigation = navigationSnapshotRef.current) => {
     if (aiLoading) return;
-    if (tourIndex === null) tourReturnRef.current = { navigation: navigationSnapshotRef.current, activityPrompt, manualAlignment, aiProposal, aiHasConsulted, aiNotice, poolSelection, pageScroll: window.scrollY, journeyScroll: journeyPanelRef.current?.scrollTop ?? 0 };
+    if (tourIndex === null) tourReturnRef.current = { navigation, activityPrompt, manualAlignment, aiProposal, aiHasConsulted, aiNotice, poolSelection, pageScroll: window.scrollY, journeyScroll: journeyPanelRef.current?.scrollTop ?? 0 };
     setTourModeKey(null); setTourVisitedMethods([]); setTourIndex(0);
   };
   const closeTour = () => {
@@ -1673,6 +1681,12 @@ function App() {
       journeyPanelRef.current?.scrollTo({ top: restore.journeyScroll, behavior: 'instant' });
     });
   };
+  const restoreBrowserNavigationRef = useRef((snapshot: typeof navigationSnapshot) => {});
+  restoreBrowserNavigationRef.current = (snapshot) => {
+    if (tourIndex !== null && !snapshot.tourReplay) closeTour();
+    restoreNavigationRef.current(snapshot);
+    if (snapshot.tourReplay && tourIndex === null) startTour({ ...snapshot, tourReplay: false });
+  };
   const tourTopic = tourIndex === null ? null : tourTopics[tourIndex];
   const tourMethodDetail = TOUR_METHODS.some(method => method === tourTopic);
   const tourMode = modes.find(mode => mode.key === tourModeKey) ?? selectedMode ?? modes[0];
@@ -1681,7 +1695,7 @@ function App() {
   const tourStep: GuidedTourStep | null = tourTopic ? (() => {
     const copy = guidedTourStepCopy(language, tourTopic);
     const menuItem = tourMenuItems[tourTopic];
-    const menuTarget = menuItem && homeSidebarOpen ? `#home-sidebar [data-home-menu-item="${menuItem}"]` : '.home-menu-button';
+    const menuTarget = menuItem && homeSidebarVisible ? `#home-sidebar [data-home-menu-item="${menuItem}"]` : '.home-menu-button';
     const targets: Record<TourTopic, string | readonly string[]> = {
       modes: '.welcome-view .circular-carousel', modeDescription: '.journey-intro-compact', selfAssessment: '.journey-ascent-status', activityDesign: '.journey-builder-heading', nextPresence: '.journey-builder .activity-flow-target summary',
       custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions .journey-local-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort',
@@ -1691,7 +1705,7 @@ function App() {
       audience: '.activity-flow-audience .card-audience-options', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
       reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading',
       community: '.community-header h2', profile: profilePreviewMode ? '.profile-preview-identity' : '.home-profile-avatar',
-      badges: '.profile-preview-badges', homeSort: '.home-sort-button', homeMenu: homeSidebarOpen ? '#home-sidebar .home-sidebar-heading h2' : '.home-menu-button',
+      badges: '.profile-preview-badges', homeSort: '.home-sort-button', homeMenu: homeSidebarVisible ? '#home-sidebar .home-sidebar-heading h2' : '.home-menu-button',
       configurations: configurationsOpen ? '#presets-title' : menuTarget,
       lifeContext: lifeEditor ? '.life-context-dialog > .life-context-header h2' : menuTarget,
       homeImages: homeVisionSettingsOpen ? '.home-vision-settings > header h2' : menuTarget,
@@ -1764,21 +1778,26 @@ function App() {
     if (decision === 'show') setWelcomeScope(scope);
   }, [authTokens?.access_token, stateHydrated, verifiedIdentity, onboardingWelcomeCompleted, guestWelcomeVisitorId, publicCardId]);
   const navigationHistoryRef = useRef<ReturnType<typeof createNavigationHistory<typeof navigationSnapshot>> | null>(null);
+  const replayFromMenu = () => {
+    if (aiLoading || tourIndex !== null) return;
+    navigationHistoryRef.current?.sync({ ...navigationSnapshotRef.current, tourReplay: true });
+    startTour();
+  };
   useEffect(() => {
     const navigation = createNavigationHistory(window.history, navigationSnapshotRef.current, (snapshot) => {
       const base = snapshot.view === 'welcome' ? 0 : snapshot.view === 'lab' ? 2 : 1;
       return base + Number(Boolean(snapshot.selectedMode)) + Number(snapshot.activeActivity !== null) + Number(snapshot.cultOpen)
-        + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.homeVisionSettingsOpen) + Number(Boolean(snapshot.lifeEditor)) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
+        + Number(snapshot.homeSidebarOpen) + Number(snapshot.profileMenuOpen) + Number(snapshot.configurationsOpen) + Number(snapshot.homeVisionSettingsOpen) + Number(Boolean(snapshot.lifeEditor)) + Number(snapshot.configurationsOpen && snapshot.renamingPreset)
         + Number(snapshot.customizingAvatar) + Number(snapshot.profilePreviewMode) + Number(Boolean(snapshot.selectedPlan))
-        + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview)) + Number(snapshot.communityOpen) + Number(Boolean(snapshot.publicCardId));
-    }, (snapshot) => restoreNavigationRef.current(snapshot), (left, right) => {
+        + Number(Boolean(snapshot.cultInsightPreview)) + Number(Boolean(snapshot.specialistPreview)) + Number(snapshot.communityOpen) + Number(Boolean(snapshot.publicCardId)) + Number(snapshot.tourReplay);
+    }, (snapshot) => restoreBrowserNavigationRef.current(snapshot), (left, right) => {
       // Ignore details belonging to hidden layers when matching an old parent.
       const location = (snapshot: typeof navigationSnapshot) => [
         snapshot.view, snapshot.selectedMode?.key, snapshot.activeActivity,
         snapshot.selectedMode || snapshot.view === 'cult' ? [snapshot.cultOpen, snapshot.cultTab] : null,
-        snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.homeVisionSettingsOpen, snapshot.lifeEditor, snapshot.configurationsOpen && snapshot.renamingPreset,
+        snapshot.homeSidebarOpen, snapshot.profileMenuOpen, snapshot.configurationsOpen, snapshot.homeVisionSettingsOpen, snapshot.lifeEditor, snapshot.configurationsOpen && snapshot.renamingPreset,
         snapshot.customizingAvatar, snapshot.profilePreviewMode, snapshot.selectedPlan,
-        snapshot.cultInsightPreview, snapshot.specialistPreview, snapshot.communityOpen, snapshot.communityTab, snapshot.publicCardId,
+        snapshot.cultInsightPreview, snapshot.specialistPreview, snapshot.communityOpen, snapshot.communityTab, snapshot.publicCardId, snapshot.tourReplay,
       ];
       return JSON.stringify(location(left)) === JSON.stringify(location(right));
     });
@@ -1959,6 +1978,7 @@ function App() {
     setSelectedMode(null);
     setCultOpen(false);
     setActiveActivity(null);
+    closeHomeSidebar();
     setView('welcome');
   };
 
@@ -2450,15 +2470,6 @@ function App() {
   const [homeGreetingIndex] = useState(() => Math.floor(Math.random() * homeGreetingPhrases.es.length));
   const homeGreetingPhrase = homeGreetingPhrases[language][homeGreetingIndex];
 
-  useEffect(() => {
-    if (!homeSidebarOpen) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setHomeSidebarOpen(false);
-    };
-    window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [homeSidebarOpen]);
-
   return (
     <main className={`app-shell app-shell--${skin}${view === 'welcome' ? ' app-shell--home' : ''}${skin === 'holista' || paletteFilter === 'none' ? '' : ` app-shell--${paletteFilter}`}`} data-tour-active={tourTopic ?? undefined}>
       <div
@@ -2485,24 +2496,24 @@ function App() {
         <div className="topbar-actions">
           <><button className="home-profile-avatar" type="button" onClick={() => setProfilePreviewMode(true)} aria-label={tr('profileButton')} title={tr('profileButton')}>
             {profileImage ? <img src={profileImage} alt="" /> : <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg>}
-          </button><button className="home-menu-button" type="button" onClick={() => setHomeSidebarOpen(true)} aria-label={tr('homeNavigation')} aria-expanded={homeSidebarOpen} aria-controls="home-sidebar" title={tr('homeNavigation')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button></>
+          </button><button className="home-menu-button" type="button" onClick={() => setHomeSidebarOpen(true)} aria-label={tr('homeNavigation')} aria-expanded={homeSidebarVisible} aria-controls="home-sidebar" title={tr('homeNavigation')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button></>
         </div>
         {isAuthenticated && <span className={`state-sync-state state-sync-state--${stateSyncStatus}`} role="status">{tr(stateSyncStatus === 'syncing' ? 'syncState' : stateSyncStatus === 'synced' ? 'syncReady' : 'syncFailed')}</span>}
       </header>}
 
-      {homeSidebarOpen && view === 'welcome' && <div className="home-sidebar-backdrop" role="presentation" onClick={() => setHomeSidebarOpen(false)}>
+      {homeSidebarVisible && <div className="home-sidebar-backdrop" role="presentation" onClick={closeHomeSidebar}>
         <aside className="home-sidebar" id="home-sidebar" role="dialog" aria-modal="true" aria-labelledby="home-sidebar-title" onClick={(event) => event.stopPropagation()}>
           <div className="home-sidebar-heading"><div><span className="home-sidebar-eyebrow">Modo Cultiva</span><h2 id="home-sidebar-title">{tr('homeNavigation')}</h2></div><div className="home-sidebar-heading-actions"><div className="profile-menu" ref={profileMenuRef}><button className="profile-button" type="button" aria-label={tr('openProfileMenu')} aria-expanded={profileMenuOpen} aria-haspopup="menu" aria-controls="profile-menu-dropdown" onClick={() => setProfileMenuOpen((open) => !open)}>MC</button>{profileMenuOpen && <div className="profile-menu-dropdown" id="profile-menu-dropdown" role="menu">
-            {isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div><button className="home-sidebar-close" type="button" onClick={() => setHomeSidebarOpen(false)} aria-label={tr('close')}>×</button></div></div>
+            {isAuthenticated ? <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setHomeSidebarOpen(false); void logout(); }}>{tr('logout')}</button> : <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setRegistering(false); setView('login'); }}>{tr('login')}</button>}{!RELEASE_FREE_ACCESS && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setPendingAccess(null); setSelectedPlan(null); setView('plans'); }}>{tr('premium')}</button>}</div>}</div><button className="home-sidebar-close" type="button" onClick={closeHomeSidebar} aria-label={tr('close')}>×</button></div></div>
           <nav className="home-sidebar-nav" aria-label={tr('homeNavigation')}>
-            <button type="button" data-home-menu-item="configurations" onClick={() => { setHomeSidebarOpen(false); setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" data-home-menu-item="life-context" aria-haspopup="dialog" onClick={() => { setHomeSidebarOpen(false); setLifeEditor({}); }}><span className="home-sidebar-icon" aria-hidden="true">▤</span><span>{lifeCopy.title}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" data-home-menu-item="images" aria-haspopup="dialog" onClick={() => { setHomeSidebarOpen(false); setHomeVisionSettingsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">▧</span><span>{homeVisionCopy(language)[0]}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" data-home-menu-item="dashboard" onClick={() => { setHomeSidebarOpen(false); setView('dashboard'); }}><span className="home-sidebar-icon" aria-hidden="true">◫</span><span>{tr('controlCenter')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" data-home-menu-item="specialists" onClick={() => { setHomeSidebarOpen(false); setCultTab('network'); setView('cult'); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('specialistNetwork')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" data-home-menu-item="trivia" onClick={() => { setHomeSidebarOpen(false); setView('lab'); }}><span className="home-sidebar-icon" aria-hidden="true">✳</span><span>{tr('triviaTitle')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            <button type="button" data-home-menu-item="replay" data-tour="replay" disabled={aiLoading} onClick={startTour}><span className="home-sidebar-icon" aria-hidden="true">↻</span><span>{onboardingIntegrationCopy(language).replay}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
-            {!RELEASE_FREE_ACCESS && <button type="button" onClick={() => { setHomeSidebarOpen(false); setView('plans'); }}><span className="home-sidebar-icon" aria-hidden="true">✦</span><span>{tr('premium')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>}
+            <button type="button" data-home-menu-item="configurations" onClick={() => { setConfigurationsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">⚙</span><span>{tr('presets')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="life-context" aria-haspopup="dialog" onClick={() => { setLifeEditor({}); }}><span className="home-sidebar-icon" aria-hidden="true">▤</span><span>{lifeCopy.title}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="images" aria-haspopup="dialog" onClick={() => { setHomeVisionSettingsOpen(true); }}><span className="home-sidebar-icon" aria-hidden="true">▧</span><span>{homeVisionCopy(language)[0]}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="dashboard" onClick={() => { setView('dashboard'); }}><span className="home-sidebar-icon" aria-hidden="true">◫</span><span>{tr('controlCenter')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="specialists" onClick={() => { setCultTab('network'); setView('cult'); }}><span className="home-sidebar-icon" aria-hidden="true">◎</span><span>{tr('specialistNetwork')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="trivia" onClick={() => { setView('lab'); }}><span className="home-sidebar-icon" aria-hidden="true">✳</span><span>{tr('triviaTitle')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            <button type="button" data-home-menu-item="replay" data-tour="replay" disabled={aiLoading} onClick={replayFromMenu}><span className="home-sidebar-icon" aria-hidden="true">↻</span><span>{onboardingIntegrationCopy(language).replay}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>
+            {!RELEASE_FREE_ACCESS && <button type="button" onClick={() => { setView('plans'); }}><span className="home-sidebar-icon" aria-hidden="true">✦</span><span>{tr('premium')}</span><span className="home-sidebar-arrow" aria-hidden="true">›</span></button>}
           </nav>
           {languagePicker(true)}
         </aside>
@@ -2526,7 +2537,7 @@ function App() {
               <button className="login-submit" type="submit">{registering ? tr('createAccount') : tr('login')} <span>↗</span></button>
             </form>
             <button className="login-back-link" type="button" onClick={() => { setRegistering((current) => !current); setAuthError(null); }}>{registering ? alreadyRegistered : newAccount}</button>
-            {pendingAccess && <button className="login-back-link" type="button" onClick={() => { setPendingAccess(null); setPendingActivity(null); setActiveActivity(null); setSelectedMode(null); setView('welcome'); }}><span aria-hidden="true">{language === 'ar' ? '→' : '←'}</span> {planCopy.continueGuest}</button>}
+            {(pendingAccess || homeSidebarOpen) && <button className="login-back-link login-back-to-origin" type="button" onClick={() => { setPendingAccess(null); setPendingActivity(null); setActiveActivity(null); setSelectedMode(null); setView('welcome'); }}><span aria-hidden="true">{language === 'ar' ? '→' : '←'}</span> {pendingAccess ? planCopy.continueGuest : tr('homeNavigation')}</button>}
           </div>
         </section>
       ) : view === 'plans' ? (
@@ -2537,14 +2548,14 @@ function App() {
         </section>
       ) : view === 'lab' ? (
         <section className="modo-lab-view" data-layer="modo-lab" aria-labelledby="modo-lab-title">
-          <div className="modo-lab-topline"><button className="modo-lab-dashboard-back" type="button" onClick={() => setView('welcome')}>{tr('home')}</button></div>
+          <div className="modo-lab-topline"><button className="modo-lab-dashboard-back" type="button" onClick={() => setView('welcome')}>{tr(homeSidebarOpen ? 'homeNavigation' : 'home')}</button></div>
           <header className="modo-lab-hero"><div><p className="kicker">{tr('triviaHeroEyebrow')}</p><h1 id="modo-lab-title">{tr('triviaHeroTitle')}</h1><p>{tr('triviaHeroCopy')}</p></div></header>
           <div className="modo-lab-guide"><span>01</span><p>{tr('triviaGuide')}</p></div>
           <div className="modo-lab-grid">{modes.map((mode) => { const flipped = labFlippedCard === mode.key; return <article className={`modo-lab-card${flipped ? ' modo-lab-card--flipped' : ''}`} key={mode.key} style={{ '--lab-color': mode.color, '--lab-accent': mode.accent } as CSSProperties}><div className="modo-lab-card-inner"><div className="modo-lab-face modo-lab-front"><div className="modo-lab-card-top"><span>{mode.roman}</span><small>{tr('triviaCardLabel')} {mode.roman}</small></div><div className="modo-lab-icon">{modeMark(mode)}</div><p className="modo-lab-label">{tr('triviaQuestionLabel')}</p><h2>{triviaQuestion(mode)}</h2><p className="modo-lab-mode">{modeName(mode)}</p><button type="button" onClick={() => setLabFlippedCard(flipped ? null : mode.key)}>{tr('triviaFlip')} <span>↗</span></button></div><div className="modo-lab-face modo-lab-back"><div className="modo-lab-card-top"><span>↺</span><small>{tr('triviaDiscovery')}</small></div><p className="modo-lab-label">{tr('triviaInfo')}</p><h2>{modeName(mode)}</h2><p className="modo-lab-answer">{triviaAnswer(mode)}</p><div className="modo-lab-description"><span>{modeMark(mode)}</span>{modeDescription(mode)}</div><button type="button" onClick={() => setLabFlippedCard(null)}>{tr('triviaBack')} <span>↺</span></button></div></div></article>; })}</div>
         </section>
       ) : view === 'cult' ? (
         <section className="cult-view specialists-view" aria-label={tr('specialistNetwork')}>
-          <button className="cult-exit" type="button" onClick={() => setView('welcome')}>← {tr('home')}</button>
+          <button className="cult-exit" type="button" onClick={() => setView('welcome')}>← {tr(homeSidebarOpen ? 'homeNavigation' : 'home')}</button>
           {renderCultSection('network')}
         </section>
       ) : view === 'welcome' ? (
@@ -2641,7 +2652,7 @@ function App() {
       ) : (
       <>
       <section className="intro" data-layer="2" aria-labelledby="dashboard-title">
-        <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>{tr('home')}</button>
+        <button className="back-to-overview dashboard-back" type="button" onClick={() => setView('welcome')}>{tr(homeSidebarOpen ? 'homeNavigation' : 'home')}</button>
         <div>
           <p className="kicker">{tr('dashboard')}</p>
           <h1 id="dashboard-title">{tr('dashboardTitle')}</h1>
@@ -2695,7 +2706,7 @@ function App() {
           <article className="crm-card crm-focus-card"><div className="crm-card-heading"><div><span className="crm-eyebrow">{tr('nextFocus')}</span><h2>{tr('areasToCultivate')}</h2></div></div><div className="crm-focus-list">{dashboardSummary.leastCultivated.map((mode) => <button type="button" key={mode.key} onClick={() => openMode(mode)} style={{ '--mode-color': mode.color } as CSSProperties}><span className="crm-focus-icon">{modeMark(mode)}</span><span><strong>{modeShortName(mode)}</strong><small>{modeDescription(mode)}</small></span><b>{tr('level').toUpperCase()} {levels[mode.key]} ↗</b></button>)}</div></article>
           <article className="crm-card crm-trivia-card"><div><span className="crm-eyebrow">{tr('triviaTitle').toUpperCase()}</span><h2>{tr('triviaTitle')}</h2><p>{tr('triviaSubtitle')}</p></div><button type="button" onClick={() => setView('lab')}>{tr('triviaCta')} <span>↗</span></button></article>
         </div>
-        <article className="crm-card crm-next-card crm-next-card--final"><div><span className="crm-eyebrow">{tr('nextMovement')}</span><h2>{tr('continueCultivation')}</h2><p>{tr('continueCultivationCopy')}</p></div><button className="crm-life-map-button configuration-orbit" type="button" onClick={() => setView('welcome')} aria-label={tr('returnMyLifeMap')}>
+        <article className="crm-card crm-next-card crm-next-card--final"><div><span className="crm-eyebrow">{tr('nextMovement')}</span><h2>{tr('continueCultivation')}</h2><p>{tr('continueCultivationCopy')}</p></div><button className="crm-life-map-button configuration-orbit" type="button" onClick={() => { closeHomeSidebar(); setView('welcome'); }} aria-label={tr('returnMyLifeMap')}>
           <span className="configuration-orbit-trail" aria-hidden="true" />
           <span className="configuration-orbit-core" aria-hidden="true"><span>↗</span><strong>{tr('returnMyLifeMap')}</strong><small>{tr('lifeModes')}</small></span>
           {modes.map((mode, index) => <span className="configuration-orbit-node" key={mode.key} title={`${modeShortName(mode)} · ${tr('level')} ${levels[mode.key]}`} style={{ '--orbit-angle': `${index * 30}deg`, '--orbit-color': mode.color } as CSSProperties} aria-hidden="true"><i>{modeMark(mode)}</i><b>{levels[mode.key]}</b></span>)}
@@ -2714,7 +2725,7 @@ function App() {
           saveVisionImage(mode, image);
           return selectHomeVisionCard(mode, 'vision', image);
         }}
-        onClose={() => { setHomeVisionSettingsOpen(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('.home-menu-button')?.focus()); }} />}
+        onClose={() => { setHomeVisionSettingsOpen(false); requestAnimationFrame(() => (document.querySelector<HTMLElement>('#home-sidebar [data-home-menu-item="images"]') ?? document.querySelector<HTMLElement>('.home-menu-button'))?.focus()); }} />}
 
       {!accountBlocked && lifeEditor && <LifeContextDeck language={language} modes={modes.map(mode => ({ key: mode.key, name: modeName(mode), color: mode.color }))}
         context={lifeContext} initialMode={lifeEditor.mode} fromAi={lifeEditor.aiLevel !== undefined}
