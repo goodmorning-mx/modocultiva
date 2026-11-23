@@ -80,6 +80,21 @@ assert.equal(welcomeReadDurationMs('x'.repeat(10000)), state.WELCOME_MAX_READ_MS
 const copy = messages.getWelcomeMessages('es').messages;
 assert.throws(() => createWelcomeTimeline([], 0), RangeError);
 assert.equal(createWelcomeTimeline(copy, NaN).sampledAtMs, 0);
+assert.equal(state.WELCOME_ENTER_MS, 300);
+assert.equal(state.WELCOME_EXIT_MS, 220);
+assert.equal(state.WELCOME_MIN_READ_MS, 1_700);
+let advanced = createWelcomeTimeline(copy, 0);
+advanced = reduce(advanced, { type: 'advance', nowMs: 10 });
+assert.equal(advanced.index, 1, 'A deliberate advance moves only one slide');
+assert.equal(advanced.phase, 'enter');
+advanced = reduce(advanced, { type: 'pause', paused: true, nowMs: 20 });
+advanced = reduce(advanced, { type: 'advance', nowMs: 30 });
+assert.equal(advanced.index, 2, 'A deliberate advance works while paused and resumes the intro');
+assert.equal(advanced.paused, false);
+for (let index = advanced.index; index < 6; index++) advanced = reduce(advanced, { type: 'advance', nowMs: 40 + index });
+assert.equal(advanced.index, 6, 'Every slide remains individually reachable');
+advanced = reduce(advanced, { type: 'advance', nowMs: 99 });
+assert.equal(advanced.phase, 'complete', 'Advancing past the final slide completes the intro');
 
 // Hidden/user-paused time cannot consume any entry, reading or exit duration.
 for (const phase of ['enter', 'read', 'exit']) {
@@ -187,7 +202,9 @@ assert.match(component, /clearTimeout\(timeout\)/);
 assert.match(component, /removeEventListener\('visibilitychange'/);
 assert.match(component, /removeEventListener\('focusin'/);
 assert.match(component, /element\.inert = inert/);
-assert.doesNotMatch(component, /localStorage|sessionStorage|fetch\(|onSkip|onNext|1\s*\/\s*7/);
+assert.match(component, /event\.key === 'ArrowRight'/);
+assert.match(component, /type: 'advance'/);
+assert.doesNotMatch(component, /localStorage|sessionStorage|fetch\(|onSkip|onNext|skip button/i);
 assert.match(component, /className="mc-welcome__brand"[^\n]+<img src=\{brandLogo\}/);
 assert.match(component.slice(component.indexOf('export function WelcomeIntroMark'), component.indexOf('const now')), /<CultivaLeaf \/>/);
 const logoBytes = await readFile(new URL('../src/assets/modo-cultiva-logo-official.png', import.meta.url));
