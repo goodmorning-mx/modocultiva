@@ -54,7 +54,7 @@ assert.equal(messages.resolveWelcomeLanguage('unknown'), 'es');
 for (const language of languages) {
   const copy = messages.getWelcomeMessages(language);
   assert.equal(copy.messages.length, 7);
-  for (const phrase of [...copy.messages, copy.title, copy.pause, copy.resume, copy.automatic, copy.paused]) assert.ok(phrase.trim());
+  for (const phrase of [...copy.messages, copy.title, copy.pause, copy.resume, copy.languageLabel, copy.detectedLanguage, copy.languagePrompt, copy.continueLabel, copy.automatic, copy.paused]) assert.ok(phrase.trim());
   assert.ok(welcomeReadDurationMs(copy.messages[2]) > welcomeReadDurationMs(copy.messages[6]), `${language}: long text gets more time`);
   for (const reducedMotion of [false, true]) {
     let timeline = createWelcomeTimeline(Object.freeze([...copy.messages]), 0, { reducedMotion });
@@ -95,6 +95,18 @@ for (let index = advanced.index; index < 6; index++) advanced = reduce(advanced,
 assert.equal(advanced.index, 6, 'Every slide remains individually reachable');
 advanced = reduce(advanced, { type: 'advance', nowMs: 99 });
 assert.equal(advanced.phase, 'complete', 'Advancing past the final slide completes the intro');
+let retreated = createWelcomeTimeline(copy, 0);
+retreated = reduce(retreated, { type: 'start', nowMs: 1 });
+assert.equal(retreated.phase, 'enter', 'Slide timing begins only after language confirmation');
+retreated = reduce(retreated, { type: 'retreat', nowMs: 1 });
+assert.equal(retreated.index, 0, 'Going back from the first slide stays at the beginning');
+retreated = reduce(retreated, { type: 'advance', nowMs: 2 });
+retreated = reduce(retreated, { type: 'advance', nowMs: 3 });
+retreated = reduce(retreated, { type: 'retreat', nowMs: 4 });
+assert.equal(retreated.index, 1, 'A deliberate retreat goes back exactly one slide');
+retreated = reduce(retreated, { type: 'language', messages: messages.getWelcomeMessages('fr').messages, nowMs: 5 });
+assert.equal(retreated.index, 1, 'Changing language preserves the current slide');
+assert.deepEqual(retreated.readingMs, messages.getWelcomeMessages('fr').messages.map(welcomeReadDurationMs));
 
 // Hidden/user-paused time cannot consume any entry, reading or exit duration.
 for (const phase of ['enter', 'read', 'exit']) {

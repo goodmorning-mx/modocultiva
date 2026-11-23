@@ -2958,7 +2958,7 @@ function App() {
           setTourVisitedMethods(current => current.includes(method) ? current : [...current, method]);
           setTourIndex(tourTopics.indexOf(method));
         }} />}
-      {!accountBlocked && !publicCardId && welcomeScope && <WelcomeIntro key={welcomeIntroStorageKey(welcomeScope)} language={language} onComplete={() => {
+      {!accountBlocked && !publicCardId && welcomeScope && <WelcomeIntro key={welcomeIntroStorageKey(welcomeScope)} language={language} onLanguageChange={nextLanguage => handleLanguageChange(nextLanguage as Language)} onComplete={() => {
         try { markWelcomeIntroComplete(window.localStorage, welcomeScope); } catch { /* The in-memory scope guard prevents a replay loop. */ }
         if (welcomeScope.kind === 'account') {
           setOnboardingWelcomeCompleted(true);

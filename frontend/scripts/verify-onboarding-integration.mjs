@@ -455,34 +455,75 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
 }
 
 async function welcomeCase(page, configuration, account = false) {
-  const messages = welcomeMessages[configuration.language].messages; const intro = page.locator('.mc-welcome');
+  let selectedLanguage = configuration.language;
+  let messages = welcomeMessages[selectedLanguage].messages; const intro = page.locator('.mc-welcome');
   await intro.waitFor({ timeout: configuration.timeout });
   assert.equal(await intro.getAttribute('lang'), configuration.language);
   assert.equal(await page.locator('html').getAttribute('lang'), configuration.language === 'zh' ? 'zh-CN' : configuration.language);
+  assert.equal(await intro.getAttribute('dir'), configuration.language === 'ar' ? 'rtl' : 'ltr');
+  assert.equal(await intro.locator('button').count(), 1, 'Welcome has pause only; slide advance has no button');
+  assert.equal(await intro.locator('.mc-welcome__language option').count(), 11, 'Optional intro selector offers every app language');
+  assert.equal(await intro.locator('.mc-welcome__phrase').count(), 0, 'Slides do not animate before language confirmation');
+  assert.equal(await intro.locator('.mc-welcome__language-gate h2').innerText(), welcomeMessages[selectedLanguage].detectedLanguage);
+  assert.equal(await page.locator('.guided-tour-counter').count(), 0);
+  for (const selector of ['.mc-welcome__language-gate', '.mc-welcome__language--gate select', '.mc-welcome__continue']) {
+    const bounds = await intro.locator(selector).boundingBox();
+    assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= configuration.width + 1, `${selector} fits horizontally at ${configuration.width}px`);
+  }
+  await intro.focus();
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), welcomeMessages[selectedLanguage].languageLabel, 'Keyboard can focus the language selector first');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.className), 'mc-welcome__continue', 'Keyboard can reach the language confirmation');
+  const gateLanguage = selectedLanguage === 'fr' ? 'en' : 'fr';
+  const gateLanguageSelect = intro.locator('.mc-welcome__language--gate select');
+  await gateLanguageSelect.selectOption(gateLanguage);
+  await eventually(async () => await intro.getAttribute('lang') === gateLanguage, 'Detected language could not be changed before the intro');
+  await eventually(async () => await page.locator('html').getAttribute('lang') === gateLanguage, 'The selected locale did not reach the app before the intro');
+  selectedLanguage = gateLanguage;
+  messages = welcomeMessages[selectedLanguage].messages;
+  assert.equal(await intro.locator('.mc-welcome__language-gate h2').innerText(), welcomeMessages[selectedLanguage].detectedLanguage);
+  await intro.locator('.mc-welcome__continue').click();
+  await intro.locator('.mc-welcome__phrase').waitFor({ timeout: configuration.timeout });
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Confirming the detected/selected language starts slide one');
   await eventually(async () => intro.locator('.mc-welcome__brand img').evaluate(img => img.complete && img.naturalWidth > 0), 'Official header logo must load');
   assert.equal(await intro.locator('.mc-welcome__brand svg').count(), 0, 'Header uses the actual logo, not the cultivation leaf');
   assert.equal(await intro.locator('.mc-welcome__mark svg').count(), 1, 'Central cultivation leaf is preserved');
-  assert.equal(await intro.getAttribute('dir'), configuration.language === 'ar' ? 'rtl' : 'ltr');
-  assert.equal(await intro.locator('button').count(), 1, 'Welcome has pause only; slide advance has no button');
-  assert.equal(await page.locator('.guided-tour-counter').count(), 0);
+  const controlsBounds = await intro.locator('.mc-welcome__controls').boundingBox();
+  assert.ok(controlsBounds.x >= 0 && controlsBounds.x + controlsBounds.width <= configuration.width + 1, `In-slide language and pause controls fit at ${configuration.width}px`);
   await intro.focus();
   for (const key of ['ArrowLeft', 'Escape', 'Space']) await page.keyboard.press(key);
-  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Non-forward keys do not change slides');
-  await intro.locator('.mc-welcome__phrase').click({ force: true });
-  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[1], 'A tap advances exactly one slide');
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Going back at the first slide does not change it');
+  const introBounds = await intro.boundingBox();
+  await intro.click({ position: { x: 8, y: Math.floor(introBounds.height / 2) }, force: true });
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'The left edge does not move before the first slide');
+  await intro.click({ position: { x: introBounds.width - 8, y: Math.floor(introBounds.height / 2) }, force: true });
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[1], 'The right edge advances exactly one slide');
+  await page.keyboard.press('ArrowLeft');
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Left arrow goes back exactly one slide');
   await page.keyboard.press('ArrowRight');
-  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[2], 'Right arrow advances exactly one slide');
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[1], 'Right arrow advances exactly one slide');
+  const alternateLanguage = selectedLanguage === 'fr' ? 'en' : 'fr';
+  const languageSelect = intro.locator('.mc-welcome__language select');
+  await languageSelect.selectOption(alternateLanguage);
+  await eventually(async () => await intro.getAttribute('lang') === alternateLanguage, 'Intro language selector did not update the app locale');
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), welcomeMessages[alternateLanguage].messages[1], 'Language changes preserve the current slide and update its text');
+  await languageSelect.selectOption(selectedLanguage);
+  await eventually(async () => await intro.getAttribute('lang') === selectedLanguage, 'Intro language could not be restored');
+  await page.keyboard.press('ArrowLeft');
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Changing language does not prevent backward navigation');
+  await page.evaluate(message => { globalThis.__qaWelcomePhrases = [message]; }, messages[0]);
   await intro.locator('.mc-welcome__pause').click({ force: true });
   await page.clock.runFor(90000);
-  assert.equal(await intro.getAttribute('data-paused'), 'true'); assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[2]);
+  assert.equal(await intro.getAttribute('data-paused'), 'true'); assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0]);
   await intro.locator('.mc-welcome__pause').click({ force: true });
   await page.evaluate(() => { globalThis.__qaVisibility = true; document.dispatchEvent(new Event('visibilitychange')); });
   const before = await intro.getAttribute('data-phase'); await page.clock.runFor(90000);
-  assert.equal(await intro.getAttribute('data-phase'), before); assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[2], 'Hidden time is never counted as reading');
+  assert.equal(await intro.getAttribute('data-phase'), before); assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Hidden time is never counted as reading');
   await page.evaluate(() => { globalThis.__qaVisibility = false; document.dispatchEvent(new Event('visibilitychange')); });
   const reduced = await intro.getAttribute('data-reduced-motion') === 'true';
   assert.equal(reduced, configuration.reduced);
-  for (let index = 2; index < 7; index++) {
+  for (let index = 0; index < 7; index++) {
     assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[index]);
     await page.clock.runFor((reduced ? timing.WELCOME_REDUCED_TRANSITION_MS : timing.WELCOME_ENTER_MS) + 1);
     assert.equal(await intro.getAttribute('data-phase'), 'read', `Message ${index + 1} gets an automatic reading phase`);
@@ -495,12 +536,12 @@ async function welcomeCase(page, configuration, account = false) {
   const key = account ? `modo-cultiva:welcome-intro:v1:account:${ORG}:${USER}` : `modo-cultiva:welcome-intro:v1:guest:${VISITOR}`;
   assert.deepEqual(await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key), { version: 1, completed: true });
   await page.clock.resume(); await ready(page, 'modes', configuration.timeout);
-  assert.equal(await page.locator('.guided-tour-layer').getAttribute('lang'), configuration.language, 'Automatic tutorial retains the resolved interface language');
+  assert.equal(await page.locator('.guided-tour-layer').getAttribute('lang'), selectedLanguage, 'Automatic tutorial retains the confirmed interface language');
   await closeTour(page);
-  await page.reload({ waitUntil: 'domcontentloaded' }); await settleHydration(page, configuration.language, configuration.timeout);
+  await page.reload({ waitUntil: 'domcontentloaded' }); await settleHydration(page, selectedLanguage, configuration.timeout);
   await delay(150); assert.equal(await intro.count(), 0, 'Completed intro does not repeat on reload');
   assert.equal(await page.locator('.guided-tour-layer').count(), 0, 'Reload does not restart tutorial');
-  return { phrases: 7, automaticAndManualAdvance: true, pause: true, syntheticVisibilityPause: true, reducedMotion: reduced, noRepeat: true };
+  return { phrases: 7, edgeNavigation: true, languageChange: true, pause: true, syntheticVisibilityPause: true, reducedMotion: reduced, noRepeat: true };
 }
 
 async function runCase(browser, config, task) {
