@@ -102,8 +102,10 @@ export type WelcomeTimeline = Readonly<{
 }>;
 
 export type WelcomeTimelineEvent =
+  | { type: 'start'; nowMs: number }
   | { type: 'tick'; nowMs: number }
   | { type: 'advance'; nowMs: number }
+  | { type: 'retreat'; nowMs: number }
   | { type: 'pause'; paused: boolean; nowMs: number }
   | { type: 'visibility'; hidden: boolean; nowMs: number }
   | { type: 'motion'; reducedMotion: boolean; nowMs: number }
@@ -142,9 +144,14 @@ function sampleWelcomeTime(state: WelcomeTimeline, nowMs: number): WelcomeTimeli
 export function reduceWelcomeTimeline(state: WelcomeTimeline, event: WelcomeTimelineEvent): WelcomeTimeline {
   if (state.phase === 'complete') return state;
   const next = sampleWelcomeTime(state, event.nowMs);
+  if (event.type === 'start') return { ...next, index: 0, phase: 'enter', remainingMs: transitionMs('enter', next.reducedMotion), paused: false };
   if (event.type === 'advance') {
     if (next.index + 1 >= next.readingMs.length) return { ...next, phase: 'complete', remainingMs: 0, paused: false };
     return { ...next, index: next.index + 1, phase: 'enter', remainingMs: transitionMs('enter', next.reducedMotion), paused: false };
+  }
+  if (event.type === 'retreat') {
+    if (next.index === 0) return next;
+    return { ...next, index: next.index - 1, phase: 'enter', remainingMs: transitionMs('enter', next.reducedMotion), paused: false };
   }
   if (event.type === 'pause') return { ...next, paused: event.paused };
   if (event.type === 'visibility') return { ...next, hidden: event.hidden };

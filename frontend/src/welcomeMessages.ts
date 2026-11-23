@@ -9,6 +9,10 @@ type WelcomeCopy = {
   paused: string;
   pause: string;
   resume: string;
+  languageLabel: string;
+  detectedLanguage: string;
+  languagePrompt: string;
+  continueLabel: string;
 };
 
 /** Source copy is deliberately separate from presentation, account state and timing. */
@@ -24,9 +28,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'Entra en Modo Cultiva.',
     ],
     title: 'Bienvenido a Modo Cultiva',
-    automatic: 'Toca o haz clic para avanzar; también continúa automáticamente. Usa → en el teclado.',
+    automatic: 'Toca el borde izquierdo para volver o el derecho para avanzar. También usa ← y →. El idioma se cambia arriba.',
     paused: 'Tómate tu tiempo. La introducción está en pausa.',
     pause: 'Pausar', resume: 'Reanudar',
+    languageLabel: 'Idioma',
+    detectedLanguage: 'Idioma detectado', languagePrompt: 'Si es correcto, continúa. Si no, elige otro idioma.', continueLabel: 'Sí, continuar',
   },
   en: {
     messages: [
@@ -39,9 +45,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'Enter Modo Cultiva.',
     ],
     title: 'Welcome to Modo Cultiva',
-    automatic: 'Tap or click to move ahead; it also continues automatically. Press → on your keyboard.',
+    automatic: 'Tap the left edge to go back or the right edge to move ahead. You can also use ← and →. Change language above.',
     paused: 'Take your time. The introduction is paused.',
     pause: 'Pause', resume: 'Resume',
+    languageLabel: 'Language',
+    detectedLanguage: 'Detected language', languagePrompt: 'If it is correct, continue. Otherwise, choose another language.', continueLabel: 'Yes, continue',
   },
   zh: {
     messages: [
@@ -54,9 +62,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       '进入 Modo Cultiva。',
     ],
     title: '欢迎来到 Modo Cultiva',
-    automatic: '点按或点击即可前进；介绍也会自动播放。按键盘上的 → 前进。',
+    automatic: '点按左侧返回，点按右侧前进；也可使用 ← 和 →。可在上方更改语言。',
     paused: '慢慢来，介绍已暂停。',
     pause: '暂停', resume: '继续播放',
+    languageLabel: '语言',
+    detectedLanguage: '检测到的语言', languagePrompt: '如果语言正确，请继续；否则请选择其他语言。', continueLabel: '是，继续',
   },
   hi: {
     messages: [
@@ -69,9 +79,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'Modo Cultiva में प्रवेश करें।',
     ],
     title: 'Modo Cultiva में आपका स्वागत है',
-    automatic: 'आगे बढ़ने के लिए टैप या क्लिक करें; परिचय अपने आप भी आगे बढ़ेगा। कीबोर्ड पर → दबाएँ।',
+    automatic: 'पीछे जाने के लिए बाएँ किनारे पर और आगे जाने के लिए दाएँ किनारे पर टैप करें। ← और → भी दबा सकते हैं। भाषा ऊपर बदलें।',
     paused: 'अपना समय लें। परिचय रुका हुआ है।',
     pause: 'रोकें', resume: 'फिर शुरू करें',
+    languageLabel: 'भाषा',
+    detectedLanguage: 'पहचानी गई भाषा', languagePrompt: 'यदि यह सही है, तो आगे बढ़ें। अन्यथा दूसरी भाषा चुनें।', continueLabel: 'हाँ, आगे बढ़ें',
   },
   ar: {
     messages: [
@@ -84,9 +96,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'ادخل إلى Modo Cultiva.',
     ],
     title: 'مرحبًا بك في Modo Cultiva',
-    automatic: 'اضغط أو انقر للتقدّم؛ ويتابع التعريف تلقائيًا أيضًا. اضغط → على لوحة المفاتيح.',
+    automatic: 'اضغط على الحافة اليسرى للعودة أو اليمنى للتقدّم. يمكنك أيضًا استخدام ← و→. غيّر اللغة من الأعلى.',
     paused: 'خذ وقتك. التعريف متوقف مؤقتًا.',
     pause: 'إيقاف مؤقت', resume: 'استئناف',
+    languageLabel: 'اللغة',
+    detectedLanguage: 'اللغة المكتشفة', languagePrompt: 'إذا كانت صحيحة، تابع. وإلا فاختر لغة أخرى.', continueLabel: 'نعم، تابع',
   },
   it: {
     messages: [
@@ -99,9 +113,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'Entra in Modo Cultiva.',
     ],
     title: 'Benvenuto in Modo Cultiva',
-    automatic: 'Tocca o fai clic per avanzare; continua anche automaticamente. Premi → sulla tastiera.',
+    automatic: 'Tocca il bordo sinistro per tornare indietro o quello destro per avanzare. Puoi usare anche ← e →. Cambia lingua in alto.',
     paused: 'Prenditi il tuo tempo. L’introduzione è in pausa.',
     pause: 'Pausa', resume: 'Riprendi',
+    languageLabel: 'Lingua',
+    detectedLanguage: 'Lingua rilevata', languagePrompt: 'Se è corretta, continua. Altrimenti scegli un’altra lingua.', continueLabel: 'Sì, continua',
   },
   pt: {
     messages: [
@@ -114,9 +130,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'Entre no Modo Cultiva.',
     ],
     title: 'Boas-vindas ao Modo Cultiva',
-    automatic: 'Toque ou clique para avançar; ela também continua automaticamente. Pressione → no teclado.',
+    automatic: 'Toque na borda esquerda para voltar ou na direita para avançar. Também use ← e →. Altere o idioma acima.',
     paused: 'Vá no seu ritmo. A introdução está pausada.',
     pause: 'Pausar', resume: 'Retomar',
+    languageLabel: 'Idioma',
+    detectedLanguage: 'Idioma detectado', languagePrompt: 'Se estiver correto, continue. Caso contrário, escolha outro idioma.', continueLabel: 'Sim, continuar',
   },
   ru: {
     messages: [
@@ -129,9 +147,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'Войдите в Modo Cultiva.',
     ],
     title: 'Добро пожаловать в Modo Cultiva',
-    automatic: 'Нажмите или коснитесь экрана, чтобы продолжить; вступление также идет автоматически. Нажмите →.',
+    automatic: 'Нажмите слева, чтобы вернуться, или справа, чтобы продолжить. Также можно нажать ← и →. Язык меняется вверху.',
     paused: 'Не торопитесь. Вступление приостановлено.',
     pause: 'Пауза', resume: 'Продолжить',
+    languageLabel: 'Язык',
+    detectedLanguage: 'Определённый язык', languagePrompt: 'Если язык выбран верно, продолжите. Иначе выберите другой.', continueLabel: 'Да, продолжить',
   },
   de: {
     messages: [
@@ -144,9 +164,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'Tritt ein in Modo Cultiva.',
     ],
     title: 'Willkommen bei Modo Cultiva',
-    automatic: 'Tippe oder klicke zum Weitergehen; die Einführung läuft auch automatisch. Drücke → auf der Tastatur.',
+    automatic: 'Tippe links, um zurückzugehen, oder rechts, um weiterzugehen. Du kannst auch ← und → nutzen. Sprache oben ändern.',
     paused: 'Nimm dir Zeit. Die Einführung ist pausiert.',
     pause: 'Pausieren', resume: 'Fortsetzen',
+    languageLabel: 'Sprache',
+    detectedLanguage: 'Erkannte Sprache', languagePrompt: 'Wenn sie stimmt, fahre fort. Andernfalls wähle eine andere Sprache.', continueLabel: 'Ja, fortfahren',
   },
   fr: {
     messages: [
@@ -159,9 +181,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'Entrez dans Modo Cultiva.',
     ],
     title: 'Bienvenue dans Modo Cultiva',
-    automatic: 'Touchez ou cliquez pour avancer ; l’introduction continue aussi automatiquement. Appuyez sur →.',
+    automatic: 'Touchez le bord gauche pour revenir en arrière ou le droit pour avancer. Utilisez aussi ← et →. Changez la langue en haut.',
     paused: 'Prenez votre temps. L’introduction est en pause.',
     pause: 'Pause', resume: 'Reprendre',
+    languageLabel: 'Langue',
+    detectedLanguage: 'Langue détectée', languagePrompt: 'Si elle est correcte, continuez. Sinon, choisissez une autre langue.', continueLabel: 'Oui, continuer',
   },
   da: {
     messages: [
@@ -174,9 +198,11 @@ export const welcomeMessages: Readonly<Record<WelcomeLanguage, WelcomeCopy>> = {
       'Træd ind i Modo Cultiva.',
     ],
     title: 'Velkommen til Modo Cultiva',
-    automatic: 'Tryk eller klik for at gå videre; introduktionen fortsætter også automatisk. Tryk på →.',
+    automatic: 'Tryk på venstre kant for at gå tilbage eller højre kant for at gå frem. Du kan også bruge ← og →. Skift sprog øverst.',
     paused: 'Tag dig god tid. Introduktionen er sat på pause.',
     pause: 'Pause', resume: 'Fortsæt',
+    languageLabel: 'Sprog',
+    detectedLanguage: 'Registreret sprog', languagePrompt: 'Hvis det er korrekt, kan du fortsætte. Ellers vælg et andet sprog.', continueLabel: 'Ja, fortsæt',
   },
 };
 

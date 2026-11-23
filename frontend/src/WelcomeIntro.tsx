@@ -1,8 +1,8 @@
-import { useEffect, useId, useLayoutEffect, useReducer, useRef, type CSSProperties } from 'react';
+import { useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { CultivaLeaf } from './CultivaLeaf';
 import brandLogo from './assets/modo-cultiva-logo-official.png';
-import { getWelcomeMessages, resolveWelcomeLanguage } from './welcomeMessages';
+import { getWelcomeMessages, resolveWelcomeLanguage, WELCOME_LANGUAGES, type WelcomeLanguage } from './welcomeMessages';
 import {
   createWelcomeTimeline, reduceWelcomeTimeline, welcomeNextDelayMs,
   WELCOME_ENTER_MS, WELCOME_EXIT_MS, WELCOME_REDUCED_TRANSITION_MS,
@@ -11,6 +11,7 @@ import './welcome-intro.css';
 
 export type WelcomeIntroProps = {
   language: string;
+  onLanguageChange: (language: string) => void;
   onComplete: () => void;
 };
 
@@ -26,31 +27,40 @@ export function WelcomeIntroMark() {
 }
 
 const now = () => performance.now();
+const languageNames: Record<WelcomeLanguage, string> = {
+  es: 'Español', en: 'English', zh: '中文', hi: 'हिन्दी', ar: 'العربية',
+  it: 'Italiano', pt: 'Português', ru: 'Русский', de: 'Deutsch', fr: 'Français', da: 'Dansk',
+};
 
 /**
  * Mount only after the caller resolves first-visit eligibility. This component
  * never reads account data, persists flags, invokes AI or resets a saved map.
  * Unmount + remount for a genuinely different visitor/account scope.
  */
-export function WelcomeIntro({ language, onComplete }: WelcomeIntroProps) {
+export function WelcomeIntro({ language, onLanguageChange, onComplete }: WelcomeIntroProps) {
   const resolvedLanguage = resolveWelcomeLanguage(language);
   const copy = getWelcomeMessages(resolvedLanguage);
   const [timeline, dispatch] = useReducer(reduceWelcomeTimeline, null, () => createWelcomeTimeline(
     copy.messages, typeof performance === 'undefined' ? 0 : now(),
     { hidden: typeof document !== 'undefined' && document.hidden },
   ));
+  const [started, setStarted] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const pauseRef = useRef<HTMLButtonElement>(null);
   const onCompleteRef = useRef(onComplete);
   const completionSentRef = useRef(false);
   const languageRef = useRef(resolvedLanguage);
+  const languageChangeRef = useRef(onLanguageChange);
   const titleId = useId();
   const phraseId = useId();
   const hintId = useId();
+  const languageTitleId = useId();
+  const languageHintId = useId();
   const finished = timeline.phase === 'complete';
 
   // Updating callbacks never restarts the clock or repeats completion.
   useLayoutEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+  useLayoutEffect(() => { languageChangeRef.current = onLanguageChange; }, [onLanguageChange]);
   useLayoutEffect(() => {
     if (languageRef.current !== resolvedLanguage) {
       languageRef.current = resolvedLanguage;
@@ -74,6 +84,7 @@ export function WelcomeIntro({ language, onComplete }: WelcomeIntroProps) {
   }, [finished]);
 
   useEffect(() => {
+    if (!started) return;
     const delay = welcomeNextDelayMs(timeline);
     if (delay === null) return;
     const timeout = window.setTimeout(() => {
@@ -83,7 +94,7 @@ export function WelcomeIntro({ language, onComplete }: WelcomeIntroProps) {
         : { type: 'tick', nowMs: now() });
     }, delay);
     return () => window.clearTimeout(timeout);
-  }, [timeline]);
+  }, [timeline, started]);
 
   // The portal stays separate from the actual twelve-card Holista circle.
   // Preserve pre-existing inert/scroll/focus state, including on early unmount.
@@ -138,12 +149,12 @@ export function WelcomeIntro({ language, onComplete }: WelcomeIntroProps) {
     className="mc-welcome"
     role="dialog"
     aria-modal="true"
-    aria-labelledby={titleId}
-    aria-describedby={`${phraseId} ${hintId}`}
+    aria-labelledby={started ? titleId : languageTitleId}
+    aria-describedby={started ? `${phraseId} ${hintId}` : languageHintId}
     lang={resolvedLanguage}
     dir={resolvedLanguage === 'ar' ? 'rtl' : 'ltr'}
     tabIndex={-1}
-    data-phase={timeline.phase}
+    data-phase={started ? timeline.phase : 'language'}
     data-paused={paused}
     data-reduced-motion={timeline.reducedMotion}
     data-final={timeline.index === copy.messages.length - 1}
@@ -152,40 +163,78 @@ export function WelcomeIntro({ language, onComplete }: WelcomeIntroProps) {
       event.stopPropagation();
       if (event.key === 'Tab') {
         event.preventDefault();
-        pauseRef.current?.focus({ preventScroll: true });
-      } else if (event.key === 'ArrowRight' && !event.repeat) {
+        const controls = Array.from(rootRef.current?.querySelectorAll<HTMLElement>('.mc-welcome__language select, .mc-welcome__pause, .mc-welcome__continue') ?? []);
+        const currentIndex = controls.indexOf(document.activeElement as HTMLElement);
+        const nextIndex = event.shiftKey
+          ? (currentIndex <= 0 ? controls.length - 1 : currentIndex - 1)
+          : (currentIndex < 0 || currentIndex === controls.length - 1 ? 0 : currentIndex + 1);
+        controls[nextIndex]?.focus({ preventScroll: true });
+      } else if (started && (event.key === 'ArrowRight' || event.key === 'ArrowLeft') && !event.repeat
+        && !(event.target instanceof Element && event.target.closest('button, select, input, textarea'))) {
         event.preventDefault();
-        dispatch({ type: 'advance', nowMs: now() });
+        dispatch({ type: event.key === 'ArrowRight' ? 'advance' : 'retreat', nowMs: now() });
       }
     }}
     onKeyUp={(event) => event.stopPropagation()}
     onClick={(event) => {
       event.stopPropagation();
-      if (!(event.target instanceof Element) || !event.target.closest('.mc-welcome__pause')) {
-        dispatch({ type: 'advance', nowMs: now() });
-      }
+      if (!started) return;
+      if (event.target instanceof Element && event.target.closest('.mc-welcome__language, .mc-welcome__pause')) return;
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const position = (event.clientX - bounds.left) / bounds.width;
+      if (position <= .2) dispatch({ type: 'retreat', nowMs: now() });
+      else if (position >= .8) dispatch({ type: 'advance', nowMs: now() });
     }}
     onPointerDown={(event) => event.stopPropagation()}
     onTouchStart={(event) => event.stopPropagation()}
   >
     <h1 id={titleId} className="mc-welcome__sr-only">{copy.title}</h1>
     <div className="mc-welcome__atmosphere" aria-hidden="true" />
+    {!started ? <main className="mc-welcome__language-gate">
+      <img className="mc-welcome__gate-logo" src={brandLogo} alt="" width="64" height="64" />
+      <h2 id={languageTitleId}>{copy.detectedLanguage}</h2>
+      <p id={languageHintId}>{copy.languagePrompt}</p>
+      <label className="mc-welcome__language mc-welcome__language--gate">
+        <span className="mc-welcome__sr-only">{copy.languageLabel}</span>
+        <select value={resolvedLanguage} aria-label={copy.languageLabel}
+          onChange={(event) => languageChangeRef.current(event.target.value)}>
+          {WELCOME_LANGUAGES.map((code) => <option key={code} value={code} lang={code}>{languageNames[code]}</option>)}
+        </select>
+        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="m3 4.5 3 3 3-3" /></svg>
+      </label>
+      <button type="button" className="mc-welcome__continue" onClick={() => {
+        dispatch({ type: 'start', nowMs: now() });
+        setStarted(true);
+      }}>{copy.continueLabel}</button>
+    </main> : <>
     <header className="mc-welcome__header">
       <div className="mc-welcome__brand" aria-hidden="true"><img src={brandLogo} alt="" width="40" height="40" /><span dir="ltr">Modo Cultiva</span></div>
-      <button
-        ref={pauseRef}
-        type="button"
-        className="mc-welcome__pause"
-        onClick={() => dispatch({ type: 'pause', paused: !timeline.paused, nowMs: now() })}
-        aria-controls={phraseId}
-      >
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
-          {timeline.paused ? <path d="m7 4 8 6-8 6V4Z" fill="currentColor" />
-            : <path d="M6 5v10M14 5v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />}
-        </svg>
-        <span>{timeline.paused ? copy.resume : copy.pause}</span>
-      </button>
+      <div className="mc-welcome__controls">
+        <label className="mc-welcome__language">
+          <span className="mc-welcome__sr-only">{copy.languageLabel}</span>
+          <select value={resolvedLanguage} aria-label={copy.languageLabel}
+            onChange={(event) => languageChangeRef.current(event.target.value)}>
+            {WELCOME_LANGUAGES.map((code) => <option key={code} value={code} lang={code}>{languageNames[code]}</option>)}
+          </select>
+          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="m3 4.5 3 3 3-3" /></svg>
+        </label>
+        <button
+          ref={pauseRef}
+          type="button"
+          className="mc-welcome__pause"
+          onClick={() => dispatch({ type: 'pause', paused: !timeline.paused, nowMs: now() })}
+          aria-controls={phraseId}
+        >
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+            {timeline.paused ? <path d="m7 4 8 6-8 6V4Z" fill="currentColor" />
+              : <path d="M6 5v10M14 5v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />}
+          </svg>
+          <span>{timeline.paused ? copy.resume : copy.pause}</span>
+        </button>
+      </div>
     </header>
+    <span className="mc-welcome__edge-cue mc-welcome__edge-cue--previous" aria-hidden="true">‹</span>
+    <span className="mc-welcome__edge-cue mc-welcome__edge-cue--next" aria-hidden="true">›</span>
     <main className="mc-welcome__stage">
       <WelcomeIntroMark />
       <div className="mc-welcome__message" data-long={Array.from(phrase).length > 85}>
@@ -193,9 +242,10 @@ export function WelcomeIntro({ language, onComplete }: WelcomeIntroProps) {
       </div>
       <div className="mc-welcome__flourish" aria-hidden="true"><span /><i /><span /></div>
     </main>
-    <footer className="mc-welcome__footer">
+    </>}
+    {started && <footer className="mc-welcome__footer">
       <p id={hintId}>{timeline.paused ? copy.paused : copy.automatic}</p>
-    </footer>
+    </footer>}
   </div>, document.body);
 }
 
