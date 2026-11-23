@@ -426,7 +426,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
     await ready(page, step, configuration.timeout); seen.push(step);
     const inspected = await inspectSpotlight(page, owner);
     if (process.env.ACTIVITY_QA_SCREENSHOTS && ['evidence', 'homeSort', 'menuTrivia'].includes(step)) {
-      await page.screenshot({ path: resolve(process.env.ACTIVITY_QA_SCREENSHOTS, `tour-${step}-${configuration.width}-${configuration.language}.png`) });
+      await page.screenshot({ animations: 'disabled', path: resolve(process.env.ACTIVITY_QA_SCREENSHOTS, `tour-${step}-${configuration.width}-${configuration.language}.png`) });
     }
     assert.equal(inspected.dir, configuration.language === 'ar' ? 'rtl' : 'ltr', 'Localized spotlight direction');
     if (inspected.scrollY > inspected.height) scrollEvidence.push(step);
@@ -445,7 +445,7 @@ async function walkTour(page, configuration, { owner = false, regress = false, s
       const current = page.locator('.journey-step-list button[aria-current="step"]');
       assert.equal(await current.locator('..').getAttribute('data-journey-step'), String(journeyStage), 'Tutorial opens the matching real journey stage');
       assert.equal(await page.locator('.journey-deck-content').getAttribute('data-step'), String(journeyStage));
-      const target = journeyStage === 1 ? current : page.locator(journeyStage === 2 ? '.visual-evidence-picker, .activity-flow-evidence-snapshot .visual-evidence-input legend' : '.activity-flow-review');
+      const target = journeyStage === 1 ? current : page.locator(journeyStage === 2 ? '.visual-evidence-picker, .activity-flow-evidence-snapshot .visual-evidence-input legend' : '.activity-flow-approval-count');
       assert.ok(await target.evaluate(element => {
         const { left, top, width, height } = element.getBoundingClientRect();
         return [...document.querySelectorAll('.guided-tour-outline')].some(outline => {

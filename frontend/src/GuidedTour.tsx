@@ -156,7 +156,7 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
     const doc = host.ownerDocument; const win = doc.defaultView!;
     const viewport = win.visualViewport;
     let unavailableSince: number | null = win.performance.now(); let frame = 0; let lastSignature = '';
-    let scrolled = false; let notified = false;
+    let scrollAttempts = 0; let lastScroll = -Infinity; let notified = false;
     const wait = Math.max(250, Math.min(10000, Number.isFinite(props.targetWaitMs) ? props.targetWaitMs! : 3500));
     const update = () => {
       const width = viewport?.width ?? win.innerWidth; const height = viewport?.height ?? win.innerHeight;
@@ -186,8 +186,11 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
       const partiallyClipped = singleTarget?.visible && singleTarget.layout.height < height - 32
         && (singleTarget.layout.height - singleTarget.visible.height > 2 || singleTarget.layout.width - singleTarget.visible.width > 2)
         && centeredTarget && placeTourPanel(width, height, [centeredTarget], rtl);
-      if (!reason && (!holes.length || partiallyClipped) && !scrolled && resolved.elements[0]) {
-        scrolled = true;
+      // The first scroll can be clamped while a preceding card unmounts or a
+      // container animates. Try again while the anchor remains out of view.
+      if (!reason && !entry.current.pending && !entry.current.failed && (!holes.length || partiallyClipped)
+        && scrollAttempts < 3 && win.performance.now() - lastScroll >= 120 && resolved.elements[0]) {
+        scrollAttempts += 1; lastScroll = win.performance.now();
         resolved.elements[0].scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
       }
       if (!holes.length && !reason) reason = 'missing';

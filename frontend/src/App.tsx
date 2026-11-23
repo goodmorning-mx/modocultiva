@@ -1688,7 +1688,7 @@ function App() {
       custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions .journey-local-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort',
       activityCard: '.journey-step-list > [data-journey-step="1"]',
       evidence: '.journey-deck-content[data-step="2"] :is(.visual-evidence-picker, .visual-evidence-input:not(:has(.visual-evidence-picker)) > legend)',
-      validation: '.journey-deck-content[data-step="3"] .activity-flow-review',
+      validation: '.journey-deck-content[data-step="3"] .activity-flow-approval-count',
       audience: '.activity-flow-audience .card-audience-options', reviews: '.community-header h2', vision: '.journey-level-card--vision .journey-level-card-top',
       reactions: '.journey-reactions', sharing: '.activity-share-dialog[open] > header > div > h2, body:not(:has(.activity-share-dialog[open])) .journey-share', globalIdeas: '.cult-embedded-content .cult-section-heading',
       community: '.community-header h2', profile: profilePreviewMode ? '.profile-preview-identity' : '.home-profile-avatar',
