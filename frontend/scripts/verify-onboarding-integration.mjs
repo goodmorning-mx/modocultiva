@@ -461,31 +461,43 @@ async function welcomeCase(page, configuration, account = false) {
   assert.equal(await intro.getAttribute('lang'), configuration.language);
   assert.equal(await page.locator('html').getAttribute('lang'), configuration.language === 'zh' ? 'zh-CN' : configuration.language);
   assert.equal(await intro.getAttribute('dir'), configuration.language === 'ar' ? 'rtl' : 'ltr');
-  assert.equal(await intro.locator('button').count(), 1, 'Welcome has pause only; slide advance has no button');
-  assert.equal(await intro.locator('.mc-welcome__language option').count(), 11, 'Optional intro selector offers every app language');
-  assert.equal(await intro.locator('.mc-welcome__phrase').count(), 0, 'Slides do not animate before language confirmation');
-  assert.equal(await intro.locator('.mc-welcome__language-gate h2').innerText(), welcomeMessages[selectedLanguage].detectedLanguage);
-  assert.equal(await page.locator('.guided-tour-counter').count(), 0);
-  for (const selector of ['.mc-welcome__language-gate', '.mc-welcome__language--gate select', '.mc-welcome__continue']) {
+  assert.equal(await intro.locator('.mc-welcome__install-gate button').count(), 2, 'First-run offers install and browser continuation immediately');
+  assert.equal(await intro.locator('.mc-welcome__phrase').count(), 0, 'Slides wait for the install or browser choice');
+  for (const selector of ['.mc-welcome__install-gate', '.mc-welcome__install-action', '.mc-welcome__browser-action']) {
     const bounds = await intro.locator(selector).boundingBox();
     assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= configuration.width + 1, `${selector} fits horizontally at ${configuration.width}px`);
   }
+  if (selectedLanguage === 'en') {
+    await page.evaluate(() => {
+      const prompt = new Event('beforeinstallprompt'); prompt.preventDefault = () => {};
+      prompt.prompt = () => { window.__welcomeInstallPromptCalls = (window.__welcomeInstallPromptCalls || 0) + 1; return Promise.resolve(); };
+      prompt.userChoice = Promise.resolve({ outcome: 'accepted' }); window.dispatchEvent(prompt);
+    });
+    await intro.locator('.mc-welcome__install-action').click();
+    await intro.locator('.mc-welcome__phrase').waitFor({ timeout: configuration.timeout });
+    assert.equal(await page.evaluate(() => window.__welcomeInstallPromptCalls), 1, 'Install prompt is triggered from the user gesture');
+  } else {
+    await intro.locator('.mc-welcome__install-action').click();
+    assert.equal(await intro.locator('.mc-welcome__install-help').count(), 1, 'Unsupported browsers receive installation guidance');
+    await intro.locator('.mc-welcome__browser-action').click();
+  }
+  await intro.locator('.mc-welcome__phrase').waitFor({ timeout: configuration.timeout });
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Slides start immediately after choosing install or browser');
+  assert.equal(await intro.locator('.mc-welcome__language option').count(), 11, 'In-slide language selector offers every app language');
+  assert.equal(await page.locator('.guided-tour-counter').count(), 0);
   await intro.focus();
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), welcomeMessages[selectedLanguage].languageLabel, 'Keyboard can focus the language selector first');
   await page.keyboard.press('Tab');
-  assert.equal(await page.evaluate(() => document.activeElement?.className), 'mc-welcome__continue', 'Keyboard can reach the language confirmation');
+  assert.equal(await page.evaluate(() => document.activeElement?.className), 'mc-welcome__pause', 'Keyboard can reach slide controls');
   const gateLanguage = selectedLanguage === 'fr' ? 'en' : 'fr';
-  const gateLanguageSelect = intro.locator('.mc-welcome__language--gate select');
+  const gateLanguageSelect = intro.locator('.mc-welcome__language select');
   await gateLanguageSelect.selectOption(gateLanguage);
-  await eventually(async () => await intro.getAttribute('lang') === gateLanguage, 'Detected language could not be changed before the intro');
-  await eventually(async () => await page.locator('html').getAttribute('lang') === gateLanguage, 'The selected locale did not reach the app before the intro');
+  await eventually(async () => await intro.getAttribute('lang') === gateLanguage, 'Detected language could not be changed during the intro');
+  await eventually(async () => await page.locator('html').getAttribute('lang') === gateLanguage, 'The selected locale did not reach the app during the intro');
   selectedLanguage = gateLanguage;
   messages = welcomeMessages[selectedLanguage].messages;
-  assert.equal(await intro.locator('.mc-welcome__language-gate h2').innerText(), welcomeMessages[selectedLanguage].detectedLanguage);
-  await intro.locator('.mc-welcome__continue').click();
-  await intro.locator('.mc-welcome__phrase').waitFor({ timeout: configuration.timeout });
-  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Confirming the detected/selected language starts slide one');
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Changing language during the slides updates the active text');
   await eventually(async () => intro.locator('.mc-welcome__brand img').evaluate(img => img.complete && img.naturalWidth > 0), 'Official header logo must load');
   assert.equal(await intro.locator('.mc-welcome__brand svg').count(), 0, 'Header uses the actual logo, not the cultivation leaf');
   assert.equal(await intro.locator('.mc-welcome__mark svg').count(), 1, 'Central cultivation leaf is preserved');
