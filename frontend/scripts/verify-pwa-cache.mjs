@@ -7,6 +7,7 @@ const manifest = JSON.parse(readFileSync(new URL('../public/manifest.webmanifest
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const manifestUrl = new URL(html.match(/rel="manifest" href="([^"]+)"/)[1], origin).href;
 const oldManifest = { ...manifest, short_name: 'Cultiva' };
+const iconPaths = [...manifest.icons.map(icon => icon.src), ...[...html.matchAll(/rel="(?:icon|apple-touch-icon)"[^>]*href="([^"]+)"/g)].map(match => match[1])];
 const json = (value) => new Response(JSON.stringify(value), { headers: { 'Content-Type': 'application/manifest+json' } });
 const key = (request) => new URL(typeof request === 'string' ? request : request.url, origin).href;
 const stores = new Map();
@@ -24,6 +25,7 @@ async function network(request, options) {
   if (new URL(url).pathname === '/manifest.webmanifest') {
     return json(['reload', 'no-store', 'no-cache'].includes(mode) ? manifest : oldManifest);
   }
+  if (iconPaths.includes(new URL(url).pathname)) return new Response('new electric icon', { headers: { 'Content-Type': 'image/png' } });
   return new Response(url === `${origin}/` ? '<html>Modo Cultiva</html>' : 'asset');
 }
 
@@ -47,7 +49,8 @@ const caches = {
     }
   },
 };
-const oldCache = await caches.open('modo-cultiva-shell-v6');
+const oldName = 'modo-cultiva-shell-v7';
+const oldCache = await caches.open(oldName);
 await oldCache.put('/manifest.webmanifest', json(oldManifest));
 await oldCache.put('/', new Response('<html>Old shell</html>'));
 const userCache = await caches.open('user-content');
@@ -73,12 +76,12 @@ let lifecycle;
 handlers.get('install')({ waitUntil: (promise) => { lifecycle = promise; } });
 await lifecycle;
 assert.ok(calls.length >= 4 && calls.every((call) => call.mode === 'reload'), 'Upgrade must bypass stale HTTP cache for the shell and installation assets');
-const currentCache = stores.get((await caches.keys()).find((name) => name.startsWith('modo-cultiva-shell-') && name !== 'modo-cultiva-shell-v6'));
+const currentCache = stores.get((await caches.keys()).find((name) => name.startsWith('modo-cultiva-shell-') && name !== oldName));
 assert.equal((await currentCache.get(manifestUrl).clone().json()).short_name, 'Modo Cultiva');
 
 handlers.get('activate')({ waitUntil: (promise) => { lifecycle = promise; } });
 await lifecycle;
-assert.equal(stores.has('modo-cultiva-shell-v6'), false, 'Old abbreviated metadata must be discarded');
+assert.equal(stores.has(oldName), false, 'Old icon metadata must be discarded');
 assert.equal(claimed, true);
 assert.deepEqual(await (await userCache.match('/saved-map')).json(), { fisico: 7, familiar: 4 }, 'Unrelated user caches must survive the upgrade');
 
@@ -104,6 +107,12 @@ assert.equal(calls.at(-1).mode, 'no-cache', 'Page refreshes must revalidate the 
 
 offline = true;
 assert.equal((await (await dispatchFetch('/manifest.webmanifest')).json()).short_name, 'Modo Cultiva', 'Offline metadata must use the current name');
+for (const path of iconPaths) {
+  const icon = await dispatchFetch(path);
+  assert.equal(icon.headers.get('Content-Type'), 'image/png');
+  assert.equal(await icon.text(), 'new electric icon');
+  assert.equal(calls.find(call => call.url === key(path))?.mode, 'reload', 'Every new icon must be precached from the network');
+}
 currentCache.delete(manifestUrl);
 assert.equal((await dispatchFetch('/manifest.webmanifest')).type, 'error', 'Missing offline metadata must not fall back to HTML or an old name');
 for (const path of ['/auth/session', '/state', '/agent/run', '/ai/generate', '/api/state']) {

@@ -1,10 +1,11 @@
-const CACHE = 'modo-cultiva-shell-v7';
-const MANIFEST = '/manifest.webmanifest?v=2026-10-25-full-name';
+const CACHE = 'modo-cultiva-shell-v8';
+const MANIFEST = '/manifest.webmanifest?v=2026-11-23-electric-green';
+const BRAND_ICONS = ['32', '180', '192', '512', 'maskable-512'].map(size => `/brand/cultiva-electric-green-${size}.png`);
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   // Bypass previously cached installation metadata when upgrading the shell.
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(
-    ['/', MANIFEST, '/modo-cultiva-icon-192.png', '/modo-cultiva-icon-512.png']
+    ['/', MANIFEST, ...BRAND_ICONS]
       .map((url) => new Request(url, { cache: 'reload' })),
   )));
 });
@@ -29,6 +30,18 @@ self.addEventListener('fetch', (event) => {
         // Only use this release's metadata offline; never an old name or HTML.
         return (await cache.match(MANIFEST)) || Response.error();
       }
+    })());
+    return;
+  }
+  if (url.origin === self.location.origin && BRAND_ICONS.includes(url.pathname)) {
+    // Versioned paths serve the same artwork online and offline, never the HTML shell.
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      const hit = await cache.match(url.pathname);
+      if (hit) return hit;
+      const response = await fetch(request);
+      if (response.ok) await cache.put(url.pathname, response.clone());
+      return response;
     })());
     return;
   }

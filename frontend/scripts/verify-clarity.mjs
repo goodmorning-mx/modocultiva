@@ -39,7 +39,7 @@ const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
 assert.equal((app.match(/<ClarityGoal /g) ?? []).length,2, 'Recommended activities and AI show the canonical target');
 assert.match(app, /<ActivityJourneyFlow[^\n]+definitionOnly/, 'The manual editor uses the shared flow and canonical target');
 assert.doesNotMatch(app, /journeySlide < 9 && <ClarityGoal/, 'Do not repeat the activity target above the journey card');
-assert.ok(app.includes("nextClarity: '.journey-builder .activity-flow-target summary'"), 'Tour uses the remaining compact activity target');
+assert.ok(app.includes("nextPresence: '.journey-builder .activity-flow-target summary'"), 'Tour uses the remaining compact activity target');
 const flow = await readFile(new URL('../src/ActivityJourneyFlow.tsx', import.meta.url), 'utf8');
 assert.equal((flow.match(/<aside className="activity-flow-target"/g) ?? []).length,1, 'Keep one target inside the activity workflow');
 assert.match(app, /mode_name: modeName\(selectedMode\),\s+language,/);

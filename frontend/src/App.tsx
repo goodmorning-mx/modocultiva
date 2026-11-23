@@ -54,7 +54,6 @@ import { badgeProgress, cleanCompletions, hasVisionImage, eligibleFeaturedBadges
 import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
-import logo from './assets/modo-cultiva-logo-neon.png';
 import homeElectricLogo from './assets/modo-cultiva-logo-electric.webp';
 import './skin-overrides.css';
 import './life-map-polish.css';
@@ -100,7 +99,7 @@ const tourMenuItems: Partial<Record<TourTopic, string>> = {
   configurations: 'configurations', lifeContext: 'life-context', homeImages: 'images',
   menuDashboard: 'dashboard', specialists: 'specialists', menuTrivia: 'trivia', replay: 'replay',
 };
-const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextClarity', 'methods', ...TOUR_METHODS, 'effort', 'activityCard', 'evidence', 'validation', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'community', 'profile', 'badges', 'homeSort', 'homeMenu', 'configurations', 'lifeContext', 'homeImages', 'menuDashboard', 'specialists', 'menuTrivia', 'replay'] satisfies TourTopic[])
+const tourTopics: readonly TourTopic[] = (['modes', 'modeDescription', 'selfAssessment', 'activityDesign', 'nextPresence', 'methods', ...TOUR_METHODS, 'effort', 'activityCard', 'evidence', 'validation', 'audience', 'reviews', 'vision', 'reactions', 'sharing', 'community', 'profile', 'badges', 'homeSort', 'homeMenu', 'configurations', 'lifeContext', 'homeImages', 'menuDashboard', 'specialists', 'menuTrivia', 'replay'] satisfies TourTopic[])
   .filter(topic => (JOURNEY_REACTIONS_ENABLED || topic !== 'reactions') && (JOURNEY_SUBMISSION_AUDIENCE_ENABLED || topic !== 'audience'));
 const tourMethodTargets: Record<TourMethod, string> = {
   custom: '.journey-manual-button', bank: '.journey-recommended-button', localContacts: '.journey-local-button',
@@ -548,7 +547,7 @@ const extraTranslations: Record<string, Record<Language, string>> = {
   effortMedio: { es: 'Esta etapa requiere tiempo y energía: sostener una práctica activa, tomar decisiones y mantener continuidad.', en: 'This stage requires time and energy: sustaining active practice, making decisions and maintaining continuity.', zh: '这一阶段需要时间和精力：保持主动实践、作出决定并维持连续性。', hi: 'इस चरण में समय और ऊर्जा चाहिए: सक्रिय अभ्यास बनाए रखना, निर्णय लेना और निरंतरता रखना।', ar: 'تتطلب هذه المرحلة الوقت والطاقة: الحفاظ على ممارسة نشطة واتخاذ القرارات والاستمرارية.', it: 'Questa fase richiede tempo ed energia: sostenere una pratica attiva, prendere decisioni e mantenere continuità.', pt: 'Esta etapa requer tempo e energia: manter uma prática ativa, tomar decisões e preservar a continuidade.', ru: 'На этом этапе нужны время и энергия: поддерживать активную практику, принимать решения и сохранять непрерывность.', de: 'Diese Phase erfordert Zeit und Energie: aktive Praxis aufrechterhalten, Entscheidungen treffen und Kontinuität sichern.', fr: 'Cette étape demande du temps et de l’énergie : maintenir une pratique active, décider et assurer la continuité.', da: 'Dette trin kræver tid og energi: at fastholde en aktiv praksis, træffe beslutninger og bevare kontinuiteten.' },
   effortAlto: { es: 'Esta etapa requiere tiempo, energía y dinero: asignar recursos, ampliar capacidades y sostener una operación más compleja.', en: 'This stage requires time, energy and money: allocating resources, expanding capabilities and sustaining greater complexity.', zh: '这一阶段需要时间、精力和金钱：分配资源、扩展能力并维持更复杂的运作。', hi: 'इस चरण में समय, ऊर्जा और धन चाहिए: संसाधन लगाना, क्षमताएं बढ़ाना और अधिक जटिल संचालन बनाए रखना।', ar: 'تتطلب هذه المرحلة الوقت والطاقة والمال: توزيع الموارد وتوسيع القدرات والحفاظ على تشغيل أكثر تعقيداً.', it: 'Questa fase richiede tempo, energia e denaro: assegnare risorse, ampliare le capacità e sostenere un funzionamento più complesso.', pt: 'Esta etapa requer tempo, energia e dinheiro: alocar recursos, ampliar capacidades e sustentar uma operação mais complexa.', ru: 'На этом этапе нужны время, энергия и деньги: распределять ресурсы, расширять возможности и поддерживать более сложную работу.', de: 'Diese Phase erfordert Zeit, Energie und Geld: Ressourcen einsetzen, Fähigkeiten erweitern und komplexere Abläufe tragen.', fr: 'Cette étape demande du temps, de l’énergie et de l’argent : allouer des ressources, élargir les capacités et soutenir une organisation plus complexe.', da: 'Dette trin kræver tid, energi og penge: at fordele ressourcer, udvide evner og opretholde en mere kompleks drift.' },
   effortVision: { es: 'Esta etapa integra los recursos desarrollados para consolidar una visión completa.', en: 'This stage integrates the resources developed to consolidate a complete vision.', zh: '这一阶段整合已发展的资源，形成完整的愿景。', hi: 'यह चरण विकसित संसाधनों को जोड़कर एक पूर्ण दृष्टि को मजबूत करता है।', ar: 'تدمج هذه المرحلة الموارد التي طُوّرت لترسيخ رؤية كاملة.', it: 'Questa fase integra le risorse sviluppate per consolidare una visione completa.', pt: 'Esta etapa integra os recursos desenvolvidos para consolidar uma visão completa.', ru: 'Этот этап объединяет развитые ресурсы для формирования целостного видения.', de: 'Diese Phase verbindet die entwickelten Ressourcen zu einer vollständigen Vision.', fr: 'Cette étape intègre les ressources développées pour consolider une vision complète.', da: 'Dette trin samler de udviklede ressourcer til en samlet vision.' },
-  presenceLevel: { es: 'Aumenta o disminuye tu nivel de claridad basado en tu realidad actual', en: 'Increase or decrease your clarity level based on your current reality', zh: '根据你当前的实际情况提高或降低你的清晰度', hi: 'अपनी वर्तमान वास्तविकता के अनुसार स्पष्टता का स्तर बढ़ाएँ या घटाएँ', ar: 'ارفع أو اخفض مستوى وضوحك بناءً على واقعك الحالي', it: 'Aumenta o diminuisci il tuo livello di chiarezza in base alla tua realtà attuale', pt: 'Aumente ou diminua seu nível de clareza com base na sua realidade atual', ru: 'Повышайте или понижайте уровень ясности с учётом текущей ситуации', de: 'Erhöhe oder verringere deine Klarheit entsprechend deiner aktuellen Lebensrealität', fr: 'Augmentez ou diminuez votre niveau de clarté selon votre réalité actuelle', da: 'Hæv eller sænk dit klarhedsniveau ud fra din aktuelle virkelighed' },
+  presenceLevel: { es: 'Aumenta o disminuye tu nivel de presencia basado en tu realidad actual', en: 'Increase or decrease your presence level based on your current reality', zh: '根据你当前的实际情况提高或降低你的在场程度等级', hi: 'अपनी वर्तमान वास्तविकता के अनुसार उपस्थिति का स्तर बढ़ाएँ या घटाएँ', ar: 'ارفع أو اخفض مستوى حضورك بناءً على واقعك الحالي', it: 'Aumenta o diminuisci il tuo livello di presenza in base alla tua realtà attuale', pt: 'Aumente ou diminua seu nível de presença com base na sua realidade atual', ru: 'Повышайте или понижайте уровень присутствия с учётом текущей ситуации', de: 'Erhöhe oder verringere deine Präsenzstufe entsprechend deiner aktuellen Lebensrealität', fr: 'Augmentez ou diminuez votre niveau de présence selon votre réalité actuelle', da: 'Hæv eller sænk dit tilstedeværelsesniveau ud fra din aktuelle virkelighed' },
   activityDesign: { es: 'Diseño de Actividad', en: 'Activity Design', zh: '活动设计', hi: 'गतिविधि डिजाइन', ar: 'تصميم النشاط', it: 'Progettazione dell’attività', pt: 'Design da atividade', ru: 'Дизайн активности', de: 'Aktivitätsdesign', fr: 'Conception de l’activité', da: 'Aktivitetsdesign' },
   cultivationPath: { es: 'Tu ruta de cultivo', en: 'Your cultivation path', zh: '你的培育路径', hi: 'आपका विकास मार्ग', ar: 'مسار تنميتك', it: 'Il tuo percorso di crescita', pt: 'Sua rota de cultivo', ru: 'Ваш путь развития', de: 'Dein Entwicklungsweg', fr: 'Votre parcours de développement', da: 'Din udviklingsrejse' },
   journeyBuilderIntro: { es: 'Define una práctica concreta para avanzar en', en: 'Define a concrete practice to advance in', zh: '为此模式制定一项具体的实践，帮助你不断进步', hi: 'इस मोड में आगे बढ़ने के लिए एक ठोस अभ्यास तय करें', ar: 'حدّد ممارسة ملموسة للتقدم في', it: 'Definisci una pratica concreta per avanzare in', pt: 'Defina uma prática concreta para avançar em', ru: 'Определите конкретную практику для продвижения в', de: 'Lege eine konkrete Praxis fest, um in diesem Bereich voranzukommen:', fr: 'Définissez une pratique concrète pour progresser dans', da: 'Fastlæg en konkret praksis for at gøre fremskridt inden for' },
@@ -1684,7 +1683,7 @@ function App() {
     const menuItem = tourMenuItems[tourTopic];
     const menuTarget = menuItem && homeSidebarOpen ? `#home-sidebar [data-home-menu-item="${menuItem}"]` : '.home-menu-button';
     const targets: Record<TourTopic, string | readonly string[]> = {
-      modes: '.welcome-view .circular-carousel', modeDescription: '.journey-intro-compact', selfAssessment: '.journey-ascent-status', activityDesign: '.journey-builder-heading', nextClarity: '.journey-builder .activity-flow-target summary',
+      modes: '.welcome-view .circular-carousel', modeDescription: '.journey-intro-compact', selfAssessment: '.journey-ascent-status', activityDesign: '.journey-builder-heading', nextPresence: '.journey-builder .activity-flow-target summary',
       custom: '.activity-agent--custom #activity-agent-title', bank: '.bank-presentation-heading', ai: '.mode-ai-hero-copy', localContacts: '.journey-fixed-actions .journey-local-button', methods: '.journey-fixed-actions', effort: '.journey-social-effort',
       activityCard: '.journey-step-list > [data-journey-step="1"]',
       evidence: '.journey-deck-content[data-step="2"] :is(.visual-evidence-picker, .visual-evidence-input:not(:has(.visual-evidence-picker)) > legend)',
@@ -1708,7 +1707,7 @@ function App() {
       ...(tourTopic === 'modes' ? { target: selection as string, nextDisabled: !tourModeKey }
         : tourTopic === 'methods' ? { methodChecklist: true, targets: TOUR_METHODS.map(method => ({ selector: `.journey-fixed-actions ${tourMethodTargets[method]}`, method })) }
         : Array.isArray(selection) ? { targets: selection } : { target: selection as string }),
-      ...(tourTopic === 'nextClarity' ? { clarityTarget: clarityTransition(tourSource, language)!.target } : {}),
+      ...(tourTopic === 'nextPresence' ? { presenceTarget: clarityTransition(tourSource, language)!.target } : {}),
       onEnter: ({ signal }) => {
         if (signal.aborted) return;
         setCommunityOpen(false); setConfigurationsOpen(false); setHomeVisionSettingsOpen(false); setLifeEditor(null); setProfilePreviewMode(false); setCustomizingAvatar(false);
@@ -2512,7 +2511,7 @@ function App() {
       {view === 'login' ? (
         <section className="login-view" data-layer="inicio" aria-labelledby="login-title">
           <div className="login-card">
-            <div className="login-brand"><img src={logo} alt="Modo Cultiva" /><span>Modo Cultiva</span></div>
+            <div className="login-brand"><img src={homeElectricLogo} alt="" /><span>Modo Cultiva</span></div>
             <p className="kicker">{pendingAccess ? planCopy.contextualEyebrow : loginIntro}</p>
             <h1 id="login-title">{pendingAccess ? planCopy.contextualTitle : tr('welcome')}</h1>
             <p className="login-copy">{pendingAccess ? planCopy.contextualDescription(
@@ -2954,7 +2953,8 @@ function App() {
           if (kind === 'reuse') await communityClient.importReuse(id, expectedHash); else await communityClient.importIdea(id, expectedHash);
           await refreshCommunity();
         } : undefined} />}
-      {!accountBlocked && !publicCardId && <GuidedTour step={tourStep} language={language} visitedMethods={tourVisitedMethods}
+      {view === 'welcome' && <footer className="home-brand-footer"><span translate="no">Modo Cultiva</span></footer>}
+      {!accountBlocked && !publicCardId && <GuidedTour step={tourStep} language={language} visitedMethods={tourVisitedMethods} languageControlLabel={tr('chooseLanguage')} onLanguageChange={handleLanguageChange}
         onPrevious={() => setTourIndex(current => current === null ? null : tourMethodDetail || tourTopic === 'effort' ? tourTopics.indexOf('methods') : Math.max(0, current - 1))}
         onNext={() => {
           if (tourMethodDetail) setTourIndex(tourTopics.indexOf('methods'));

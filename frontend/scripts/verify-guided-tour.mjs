@@ -90,6 +90,7 @@ check('11 complete locales, 32 topics, and 3 activity stages after the overview'
     assert.deepEqual(Object.keys(copy.controls).sort(), Object.keys(messages.guidedTourMessages.es.controls).sort(), language);
     assert.equal(copy.activityStages.length, 3, `${language}: Validated is a replacement label`);
     assert.ok(copy.validated);
+    assert.doesNotMatch([copy.controls.nextPresence, ...Object.values(copy.stages).flat()].join(' '), /\bclarity\b|\bclaridad\b|清晰度|स्पष्टता|الوضوح|\bchiarezza\b|\bclareza\b|ясност|Klarheitsstufe|\bclarté\b|klarhedsniveau/iu, `${language}: levels must use presence terminology`);
     assert.deepEqual(Object.keys(copy.methods), [...TOUR_METHODS]);
     for (const text of Object.values(copy.controls)) assert.ok(text.trim(), language);
     for (const [id, [title, body]] of Object.entries(copy.stages)) {
@@ -106,7 +107,9 @@ check('11 complete locales, 32 topics, and 3 activity stages after the overview'
   assert.equal(messages.getGuidedTourCopy('ar-SA'), messages.guidedTourMessages.ar);
   assert.equal(messages.getGuidedTourCopy('EN_us'), messages.guidedTourMessages.en);
   assert.equal(messages.getGuidedTourCopy('unknown'), messages.guidedTourMessages.es);
-  assert.match(messages.guidedTourStepCopy('en', 'nextClarity').body, /arbitrary current-level task is not enough/);
+  assert.match(messages.guidedTourStepCopy('en', 'nextPresence').body, /arbitrary current-level task is not enough/);
+  assert.match(messages.guidedTourStepCopy('en', 'nextPresence').body, /ten levels, from 0 to 9/);
+  assert.match(messages.guidedTourStepCopy('es', 'nextPresence').title, /nivel de presencia/);
   assert.match(messages.guidedTourStepCopy('en', 'activityCard').body, /mode overview.*side arrows/);
   assert.match(messages.guidedTourStepCopy('en', 'reviews').body, /third approval validates once/);
   assert.match(messages.guidedTourStepCopy('en', 'vision').body, /image-only/);

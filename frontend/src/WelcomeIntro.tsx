@@ -1,7 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { CultivaLeaf } from './CultivaLeaf';
-import brandLogo from './assets/modo-cultiva-logo-official.png';
+import brandLogo from './assets/modo-cultiva-logo-electric.webp';
 import { getWelcomeMessages, resolveWelcomeLanguage, WELCOME_LANGUAGES, type WelcomeLanguage } from './welcomeMessages';
 import { isPwaRunningStandalone, requestPwaInstall } from './PwaControls';
 import {

@@ -17,7 +17,7 @@ type StepContent = {
   body: string;
   instructions?: string;
   /** Pass the exact next description from clarityTransition/server-owned rubric. Never invent it. */
-  clarityTarget?: { level: number; description: string };
+  presenceTarget?: { level: number; description: string };
   onEnter?: (context: TourEntryContext) => void | Promise<void>;
   /** Gates Next on an explicit activation of each of the five options. */
   methodChecklist?: boolean;

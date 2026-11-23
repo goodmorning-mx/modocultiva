@@ -7,12 +7,15 @@ import {
   type TourTarget, type TourUnavailableReason,
 } from './guidedTourCore';
 import { getGuidedTourCopy } from './guidedTourMessages';
+import { APP_LANGUAGES, APP_LANGUAGE_AUTONYMS, browserLanguage, type AppLanguage } from './languagePreference';
 import './guided-tour.css';
 
 export type GuidedTourProps = {
   /** Controlled by the host. null closes the tour. No step/progress state is persisted. */
   step: GuidedTourStep | null;
   language?: string;
+  languageControlLabel?: string;
+  onLanguageChange?: (language: AppLanguage) => void;
   direction?: 'ltr' | 'rtl';
   onNext: () => void;
   onPrevious: () => void;
@@ -245,6 +248,8 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
       // Never preventDefault/stopPropagation: the REAL target's own handler must run.
     };
     const keydown = (event: KeyboardEvent) => {
+      // Let the native language picker handle its own arrows and Escape.
+      if (event.target instanceof HTMLElement && event.target.matches('.guided-tour-language select') && event.key !== 'Tab') return;
       if (event.key === 'Escape') {
         event.preventDefault(); event.stopPropagation(); latest.current.onClose('escape'); return;
       }
@@ -286,6 +291,7 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
   const shadePath = surroundings.map(({ left, top, width: w, height: h }) => `M${left},${top}h${w}v${h}h${-w}Z`).join('');
   const blocked = tourNextDisabled(props.step, props.visitedMethods ?? [], ready);
   const methodBlocked = props.step.methodChecklist && !TOUR_METHODS.every(method => props.visitedMethods?.includes(method));
+  const language = browserLanguage([props.language ?? 'es']);
   const counter = props.showCounter && props.counter && Number.isInteger(props.counter.current) && Number.isInteger(props.counter.total) && props.counter.current > 0 && props.counter.current <= props.counter.total
     ? copy.controls.counter.replace('{current}', String(props.counter.current)).replace('{total}', String(props.counter.total)) : null;
   return createPortal(<div ref={layer} popover="manual" className="guided-tour-layer" data-guided-tour-layer="" data-tour-step={props.step.id} data-tour-phase={snapshot?.phase ?? 'loading'} dir={rtl ? 'rtl' : 'ltr'} lang={props.language ?? 'es'}>
@@ -296,7 +302,7 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
         {counter && <small className="guided-tour-counter">{counter}</small>}
         <h2 id={titleId}>{props.step.title}</h2>
         <p id={bodyId} aria-live="polite" aria-atomic="true">{ready ? props.step.body : unavailable ? copy.controls.unavailable : copy.controls.loading}</p>
-        {ready && props.step.clarityTarget && <blockquote className="guided-tour-clarity"><small>{copy.controls.nextClarity} · {copy.controls.level} {props.step.clarityTarget.level}</small><p>{props.step.clarityTarget.description}</p></blockquote>}
+        {ready && props.step.presenceTarget && <blockquote className="guided-tour-presence"><small>{copy.controls.nextPresence} · {copy.controls.level} {props.step.presenceTarget.level}</small><p>{props.step.presenceTarget.description}</p></blockquote>}
         {ready && props.step.instructions && <p className="guided-tour-instructions" id={instructionsId}>{props.step.instructions}</p>}
         {ready && props.step.methodChecklist && <div className="guided-tour-methods">
           <h3 id={checklistId}>{copy.controls.methods}</h3>
@@ -311,6 +317,16 @@ function ActiveTour(props: GuidedTourProps & { step: GuidedTourStep }) {
       <nav className="guided-tour-rail" aria-label={copy.controls.tour}>
         <button type="button" onClick={props.onPrevious} disabled={props.canGoBack === false} aria-label={copy.controls.back} title={copy.controls.back}><span aria-hidden="true">{rtl ? '→' : '←'}</span></button>
         <button type="button" className="guided-tour-close" onClick={() => props.onClose('close')} aria-label={copy.controls.close} title={copy.controls.close}><span aria-hidden="true">×</span></button>
+        {props.onLanguageChange && <label className="guided-tour-language">
+          <span aria-hidden="true">
+            <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.25"><circle cx="9" cy="9" r="7" /><ellipse cx="9" cy="9" rx="3.3" ry="7" /><path d="M2 9h14" /></svg>
+            {language.toUpperCase()}
+          </span>
+          <select aria-label={props.languageControlLabel} title={props.languageControlLabel} value={language}
+            onChange={event => props.onLanguageChange?.(event.currentTarget.value as AppLanguage)}>
+            {APP_LANGUAGES.map(code => <option key={code} value={code} lang={code}>{APP_LANGUAGE_AUTONYMS[code]}</option>)}
+          </select>
+        </label>}
         <button type="button" onClick={props.onNext} disabled={blocked} aria-describedby={ready && (methodBlocked || props.step.nextDisabledReason) ? blockedId : undefined} aria-label={props.isLastStep ? copy.controls.finish : copy.controls.next} title={props.isLastStep ? copy.controls.finish : copy.controls.next}><span aria-hidden="true">{rtl ? '←' : '→'}</span></button>
       </nav>
     </section>
