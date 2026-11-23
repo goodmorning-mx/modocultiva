@@ -75,12 +75,25 @@ try {
             const canvas = tile.getContext('2d');
             canvas.drawImage(img, 0, 0);
             const end = tile.width - 1, mid = Math.floor(tile.width / 2);
-            return [[0, 0], [mid, 0], [end, mid], [mid, end], [0, mid], [end, end]]
+            const points = [[0, 0], [mid, 0], [end, mid], [mid, end], [0, mid], [end, end]]
               .map(([x, y]) => [...canvas.getImageData(x, y, 1, 1).data]);
+            if (!url.includes('maskable')) return { points };
+            const { data } = canvas.getImageData(0, 0, tile.width, tile.height);
+            const center = end / 2;
+            let radius = 0;
+            for (let y = 0; y < tile.height; y++) for (let x = 0; x < tile.width; x++) {
+              const i = (y * tile.width + x) * 4;
+              if ([11, 35, 31].some((value, channel) => Math.abs(data[i + channel] - value) >= 2)) {
+                radius = Math.max(radius, Math.hypot(x - center, y - center));
+              }
+            }
+            return { points, radius, size: tile.width };
           }));
         }, ['/brand/cultiva-electric-clear-192.png', '/brand/cultiva-electric-clear-512.png', '/brand/cultiva-electric-flat-maskable-512.png']);
-        for (const points of installedIcons.slice(0, 2)) assert.ok(points.every(pixel => pixel[3] === 0), 'Generic installed icons must be transparent outside their mark');
-        for (const pixel of installedIcons[2]) assert.deepEqual(pixel, [11, 35, 31, 255], 'Android adaptive icon edges must blend precisely into the startup background');
+        for (const { points } of installedIcons.slice(0, 2)) assert.ok(points.every(pixel => pixel[3] === 0), 'Generic installed icons must be transparent outside their mark');
+        const adaptive = installedIcons[2];
+        for (const pixel of adaptive.points) assert.deepEqual(pixel, [11, 35, 31, 255], 'Android adaptive icon edges must blend precisely into the startup background');
+        assert.ok(adaptive.radius > 0 && adaptive.radius <= adaptive.size * .4, 'The electric artwork stays inside the Android adaptive icon safe circle');
       }
 
       if (screenshot && viewport.width === 390) {
