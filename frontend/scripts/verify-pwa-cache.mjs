@@ -26,7 +26,7 @@ async function network(request, options) {
   if (new URL(url).pathname === '/manifest.webmanifest') {
     return json(['reload', 'no-store', 'no-cache'].includes(mode) ? manifest : oldManifest);
   }
-  if (iconPaths.includes(new URL(url).pathname)) return new Response('new electric icon', { headers: { 'Content-Type': 'image/png' } });
+  if (iconPaths.includes(new URL(url).pathname)) return new Response(new URL(url).pathname, { headers: { 'Content-Type': 'image/png' } });
   if (new URL(url).pathname === launchMark) return new Response('transparent launch mark', { headers: { 'Content-Type': 'image/webp' } });
   return new Response(url === `${origin}/` ? html : 'asset');
 }
@@ -51,10 +51,11 @@ const caches = {
     }
   },
 };
-const oldName = 'modo-cultiva-shell-v8';
+const oldName = 'modo-cultiva-shell-v9';
 const oldCache = await caches.open(oldName);
 await oldCache.put('/manifest.webmanifest', json(oldManifest));
 await oldCache.put('/', new Response('<html>Old shell</html>'));
+await oldCache.put('/brand/cultiva-electric-green-maskable-512.png', new Response('outdated boxed icon'));
 const userCache = await caches.open('user-content');
 await userCache.put('/saved-map', json({ fisico: 7, familiar: 4 }));
 
@@ -96,7 +97,7 @@ function dispatchFetch(path, destination = '', method = 'GET') {
   return response;
 }
 
-for (const path of [manifestUrl, '/manifest.webmanifest']) {
+for (const path of [manifestUrl, '/manifest.webmanifest', '/manifest.webmanifest?v=2026-11-23-electric-green']) {
   const response = await dispatchFetch(path);
   assert.equal(response.headers.get('Content-Type'), 'application/manifest+json');
   const data = await response.json();
@@ -116,8 +117,17 @@ assert.equal((await (await dispatchFetch('/manifest.webmanifest')).json()).short
 for (const path of iconPaths) {
   const icon = await dispatchFetch(path);
   assert.equal(icon.headers.get('Content-Type'), 'image/png');
-  assert.equal(await icon.text(), 'new electric icon');
+  assert.equal(await icon.text(), path);
   assert.equal(calls.find(call => call.url === key(path))?.mode, 'reload', 'Every new icon must be precached from the network');
+}
+for (const [previous, current] of [
+  ['/brand/cultiva-electric-green-192.png', '/brand/cultiva-electric-clear-192.png'],
+  ['/brand/cultiva-electric-green-512.png', '/brand/cultiva-electric-clear-512.png'],
+  ['/brand/cultiva-electric-green-maskable-512.png', '/brand/cultiva-electric-flat-maskable-512.png'],
+  ['/modo-cultiva-icon-192.png', '/brand/cultiva-electric-clear-192.png'],
+  ['/modo-cultiva-icon-512.png', '/brand/cultiva-electric-clear-512.png'],
+]) {
+  assert.equal(await (await dispatchFetch(previous)).text(), current, 'Legacy install URLs must serve the new icon offline');
 }
 currentCache.delete(manifestUrl);
 assert.equal((await dispatchFetch('/manifest.webmanifest')).type, 'error', 'Missing offline metadata must not fall back to HTML or an old name');

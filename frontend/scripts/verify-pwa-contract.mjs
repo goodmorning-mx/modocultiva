@@ -1,6 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import assert from 'node:assert/strict';
+import { runInNewContext } from 'node:vm';
 
 const root = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const read = (relative) => readFileSync(resolve(root, relative), 'utf8');
@@ -14,7 +16,7 @@ for (const required of ['<title>Modo Cultiva</title>', 'name="application-name" 
   if (!html.includes(required)) fail(`installation name fallback is missing: ${required}`);
 }
 const manifestHref = html.match(/rel="manifest" href="([^"]+)"/)?.[1];
-if (!manifestHref?.startsWith('/manifest.webmanifest?v=')) fail('installation metadata must have a versioned URL');
+if (manifestHref !== '/manifest.webmanifest?v=2026-11-23-clear-launch') fail('keep the deployed manifest URL stable for installed apps');
 if (!existsSync(resolve(root, 'public/downloads/modo-cultiva.apk'))) fail('Android fallback APK is missing');
 for (const field of ['name', 'short_name', 'start_url', 'scope', 'display', 'icons']) {
   if (!manifest[field]) fail(`manifest is missing ${field}`);
@@ -52,6 +54,16 @@ if (!read('src/brandAssets.ts').includes(`'${launchMarkPath}'`) || !read('src/ma
 const serviceWorker = read('public/sw.js');
 if (!serviceWorker.includes(`'${launchMarkPath}'`)) fail('the launch mark must be available offline');
 const nginx = read('nginx.conf');
+for (const [previous, current] of [
+  ['/brand/cultiva-electric-green-192.png', '/brand/cultiva-electric-clear-192.png'],
+  ['/brand/cultiva-electric-green-512.png', '/brand/cultiva-electric-clear-512.png'],
+  ['/brand/cultiva-electric-green-maskable-512.png', '/brand/cultiva-electric-flat-maskable-512.png'],
+  ['/modo-cultiva-icon-192.png', '/brand/cultiva-electric-clear-192.png'],
+  ['/modo-cultiva-icon-512.png', '/brand/cultiva-electric-clear-512.png'],
+]) {
+  if (!readFileSync(resolve(root, `public${previous}`)).equals(readFileSync(resolve(root, `public${current}`)))) fail(`legacy URL still serves different artwork: ${previous}`);
+  if (!serviceWorker.includes(`'${previous}': '${current}'`)) fail(`missing offline upgrade for ${previous}`);
+}
 for (const path of ['/', '/index.html', '/manifest.webmanifest', '/sw.js']) {
   const location = nginx.split(`location = ${path} {`)[1]?.split('}')[0];
   if (!location?.includes('Cache-Control "no-cache, max-age=0, must-revalidate" always')) fail(`${path} must revalidate installation metadata`);
@@ -68,4 +80,60 @@ if (serviceWorker.includes('modo-cultiva-shell-v3')) fail('old service-worker ca
 if (!read('src/main.tsx').includes("navigator.serviceWorker.register('/sw.js')")) fail('service worker is not registered before the app mounts');
 if (!existsSync(resolve(root, 'node_modules/@goodmorning/gm-pwa/frontend/dist/index.js'))) fail('GM-PWA build output is missing');
 
-console.log('[pwa-check] transparent launch mark, footer, manifest, offline assets and GM-PWA build output verified');
+const launchClock = html.match(/<script id="pwa-launch-clock">([\s\S]*?)<\/script>/)?.[1];
+if (!launchClock || !read('src/main.tsx').includes('launchReady.then(mount)')) fail('standalone launch clock must gate the real React entry point');
+
+function evaluateClock({ installed = true, loaded = true } = {}) {
+  let now = 0, nextTask = 0, ready = false;
+  const tasks = new Map();
+  const setTimeout = (run, delay) => { tasks.set(++nextTask, { run, at: now + delay }); return nextTask; };
+  const clearTimeout = id => tasks.delete(id);
+  const mark = Object.assign(new EventTarget(), { complete: loaded });
+  const document = Object.assign(new EventTarget(), { hidden: false, getElementById: () => mark });
+  const window = {};
+  runInNewContext(launchClock, {
+    matchMedia: () => ({ matches: installed }), document, navigator: { userAgent: '' }, window,
+    performance: { now: () => now }, setTimeout, clearTimeout,
+    requestAnimationFrame: run => setTimeout(run, 16), cancelAnimationFrame: clearTimeout,
+  });
+  window.modoCultivaLaunchReady?.then(() => { ready = true; });
+  return {
+    gated: Boolean(window.modoCultivaLaunchReady), mark,
+    get ready() { return ready; },
+    setHidden(hidden) { document.hidden = hidden; document.dispatchEvent(new Event('visibilitychange')); },
+    async advance(duration) {
+      const end = now + duration;
+      let pending;
+      while ((pending = [...tasks].sort((a, b) => a[1].at - b[1].at)[0]) && pending[1].at <= end) {
+        tasks.delete(pending[0]);
+        now = pending[1].at;
+        pending[1].run();
+      }
+      now = end;
+      await Promise.resolve();
+    },
+  };
+}
+assert.equal(evaluateClock({ installed: false }).gated, false, 'Browser tabs are not artificially delayed');
+const standalone = evaluateClock();
+await standalone.advance(632); // Two paints, then 600 ms of actual foreground view.
+standalone.setHidden(true);
+await standalone.advance(10000);
+assert.equal(standalone.ready, false, 'Time while hidden must not consume the visible launch');
+standalone.setHidden(false);
+await standalone.advance(631);
+assert.equal(standalone.ready, false);
+await standalone.advance(1);
+assert.equal(standalone.ready, true);
+const loadingMark = evaluateClock({ loaded: false });
+await loadingMark.advance(500);
+loadingMark.mark.dispatchEvent(new Event('load'));
+await loadingMark.advance(1231);
+assert.equal(loadingMark.ready, false, 'Slow logo fetch does not consume its display time');
+await loadingMark.advance(1);
+assert.equal(loadingMark.ready, true);
+const missingMark = evaluateClock({ loaded: false });
+await missingMark.advance(2032);
+assert.equal(missingMark.ready, true, 'A stalled mark cannot strand the app');
+
+console.log('[pwa-check] transparent launch mark, timing, footer, stable manifest, legacy icons and offline assets verified');

@@ -11,14 +11,20 @@ if ('serviceWorker' in navigator) {
 
 function AppEntry() {
   useLayoutEffect(() => {
-    // Keep the first-paint screen up until React commits, without delaying the app.
+    // Keep the launch screen as the top layer until React can replace it in one paint.
     document.getElementById('pwa-launch')?.remove();
   }, []);
   return <App />;
 }
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <AppEntry />
-  </React.StrictMode>,
-);
+function mount() {
+  ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+    <React.StrictMode>
+      <AppEntry />
+    </React.StrictMode>,
+  );
+}
+
+const launchReady = (window as Window & { modoCultivaLaunchReady?: Promise<void> }).modoCultivaLaunchReady;
+if (launchReady) void launchReady.then(mount);
+else mount();
