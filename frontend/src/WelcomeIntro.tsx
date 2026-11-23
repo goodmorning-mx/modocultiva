@@ -150,14 +150,21 @@ export function WelcomeIntro({ language, onComplete }: WelcomeIntroProps) {
     style={style}
     onKeyDown={(event) => {
       event.stopPropagation();
-      // Tab stays on the only control. Enter/Space may pause, never advance.
       if (event.key === 'Tab') {
         event.preventDefault();
         pauseRef.current?.focus({ preventScroll: true });
+      } else if (event.key === 'ArrowRight' && !event.repeat) {
+        event.preventDefault();
+        dispatch({ type: 'advance', nowMs: now() });
       }
     }}
     onKeyUp={(event) => event.stopPropagation()}
-    onClick={(event) => event.stopPropagation()}
+    onClick={(event) => {
+      event.stopPropagation();
+      if (!(event.target instanceof Element) || !event.target.closest('.mc-welcome__pause')) {
+        dispatch({ type: 'advance', nowMs: now() });
+      }
+    }}
     onPointerDown={(event) => event.stopPropagation()}
     onTouchStart={(event) => event.stopPropagation()}
   >

@@ -74,11 +74,11 @@ export function markWelcomeIntroComplete(
   }
 }
 
-export const WELCOME_ENTER_MS = 680;
-export const WELCOME_EXIT_MS = 480;
-export const WELCOME_REDUCED_TRANSITION_MS = 160;
-export const WELCOME_MIN_READ_MS = 4_500;
-export const WELCOME_MAX_READ_MS = 18_000;
+export const WELCOME_ENTER_MS = 300;
+export const WELCOME_EXIT_MS = 220;
+export const WELCOME_REDUCED_TRANSITION_MS = 100;
+export const WELCOME_MIN_READ_MS = 1_700;
+export const WELCOME_MAX_READ_MS = 7_000;
 
 /** Word + Unicode-character pacing also works for text without word spaces. */
 export function welcomeReadDurationMs(text: string): number {
@@ -86,7 +86,7 @@ export function welcomeReadDurationMs(text: string): number {
   const characters = Array.from(text.replace(/\s/gu, '')).length;
   const cjk = (text.match(/[\u3040-\u30ff\u3400-\u9fff]/gu) ?? []).length;
   return Math.min(WELCOME_MAX_READ_MS, Math.max(WELCOME_MIN_READ_MS,
-    Math.ceil(1_600 + Math.max(words * 360, characters * 60, cjk * 200))));
+    Math.ceil(450 + Math.max(words * 155, characters * 24, cjk * 90))));
 }
 
 export type WelcomePhase = 'enter' | 'read' | 'exit' | 'complete';
@@ -103,6 +103,7 @@ export type WelcomeTimeline = Readonly<{
 
 export type WelcomeTimelineEvent =
   | { type: 'tick'; nowMs: number }
+  | { type: 'advance'; nowMs: number }
   | { type: 'pause'; paused: boolean; nowMs: number }
   | { type: 'visibility'; hidden: boolean; nowMs: number }
   | { type: 'motion'; reducedMotion: boolean; nowMs: number }
@@ -136,11 +137,15 @@ function sampleWelcomeTime(state: WelcomeTimeline, nowMs: number): WelcomeTimeli
 /**
  * One automatic phase at a time: a throttled callback must never fast-forward
  * unread phrases. Pause/visibility changes consume only time actually visible.
- * No advance/skip event is exposed to input handlers.
+ * A deliberate advance moves exactly one slide; it never jumps over a phrase.
  */
 export function reduceWelcomeTimeline(state: WelcomeTimeline, event: WelcomeTimelineEvent): WelcomeTimeline {
   if (state.phase === 'complete') return state;
   const next = sampleWelcomeTime(state, event.nowMs);
+  if (event.type === 'advance') {
+    if (next.index + 1 >= next.readingMs.length) return { ...next, phase: 'complete', remainingMs: 0, paused: false };
+    return { ...next, index: next.index + 1, phase: 'enter', remainingMs: transitionMs('enter', next.reducedMotion), paused: false };
+  }
   if (event.type === 'pause') return { ...next, paused: event.paused };
   if (event.type === 'visibility') return { ...next, hidden: event.hidden };
   if (event.type === 'motion') {

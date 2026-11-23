@@ -463,23 +463,26 @@ async function welcomeCase(page, configuration, account = false) {
   assert.equal(await intro.locator('.mc-welcome__brand svg').count(), 0, 'Header uses the actual logo, not the cultivation leaf');
   assert.equal(await intro.locator('.mc-welcome__mark svg').count(), 1, 'Central cultivation leaf is preserved');
   assert.equal(await intro.getAttribute('dir'), configuration.language === 'ar' ? 'rtl' : 'ltr');
-  assert.equal(await intro.locator('button').count(), 1, 'Welcome has pause only; no forward/back/skip');
+  assert.equal(await intro.locator('button').count(), 1, 'Welcome has pause only; slide advance has no button');
   assert.equal(await page.locator('.guided-tour-counter').count(), 0);
   await intro.focus();
-  for (const key of ['ArrowRight', 'ArrowLeft', 'Enter', 'Escape', 'Space']) await page.keyboard.press(key);
+  for (const key of ['ArrowLeft', 'Escape', 'Space']) await page.keyboard.press(key);
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Non-forward keys do not change slides');
   await intro.locator('.mc-welcome__phrase').click({ force: true });
-  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Keys/tap never advance or skip introduction');
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[1], 'A tap advances exactly one slide');
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[2], 'Right arrow advances exactly one slide');
   await intro.locator('.mc-welcome__pause').click({ force: true });
   await page.clock.runFor(90000);
-  assert.equal(await intro.getAttribute('data-paused'), 'true'); assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0]);
+  assert.equal(await intro.getAttribute('data-paused'), 'true'); assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[2]);
   await intro.locator('.mc-welcome__pause').click({ force: true });
   await page.evaluate(() => { globalThis.__qaVisibility = true; document.dispatchEvent(new Event('visibilitychange')); });
   const before = await intro.getAttribute('data-phase'); await page.clock.runFor(90000);
-  assert.equal(await intro.getAttribute('data-phase'), before); assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[0], 'Hidden time is never counted as reading');
+  assert.equal(await intro.getAttribute('data-phase'), before); assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[2], 'Hidden time is never counted as reading');
   await page.evaluate(() => { globalThis.__qaVisibility = false; document.dispatchEvent(new Event('visibilitychange')); });
   const reduced = await intro.getAttribute('data-reduced-motion') === 'true';
   assert.equal(reduced, configuration.reduced);
-  for (let index = 0; index < 7; index++) {
+  for (let index = 2; index < 7; index++) {
     assert.equal(await intro.locator('.mc-welcome__phrase').innerText(), messages[index]);
     await page.clock.runFor((reduced ? timing.WELCOME_REDUCED_TRANSITION_MS : timing.WELCOME_ENTER_MS) + 1);
     assert.equal(await intro.getAttribute('data-phase'), 'read', `Message ${index + 1} gets an automatic reading phase`);
@@ -497,7 +500,7 @@ async function welcomeCase(page, configuration, account = false) {
   await page.reload({ waitUntil: 'domcontentloaded' }); await settleHydration(page, configuration.language, configuration.timeout);
   await delay(150); assert.equal(await intro.count(), 0, 'Completed intro does not repeat on reload');
   assert.equal(await page.locator('.guided-tour-layer').count(), 0, 'Reload does not restart tutorial');
-  return { phrases: 7, automaticOnly: true, pause: true, syntheticVisibilityPause: true, reducedMotion: reduced, noRepeat: true };
+  return { phrases: 7, automaticAndManualAdvance: true, pause: true, syntheticVisibilityPause: true, reducedMotion: reduced, noRepeat: true };
 }
 
 async function runCase(browser, config, task) {
