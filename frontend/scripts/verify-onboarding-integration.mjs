@@ -794,9 +794,10 @@ async function runCase(browser, config, task) {
   const transport = await installTransport(context, config.url, state, { identity: serverIdentity(task.identity === 'owner'), hold: task.name === 'identity', syntheticAi: task.name === 'drafts' || modeEditorial || lifeContextCase, localIdeaCase: task.name.includes('local-') ? task.name : '', pendingTour: ['account-pending-tour', 'account-journey-ascent'].includes(task.name), uploads, communitySurfaces: communitySurfaces || publicSurface });
   await seed(context, state, { account, cachedOwner: task.identity === 'forged', guestCompleted: !welcomeTask || account, languageSource: editorialCase ? 'auto' : 'manual', manualRecord: !localeTask && !switchesLanguage && !editorialCase, cachedManual: task.name.includes('ambiguous-cache') });
   const iosGuide = installGuide && task.width <= 390;
-  if (task.name === 'standalone-welcome') await context.addInitScript(() => {
-    Object.defineProperty(navigator, 'standalone', { configurable: true, value: true });
-  });
+  if (task.name === 'standalone-welcome') await context.addInitScript(nativeAndroid => {
+    if (nativeAndroid) Object.defineProperty(navigator, 'userAgent', { configurable: true, value: navigator.userAgent + ' ModoCultivaAndroidApp/1.0' });
+    else Object.defineProperty(navigator, 'standalone', { configurable: true, value: true });
+  }, task.width === 390);
   if (iosGuide) await context.addInitScript(() => {
     Object.defineProperty(navigator, 'userAgent', { configurable: true, get: () => 'iPhone Synthetic QA Safari' });
   });
