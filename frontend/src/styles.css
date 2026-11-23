@@ -380,7 +380,7 @@ html, body { overflow-x: hidden; scrollbar-width: none; } *, *::before, *::after
 
 @media (max-width: 680px) { .level-reference-grid { grid-template-columns: 1fr; }.dj-control-strip { flex-wrap: wrap; }.dj-control-strip > span { width: 100%; }.dj-fader-wrap { height: 215px; }.dj-fader { height: 190px; } }
 
-.login-view { position: relative; display: grid; min-height: calc(100vh - 115px); place-items: center; padding: 42px 0 70px; background: linear-gradient(90deg, rgba(8, 21, 28, .94), rgba(8, 21, 28, .76)), url('./assets/modo-cultiva-logo-electric.webp') center / min(760px, 85vw) auto no-repeat; }
+.login-view { position: relative; display: grid; min-height: calc(100vh - 115px); place-items: center; padding: 42px 0 70px; background: linear-gradient(90deg, rgba(8, 21, 28, .94), rgba(8, 21, 28, .76)), url('/brand/cultiva-electric-mark-v1.webp') center / min(760px, 85vw) auto no-repeat; }
 .login-card { width: min(100%, 480px); padding: clamp(28px, 5vw, 48px); border: 1px solid rgba(122, 237, 190, .26); border-radius: 22px; background: linear-gradient(145deg, rgba(12, 39, 45, .92), rgba(5, 18, 27, .96)); box-shadow: 0 28px 70px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.12), 0 0 55px rgba(50, 196, 157, .1); }
 .login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 34px; color: #f1fff0; font-size: .88rem; font-weight: 800; letter-spacing: .02em; }.login-brand img { width: 36px; height: 36px; object-fit: contain; }
 .login-card h1 { margin-bottom: 13px; font-size: clamp(2.3rem, 6vw, 4rem); }.login-copy { margin-bottom: 26px; color: #9ebbb0; font-size: .88rem; }

@@ -1,7 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { CultivaLeaf } from './CultivaLeaf';
-import brandLogo from './assets/modo-cultiva-logo-electric.webp';
+import { electricBrandMark } from './brandAssets';
 import { getWelcomeMessages, resolveWelcomeLanguage, WELCOME_LANGUAGES, type WelcomeLanguage } from './welcomeMessages';
 import { isPwaRunningStandalone, requestPwaInstall } from './PwaControls';
 import {
@@ -200,7 +200,7 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
     <h1 id={titleId} className="mc-welcome__sr-only">{copy.title}</h1>
     <div className="mc-welcome__atmosphere" aria-hidden="true" />
     {!started ? <main className="mc-welcome__install-gate">
-      <img className="mc-welcome__gate-logo" src={brandLogo} alt="" width="64" height="64" />
+      <img className="mc-welcome__gate-logo" src={electricBrandMark} alt="" width="64" height="64" />
       <h2 id={installTitleId}>{copy.installTitle}</h2>
       <p id={installHintId} aria-live="polite">{installState === 'installed' ? copy.openInstalledApp : copy.installDescription}</p>
       {installState === 'help' && <div className="mc-welcome__install-help" role="status"><p>{copy.installUnavailable}</p><ol>{copy.installHelp.map((step) => <li key={step}>{step}</li>)}</ol></div>}
@@ -219,7 +219,7 @@ export function WelcomeIntro({ language, onLanguageChange, onComplete }: Welcome
       }}>{copy.continueInBrowser}</button>
     </main> : <>
     <header className="mc-welcome__header">
-      <div className="mc-welcome__brand" aria-hidden="true"><img src={brandLogo} alt="" width="40" height="40" /><span dir="ltr">Modo Cultiva</span></div>
+      <div className="mc-welcome__brand" aria-hidden="true"><img src={electricBrandMark} alt="" width="40" height="40" /><span dir="ltr">Modo Cultiva</span></div>
       <div className="mc-welcome__controls">
         <label className="mc-welcome__language">
           <span className="mc-welcome__sr-only">{copy.languageLabel}</span>

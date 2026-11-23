@@ -13,10 +13,39 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/brand/cultiva-electric-green-180.png" />
     <meta name="description" content="Tu mapa de vida y tus journeys de desarrollo humano." />
     <meta name="modo-cultiva-build" content="2026-10-02-i18n-specialists" />
-    <link rel="manifest" href="/manifest.webmanifest?v=2026-11-23-electric-green" />
+    <link rel="manifest" href="/manifest.webmanifest?v=2026-11-23-clear-launch" />
     <title>Modo Cultiva</title>
+    <style>
+      #pwa-launch {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: grid;
+        place-items: center;
+        background: #0b231f;
+        color: #b0efcb;
+      }
+      #pwa-launch-mark {
+        display: block;
+        width: min(clamp(104px, 33vw, 156px), 48vh);
+        height: auto;
+      }
+      #pwa-launch-name {
+        position: absolute;
+        inset-inline: 12px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(24px, 5vh, 48px));
+        margin: 0;
+        text-align: center;
+        font: 600 clamp(15px, 4vw, 18px)/1.25 system-ui, sans-serif;
+        letter-spacing: .045em;
+      }
+    </style>
   </head>
   <body>
+    <div id="pwa-launch" role="status">
+      <img id="pwa-launch-mark" src="/brand/cultiva-electric-mark-v1.webp" width="384" height="384" alt="" />
+      <p id="pwa-launch-name">Modo Cultiva</p>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

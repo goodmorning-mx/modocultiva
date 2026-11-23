@@ -6,7 +6,7 @@ On first run, the installed app starts the slides automatically. A browser tab s
 
 `onComplete` fires once per mounted sequence, after the final exit, including React StrictMode effect replay. The latest callback is used without restarting timing. Completion removes the portal, clears timers/listeners and restores prior inert flags, body overflow, focus (if still connected) and scroll. Early unmount cleans up without reporting completion. The app must unmount/remount (or key) the component when the visitor/account scope changes. Replay is a caller decision, never a data reset.
 
-The welcome header uses the shared electric brand mark (`frontend/src/assets/modo-cultiva-logo-electric.webp`). The large cultivation leaf next to the questions remains unchanged.
+The welcome header uses the shared electric brand mark (`frontend/public/brand/cultiva-electric-mark-v1.webp`). The large cultivation leaf next to the questions remains unchanged.
 
 ## Language preference
 

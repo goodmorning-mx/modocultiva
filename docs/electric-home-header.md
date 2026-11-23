@@ -4,7 +4,7 @@ The user selected option B (dark green) and explicitly requested a much larger l
 
 ## Scope
 
-- Home-only conditional asset: `src/assets/modo-cultiva-logo-electric.webp`, mechanically resized from the approved 1254×1254 true-alpha PNG to 384×384 WebP (66,042 bytes). No regeneration, recoloring or redesign in this implementation.
+- Approved 384×384 true-alpha WebP (66,042 bytes), originally shipped from `src/assets/modo-cultiva-logo-electric.webp` and now shared with the launch screen at `public/brand/cultiva-electric-mark-v1.webp`. No change to the artwork bytes.
 - Circular green backing: radial `#20483f` to `#12312d`, fine `#32665a` rim, restrained glow. Static effects, no extra particle/canvas/animation loops.
 - Much larger footprint: 88 px desktop/tablet, 72 px mobile (previous image was 38/32 px). Image uses `object-fit: contain` and a modest inset so the silhouette/halo are not cropped.
 - The floating profile/menu controls are vertically centered against the enlarged brand. Title stays centered; controls remain floating. Brand link destination, accessible name and keyboard focus remain available.
