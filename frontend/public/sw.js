@@ -1,6 +1,13 @@
-const CACHE = 'modo-cultiva-shell-v8';
-const MANIFEST = '/manifest.webmanifest?v=2026-11-23-electric-green';
-const BRAND_ICONS = ['32', '180', '192', '512', 'maskable-512'].map(size => `/brand/cultiva-electric-green-${size}.png`);
+const CACHE = 'modo-cultiva-shell-v9';
+const MANIFEST = '/manifest.webmanifest?v=2026-11-23-clear-launch';
+const BRAND_ICONS = [
+  '/brand/cultiva-electric-green-32.png',
+  '/brand/cultiva-electric-green-180.png',
+  '/brand/cultiva-electric-mark-v1.webp',
+  '/brand/cultiva-electric-clear-192.png',
+  '/brand/cultiva-electric-clear-512.png',
+  '/brand/cultiva-electric-flat-maskable-512.png',
+];
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   // Bypass previously cached installation metadata when upgrading the shell.

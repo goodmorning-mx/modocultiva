@@ -54,7 +54,7 @@ import { badgeProgress, cleanCompletions, hasVisionImage, eligibleFeaturedBadges
 import { getBankActivities } from './quoteActivityCatalog';
 import { createNavigationHistory } from './navigationHistory';
 import { renameLifeConfiguration, persistRenamedConfiguration } from './lifeConfigurations';
-import homeElectricLogo from './assets/modo-cultiva-logo-electric.webp';
+import { electricBrandMark } from './brandAssets';
 import './skin-overrides.css';
 import './life-map-polish.css';
 import './profile-level.css';
@@ -2488,7 +2488,7 @@ function App() {
       </div>
       {view === 'welcome' && <header className="topbar topbar--material-home">
         <a className="brand" href="/" aria-label={`Modo Cultiva · ${tr('home')}`}>
-          <img src={homeElectricLogo} className="home-brand-electric" alt="Modo Cultiva" />
+          <img src={electricBrandMark} className="home-brand-electric" alt="Modo Cultiva" />
           <span>Modo Cultiva</span>
         </a>
         <span className="home-material-title">Modo Cultiva</span>
@@ -2522,7 +2522,7 @@ function App() {
       {view === 'login' ? (
         <section className="login-view" data-layer="inicio" aria-labelledby="login-title">
           <div className="login-card">
-            <div className="login-brand"><img src={homeElectricLogo} alt="" /><span>Modo Cultiva</span></div>
+            <div className="login-brand"><img src={electricBrandMark} alt="" /><span>Modo Cultiva</span></div>
             <p className="kicker">{pendingAccess ? planCopy.contextualEyebrow : loginIntro}</p>
             <h1 id="login-title">{pendingAccess ? planCopy.contextualTitle : tr('welcome')}</h1>
             <p className="login-copy">{pendingAccess ? planCopy.contextualDescription(

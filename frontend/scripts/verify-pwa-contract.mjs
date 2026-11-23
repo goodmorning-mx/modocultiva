@@ -23,23 +23,34 @@ if (manifest.prefer_related_applications !== false) fail('manifest must explicit
 if (!Array.isArray(manifest.display_override) || !manifest.display_override.includes('standalone')) fail('manifest is missing standalone display override');
 
 const brandPath = (name) => `/brand/cultiva-electric-green-${name}.png`;
-const iconDimensions = [[32, '32'], [180, '180'], [192, '192'], [512, '512'], [512, 'maskable-512']];
-for (const [size, name] of iconDimensions) {
-  const src = brandPath(name);
-  const purpose = name.startsWith('maskable') ? 'maskable' : 'any';
-  if (size >= 192 && !manifest.icons.some(icon => icon.src === src && icon.sizes === `${size}x${size}` && icon.purpose === purpose)) {
+const launchMarkPath = '/brand/cultiva-electric-mark-v1.webp';
+const iconDimensions = [
+  [32, brandPath(32)], [180, brandPath(180)],
+  [192, '/brand/cultiva-electric-clear-192.png', 'any'],
+  [512, '/brand/cultiva-electric-clear-512.png', 'any'],
+  [512, '/brand/cultiva-electric-flat-maskable-512.png', 'maskable'],
+];
+for (const [size, src, purpose] of iconDimensions) {
+  if (purpose && !manifest.icons.some(icon => icon.src === src && icon.sizes === `${size}x${size}` && icon.purpose === purpose)) {
     fail(`manifest is missing the ${size}px ${purpose} icon`);
   }
   const bytes = readFileSync(resolve(root, `public${src}`));
   if (bytes.toString('hex', 0, 8) !== '89504e470d0a1a0a' || bytes.readUInt32BE(16) !== size || bytes.readUInt32BE(20) !== size) fail(`icon has invalid format or size: ${src}`);
+  if (purpose === 'any' && ![4, 6].includes(bytes[25]) && !bytes.includes(Buffer.from('tRNS'))) fail(`startup icon must have alpha: ${src}`);
 }
 for (const [rel, size] of [['icon', 32], ['apple-touch-icon', 180]]) {
   const tag = html.match(new RegExp(`<link rel="${rel}"[^>]*>`))?.[0];
   if (!tag?.includes(`href="${brandPath(size)}"`) || !tag.includes(`sizes="${size}x${size}"`)) fail(`wrong ${rel} metadata`);
 }
 if (!html.includes(`name="theme-color" content="${manifest.theme_color}"`) || manifest.theme_color !== '#0b231f') fail('PWA chrome must match the green brand');
+if (!html.includes(`<img id="pwa-launch-mark" src="${launchMarkPath}"`) || !html.includes('<p id="pwa-launch-name">Modo Cultiva</p>')) fail('the launch screen must show the approved mark and the wordmark before loading JavaScript');
+if (manifest.background_color !== manifest.theme_color || !html.includes(`background: ${manifest.background_color};`)) fail('the native and web launch surfaces must have the same background');
+const launchMark = readFileSync(resolve(root, `public${launchMarkPath}`));
+if (launchMark.toString('ascii', 8, 16) !== 'WEBPVP8X' || !(launchMark[20] & 0x10) || launchMark.length >= 80_000) fail('the launch mark must have alpha and remain lightweight');
+if (!read('src/brandAssets.ts').includes(`'${launchMarkPath}'`) || !read('src/main.tsx').includes("document.getElementById('pwa-launch')?.remove()")) fail('the startup logo must be shared with the app, and startup must hand off to React');
 
 const serviceWorker = read('public/sw.js');
+if (!serviceWorker.includes(`'${launchMarkPath}'`)) fail('the launch mark must be available offline');
 const nginx = read('nginx.conf');
 for (const path of ['/', '/index.html', '/manifest.webmanifest', '/sw.js']) {
   const location = nginx.split(`location = ${path} {`)[1]?.split('}')[0];
@@ -57,4 +68,4 @@ if (serviceWorker.includes('modo-cultiva-shell-v3')) fail('old service-worker ca
 if (!read('src/main.tsx').includes("navigator.serviceWorker.register('/sw.js')")) fail('service worker is not registered before the app mounts');
 if (!existsSync(resolve(root, 'node_modules/@goodmorning/gm-pwa/frontend/dist/index.js'))) fail('GM-PWA build output is missing');
 
-console.log('[pwa-check] manifest, service worker boundaries and GM-PWA build output verified');
+console.log('[pwa-check] transparent launch mark, footer, manifest, offline assets and GM-PWA build output verified');

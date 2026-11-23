@@ -6,6 +6,7 @@ const origin = 'https://pwa.example.test';
 const manifest = JSON.parse(readFileSync(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8'));
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const manifestUrl = new URL(html.match(/rel="manifest" href="([^"]+)"/)[1], origin).href;
+const launchMark = html.match(/id="pwa-launch-mark" src="([^"]+)"/)[1];
 const oldManifest = { ...manifest, short_name: 'Cultiva' };
 const iconPaths = [...manifest.icons.map(icon => icon.src), ...[...html.matchAll(/rel="(?:icon|apple-touch-icon)"[^>]*href="([^"]+)"/g)].map(match => match[1])];
 const json = (value) => new Response(JSON.stringify(value), { headers: { 'Content-Type': 'application/manifest+json' } });
@@ -26,7 +27,8 @@ async function network(request, options) {
     return json(['reload', 'no-store', 'no-cache'].includes(mode) ? manifest : oldManifest);
   }
   if (iconPaths.includes(new URL(url).pathname)) return new Response('new electric icon', { headers: { 'Content-Type': 'image/png' } });
-  return new Response(url === `${origin}/` ? '<html>Modo Cultiva</html>' : 'asset');
+  if (new URL(url).pathname === launchMark) return new Response('transparent launch mark', { headers: { 'Content-Type': 'image/webp' } });
+  return new Response(url === `${origin}/` ? html : 'asset');
 }
 
 const caches = {
@@ -49,7 +51,7 @@ const caches = {
     }
   },
 };
-const oldName = 'modo-cultiva-shell-v7';
+const oldName = 'modo-cultiva-shell-v8';
 const oldCache = await caches.open(oldName);
 await oldCache.put('/manifest.webmanifest', json(oldManifest));
 await oldCache.put('/', new Response('<html>Old shell</html>'));
@@ -106,6 +108,10 @@ await dispatchFetch('/', 'document');
 assert.equal(calls.at(-1).mode, 'no-cache', 'Page refreshes must revalidate the linked manifest version');
 
 offline = true;
+assert.match(await (await dispatchFetch('/', 'document')).text(), /id="pwa-launch-name">Modo Cultiva</, 'The offline shell keeps the same launch screen');
+const offlineMark = await dispatchFetch(launchMark, 'image');
+assert.equal(offlineMark.headers.get('Content-Type'), 'image/webp');
+assert.equal(await offlineMark.text(), 'transparent launch mark', 'Offline launch uses the same transparent asset');
 assert.equal((await (await dispatchFetch('/manifest.webmanifest')).json()).short_name, 'Modo Cultiva', 'Offline metadata must use the current name');
 for (const path of iconPaths) {
   const icon = await dispatchFetch(path);
@@ -121,4 +127,4 @@ for (const path of ['/auth/session', '/state', '/agent/run', '/ai/generate', '/a
 assert.equal(dispatchFetch('/manifest.webmanifest', '', 'POST'), undefined);
 assert.equal(dispatchFetch('https://other.example.test/manifest.webmanifest'), undefined);
 
-console.log('[pwa-cache-check] Stale-install upgrade, full name online/offline, user-cache preservation and API boundaries passed');
+console.log('[pwa-cache-check] Stale-install upgrade, launch screen online/offline, user-cache preservation and API boundaries passed');
